@@ -1,10 +1,11 @@
-<?php
-define('ROOT_PATH', __DIR__ . '/../../login/');
+<?php session_start();
+#define('ROOT_PATH', __DIR__ . '/../../login/');
 
-require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
-require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
+#require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
+#require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
-
+require_once __DIR__ . '/../include/auth.php';
+$usr = require_login();
 
 
 ?>
@@ -43,9 +44,10 @@ require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
             <!-- Formulário de Login -->
             <div class="login-content" id="login-form">
                 <h2 class="login-title">Faça seu login</h2>
-                <form id="flogin" class="main-form" action="login/processa.php" method="POST">
-                    <input class="fcampo" id="fuser" name="email" type="text" placeholder="Digite seu usuário ou email..." required>
-                    <input class="fcampo" id="fpass" name="p" type="password" placeholder="Digite sua senha..." required>
+                <form id="flogin" class="main-form" action="login/login_process.php" method="POST">
+                    <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required>
+                    <input class="fcampo" id="fpass" name="senha" type="password" placeholder="Digite sua senha..." required>
+                    <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '/') ?>">
                     <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
                     <div class="text-center">
                         <button id="fesq" name="esqueci" type="button" onclick="toggleForm('rec')">Esqueceu sua senha? <strong>Clique aqui</strong></button>
@@ -100,26 +102,26 @@ require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
     <script src="js/script.js"></script>
     <script src="js/jquery.js"></script>
-    <script src="js/sha512.js"></script>
+    <!-- <script src="js/sha512.js"></script> -->
     <script src="https://www.google.com/recaptcha/api.js?render=6LfiANwmAAAAABVkn1-V6qSE4O4kK45eKu72qqu7"></script>
-    <script>
-    function formhash(form, password) {
-        var p = document.createElement("input");
-        form.appendChild(p);
-        p.name = "p";
-        p.type = "hidden";
-        p.value = hex_sha512(password.value);
-        password.value = "";
-        form.submit();
-    }
+    <!-- <script>
+        function formhash(form, password) {
+            var p = document.createElement("input");
+            form.appendChild(p);
+            p.name = "p";
+            p.type = "hidden";
+            p.value = hex_sha512(password.value);
+            password.value = "";
+            form.submit();
+        }
 
-    $(document).ready(function () {
-        $("#flogin").on("submit", function (e) {
-            e.preventDefault();
-            formhash(this, document.getElementById("fpass"));
+        $(document).ready(function () {
+            $("#flogin").on("submit", function (e) {
+                e.preventDefault();
+                formhash(this, document.getElementById("fpass"));
+            });
         });
-    });
-</script>
+    </script> -->
     <script>
         grecaptcha.ready(function() {
             grecaptcha.execute('6LfiANwmAAAAABVkn1-V6qSE4O4kK45eKu72qqu7', {action: 'submit'}).then(function(token) {
