@@ -33,6 +33,6 @@ function current_user() {
 function require_login() {
   $u = current_user();
   if ($u) return $u;
-  header('Location: /login.php?next=' . urlencode($_SERVER['REQUEST_URI'] ?? '/'));
+  header('Location: /?next=' . urlencode($_SERVER['REQUEST_URI'] ?? '/'));
   exit;
 }
