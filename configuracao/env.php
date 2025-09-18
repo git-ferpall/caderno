@@ -1,5 +1,5 @@
 <?php
-define('AUTH_API_LOGIN', 'https://frutag.com.br/api/auth/login');
+define('AUTH_API_LOGIN', 'https://frutag.com.br/sso/login.php');
 
 define('JWT_ALGO', 'HS256');                         // <— HS256
 define('JWT_SECRET', '}^BNS8~o80?RyV]d'); // IGUAL ao do Frutag
