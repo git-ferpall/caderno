@@ -1,0 +1,6 @@
+@media screen and (min-width: 420px) {
+    .apt-box .apt-button .apt-title {
+        font-size: 0.8em;
+        height: 28px;
+    }
+}

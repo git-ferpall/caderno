@@ -1,0 +1,82 @@
+.apt-box {
+    align-items: center;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.apt-box .apt-button {
+    background-color: var(--cinza-b);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    min-width: 95px;
+    max-width: 125px;
+    width: 30%;
+    transition: all 0.2s ease;
+}
+
+.apt-box .apt-button:hover {
+    transform: scale(1.05);
+}
+
+.apt-box .apt-button .apt-icon-box {
+    background-color: var(--branco);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    width: 100%;
+}
+
+.apt-box .apt-button .apt-icon,
+.apt-box .apt-button .apt-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.apt-box .apt-button .apt-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.6em;
+    height: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.apt-box .apt-button.active {
+    width: 100%;
+    max-width: 100%;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.apt-box .apt-button.active:hover {
+    transform: scale(1);
+}
+
+.apt-box .apt-button.active .apt-icon-box {
+    width: 44px;
+    height: 40px;
+    padding: 6px;
+}
+
+.apt-box .apt-button.active .apt-title {
+    justify-content: left;
+    height: 40px;
+    text-transform: none;
+    font-size: 24px;
+}

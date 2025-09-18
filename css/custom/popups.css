@@ -1,0 +1,114 @@
+.popup {
+    position: fixed;
+    inset: 0;
+    background: var(--grad-preto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.popup .popup-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--branco);
+    padding: 50px 30px;
+    border-radius: 15px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.popup .popup-box.success {
+    background: var(--verde);
+    color: var(--branco);
+}
+
+.popup .popup-box .popup-title {
+    font-size: 28px;
+}
+
+.popup .popup-box .popup-text {
+    font-size: 16px;
+}
+
+.popup .popup-box .popup-icon svg {
+    height: 80px;
+    width: 80px;
+    object-fit: contain;
+}
+
+.popup .popup-box .popup-icon .second-color {
+    fill: var(--verde);
+}
+
+.popup .popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.popup .popup-actions .popup-btn {
+    background: var(--preto);
+    color: var(--branco);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; 
+    border: 0px;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 8px 20px;
+    min-width: 100px;
+}
+
+.popup .popup-actions .popup-btn#form-cancel-yes {
+    background: var(--vermelho);
+    color: var(--branco);
+}
+
+.popup-box.v2 {
+    align-items: center;
+    background: var(--branco);
+    border-radius: 15px;
+    max-width: 600px;
+    margin-top: 26px;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    text-align: center;
+    width: 100%;
+}
+
+.popup-box.v2 .popup-title {
+    background: var(--grad-azul);
+    border-radius: 15px;
+    color: var(--branco);
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 15px;
+    position: absolute;
+    top: -21px;
+}
+
+.popup-box .popup-overflow {
+    max-height: 440px;
+    overflow: scroll;
+    padding: 26px 0px 0px;
+}
+
+.popup-box .main-form {
+    padding: 26px 0px 10px;
+}
+
+.prop-box {
+    align-items: center;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}

@@ -1,0 +1,158 @@
+.loading {
+    align-items: center;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    transition: all 1s ease-out;
+    width: 100%;
+    z-index: 9999;
+}
+
+.loading-img {
+    width: 30%;
+}
+
+.loading.fundo-azul-grad .loading-img {
+    width: 60%;
+}
+
+/* Quando for para sumir */
+#load.up {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+body {
+    background: var(--grad-azul);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Roboto', sans-serif !important;
+    min-height: 100vh;
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+}
+
+svg {
+    color: var(--preto);
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.edit-btn {
+    background-color: transparent;
+    border: none;
+}
+
+.edit-icon,
+.edit-icon svg {
+    padding: 0px;
+    margin: 0px;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.main-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; 
+    border: 0px;
+    border-radius: 30px;
+    box-shadow: 0 6px 0px var(--preto);
+    color: var(--branco);
+    font-size: 16px;
+    font-weight: bold;
+    padding: 8px 20px;
+}
+
+.main-btn:hover {
+    box-shadow: 0px 0px 0px;
+    margin-top: 6px !important;
+    margin-bottom: -6px !important;
+}
+
+.main-btn .btn-icon {
+    display: inline-block;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+}
+
+.main-btn .btn-icon svg {
+    background-color: var(--branco);
+    border-radius: 30px;
+    height: 18px;
+    margin: 0px;
+    object-fit: contain;
+    padding: 3px;
+    width: 18px;
+}
+
+.link-title {
+    margin: 0px;
+    padding: 2px 0px 0px 0px;
+}
+
+footer {
+    position: relative;
+    text-align: center;
+    padding: 10px;
+    background-color: var(--branco);
+    width: 100%;
+}
+
+footer .ferpall {
+    align-items: center;
+    color: var(--branco);
+    background-color: var(--preto);
+    border-radius: 15px;
+    display: inline-block;
+    font-size: 10px;
+    margin: 0px;
+    max-width: 400px;
+    min-width: 300px;
+    padding: 6px 0px;
+    text-align: center;
+    width: 100%;
+}
+
+.show {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.6s ease;
+}
+
+.slide-out-up {
+    opacity: 0;
+    transform: translateY(-50px);
+    transition: all 0.6s ease;
+}
+
+.slide-in-up {
+    opacity: 0;
+    transform: translateY(50px);
+}
+  
+@keyframes slidein {
+    from {
+        margin-bottom: 100%;
+        width: 300%;
+    }
+  
+    to {
+        margin-bottom: 0%;
+        width: 100%;
+    }
+}

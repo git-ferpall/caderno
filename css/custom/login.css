@@ -1,0 +1,164 @@
+.content-login {
+    flex: 1;
+    background-image: url("../../img/login/bg.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: 50% 50%;
+}
+
+.header-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.header-login .logo-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--branco);
+    border-radius: 15px;
+    padding: 10px;
+    height: 80px;
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+}
+
+.header-login .logo-box img {
+    max-width: 120px;
+    height: auto;
+}
+
+.login {
+    display: flex;
+    flex-direction: line;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    padding: 0px 10px 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.login .login-box {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--branco);
+    border-radius: 30px;
+    color: var(--preto);
+    flex: 1;
+    max-width: 600px;
+    padding: 60px 60px;
+    width: 100%;
+    height: 100%;
+}
+
+.login .login-box.confirma-box {
+    align-items: center;
+    background-color: var(--verde);
+    color: var(--branco);
+    flex: 1;
+    height: auto;
+    justify-content: center;
+}
+
+.login-box .login-title {
+    font-weight: 800;
+    font-size: 36px;
+    letter-spacing: 0px;
+    padding-bottom: 10px;
+}
+
+.login .main-form {
+    text-align: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login .main-form .fcampo {
+    width: 100%;
+    padding: 12px 12px;
+    border: 0px;
+    border-bottom: 2px solid var(--cinza-b);
+    margin: 5px 0px;
+    background-color: var(--branco);
+    outline: none;
+}
+
+.login .main-form .fcampo::placeholder {
+    color: var(--cinza-a);
+    font-size: 18px;
+}
+
+.login .main-form #fesq {
+    border: 0px;
+    background: none;
+    padding: 5px 0px 15px 0px;
+    font-size: 14px;
+}
+
+.login .main-form #fesq:hover strong,
+.login .main-form #fcadsim:hover strong,
+.login .main-form #fcadnao:hover strong {
+    text-decoration: underline;
+}
+
+.login .main-form #fcadsim,
+.login .main-form #fcadnao {
+    border: 0px;
+    background: none;
+    padding: 15px 0px 0px;
+    font-size: 14px;
+}
+
+.login .main-form .fbuttons {
+    display: flex;
+    flex-direction: line;
+}
+
+.login .main-form#fcadastro .fbuttons,
+.login .main-form#fsenha .fbuttons {
+    padding-top: 15px;
+}
+
+.login .main-form .fbotao {
+    flex: 1;
+    margin: 0px 4px;
+}
+
+.login .main-form .fbotao#fccad,
+.login .main-form .fbotao#fcad,
+.login .main-form .fbotao#fenviar {
+    background-color: var(--azul);
+}
+
+.login .main-form .fbotao#fent {
+    background-color: var(--laranja);
+}
+
+.login .tela-confirma h2 {
+    font-size: 32px;
+}  
+
+@media screen and (max-width: 600px) {
+    .login .login-box {
+        padding: 50px 30px;
+    }
+
+   .login .login-box .login-title {
+        font-size: 28px;
+    }
+
+    .login .main-form .fcampo::placeholder {
+        color: var(--cinza-a);
+        font-size: 16px;
+    }
+
+    .login .main-form .fbotao {
+        font-size: 16px;
+    }
+}

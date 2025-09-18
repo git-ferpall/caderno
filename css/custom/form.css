@@ -1,0 +1,412 @@
+.main-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+}
+
+.main-form .form-campo {
+    width: 100%;
+    text-align: left;
+}
+
+.main-form label {
+    padding-left: 15px;
+    font-weight: bold;
+}
+
+.main-form .form-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+.main-form .form-text {
+    background-color: var(--cinza-c);
+    color: var(--preto);
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    outline: none;
+    padding: 15px 20px;
+    width: 100%;
+}
+
+.main-form .form-textarea {
+    min-height: 160px;
+}
+
+.main-form .form-textarea.v2 {
+    min-height: 100px;
+}
+
+.main-form .form-select {
+    cursor: pointer;
+    padding: 15px 30px 15px 20px;
+}
+
+.main-form .form-select.pb,
+.main-form .form-select.pb * {
+    background-color: var(--preto);
+    color: var(--branco);
+}
+
+.main-form .form-num {
+    text-align: center;
+}
+
+.main-form .form-tel {
+    width: 73%;
+    padding: 15px 30px !important;
+}
+
+.main-form .iti {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    gap: 10px;
+    align-items: center;
+    justify-content: end;
+    position: relative;
+    width: 100%;
+}
+
+.main-form .iti__flag-container {
+    background: transparent;
+    border: none;
+    border-radius: 15px;
+    color: var(--branco);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25%;
+}
+
+.main-form .iti__selected-flag {
+    align-items: center;
+    background-color: var(--preto);
+    border-radius: 15px;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+.main-form .iti__selected-flag:hover {
+    background-color: var(--cinza-a);
+}
+
+.main-form .iti__flag {
+    border-radius: 4px;
+}
+
+.main-form .iti__arrow {
+    display: none;
+}
+
+.main-form .form-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0px 0px 6px;
+    width: 100%;
+}
+
+.main-form .btn-alter {
+    background-color: var(--preto);
+    box-shadow: 0px 0px 0px;
+    margin-top: 6px;
+    margin-bottom: -6px;
+    z-index: 4;
+}
+
+.main-form .btn-alter:hover,
+.main-form .btn-alter.active {
+    background: var(--grad-azul);
+}
+
+.main-form .btn-alter.btn-alter-item:hover,
+.main-form .btn-alter.btn-alter-item.active {
+    background: var(--verde);
+}
+
+.main-form .form-alt-box {
+    height: 0px;
+    margin-top: -20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.main-form .form-alt {
+    align-items: flex-start;
+    background-color: var(--preto);
+    border-radius: 15px;
+    color: var(--branco);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    padding: 25px 15px;
+}
+
+.main-form .form-alt .form-text {
+    background-color: var(--branco);
+}
+
+.main-form .form-senha {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.main-form .form-senha input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.main-form .form-senha .toggle-senha {
+    background: none;
+    border: none;
+    color: var(--cinza-a);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 15px 20px;
+    right: 0px;
+    bottom: 0px;
+    position: absolute;
+}
+
+.main-form .form-senha .toggle-senha:hover {
+    text-decoration: underline;
+}
+
+.main-form .add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 50px;
+    height: 40px;
+    background-color: var(--verde);
+    border-radius: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+.main-form .add-btn .btn-icon,
+.main-form .add-btn .btn-icon svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+    margin: 0px;
+}
+
+.main-form .form-range-box {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 10px;
+    padding: 17.2px 0px;
+}
+
+.main-form .form-range {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    background: var(--cinza-b);
+    border: none;
+    border-radius: 15px;
+    outline: none;
+}
+
+.main-form .form-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 100%;
+    background: var(--preto);
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.main-form .form-range::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    background: var(--preto);
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.main-form .form-range-value {
+    min-width: 24px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--preto);
+}
+
+.main-form .form-bold {
+    font-weight: bold;
+}
+
+.main-form .form-upload-box {
+    position: relative;
+    width: 100%;
+}
+
+.main-form .form-upload {
+    border-radius: 15px;
+    background-color: var(--cinza-b); 
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100px;
+    transition: 0.2s ease;
+    padding: 0px;
+}
+
+.main-form .form-upload:hover {
+    opacity: 0.85;
+}
+
+.main-form .form-label {
+    padding: 0px;
+    text-align: center;
+    width: 100%;
+}
+
+.main-form .form-upload .btn-icon,
+.main-form .form-upload .btn-icon svg {
+    color: var(--preto);
+    display: block;
+    width: 40px;
+    height: 40px;
+}
+
+.main-form .form-upload-preview {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 10px;
+    margin-top: 10px;
+    background-color: var(--cinza-c);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.main-form .form-upload-preview img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 2px solid var(--cinza-a);
+}
+
+.main-form .form-upload-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-form .form-upload-info span {
+    font-size: 14px;
+    color: var(--preto);
+    word-break: break-word;
+}
+
+.main-form .form-upload-info .form-upload-edit .edit-icon,
+.main-form .form-upload-info .form-upload-edit .edit-icon svg {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+
+.main-form .form-radio-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.main-form .form-radio {
+  display: flex;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 15px;
+  background-color: var(--branco-t);
+  color: var(--branco);
+  font-weight: normal;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+  position: relative;
+}
+
+.main-form .form-radio.v2 {
+    background-color: var(--preto-t);
+    color: var(--preto);
+}
+
+.main-form .form-radio.full {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+}
+
+/* Esconde o input padrão */
+.main-form .form-radio input[type="radio"] {
+  display: none;
+  border: none;
+}
+
+/* Quando o input estiver marcado, aplica estilo ao label */
+.main-form .form-radio input[type="radio"]:checked + span,
+.main-form .form-radio input[type="radio"]:checked ~ label,
+.main-form .form-radio input[type="radio"]:checked {
+  background-color: var(--branco);
+  color: var(--preto);
+}
+
+.main-form .form-radio.v2 input[type="radio"]:checked + span,
+.main-form .form-radio.v2 input[type="radio"]:checked ~ label,
+.main-form .form-radio.v2 input[type="radio"]:checked {
+  background-color: var(--preto);
+  color: var(--branco);
+}
+
+/* Estilização alternativa usando :has (suporte limitado) */
+.main-form .form-radio:has(input[type="radio"]:checked) {
+  background-color: var(--branco);
+  color: var(--preto);
+}
+.main-form .form-radio.v2:has(input[type="radio"]:checked) {
+  background-color: var(--preto);
+  color: var(--branco);
+}
+
+.main-form .form-submit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 0px 0px;
+}
+
+.main-form .form-submit button {
+    flex: 1;
+}

@@ -1,0 +1,213 @@
+.menu-principal {
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0px;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+}
+
+.menu-principal .nav-menu {
+    background-color: var(--branco);
+    border-radius: 15px;
+    height: 80px;
+    padding: 0px 20px;
+    width: 100%;
+}
+
+.menu-principal .nav-menu .nav-logo img {
+    width: 140px;
+}
+
+.menu-principal .nav-menu .nav-items .nav-menu-btn {
+    background-color: transparent;
+    border: 3px solid var(--preto);
+    color: var(--preto);
+    font-size: 16px;
+    padding: 2px 30px;
+}
+
+.menu-principal .nav-menu .nav-items .nav-menu-btn:hover {
+    background-color: var(--preto);
+    color: var(--branco);
+}
+
+.menu-principal.active .nav-menu .nav-items .nav-menu-btn {
+    background: var(--grad-azul);
+    color: var(--branco);
+    border: 0px;
+}
+
+.menu-principal .menu-content {
+    background-color: var(--branco);
+    border-radius: 15px;
+    flex: 1;
+    flex-direction: column;
+    max-height: 0px;
+    max-width: 400px;
+    overflow: hidden;
+    margin-left: auto;
+    padding: 10px;
+    position: absolute;
+    transition: all 0.4s ease-in-out;
+    left: 10px;
+    right: 10px;
+    top: 100px;
+    opacity: 0;
+}
+
+.menu-principal.active {
+    background-color: rgba(0, 0, 0, 0.5);
+    min-height: 100vh;
+    height: 100%;
+}
+
+.menu-principal.active .menu-content {
+    display: flex;
+    max-height: 100vh;
+    margin-top: 0px;
+    opacity: 1;
+}
+
+.menu-principal .menu-content .user-settings {
+    background: var(--grad-azul);
+    border-radius: 15px;
+    color: var(--branco);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 15px;
+}
+
+.menu-principal .menu-content .user-settings .user {
+    text-align: left;
+}
+
+.menu-principal .menu-content .user-settings .propriedade {
+    text-align: right;
+}
+
+.menu-principal .menu-content .user-settings .user-type {
+    display: inline-block;
+    background-color: var(--branco);
+    border-radius: 30px;
+    color: var(--azul);
+    font-size: 12px;
+    margin-bottom: 5px;
+    padding: 3px 12px;
+}
+
+.menu-principal .menu-content .user-settings .user-name {
+    font-size: 16px;
+    padding-top: 3px;
+    margin: 0px;
+}
+
+.menu-principal .menu-content .user-settings .user-id {
+    font-size: 16px;
+    font-weight: 400;
+    padding: 3px 0px;
+    margin: 0px;
+}
+
+/* .menu-principal .menu-content #btn-apontamento {
+    margin: 10px 0px;
+    width: 100%;
+    padding-bottom: -5px;
+    text-transform: uppercase;
+}
+
+.menu-principal .menu-content #btn-apontamento:hover {
+    margin-top: 18px !important;
+    margin-bottom: 2px !important;
+}
+
+.menu-principal .menu-content #btn-apontamento .link-title {
+    margin: 0px;
+    padding: 0px;
+}
+
+.menu-principal .menu-content #btn-apontamento .btn-icon svg {
+    color: var(--verde);
+} */
+
+.menu-principal .menu-content .menu-list {
+    flex: 1;
+}
+
+.menu-links {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    padding: 10px 0px;
+    margin: 0px;
+    text-align: center;
+}
+
+.menu-links .menu-link {
+    align-items: center;
+    background-color: var(--cinza-b);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 6px 12px;
+    width: 100%;
+}
+
+.menu-links .menu-link:hover {
+    background-color: var(--preto);
+}
+
+.menu-links .menu-link:hover .link-title,
+.menu-links .menu-link:hover .btn-icon svg {
+    color: var(--branco);
+}
+
+.menu-links .menu-link .link-title {
+    color: var(--preto);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.menu-links .menu-link .btn-icon {
+    display: inline-block;
+    padding-bottom: 2px;
+}
+
+.menu-links .menu-link .btn-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+.menu-principal .menu-content .menu-final {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 15px;
+}
+
+.menu-principal .menu-content .menu-final img {
+    width: 120px;
+}
+
+.menu-principal .menu-content .menu-final #btn-sair {
+    padding: 4px 30px;
+}
+
+.menu-principal .menu-content .menu-final #btn-sair .btn-icon svg {
+    background-color: transparent;
+    border-radius: 0px;
+    color: var(--branco);
+    padding: 0px;
+    width: 16px;
+    height: 16px;
+}

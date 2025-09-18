@@ -1,0 +1,78 @@
+* {
+    --azul: #13b0a6;
+    --azul-e: #004f72;
+    --laranja: #e95c24;
+    --verde: #63a027;
+    --vermelho: #b21b24;
+    
+    --cinza-a: #a6a6a6;
+    --cinza-b: #e4e4e4;
+    --cinza-c: #f4f4f4;
+
+    --branco: #ffffff;
+    --branco-t: #FFFFFF30;
+    --preto: #1d1d1d;
+    --preto-t: #1d1d1d30;
+
+    --grad-azul: linear-gradient(135deg, var(--azul), var(--azul-e));
+    --grad-laranja: linear-gradient(135deg, var(--laranja), var(--apt17));
+    --grad-preto: linear-gradient(rgba(29, 29, 29, 0.6), rgba(29, 29, 29, 0.6));
+
+    /* Cores dos apontamentos */
+
+    --apt1: #e53b30; /* Plantio */
+    --apt2: #e41257; /* Transplantio */
+    --apt3: #8a1977; /* Colheita */
+    --apt4: #0d5b31; /* Registros Climáticos */
+    --apt5: #3b4c94; /* Fertilizante */
+    --apt6: #3ca443; /* Herbicida */
+    --apt7: #1b5e53; /* Fungicida */
+    --apt8: #207c92; /* Inseticida */
+    --apt9: #c4cf1d; /* Adubação (Calcário) */
+    --apt10: #99bc6e; /* Adubação (Orgânica) */
+    --apt11: #3096d7; /* Irrigação */
+    --apt12: #1b6197; /* Controle de Água */
+    --apt13: #aa7342; /* Mosca-das-frutas */
+    --apt14: #804249; /* Pragas e Doenças */
+    --apt15: #e7451a; /* Manejo Integrado */
+    --apt16: #823424; /* Erradicação */
+    --apt17: #bb1840; /* Revisão de Máquinas */
+    --apt18: #674688; /* Coleta e Análise */
+    --apt19: #6f4c42; /* Visita Técnica */
+    --apt20: #595b5d; /* Personalizado */
+}
+
+.fundo-azul { background-color: var(--azul) !important; }
+.fundo-laranja { background-color: var(--laranja) !important; }
+.fundo-verde { background-color: var(--verde) !important; }
+.fundo-vermelho { background-color: var(--vermelho) !important; }
+
+.fundo-branco { background-color: var(--branco) !important; }
+.fundo-preto { background-color: var(--preto) !important; }
+
+.fundo-cinza-a { background-color: var(--cinza-a) !important; }
+.fundo-cinza-b { background-color: var(--cinza-b) !important; }
+.fundo-cinza-c { background-color: var(--cinza-c) !important; }
+
+.fundo-azul-grad { background: var(--grad-azul) !important; }
+
+.cor-azul, .cor-azul svg { color: var(--azul) !important; }
+.cor-laranja, .cor-laranja svg { color: var(--laranja) !important; }
+.cor-verde, .cor-verde svg { color: var(--verde) !important; }
+.cor-vermelho, .cor-vermelho svg { color: var(--vermelho) !important; }
+
+.cor-branco, .cor-branco svg { color: var(--branco) !important; }
+.cor-preto, .cor-preto svg { color: var(--preto) !important; }
+
+.cor-cinza-a, .cor-cinza-a svg { color: var(--cinza-a) !important; }
+.cor-cinza-b, .cor-cinza-b svg { color: var(--cinza-b) !important; }
+.cor-cinza-c, .cor-cinza-c svg { color: var(--cinza-c) !important; }
+
+.f1 { flex: 1; }
+.f2 { flex: 2; }
+.f3 { flex: 3; }
+.f4 { flex: 4; }
+.f5 { flex: 5; }
+.f6 { flex: 6; }
+.f7 { flex: 7; }
+.f8 { flex: 8; }

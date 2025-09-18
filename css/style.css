@@ -1,0 +1,18 @@
+/* Fonte Roboto - Fonte principal */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+/* Bootstrap - Framework utilizado para automatização */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css');
+/* INTL Tel Input - Lista de códigos telefônicos (+55, +1, etc) */
+@import url("https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css");
+
+
+@import url('custom/variables.css');
+@import url('custom/menu.css');
+@import url('custom/login.css');
+@import url('custom/main.css');
+@import url('custom/system.css');
+@import url('custom/form.css');
+@import url('custom/silo.css');
+@import url('custom/apt.css');
+@import url('custom/popups.css');
+@import url('custom/responsive.css');
