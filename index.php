@@ -1,13 +1,16 @@
-<?php session_start();
+<?php
+session_start();
 #define('ROOT_PATH', __DIR__ . '/../../login/');
 
 #require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
 #require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
 require_once __DIR__ . '/configuracao/auth.php';
-$usr = require_login();
 
-
+if (current_user()) {           // se já logado, manda pra home
+  header('Location: /home/');
+  exit;
+}
 ?>
 
 
