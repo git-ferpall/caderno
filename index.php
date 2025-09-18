@@ -4,7 +4,7 @@
 #require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
 #require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
-require_once __DIR__ . '/../include/auth.php';
+require_once __DIR__ . '/configuracao/auth.php';
 $usr = require_login();
 
 
@@ -44,7 +44,7 @@ $usr = require_login();
             <!-- Formulário de Login -->
             <div class="login-content" id="login-form">
                 <h2 class="login-title">Faça seu login</h2>
-                <form id="flogin" class="main-form" action="login/login_process.php" method="POST">
+                <form id="flogin" class="main-form" action="configuracao/login_process.php" method="POST">
                     <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required>
                     <input class="fcampo" id="fpass" name="senha" type="password" placeholder="Digite sua senha..." required>
                     <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '/') ?>">
