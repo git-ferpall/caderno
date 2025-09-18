@@ -34,4 +34,3 @@ setcookie(AUTH_COOKIE, $data["token"], $params);
 header("Location: " . ($next ?: "/"));
 exit;
 ?>
-PHP'
