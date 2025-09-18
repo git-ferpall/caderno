@@ -33,6 +33,13 @@ function current_user() {
 function require_login() {
   $u = current_user();
   if ($u) return $u;
-  header('Location: /?next=' . urlencode($_SERVER['REQUEST_URI'] ?? '/'));
+
+  $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+  if ($path === '/login.php') {
+    return null; // já está na tela de login: não redireciona de novo
+  }
+
+  $next = $_GET['next'] ?? ($_SERVER['REQUEST_URI'] ?? '/');
+  header('Location: /login.php?next=' . urlencode($next));
   exit;
 }
