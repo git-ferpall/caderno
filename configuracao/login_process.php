@@ -1,30 +1,39 @@
 <?php
-require_once __DIR__ . "/env.php";
-require_once __DIR__ . "/http.php";
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/http.php';
 
-$login   = trim($_POST["login"] ?? "");
-$senha   = trim($_POST["senha"] ?? "");
-$next    = $_POST["next"] ?? "/";
-$captcha = $_POST["g-recaptcha-response"] ?? "";
+$login = trim($_POST['login'] ?? '');
+$senha = trim($_POST['senha'] ?? '');
+$next  = $_POST['next'] ?? '/';
 
-if ($login === "" || $senha === "") { header("Location: /login.php?e=1"); exit; }
+if ($login === '' || $senha === '') { header('Location: /login.php?e=1'); exit; }
 
-$r = http_post_form(AUTH_API_LOGIN, [
-  "login" => $login, "senha" => $senha, "captcha" => $captcha
-]);
+$r = http_post_form(AUTH_API_LOGIN, ['login'=>$login,'senha'=>$senha]);
 
-if ($r['status'] !== 200 || !$r['body']) {
-  header("Location: /login.php?e=api"); exit;   // API fora/500/404
+// Falha de rede, 5xx ou corpo vazio => erro de API
+if (!$r || $r['status'] === 0 || $r['status'] >= 500 || $r['body'] === '') {
+  header('Location: /login.php?e=api'); exit;
 }
 
-$data = json_decode($r['body'], true);
-if (!is_array($data) || empty($data["ok"]) || empty($data["token"])) {
-  header("Location: /login.php?e=2"); exit;
+// 401 (ou 403) => credenciais inválidas
+if ($r['status'] === 401 || $r['status'] === 403) {
+  header('Location: /login.php?e=cred'); exit;
 }
 
-/* TESTE sem HTTPS: cookie sem domain/secure */
-setcookie(AUTH_COOKIE, $data["token"], [
-  "expires"=> time()+3600, "path"=>"/", "httponly"=>true, "samesite"=>"Lax"
+// Demais casos: tenta parsear JSON
+$j = json_decode($r['body'], true);
+if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
+  header('Location: /login.php?e=cred'); exit;
+}
+
+// Cookie SSO seguro
+setcookie(AUTH_COOKIE, $j['token'], [
+  'expires'  => time()+3600,
+  'path'     => '/',
+  'domain'   => '.frutag.com.br',
+  'secure'   => true,
+  'httponly' => true,
+  'samesite' => 'None',
 ]);
 
-header("Location: " . ($next ?: "/")); exit;
+header('Location: ' . ($next ?: '/')); exit;
