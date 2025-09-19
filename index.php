@@ -7,9 +7,9 @@ session_start();
 
 require_once __DIR__ . '/configuracao/auth.php';
 
-if (current_user()) {           // se já logado, manda pra home
-  header('Location: /home/');
-  exit;
+if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
+    header('Location: /home/home.php');
+    exit;
 }
 ?>
 

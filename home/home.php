@@ -1,18 +1,6 @@
 <?php
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php'; // Se já não estiver no topo
 
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
