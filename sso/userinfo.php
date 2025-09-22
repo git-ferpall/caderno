@@ -1,11 +1,6 @@
 <?php
-// public_html/sso/userinfo.php
-// Retorna informações detalhadas do usuário logado com base no JWT
-// PHP 7.3+
-
-@ini_set('display_errors', '0');
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 require_once __DIR__ . '/../configuracao/env.php';            // JWT_SECRET e AUTH_COOKIE
 require_once __DIR__ . '/../configuracao/conexao_frutag.php'; // conexão remota fruta169_frutag
