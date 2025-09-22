@@ -1,16 +1,44 @@
 <?php
+// 1) Funções (define sec_session_start, isLogged, verificaSessaoExpirada, etc.)
+require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
+
+// 2) Conexão e demais dependências
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../funcoes/busca_usuario.php';
 require_once __DIR__ . '/../funcoes/busca_propriedade.php';
 
-sec_session_start();
-
-$cod_usuario = isset($_SESSION['cliente_cod']) ? $_SESSION['cliente_cod'] : null;
-$usuario = $cod_usuario ? buscarUsuarioPorCodigo($cod_usuario, $mysqli) : null;
-$propriedade = null;
-if ($cod_usuario) {
-    $propriedade = buscarPropriedadePorUsuario($cod_usuario, $mysqli);
+// 3) Garante sessão ativa (idempotente)
+if (function_exists('sec_session_start')) {
+    sec_session_start();
+} else {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        // fallback simples se, por algum motivo, o arquivo de funções não carregou
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
+    }
 }
+
+// (Opcional, mas recomendado)
+if (function_exists('verificaSessaoExpirada')) {
+    verificaSessaoExpirada(); // expira após inatividade
+}
+
+// (Opcional, se este arquivo exige usuário logado)
+if (function_exists('isLogged') && !isLogged()) {
+    header('Location: /login.php?e=session');
+    exit();
+}
+
+// 4) Carrega dados do usuário/propriedade
+$cod_usuario = $_SESSION['cliente_cod'] ?? null;
+$usuario     = $cod_usuario ? buscarUsuarioPorCodigo($cod_usuario, $mysqli) : null;
+$propriedade = $cod_usuario ? buscarPropriedadePorUsuario($cod_usuario, $mysqli) : null;
 
 ?>
 
