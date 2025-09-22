@@ -164,7 +164,7 @@ if (!isLogged()) {
 
         <?php include '../include/imports.php' ?>
     </div>
-    
+    <?php ob_end_flush(); ?>
     <?php include '../include/footer.php' ?>
 </body>
 </html>
