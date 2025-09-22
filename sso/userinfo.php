@@ -7,7 +7,8 @@ ini_set('error_log', __DIR__ . '/userinfo_error.log');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/env.php'; // precisa ter JWT_SECRET e AUTH_COOKIE definidos
+require_once __DIR__ . '/../configuracao/env.php';
+
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
 function fail($code, $msg) {
