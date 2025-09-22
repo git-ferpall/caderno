@@ -1,19 +1,13 @@
 <?php
+define('PUBLIC_PAGE', true);
 session_start();
-#define('ROOT_PATH', __DIR__ . '/../../login/');
-
-#require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
-#require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
-
 require_once __DIR__ . '/configuracao/auth.php';
 
 if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
-    header('Location: /home/home.php');
+    header('Location: ' . DEFAULT_AFTER_LOGIN, true, 302);
     exit;
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="pt-br">

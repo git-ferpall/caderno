@@ -1,31 +1,20 @@
 <?php
-// Middleware de autenticação para o Caderno (JWT HS256/RS256)
-
 require_once __DIR__ . "/env.php";
-
-// autoload do composer (firebase/php-jwt)
 require_once __DIR__ . "/../vendor/autoload.php";
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-/**
- * Lê o token do cookie AUTH_COOKIE ou do header Authorization: Bearer
- */
+const LOGIN_PATH = '/index.php';
+const DEFAULT_AFTER_LOGIN = '/home/home.php';
+
 function getBearerOrCookie() {
-  if (!empty($_COOKIE[AUTH_COOKIE])) {
-    return $_COOKIE[AUTH_COOKIE];
-  }
+  if (!empty($_COOKIE[AUTH_COOKIE])) return $_COOKIE[AUTH_COOKIE];
   $h = $_SERVER["HTTP_AUTHORIZATION"] ?? "";
-  if ($h && preg_match('/Bearer\s+(.+)/i', $h, $m)) {
-    return $m[1];
-  }
+  if ($h && preg_match('/Bearer\s+(.+)/i', $h, $m)) return $m[1];
   return null;
 }
 
-/**
- * Decodifica e valida o JWT, retornando as claims (ou null se inválido/ausente)
- */
 function current_user() {
   static $claims = null;
   if ($claims !== null) return $claims;
@@ -35,10 +24,8 @@ function current_user() {
 
   try {
     if (defined("JWT_ALGO") && JWT_ALGO === "HS256") {
-      // HS256: usa segredo compartilhado
       $claims = JWT::decode($jwt, new Key(JWT_SECRET, "HS256"));
     } else {
-      // RS256: usa chave pública
       $pub = @file_get_contents(JWT_PUBLIC_KEY_PATH);
       if (!$pub) return null;
       $claims = JWT::decode($jwt, new Key($pub, "RS256"));
@@ -49,19 +36,41 @@ function current_user() {
   }
 }
 
-/**
- * Força login nas páginas internas.
- * Evita loop se já estiver em /login.php (deixe o /login.php renderizar o formulário).
- */
-function require_login() {
-  $u = current_user();
-  if ($u) return $u;
-
-  $path = parse_url($_SERVER["REQUEST_URI"] ?? "/", PHP_URL_PATH) ?? "/";
-  if ($path === "/login.php") {
-    return null; // já está na tela de login
+if (!function_exists('isLogged')) {
+  function isLogged(): bool {
+    // mantém compatibilidade com qualquer sessão que você já use
+    return current_user() !== null || !empty($_SESSION['user_id'] ?? null);
   }
-  $next = $_GET["next"] ?? ($_SERVER["REQUEST_URI"] ?? "/");
-  header("Location: /login.php?next=" . urlencode($next));
+}
+
+// ── util: garante que "next" é um caminho interno
+function sanitize_next($next) {
+  $next = $next ?: DEFAULT_AFTER_LOGIN;
+  if (preg_match('~^https?://~i', $next)) return DEFAULT_AFTER_LOGIN;
+  if ($next[0] !== '/') $next = '/' . ltrim($next, '/');
+  return $next;
+}
+
+function require_login() {
+  if (defined('PUBLIC_PAGE') && PUBLIC_PAGE === true) return; // index.php é público
+  if (isLogged()) return;
+
+  $script = $_SERVER['SCRIPT_NAME'] ?? '/';
+  $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+
+  // evita loop no login
+  if ($script === LOGIN_PATH || $path === LOGIN_PATH || $path === '/') return;
+
+  // para AJAX, devolve 401 em vez de redirecionar
+  $isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+  if ($isAjax) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'unauthenticated']);
+    exit;
+  }
+
+  $next = sanitize_next($_SERVER['REQUEST_URI'] ?? DEFAULT_AFTER_LOGIN);
+  header('Location: ' . LOGIN_PATH . '?next=' . urlencode($next), true, 302);
   exit;
 }

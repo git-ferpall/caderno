@@ -1,38 +1,40 @@
 <?php
 require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/http.php';
+require_once __DIR__ . '/auth.php'; // <- para usar sanitize_next() (abaixo)
 
 $login = trim($_POST['login'] ?? '');
 $senha = trim($_POST['senha'] ?? '');
 $next  = $_POST['next'] ?? '/';
 
-if ($login === '' || $senha === '') { header('Location: /login.php?e=1'); exit; }
+if ($login === '' || $senha === '') { header('Location: /index.php?e=1'); exit; }
 
 $r = http_post_form(AUTH_API_LOGIN, ['login'=>$login,'senha'=>$senha]);
 
-// Falha de rede/timeout/corpo vazio/5xx → erro de API
 if (!$r || $r['status'] === 0 || $r['body'] === '' || $r['status'] >= 500) {
-  header('Location: /login.php?e=api'); exit;
+  header('Location: /index.php?e=api'); exit;
 }
 
-// 401/403 → credenciais inválidas
 if ($r['status'] === 401 || $r['status'] === 403) {
-  header('Location: /login.php?e=cred'); exit;
+  header('Location: /index.php?e=cred'); exit;
 }
 
-// Demais casos → parse JSON e exige token
 $j = json_decode($r['body'], true);
 if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
-  header('Location: /login.php?e=cred'); exit;
+  header('Location: /index.php?e=cred'); exit;
 }
 
+// grava o JWT — igual você já faz
 setcookie(AUTH_COOKIE, $j['token'], [
   'expires'  => time()+3600,
   'path'     => '/',
   'domain'   => '.frutag.com.br',
   'secure'   => true,
   'httponly' => true,
-  'samesite' => 'None',
+  'samesite' => 'None', // exige HTTPS
 ]);
 
-header('Location: ' . ($next ?: '/')); exit;
+// redireciona para o destino seguro (sanitizado)
+$next = sanitize_next($next);        // <- vem de auth.php
+header('Location: ' . $next, true, 302);
+exit;
