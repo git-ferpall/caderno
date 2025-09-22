@@ -1,20 +1,19 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/configuracao/env.php'; // garante que AUTH_COOKIE está definido
+require_once __DIR__ . '/env.php';
 
-// Expira o cookie AUTH_COOKIE
+// Expira o cookie
 setcookie(AUTH_COOKIE, '', [
-    'expires'  => time() - 3600, // expira no passado
+    'expires'  => time() - 3600,
     'path'     => '/',
+    'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
     'httponly' => true,
     'samesite' => 'Lax',
-    'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
 ]);
 
-// Também remove da superglobal (só pra garantir)
 unset($_COOKIE[AUTH_COOKIE]);
 
-// Redireciona para a tela de login
+// Redireciona para login
 header('Location: /index.php');
 exit;
