@@ -1,67 +1,98 @@
 <?php
 // public_html/sso/userinfo.php
-// Retorna informações do usuário a partir do token JWT
+// Retorna informações detalhadas do usuário logado com base no JWT
 
 @ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/../configuracao/env.php'; // aqui deve ter o define('JWT_SECRET', '...');
+require_once __DIR__ . '/env.php'; // define JWT_SECRET e credenciais DB
 
-function b64url_decode($s) {
-    return base64_decode(strtr($s, '-_', '+/'));
+function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
+
+function fail($code, $msg) {
+    http_response_code($code);
+    echo json_encode(['ok'=>false,'err'=>$msg]);
+    exit;
 }
 
-// 1. Captura o token (Authorization ou cookie)
-$jwt = null;
-
-// Header Authorization: Bearer <token>
+// 1. Captura o token
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-if (preg_match('/^Bearer\s+(.+)$/i', $auth, $m)) {
+$jwt = null;
+if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
     $jwt = $m[1];
+} elseif (!empty($_COOKIE[AUTH_COOKIE])) {
+    $jwt = $_COOKIE[AUTH_COOKIE];
 }
+if (!$jwt) fail(401, 'no_token');
 
-// Cookie "token"
-if (!$jwt && !empty($_COOKIE['token'])) {
-    $jwt = $_COOKIE['token'];
-}
-
-if (!$jwt) {
-    echo json_encode(['ok'=>false,'err'=>'no_token']); exit;
-}
-
-// 2. Valida e decodifica JWT
+// 2. Valida formato
 $parts = explode('.', $jwt);
-if (count($parts) !== 3) {
-    echo json_encode(['ok'=>false,'err'=>'invalid_token']); exit;
-}
+if (count($parts) !== 3) fail(401, 'bad_token');
 
-list($h64, $p64, $s64) = $parts;
+[$h64,$p64,$s64] = $parts;
 $payload = json_decode(b64url_decode($p64), true);
-if (!$payload) {
-    echo json_encode(['ok'=>false,'err'=>'invalid_payload']); exit;
+if (!$payload) fail(401, 'bad_payload');
+
+// 3. Valida assinatura
+$sign = hash_hmac('sha256', "$h64.$p64", $JWT_SECRET, true);
+if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
+
+// 4. Valida expiração
+if (!empty($payload['exp']) && $payload['exp'] < time()) fail(401, 'exp');
+
+// 5. Conecta no banco
+try {
+    $pdo = new PDO(
+        "mysql:host=localhost;dbname=fruta169_frutag;charset=utf8mb4",
+        'fruta169_sso',
+        'S3nh@SSO-MuitoForte!',
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+    );
+} catch(Throwable $e) {
+    fail(500, 'db');
 }
 
-// Verifica expiração
-$now = time();
-if (isset($payload['exp']) && $payload['exp'] < $now) {
-    echo json_encode(['ok'=>false,'err'=>'expired']); exit;
+// 6. Busca infos extras
+$id   = (int)($payload['sub'] ?? 0);
+$tipo = $payload['tipo'] ?? '';
+
+$extra = [];
+
+if ($tipo === 'cliente') {
+    $st = $pdo->prepare("
+        SELECT 
+            cli_empresa   AS empresa,
+            cli_razao_social AS razao_social,
+            cli_cnpj_cpf  AS cpf_cnpj
+        FROM cliente
+        WHERE cli_cod = :id
+        LIMIT 1
+    ");
+    $st->execute([':id'=>$id]);
+    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+} elseif ($tipo === 'usuario') {
+    $st = $pdo->prepare("
+        SELECT 
+          usu_nome AS empresa,
+          usu_nome AS razao_social,
+          usu_cpf  AS cpf_cnpj
+        FROM usuario
+        WHERE usu_cod = :id
+        LIMIT 1
+    ");
+    $st->execute([':id'=>$id]);
+    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-// Verifica assinatura HS256
-$check = hash_hmac('sha256', $h64.'.'.$p64, JWT_SECRET, true);
-if (!hash_equals($check, b64url_decode($s64))) {
-    echo json_encode(['ok'=>false,'err'=>'bad_signature']); exit;
-}
-
-// 3. Retorna as informações disponíveis
+// 7. Resposta final
 echo json_encode([
-    'ok'          => true,
-    'id'          => $payload['sub'] ?? null,
-    'tipo'        => $payload['tipo'] ?? null,
-    'name'        => $payload['name'] ?? null,
-    'email'       => $payload['email'] ?? null,
-    'empresa'     => $payload['empresa'] ?? null,
-    'razao_social'=> $payload['razao_social'] ?? null,
-    'cpf_cnpj'    => $payload['cpf_cnpj'] ?? null,
+    'ok'    => true,
+    'sub'   => $payload['sub'] ?? null,
+    'tipo'  => $payload['tipo'] ?? null,
+    'name'  => $payload['name'] ?? null,
+    'email' => $payload['email'] ?? null,
+    'empresa'      => $extra['empresa'] ?? null,
+    'razao_social' => $extra['razao_social'] ?? null,
+    'cpf_cnpj'     => $extra['cpf_cnpj'] ?? null,
 ]);
