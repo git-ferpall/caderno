@@ -2,14 +2,9 @@
 // public_html/sso/userinfo.php
 // Retorna informações do usuário logado com base no JWT
 // Agora usando configuracao_conexao.php (mysqli)
-
 error_reporting(E_ALL);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/userinfo_error.log');
+ini_set('display_errors', 1);
 
-@ini_set('display_errors', '0');
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
 
 require_once __DIR__ . '/../configuracao/env.php';              // JWT_SECRET, AUTH_COOKIE
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php'; // cria $mysqli
