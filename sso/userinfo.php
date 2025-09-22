@@ -1,12 +1,13 @@
 <?php
 // public_html/sso/userinfo.php
-// Retorna informações do JWT, sem banco
+// Retorna as informações do JWT, sem acessar banco
+// PHP 7.3+
 
 @ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/env.php'; // define JWT_SECRET e AUTH_COOKIE
+require_once __DIR__ . '/env.php'; // precisa ter JWT_SECRET e AUTH_COOKIE definidos
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
 function fail($code, $msg) {
@@ -15,7 +16,7 @@ function fail($code, $msg) {
     exit;
 }
 
-// 1. Captura token
+// 1. Captura token (Authorization ou cookie)
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 $jwt = null;
 if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
@@ -40,7 +41,7 @@ if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
 // 4. Valida expiração
 if (!empty($payload['exp']) && $payload['exp'] < time()) fail(401, 'exp');
 
-// 5. Resposta final: devolve só o que interessa
+// 5. Retorna claims principais + extras
 echo json_encode([
     'ok'           => true,
     'sub'          => $payload['sub'] ?? null,
