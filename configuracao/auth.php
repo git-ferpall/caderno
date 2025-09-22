@@ -62,6 +62,6 @@ function require_login() {
     return null; // já está na tela de login
 }
   $next = $_GET["next"] ?? ($_SERVER["REQUEST_URI"] ?? "/");
-  header("Location: /login.php?next=" . urlencode($next));
+  header("Location: /index.php?next=" . urlencode($next));
   exit;
 }
