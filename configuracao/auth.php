@@ -58,9 +58,9 @@ function require_login() {
   if ($u) return $u;
 
   $path = parse_url($_SERVER["REQUEST_URI"] ?? "/", PHP_URL_PATH) ?? "/";
-  if ($path === "/login.php") {
+  if (in_array($path, ["/login.php", "/index.php", "/"])) {
     return null; // já está na tela de login
-  }
+}
   $next = $_GET["next"] ?? ($_SERVER["REQUEST_URI"] ?? "/");
   header("Location: /login.php?next=" . urlencode($next));
   exit;
