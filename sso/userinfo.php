@@ -1,7 +1,6 @@
 <?php
 // public_html/sso/userinfo.php
-// Retorna informações detalhadas do usuário logado com base no JWT
-// PHP 7.3+
+// Retorna informações do JWT, sem banco
 
 @ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
@@ -10,14 +9,13 @@ header('Cache-Control: no-store');
 require_once __DIR__ . '/env.php'; // define JWT_SECRET e AUTH_COOKIE
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
-
 function fail($code, $msg) {
     http_response_code($code);
     echo json_encode(['ok'=>false,'err'=>$msg]);
     exit;
 }
 
-// 1. Captura o token
+// 1. Captura token
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 $jwt = null;
 if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
@@ -42,66 +40,14 @@ if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
 // 4. Valida expiração
 if (!empty($payload['exp']) && $payload['exp'] < time()) fail(401, 'exp');
 
-// 5. Conecta no banco
-try {
-    $pdo = new PDO(
-        "mysql:host=localhost;dbname=fruta169_frutag;charset=utf8mb4",
-        'fruta169_sso',
-        'S3nh@SSO-MuitoForte!',
-        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
-    );
-} catch(Throwable $e) {
-    error_log("USERINFO DB ERROR: " . $e->getMessage());
-    fail(500, 'db');
-}
-
-// 6. Busca infos extras
-$id   = (int)($payload['sub'] ?? 0);
-$tipo = $payload['tipo'] ?? '';
-
-$extra = [];
-
-try {
-    if ($tipo === 'cliente') {
-    $st = $pdo->prepare("
-        SELECT 
-            cli_empresa,
-            cli_razao_social,
-            cli_cnpj_cpf
-        FROM cliente
-        WHERE cli_cod = :id
-        LIMIT 1
-    ");
-    $st->execute([':id' => $id]);
-    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-
-
-    } elseif ($tipo === 'usuario') {
-        $st = $pdo->prepare("
-            SELECT 
-                usu_nome AS empresa,
-                usu_nome AS razao_social,
-                usu_cpf  AS cpf_cnpj
-            FROM usuario
-            WHERE usu_cod = :id
-            LIMIT 1
-        ");
-        $st->execute([':id' => $id]);
-        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-    }
-} catch(Throwable $e) {
-    error_log("USERINFO SQL ERROR: " . $e->getMessage());
-    $extra = [];
-}
-
-// 7. Resposta final
+// 5. Resposta final: devolve só o que interessa
 echo json_encode([
-    'ok'    => true,
-    'sub'   => $payload['sub'] ?? null,
-    'tipo'  => $payload['tipo'] ?? null,
-    'name'  => $payload['name'] ?? null,
-    'email' => $payload['email'] ?? null,
-    'empresa'      => $extra['empresa'] ?? null,
-    'razao_social' => $extra['razao_social'] ?? null,
-    'cpf_cnpj'     => $extra['cpf_cnpj'] ?? null,
+    'ok'           => true,
+    'sub'          => $payload['sub'] ?? null,
+    'tipo'         => $payload['tipo'] ?? null,
+    'name'         => $payload['name'] ?? null,
+    'email'        => $payload['email'] ?? null,
+    'empresa'      => $payload['empresa'] ?? null,
+    'razao_social' => $payload['razao_social'] ?? null,
+    'cpf_cnpj'     => $payload['cpf_cnpj'] ?? null,
 ]);
