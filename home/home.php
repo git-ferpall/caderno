@@ -1,13 +1,7 @@
 <?php
-ob_start();
-require_once __DIR__ . '/../configuracao/session.php';
-require_login();
 
-// $usuarioId = $_SESSION['user_id'] ?? null;
+
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -150,6 +144,5 @@ require_login();
     </div>
     
     <?php include '../include/footer.php' ?>
-
 </body>
 </html>
