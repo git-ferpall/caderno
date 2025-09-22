@@ -1,18 +1,18 @@
 <?php
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php'; // Se já não estiver no topo
+declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
+ob_start();
 
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
+// middleware JWT
+require_once __DIR__ . '/../configuracao/auth.php';
+
+// força login
+$user = require_login();
+
+// agora $user contém as claims do JWT (por ex: sub, name, email etc)
+
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
