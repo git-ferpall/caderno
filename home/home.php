@@ -2,25 +2,15 @@
 
 declare(strict_types=1);
 
-// evita “headers already sent” se algum include fizer eco sem querer
 ob_start();
 
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-#require_once __DIR__ . '/../funcoes/busca_usuario.php';
-#require_once __DIR__ . '/../funcoes/busca_propriedade.php';
+// middleware JWT
+require_once __DIR__ . '/../configuracao/auth.php';
 
-// sessão e expiração
-sec_session_start();
-verificaSessaoExpirada();
+// força login
+$user = require_login();
 
-// só continua se estiver logado
-if (!isLogged()) {
-    // volta pro login e, se quiser, envia o "next" para retornar depois
-    $next = $_SERVER['REQUEST_URI'] ?? '/home/';
-    header('Location: /login.php?next=' . urlencode($next));
-    exit;
-}
+// agora $user contém as claims do JWT (por ex: sub, name, email etc)
 
 
 ?>
@@ -164,7 +154,7 @@ if (!isLogged()) {
 
         <?php include '../include/imports.php' ?>
     </div>
-    <?php ob_end_flush(); ?>
+    
     <?php include '../include/footer.php' ?>
 </body>
 </html>
