@@ -1,1 +1,0 @@
-<!-- Essa será, futuramente, a página de login, mas por enquanto a página principal não está pronta então a de login está sendo a principal -->
