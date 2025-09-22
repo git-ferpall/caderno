@@ -1,21 +1,24 @@
 <?php
-// conexao_frutag.php
-// Conexão dedicada ao banco remoto fruta169_frutag (HostGator/cPanel)
+// configuracao/conexao_frutag.php
 
-$FRUTAG_HOST = 'localhost';       // geralmente "localhost" no cPanel
-$FRUTAG_DB   = 'fruta169_frutag';
-$FRUTAG_USER = 'fruta169_sso';    // usuário criado no cPanel
-$FRUTAG_PASS = 'S3nh@SSO-MuitoForte!';  // senha definida no cPanel
+$FRUTAG_DB_HOST = '162.241.101.61';      // IP do HostGator
+$FRUTAG_DB_USER = 'fruta169_sso';        // seu usuário MySQL remoto
+$FRUTAG_DB_PASS = 'S3nh@SSO-MuitoForte!'; // senha
+$FRUTAG_DB_NAME = 'fruta169_frutag';     // banco
 
 try {
     $pdo_frutag = new PDO(
-        "mysql:host={$FRUTAG_HOST};dbname={$FRUTAG_DB};charset=utf8mb4",
-        $FRUTAG_USER,
-        $FRUTAG_PASS,
+        "mysql:host={$FRUTAG_DB_HOST};port=3306;dbname={$FRUTAG_DB_NAME};charset=utf8mb4",
+        $FRUTAG_DB_USER,
+        $FRUTAG_DB_PASS,
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['ok' => false, 'err' => 'db_frutag', 'msg' => $e->getMessage()]);
+    echo json_encode([
+        'ok' => false,
+        'err' => 'db_frutag',
+        'msg' => $e->getMessage()
+    ]);
     exit;
 }
