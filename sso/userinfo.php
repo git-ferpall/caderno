@@ -63,31 +63,26 @@ $extra = [];
 
 try {
     if ($tipo === 'cliente') {
-        $st = $pdo->prepare(
-            "SELECT 
-                cli_empresa,
-                cli_razao_social,
-                cli_cnpj_cpf
-            FROM cliente
-            WHERE cli_cod = :id
-            LIMIT 1"
-        );
+    $st = $pdo->prepare("
+        SELECT cli_empresa, cli_razao_social, cli_cnpj_cpf
+        FROM cliente
+        WHERE cli_cod = :id
+        LIMIT 1
+    ");
     $st->execute([':id' => $id]);
     $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-}
-        $st->execute([':id'=>$id]);
-        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+
     } elseif ($tipo === 'usuario') {
         $st = $pdo->prepare("
             SELECT 
-              usu_nome AS empresa,
-              usu_nome AS razao_social,
-              usu_cpf  AS cpf_cnpj
+                usu_nome AS empresa,
+                usu_nome AS razao_social,
+                usu_cpf  AS cpf_cnpj
             FROM usuario
             WHERE usu_cod = :id
             LIMIT 1
         ");
-        $st->execute([':id'=>$id]);
+        $st->execute([':id' => $id]);
         $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 } catch(Throwable $e) {
