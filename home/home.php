@@ -5,10 +5,10 @@ declare(strict_types=1);
 // evita “headers already sent” se algum include fizer eco sem querer
 ob_start();
 
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
+#require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../funcoes/busca_usuario.php';
-require_once __DIR__ . '/../funcoes/busca_propriedade.php';
+#require_once __DIR__ . '/../funcoes/busca_usuario.php';
+#require_once __DIR__ . '/../funcoes/busca_propriedade.php';
 
 // sessão e expiração
 sec_session_start();
