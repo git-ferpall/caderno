@@ -7,22 +7,16 @@ ini_set('error_log', __DIR__ . '/userinfo_error.log');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/../configuracao/env.php';
-
+require_once __DIR__ . '/../configuracao/env.php'; // <- ajuste o caminho se precisar
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
 function fail($code, $msg) {
-    file_put_contents(__DIR__.'/userinfo_debug.log',
-        "[".date('c')."] FAIL $code: $msg\n", FILE_APPEND);
     http_response_code($code);
     echo json_encode(['ok'=>false,'err'=>$msg]);
     exit;
 }
 
-file_put_contents(__DIR__.'/userinfo_debug.log',
-    "[".date('c')."] Script iniciado\n", FILE_APPEND);
-
-// 1. Captura token (Authorization ou cookie)
+// 1. Captura token
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 $jwt = null;
 if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
@@ -32,9 +26,6 @@ if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
 }
 if (!$jwt) fail(401, 'no_token');
 
-file_put_contents(__DIR__.'/userinfo_debug.log',
-    "[".date('c')."] Token recebido\n", FILE_APPEND);
-
 // 2. Valida formato
 $parts = explode('.', $jwt);
 if (count($parts) !== 3) fail(401, 'bad_token');
@@ -43,30 +34,66 @@ if (count($parts) !== 3) fail(401, 'bad_token');
 $payload = json_decode(b64url_decode($p64), true);
 if (!$payload) fail(401, 'bad_payload');
 
-file_put_contents(__DIR__.'/userinfo_debug.log',
-    "[".date('c')."] Payload decodificado\n", FILE_APPEND);
-
 // 3. Valida assinatura
 $sign = hash_hmac('sha256', "$h64.$p64", JWT_SECRET, true);
 if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
 
-file_put_contents(__DIR__.'/userinfo_debug.log',
-    "[".date('c')."] Assinatura válida\n", FILE_APPEND);
-
 // 4. Valida expiração
 if (!empty($payload['exp']) && $payload['exp'] < time()) fail(401, 'exp');
 
-file_put_contents(__DIR__.'/userinfo_debug.log',
-    "[".date('c')."] Token dentro do prazo\n", FILE_APPEND);
+// 5. Conecta no banco
+try {
+    $pdo = new PDO(
+        "mysql:host=localhost;dbname=fruta169_frutag;charset=utf8mb4",
+        'fruta169_sso',      // ajuste usuário
+        'S3nh@SSO-MuitoForte!', // ajuste senha
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+    );
+} catch (Throwable $e) {
+    fail(500, 'db');
+}
 
-// 5. Retorna claims principais + extras
+// 6. Pega dados extras conforme tipo
+$id   = (int)($payload['sub'] ?? 0);
+$tipo = $payload['tipo'] ?? '';
+$extra = [
+    'empresa'      => null,
+    'razao_social' => null,
+    'cpf_cnpj'     => null,
+];
+
+if ($tipo === 'cliente') {
+    $st = $pdo->prepare("
+        SELECT cli_empresa AS empresa,
+               cli_razao_social AS razao_social,
+               cli_cnpj_cpf AS cpf_cnpj
+        FROM cliente
+        WHERE cli_cod = :id
+        LIMIT 1
+    ");
+    $st->execute([':id' => $id]);
+    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: $extra;
+} elseif ($tipo === 'usuario') {
+    $st = $pdo->prepare("
+        SELECT usu_nome AS empresa,
+               usu_nome AS razao_social,
+               usu_cpf  AS cpf_cnpj
+        FROM usuario
+        WHERE usu_cod = :id
+        LIMIT 1
+    ");
+    $st->execute([':id' => $id]);
+    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: $extra;
+}
+
+// 7. Retorna claims + extras
 echo json_encode([
     'ok'           => true,
     'sub'          => $payload['sub'] ?? null,
     'tipo'         => $payload['tipo'] ?? null,
     'name'         => $payload['name'] ?? null,
     'email'        => $payload['email'] ?? null,
-    'empresa'      => $payload['empresa'] ?? null,
-    'razao_social' => $payload['razao_social'] ?? null,
-    'cpf_cnpj'     => $payload['cpf_cnpj'] ?? null,
+    'empresa'      => $extra['empresa'] ?? null,
+    'razao_social' => $extra['razao_social'] ?? null,
+    'cpf_cnpj'     => $extra['cpf_cnpj'] ?? null,
 ]);
