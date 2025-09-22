@@ -1,6 +1,7 @@
 <?php
 // public_html/sso/userinfo.php
-// Retorna informações detalhadas do usuário logado com base no JWT
+// Retorna informações do usuário logado com base no JWT
+// Agora usando configuracao_conexao.php (mysqli)
 
 error_reporting(E_ALL);
 ini_set('log_errors', 1);
@@ -10,8 +11,8 @@ ini_set('error_log', __DIR__ . '/userinfo_error.log');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php'; // usa conexão centralizada
-require_once __DIR__ . '/../configuracao/env.php';                 // precisa ter JWT_SECRET e AUTH_COOKIE definidos
+require_once __DIR__ . '/../configuracao/env.php';              // JWT_SECRET, AUTH_COOKIE
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php'; // cria $mysqli
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
 function fail($code, $msg) {
@@ -45,53 +46,50 @@ if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
 // 4. Valida expiração
 if (!empty($payload['exp']) && $payload['exp'] < time()) fail(401, 'exp');
 
-// 5. Busca informações extras no banco (se necessário)
+// 5. Busca informações extras no banco
 $id   = (int)($payload['sub'] ?? 0);
 $tipo = $payload['tipo'] ?? '';
 
-$empresa = $payload['empresa'] ?? null;
-$razao   = $payload['razao_social'] ?? null;
-$cpfcnpj = $payload['cpf_cnpj'] ?? null;
+$extra = [];
 
-try {
-    if ($tipo === 'cliente') {
-        $st = $pdo->prepare("
-            SELECT cli_empresa, cli_razao_social, cli_cnpj_cpf
-            FROM cliente
-            WHERE cli_cod = :id
-            LIMIT 1
-        ");
-        $st->execute([':id'=>$id]);
-        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-        $empresa = $extra['cli_empresa'] ?? $empresa;
-        $razao   = $extra['cli_razao_social'] ?? $razao;
-        $cpfcnpj = $extra['cli_cnpj_cpf'] ?? $cpfcnpj;
-    } elseif ($tipo === 'usuario') {
-        $st = $pdo->prepare("
-            SELECT usu_nome AS empresa, usu_nome AS razao_social, usu_cpf AS cpf_cnpj
-            FROM usuario
-            WHERE usu_cod = :id
-            LIMIT 1
-        ");
-        $st->execute([':id'=>$id]);
-        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-        $empresa = $extra['empresa'] ?? $empresa;
-        $razao   = $extra['razao_social'] ?? $razao;
-        $cpfcnpj = $extra['cpf_cnpj'] ?? $cpfcnpj;
-    }
-} catch (Throwable $e) {
-    error_log("Erro DB userinfo: ".$e->getMessage());
-    fail(500, 'db');
+if ($tipo === 'cliente') {
+    $st = $mysqli->prepare("
+        SELECT 
+          cli_empresa AS empresa,
+          cli_razao_social AS razao_social,
+          cli_cnpj_cpf AS cpf_cnpj
+        FROM cliente
+        WHERE cli_cod = ?
+        LIMIT 1
+    ");
+    $st->bind_param('i', $id);
+    $st->execute();
+    $extra = $st->get_result()->fetch_assoc() ?: [];
+    $st->close();
+} elseif ($tipo === 'usuario') {
+    $st = $mysqli->prepare("
+        SELECT 
+          usu_nome AS empresa,
+          usu_nome AS razao_social,
+          usu_cpf  AS cpf_cnpj
+        FROM usuario
+        WHERE usu_cod = ?
+        LIMIT 1
+    ");
+    $st->bind_param('i', $id);
+    $st->execute();
+    $extra = $st->get_result()->fetch_assoc() ?: [];
+    $st->close();
 }
 
-// 6. Retorna claims + extras
+// 6. Resposta final
 echo json_encode([
     'ok'           => true,
     'sub'          => $id,
     'tipo'         => $tipo,
     'name'         => $payload['name'] ?? null,
     'email'        => $payload['email'] ?? null,
-    'empresa'      => $empresa,
-    'razao_social' => $razao,
-    'cpf_cnpj'     => $cpfcnpj,
+    'empresa'      => $extra['empresa'] ?? null,
+    'razao_social' => $extra['razao_social'] ?? null,
+    'cpf_cnpj'     => $extra['cpf_cnpj'] ?? null,
 ]);
