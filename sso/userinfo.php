@@ -1,12 +1,13 @@
 <?php
 // public_html/sso/userinfo.php
 // Retorna informações detalhadas do usuário logado com base no JWT
+// PHP 7.3+
 
 @ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/env.php'; // define JWT_SECRET e credenciais DB
+require_once __DIR__ . '/env.php'; // define JWT_SECRET e AUTH_COOKIE
 
 function b64url_decode($d){ return base64_decode(strtr($d, '-_', '+/')); }
 
@@ -35,7 +36,7 @@ $payload = json_decode(b64url_decode($p64), true);
 if (!$payload) fail(401, 'bad_payload');
 
 // 3. Valida assinatura
-$sign = hash_hmac('sha256', "$h64.$p64", $JWT_SECRET, true);
+$sign = hash_hmac('sha256', "$h64.$p64", JWT_SECRET, true);
 if (!hash_equals($sign, b64url_decode($s64))) fail(401, 'sig');
 
 // 4. Valida expiração
@@ -50,6 +51,7 @@ try {
         [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
     );
 } catch(Throwable $e) {
+    error_log("USERINFO DB ERROR: " . $e->getMessage());
     fail(500, 'db');
 }
 
@@ -59,30 +61,35 @@ $tipo = $payload['tipo'] ?? '';
 
 $extra = [];
 
-if ($tipo === 'cliente') {
-    $st = $pdo->prepare("
-        SELECT 
-            cli_empresa   AS empresa,
-            cli_razao_social AS razao_social,
-            cli_cnpj_cpf  AS cpf_cnpj
-        FROM cliente
-        WHERE cli_cod = :id
-        LIMIT 1
-    ");
-    $st->execute([':id'=>$id]);
-    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-} elseif ($tipo === 'usuario') {
-    $st = $pdo->prepare("
-        SELECT 
-          usu_nome AS empresa,
-          usu_nome AS razao_social,
-          usu_cpf  AS cpf_cnpj
-        FROM usuario
-        WHERE usu_cod = :id
-        LIMIT 1
-    ");
-    $st->execute([':id'=>$id]);
-    $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+try {
+    if ($tipo === 'cliente') {
+        $st = $pdo->prepare("
+            SELECT 
+                cli_empresa   AS empresa,
+                cli_razao_social AS razao_social,
+                cli_cnpj_cpf  AS cpf_cnpj
+            FROM cliente
+            WHERE cli_cod = :id
+            LIMIT 1
+        ");
+        $st->execute([':id'=>$id]);
+        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+    } elseif ($tipo === 'usuario') {
+        $st = $pdo->prepare("
+            SELECT 
+              usu_nome AS empresa,
+              usu_nome AS razao_social,
+              usu_cpf  AS cpf_cnpj
+            FROM usuario
+            WHERE usu_cod = :id
+            LIMIT 1
+        ");
+        $st->execute([':id'=>$id]);
+        $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+} catch(Throwable $e) {
+    error_log("USERINFO SQL ERROR: " . $e->getMessage());
+    $extra = [];
 }
 
 // 7. Resposta final
