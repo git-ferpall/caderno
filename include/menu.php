@@ -91,7 +91,7 @@
 
         <div class="menu-final">
             <img src="../img/logo-frutag.png" alt="Logo da Frutag" class="menu-logo">
-            <a href="/logout.php" class="nav-menu-btn main-btn fundo-vermelho" id="btn-sair">
+            <a href="/configuracao/logout.php" class="nav-menu-btn main-btn fundo-vermelho">
                 <div class="btn-icon icon-exit"></div>
                 <span class="link-title">Sair</span>
             </a>
