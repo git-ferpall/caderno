@@ -5,13 +5,16 @@
         CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . ($_COOKIE[AUTH_COOKIE] ?? '')],
     ]);
     $resp = curl_exec($ch);
+
+    // DEBUG: loga a resposta bruta do endpoint userinfo
+    error_log("USERINFO RESP: " . $resp);
+
     $info = json_decode($resp, true);
 
     if (!is_array($info) || empty($info['ok'])) {
         $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
     }
 ?>
-
 
 <header class="menu-principal">
     <nav class="navbar nav-menu">
