@@ -1,7 +1,14 @@
 <?php
+ob_start();
+// Caminho relativo a partir deste arquivo para ../configuracao/session.php
+require_once __DIR__ . '/../configuracao/session.php';
 
+// Exige autenticação
+require_login();
 
+// (Opcional) $usuarioId = $_SESSION['user_id'] ?? null;
 ?>
+
 
 
 <!DOCTYPE html>
