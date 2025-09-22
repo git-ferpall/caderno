@@ -13,8 +13,11 @@ use Firebase\JWT\Key;
  * Lê o token do cookie AUTH_COOKIE ou do header Authorization: Bearer
  */
 function getBearerOrCookie() {
-  if (!empty($_COOKIE[AUTH_COOKIE])) {
-    return $_COOKIE[AUTH_COOKIE];
+  if (!empty($_COOKIE['AUTH_COOKIE'])) {
+    return $_COOKIE['AUTH_COOKIE'];
+  }
+  if (!empty($_COOKIE['token'])) { // fallback para API que usa 'token'
+    return $_COOKIE['token'];
   }
   $h = $_SERVER["HTTP_AUTHORIZATION"] ?? "";
   if ($h && preg_match('/Bearer\s+(.+)/i', $h, $m)) {
@@ -22,6 +25,7 @@ function getBearerOrCookie() {
   }
   return null;
 }
+
 
 /**
  * Decodifica e valida o JWT, retornando as claims (ou null se inválido/ausente)
