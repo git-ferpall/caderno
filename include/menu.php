@@ -1,6 +1,17 @@
 <?php
+    $ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . ($_COOKIE[AUTH_COOKIE] ?? '')],
+    ]);
+    $resp = curl_exec($ch);
+    $info = json_decode($resp, true);
 
+    if (!is_array($info) || empty($info['ok'])) {
+        $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
+    }
 ?>
+
 
 <header class="menu-principal">
     <nav class="navbar nav-menu">
@@ -15,16 +26,9 @@
     <div class="menu-content">
         <div class="user-settings mobile-only">
             <div class="user">
-                <h5 class="user-type">
-                    <?= isset($usuario['cli_empresa']) ? htmlspecialchars($usuario['cli_empresa']) : 'Empresa não encontrada'; ?>
-                </h5>
-                <h5 class="user-name">
-                    <?= isset($usuario['cli_razao_social']) ? htmlspecialchars($usuario['cli_razao_social']) : 'Razão Social não Encontrada'; ?>
-                </h5>
-                <h5 class="user-id">
-                    <?= isset($usuario['cli_cnpj_cpf']) ? htmlspecialchars($usuario['cli_cnpj_cpf']) : 'CPF/CNPJ não Encontrado'; ?>
-                </h5>
-                
+                <h5 class="user-type"><?= htmlspecialchars($info['empresa'] ?? 'Empresa não encontrada'); ?></h5>
+                <h5 class="user-name"><?= htmlspecialchars($info['razao_social'] ?? 'Razão Social não encontrada'); ?></h5>
+                <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj'] ?? 'CPF/CNPJ não encontrado'); ?></h5>
             </div>
             <div class="propriedade">
                 <h5 class="user-type">Propriedade Atual</h5>

@@ -1,17 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-ob_start();
-
-// middleware JWT
-require_once __DIR__ . '/../configuracao/auth.php';
-
-// força login
-$user = require_login();
-
-// agora $user contém as claims do JWT (por ex: sub, name, email etc)
-
+require_once __DIR__ . '/../configuracao/protect.php';
 
 ?>
 <!DOCTYPE html>
