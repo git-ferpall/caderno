@@ -2,6 +2,8 @@
 
 
 ?>
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -144,5 +146,6 @@
     </div>
     
     <?php include '../include/footer.php' ?>
+<?php ob_end_flush(); ?>
 </body>
 </html>
