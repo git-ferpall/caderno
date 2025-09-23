@@ -58,7 +58,7 @@ $telCom2  = $prop['telefone2'];
         </div>
 
         <div class="sistema-main">
-            <form action="/funcoes/update_propriedade.php" method="POST">
+            <form action="/funcoes/update_propriedade.php" method="POST" class="main-form container">
                 <input type="hidden" name="redirect" value="1">
 
                 <!-- Campo escondido para UPDATE -->
@@ -149,7 +149,7 @@ $telCom2  = $prop['telefone2'];
             </form>
         </div>
     </main>
-    <?php include '../include/imports.php'; ?>
+    
     <?php include '../include/footer.php'; ?>
 </body>
 </html>
