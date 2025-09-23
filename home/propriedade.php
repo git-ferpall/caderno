@@ -1,5 +1,19 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+
+// Captura usuário logado via JWT (já validado pelo protect.php)
+$user_id = $_SESSION['user_id'] ?? null;
+
+$propriedades = [];
+if ($user_id) {
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $propriedades = $res->fetch_all(MYSQLI_ASSOC);
+}
+
 ?>
 
 <!DOCTYPE html>
