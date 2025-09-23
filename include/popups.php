@@ -34,31 +34,41 @@
     
     <!-- Alterar Propriedade -->
     <div class="popup-box v2 d-none" id="popup-prop">
-    <h2 class="popup-title">Alterar Propriedade</h2>
-    
-    <div class="item-box prop-box v2">
-        <?php
-        if(!empty($propriedades)){
-            foreach($propriedades as $propriedade) {
-                echo '
-                    <div class="item item-propriedade fundo-preto v3" id="prop-' . $propriedade['id'] . '">
-                        <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
-                        <div class="item-edit">
-                            <button class="edit-btn" type="button" onclick="selectPropriedade(' . $propriedade['id'] . ')">
-                                Selecionar
-                            </button>
+        <h2 class="popup-title">Alterar Propriedade</h2>
+        
+        <div class="item-box prop-box v2">
+
+            <?php
+            // Insira aqui a função para pegar as propriedades do sistema
+            $propriedades = [
+                ['id' => '01', 'nome' => 'Propriedade 01'],
+                ['id' => '02', 'nome' => 'Propriedade 01'],
+                ['id' => '03', 'nome' => 'Propriedade 03']
+            ];
+
+            if(!empty($propriedades)){
+                foreach($propriedades as $propriedade) {
+                    echo '
+                        <div class="item item-propriedade fundo-preto v3" id="prop-' . $propriedade['id'] . '">
+                            <h4 class="item-title">' . $propriedade['nome'] . '</h4>
+                            <div class="item-edit">
+                                <button class="edit-btn" id="select-propriedade" type="button">
+                                    Selecionar
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ';
+                    ';
+                }
+            } else {
+                echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
             }
-        } else {
-            echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
-        }
-        ?>
+
+            ?>
+        </div>
+
+        <div class="popup-actions">
+            <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
+        </div>
     </div>
 
-    <div class="popup-actions">
-        <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
-    </div>
-</div>
 </div>
