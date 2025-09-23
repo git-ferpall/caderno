@@ -49,8 +49,8 @@ $telCom2  = $prop['telefone2'];
 </head>
 <body>
     <?php include '../include/menu.php'; ?>
-    <?php include '../include/loading.php' ?> 
-    <?php include '../include/popups.php' ?>
+    <?php include '../include/loading.php'; ?> 
+    <?php include '../include/popups.php'; ?>
 
     <main class="sistema">
         <div class="page-title">
@@ -58,8 +58,7 @@ $telCom2  = $prop['telefone2'];
         </div>
 
         <div class="sistema-main">
-            <form action="/funcoes/update_propriedade.php" method="POST" class="main-form container">
-                
+            <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container">
 
                 <!-- Campo escondido para UPDATE -->
                 <input type="hidden" name="id" value="<?php echo (int)$prop['id']; ?>">
@@ -149,7 +148,7 @@ $telCom2  = $prop['telefone2'];
             </form>
         </div>
     </main>
-    
+
     <?php include '../include/footer.php'; ?>
 </body>
 </html>
