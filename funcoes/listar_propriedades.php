@@ -2,38 +2,29 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
-header('Content-Type: application/json; charset=utf-8');
+$payload = verify_jwt();
+$user_id = $payload['sub'] ?? 0;
 
-try {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-
-    if (!$user_id) {
-        http_response_code(401);
-        echo json_encode(['ok'=>false, 'err'=>'unauthorized']);
-        exit;
-    }
-
-    $stmt = $mysqli->prepare("
-        SELECT id, nome_razao, tipo_doc, cpf_cnpj, email, 
-               endereco_rua, endereco_numero, endereco_uf, endereco_cidade, 
-               telefone1, telefone2, ativo, created_at
-        FROM propriedades
-        WHERE user_id = ?
-        ORDER BY created_at DESC
-    ");
+$propriedades = [];
+if ($user_id) {
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
-
-    $propriedades = [];
-    while ($row = $res->fetch_assoc()) {
-        $propriedades[] = $row;
-    }
-
-    echo json_encode(['ok'=>true, 'propriedades'=>$propriedades]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['ok'=>false, 'err'=>'db', 'msg'=>$e->getMessage()]);
+    $propriedades = $res->fetch_all(MYSQLI_ASSOC);
 }
+?>
+<div class="item-box container">
+<?php if (!empty($propriedades)): ?>
+    <?php foreach ($propriedades as $prop): ?>
+        <div class="item item-propriedade v2" id="prop-<?php echo $prop['id']; ?>">
+            <h4 class="item-title"><?php echo htmlspecialchars($prop['nome_razao'] ?? 'Sem nome'); ?></h4>
+            <div class="item-edit">
+                <a href="propriedade.php?editar=<?php echo $prop['id']; ?>" class="edit-btn">Editar</a>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <div class="item-none">Nenhuma propriedade cadastrada.</div>
+<?php endif; ?>
+</div>

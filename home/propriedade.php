@@ -28,6 +28,29 @@ if ($user_id) {
     }
 }    
 
+$nome = $email = $cpf = $cnpj = $ruaEnder = $ufEnder = $numEnder = $cidEnder = $telCom = $telCom2 = "";
+
+if (isset($_GET['editar'])) {
+    $id = (int) $_GET['editar'];
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $id, $user_id);
+    $stmt->execute();
+    $prop = $stmt->get_result()->fetch_assoc();
+
+    if ($prop) {
+        $nome     = $prop['nome_razao'];
+        $email    = $prop['email'];
+        $cnpj     = ($prop['tipo_doc'] === 'cnpj') ? $prop['cpf_cnpj'] : "";
+        $cpf      = ($prop['tipo_doc'] === 'cpf') ? $prop['cpf_cnpj'] : "";
+        $ruaEnder = $prop['endereco_rua'];
+        $ufEnder  = $prop['endereco_uf'];
+        $numEnder = $prop['endereco_numero'];
+        $cidEnder = $prop['endereco_cidade'];
+        $telCom   = $prop['telefone1'];
+        $telCom2  = $prop['telefone2'];
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -77,7 +100,7 @@ if ($user_id) {
 
                     <div class="form-campo">
                         <label for="pf-razao">Nome ou Razão Social</label>
-                        <input type="text" class="form-text" name="pfrazao" id="pf-razao" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>
+                        <input type="text" name="pfrazao" value="<?php echo htmlspecialchars($nome); ?>">
                     </div>
 
                     <div class="form-campo">
@@ -87,14 +110,14 @@ if ($user_id) {
                                 <option value="cnpj">CNPJ</option>
                                 <option value="cpf">CPF</option>
                             </select>
-                            <input class="form-text only-num f4" type="text" name="pfcnpj" id="pf-cnpj" placeholder="12.345.789/0001-10" maxlength="18" value="<?php echo $cnpj ?>">
-                            <input class="form-text only-num f4" type="text" name="pfcpf" id="pf-cpf" placeholder="123.456.789-10" maxlength="14" value="<?php echo $cpf ?>">
+                            <input type="text" name="pfcnpj" value="<?php echo htmlspecialchars($cnpj); ?>">
+                           <input type="text" name="pfcpf" value="<?php echo htmlspecialchars($cpf); ?>">
                         </div>
                     </div>
 
                     <div class="form-campo">
                         <label for="pf-email-com">E-mail</label>
-                        <input class="form-text" type="email" name="pfemail-com" id="pf-email-com" placeholder="Seu e-mail comercial" value="<?php echo $email ?>" required>
+                        <input type="email" name="pfemail-com" value="<?php echo htmlspecialchars($email); ?>">
                     </div>
                         
                     <div class="form-box">
