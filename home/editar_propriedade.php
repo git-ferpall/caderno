@@ -49,6 +49,8 @@ $telCom2  = $prop['telefone2'];
 </head>
 <body>
     <?php include '../include/menu.php'; ?>
+    <?php include '../include/loading.php' ?> 
+    <?php include '../include/popups.php' ?>
 
     <main class="sistema">
         <div class="page-title">
@@ -146,7 +148,7 @@ $telCom2  = $prop['telefone2'];
             </form>
         </div>
     </main>
-
+    <?php include '../include/imports.php'; ?>
     <?php include '../include/footer.php'; ?>
 </body>
 </html>
