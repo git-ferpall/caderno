@@ -39,7 +39,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="propriedade" class="sistema">
             <div class="page-title">
-                <h2 class="main-title cor-branco">Dados da Propriedade</h2>
+                <h2 class="main-title cor-branco">Cadastro de Propriedade</h2>
             </div>
 
             <div class="sistema-main">
@@ -68,7 +68,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     
                 </div>
 
-                <form action="propriedade.php" class="main-form container" id="prop-form">
+                <form action="/funcoes/salvar_propriedade.php" method="POST" id="prop-form">
                     <div class="form-campo">
                         <label for="pf-razao">Nome ou Razão Social</label>
                         <input type="text" class="form-text" name="pfrazao" id="pf-razao" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>
