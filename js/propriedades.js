@@ -1,5 +1,5 @@
-function carregarPropriedade(id) {
-    const token = localStorage.getItem("jwt_token"); // onde você guarda o token após login
+function selectPropriedade(id) {
+    const token = localStorage.getItem("jwt_token");
 
     fetch(`/funcoes/get_propriedade.php?id=${id}`, {
         method: "GET",
@@ -10,11 +10,14 @@ function carregarPropriedade(id) {
     .then(r => r.json())
     .then(data => {
         if (data.ok) {
+            // Fecha o popup
+            closePopup();
+
             // Preenche os campos do formulário
             document.getElementById("pf-razao").value = data.data.nome_razao || "";
             document.getElementById("pf-tipo").value = data.data.tipo_doc || "";
-            document.getElementById("pf-cnpj").value = data.data.cpf_cnpj || "";
-            document.getElementById("pf-cpf").value = data.data.cpf_cnpj || "";
+            document.getElementById("pf-cnpj").value = (data.data.tipo_doc === "cnpj" ? data.data.cpf_cnpj : "");
+            document.getElementById("pf-cpf").value = (data.data.tipo_doc === "cpf" ? data.data.cpf_cnpj : "");
             document.getElementById("pf-email-com").value = data.data.email || "";
             document.getElementById("pf-ender-rua").value = data.data.endereco_rua || "";
             document.getElementById("pf-ender-num").value = data.data.endereco_numero || "";
