@@ -1,37 +1,30 @@
-function selectPropriedade(id) {
-    fetch('/funcoes/get_propriedade.php?id=' + id, {
+function carregarPropriedade(id) {
+    const token = localStorage.getItem("jwt_token"); // onde você guarda o token após login
+
+    fetch(`/funcoes/get_propriedade.php?id=${id}`, {
+        method: "GET",
         headers: {
-            "Authorization": "Bearer " + localStorage.getItem("jwt") // ajusta se guardar o token em outro lugar
+            "Authorization": `Bearer ${token}`
         }
     })
     .then(r => r.json())
-    .then(dados => {
-        if (dados.ok) {
-            const prop = dados.propriedade;
-
-            // Preenche formulário
-            document.getElementById('pf-razao').value = prop.nome_razao || '';
-            document.getElementById('pf-tipo').value = prop.tipo_doc || '';
-            document.getElementById('pf-cnpj').value = prop.cpf_cnpj || '';
-            document.getElementById('pf-cpf').value = prop.cpf_cnpj || '';
-            document.getElementById('pf-email-com').value = prop.email || '';
-            document.getElementById('pf-ender-rua').value = prop.endereco_rua || '';
-            document.getElementById('pf-ender-num').value = prop.endereco_numero || '';
-            document.getElementById('pf-ender-uf').value = prop.endereco_uf || '';
-            document.getElementById('pf-ender-cid').value = prop.endereco_cidade || '';
-            document.getElementById('pf-num1-com').value = prop.telefone1 || '';
-            document.getElementById('pf-num2-com').value = prop.telefone2 || '';
-
-            // Fecha popup
-            if (typeof closePopup === "function") {
-                closePopup();
-            }
+    .then(data => {
+        if (data.ok) {
+            // Preenche os campos do formulário
+            document.getElementById("pf-razao").value = data.data.nome_razao || "";
+            document.getElementById("pf-tipo").value = data.data.tipo_doc || "";
+            document.getElementById("pf-cnpj").value = data.data.cpf_cnpj || "";
+            document.getElementById("pf-cpf").value = data.data.cpf_cnpj || "";
+            document.getElementById("pf-email-com").value = data.data.email || "";
+            document.getElementById("pf-ender-rua").value = data.data.endereco_rua || "";
+            document.getElementById("pf-ender-num").value = data.data.endereco_numero || "";
+            document.getElementById("pf-ender-uf").value = data.data.endereco_uf || "";
+            document.getElementById("pf-ender-cid").value = data.data.endereco_cidade || "";
+            document.getElementById("pf-num1-com").value = data.data.telefone1 || "";
+            document.getElementById("pf-num2-com").value = data.data.telefone2 || "";
         } else {
             alert("Erro ao carregar propriedade!");
         }
     })
-    .catch(err => {
-        console.error("Erro na requisição:", err);
-        alert("Falha ao buscar a propriedade.");
-    });
+    .catch(() => alert("Erro ao carregar propriedade!"));
 }
