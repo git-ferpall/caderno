@@ -1,6 +1,21 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
+
+$payload = verify_jwt();
+$user_id = $payload['sub'] ?? null;
+
+$propriedades = [];
+if ($user_id) {
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $propriedades = $res->fetch_all(MYSQLI_ASSOC);
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -145,5 +160,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
     </div>
         
     <?php include '../include/footer.php' ?>
+    <script src="/js/propriedades.js"></script>
 </body>
 </html>
