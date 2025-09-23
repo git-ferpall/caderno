@@ -3,7 +3,7 @@ require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 
 function carregarPropriedades($mysqli, $user_id) {
     $stmt = $mysqli->prepare("
-        SELECT id, nome_razao, tipo_doc, cpf_cnpj, email,
+        SELECT id, user_id, nome_razao, tipo_doc, cpf_cnpj, email,
                endereco_rua, endereco_numero, endereco_uf, endereco_cidade,
                telefone1, telefone2, ativo, created_at
         FROM propriedades
@@ -13,7 +13,12 @@ function carregarPropriedades($mysqli, $user_id) {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
-    return $res->fetch_all(MYSQLI_ASSOC);
+
+    $rows = [];
+    while ($row = $res->fetch_assoc()) {
+        $rows[] = $row; // força associativo
+    }
+    return $rows;
 }
 
 function carregarPropriedadePorId($mysqli, $user_id, $id) {
