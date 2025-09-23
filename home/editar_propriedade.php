@@ -48,9 +48,10 @@ $telCom2  = $prop['telefone2'];
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
 <body>
-    <?php include '../include/menu.php'; ?>
     <?php include '../include/loading.php'; ?> 
     <?php include '../include/popups.php'; ?>
+    <?php include '../include/menu.php'; ?>
+    
 
     <main class="sistema">
         <div class="page-title">
@@ -148,7 +149,7 @@ $telCom2  = $prop['telefone2'];
             </form>
         </div>
     </main>
-
+    <?php include '../include/imports.php'; ?>
     <?php include '../include/footer.php'; ?>
 </body>
 </html>
