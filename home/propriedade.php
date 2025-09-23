@@ -59,7 +59,7 @@ if ($user_id) {
                         <?php foreach ($propriedades as $prop): ?>
                             <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
                                 <h4 class="item-title">
-                                    <?php echo !empty($prop['nome_razao']) ? htmlspecialchars($prop['nome_razao']) : 'Sem nome'; ?>
+                                    <?php echo htmlspecialchars($prop['nome_razao'] ?? 'Sem nome'); ?>
                                 </h4>
                                 <div class="item-edit">
                                     <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
