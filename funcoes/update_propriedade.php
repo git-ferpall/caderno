@@ -1,66 +1,24 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-file_put_contents("/tmp/update_debug.log", date('c') . " POST=" . print_r($_POST, true) . "\n", FILE_APPEND);
-
-
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../configuracao/protect.php';
-require_once __DIR__ . '/../sso/verify_jwt.php';
 
-$id = (int)($_POST['id'] ?? 0);
-$redirect = isset($_POST['redirect']);
+header('Content-Type: application/json; charset=utf-8');
 
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
+// captura dados
+$id      = (int)($_POST['id'] ?? 0);
+$nome    = trim($_POST['pfrazao'] ?? '');
 
-if (!$id || !$user_id) {
-    if ($redirect) {
-        header("Location: /paginas/minhas_propriedades.php?msg=unauthorized");
-        exit;
-    }
-    echo json_encode(['ok' => false, 'err' => 'unauthorized']);
+if (!$id || $nome === '') {
+    echo json_encode(['ok' => false, 'err' => 'missing_fields']);
     exit;
 }
 
-$nome   = trim($_POST['pfrazao'] ?? '');
-$tipo   = trim($_POST['pftipo'] ?? '');
-$cnpj   = trim($_POST['pfcnpj'] ?? '');
-$cpf    = trim($_POST['pfcpf'] ?? '');
-$email  = trim($_POST['pfemail-com'] ?? '');
-$rua    = trim($_POST['pfender-rua'] ?? '');
-$num    = trim($_POST['pfender-num'] ?? '');
-$uf     = trim($_POST['pfender-uf'] ?? '');
-$cidade = trim($_POST['pfender-cid'] ?? '');
-$tel1   = trim($_POST['pfnum1-com'] ?? '');
-$tel2   = trim($_POST['pfnum2-com'] ?? '');
-
-$doc = ($tipo === 'cpf') ? $cpf : $cnpj;
-
 try {
-    $stmt = $mysqli->prepare("UPDATE propriedades 
-        SET nome_razao=?, tipo_doc=?, cpf_cnpj=?, email=?, endereco_rua=?, endereco_numero=?, endereco_uf=?, endereco_cidade=?, telefone1=?, telefone2=? 
-        WHERE id=? AND user_id=?");
-    $stmt->bind_param(
-        "ssssssssssii",
-        $nome, $tipo, $doc, $email, $rua, $num, $uf, $cidade, $tel1, $tel2,
-        $id, $user_id
-    );
+    $stmt = $mysqli->prepare("UPDATE propriedades SET nome_razao = ? WHERE id = ?");
+    $stmt->bind_param("si", $nome, $id);
     $stmt->execute();
 
-    if ($redirect) {
-        header("Location: /paginas/minhas_propriedades.php?msg=ok");
-        exit;
-    }
-
-    echo json_encode(['ok' => true, 'id' => $id]);
+    echo json_encode(['ok' => true, 'updated' => $stmt->affected_rows]);
 } catch (Exception $e) {
-    if ($redirect) {
-        header("Location: /paginas/minhas_propriedades.php?msg=erro");
-        exit;
-    }
+    http_response_code(500);
     echo json_encode(['ok' => false, 'err' => 'db', 'msg' => $e->getMessage()]);
 }
