@@ -67,7 +67,7 @@ if ($user_id) {
                         $propriedade = $propriedades[0]; 
                         echo '
                             <div class="item item-propriedade v2" id="prop-' . $propriedade['id'] . '">
-                                <h4 class="item-title">' . $propriedade['nome'] . '</h4>
+                                <h4 class="item-title">' . $propriedade['nome_razao'] . '</h4>
                                 <div class="item-edit">
                                     <button class="edit-btn" id="edit-propriedade" type="button" onclick="altProp()">
                                         Alterar
