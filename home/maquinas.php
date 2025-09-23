@@ -1,28 +1,3 @@
-<?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../funcoes/busca_maquinas.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
-
-$cd_usuario_id = $_SESSION['cliente_cod'] ?? null;
-$maquinas = [];
-if ($cd_usuario_id) {
-    $maquinas = buscarMaquinas($cd_usuario_id, $mysqli);
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -31,14 +6,26 @@ if ($cd_usuario_id) {
     <title>Caderno de Campo - Frutag</title>
 
     <link rel="stylesheet" href="../css/style.css">
+
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
 <body>
-    <?php require '../include/loading.php'; ?> 
-    <?php include '../include/popups.php'; ?>
+    <?php require '../include/loading.php' ?> 
+    <?php include '../include/popups.php' ?>
     
     <div id="conteudo">
-        <?php include '../include/menu.php'; ?>
+        <?php include '../include/menu.php' ?>
+
+        <?php 
+
+        // Aqui vai uma função pra pegar as máquinas já cadastradas que, caso possua alguma, o valor já é colocado automaticamente no campo passível de edição
+
+        // Exemplo de maquina:
+        // $maquinas = [['id' => '01', 'nome' => 'Trator']]
+
+        $maquinas = []
+        
+        ?>
 
         <main id="maquinas" class="sistema">
             <div class="page-title">
@@ -46,46 +33,17 @@ if ($cd_usuario_id) {
             </div>
 
             <div class="sistema-main">
-                <div class="item-box">
-                    <!-- Cabeçalho -->
-                    <div class="item item-header">
-                        <div class="col-nome"><b><span style="font-size: 20px;">Máquina</span></b></div>
-                        <div class="col-marca"><b><span style="font-size: 20px;">Marca</span></b></div>
-                        <div class="col-tipo"><b><span style="font-size: 20px;">Tipo</span></b></div>
-                        <div class="col-propriedade"><b><span style="font-size: 20px;">Propriedade</span></b></div>
-                        <div class="item-edit"></div>
-                    </div>
+                <div class="item-box container">
 
-                    <!-- Linhas -->
                     <?php
-                    if (!empty($maquinas)) {
-                        foreach ($maquinas as $maquina) {
-                            $id       = htmlspecialchars($maquina['id']);
-                            $nome     = htmlspecialchars($maquina['nome']);
-                            $marca    = htmlspecialchars($maquina['marca'] ?? '');
-                            $tipo     = isset($maquina['tipo']) ? (
-                                $maquina['tipo'] == '1' ? 'Motorizado' :
-                                ($maquina['tipo'] == '2' ? 'Acoplado' :
-                                ($maquina['tipo'] == '3' ? 'Manual' : $maquina['tipo']))
-                            ) : '';
-                            $nomeProp = htmlspecialchars($maquina['propriedade_nome'] ?? 'Indefinido');
 
-                            $dadosMaquina = [
-                                'id' => $id,
-                                'nome' => $nome,
-                                'marca' => $marca,
-                                'tipo' => $maquina['tipo'] ?? '1'
-                            ];
-
+                    if(!empty($maquinas)){
+                        foreach($maquinas as $maquina) {
                             echo '
-                                <div class="item" id="prod-' . $id . '">
-                                    <div class="col-nome">' . $nome . '</div>
-                                    <div class="col-marca">' . $marca . '</div>
-                                    <div class="col-tipo">' . $tipo . '</div>
-                                    <div class="col-propriedade">' . $nomeProp . '</div>
+                                <div class="item" id="maq-' . $maquina['id'] . '">
+                                    <h4 class="item-title">' . $maquina['nome'] . '</h4>
                                     <div class="item-edit">
-                                        <button class="edit-btn" type="button"
-                                            onclick=\'editItem(' . json_encode($dadosMaquina) . ')\'>
+                                        <button class="edit-btn" id="edit-maquina" type="button" onclick="editItem(' . json_encode($maquina) . ')">
                                             <div class="edit-icon icon-pen"></div>
                                         </button>
                                     </div>
@@ -95,16 +53,14 @@ if ($cd_usuario_id) {
                     } else {
                         echo '<div class="item-none">Nenhuma máquina cadastrada.</div>';
                     }
+
                     ?>
                 </div>
 
-                <form action="../funcoes/cadastra_maquina.php" method="POST" class="main-form" id="add-maquina">
-                    <input type="hidden" name="m-id" id="m-id">
+                <form action="maquinas.php" class="main-form container" id="add-maquina">
 
                     <div class="item-add">
-                        <button class="main-btn btn-alter btn-alter-item fundo-verde" 
-                            id="maquina-add" 
-                            type="button">
+                        <button class="main-btn btn-alter btn-alter-item fundo-verde" id="maquina-add" type="button">
                             <div class="btn-icon icon-plus cor-verde"></div>
                             <span class="main-btn-text">Nova máquina</span>
                         </button>
@@ -120,7 +76,7 @@ if ($cd_usuario_id) {
 
                             <div class="form-campo">
                                 <label class="item-label" for="m-marca">Marca ou Nome Comercial</label>
-                                <input type="text" class="form-text" name="mmarca" id="m-marca" placeholder="Ex: Valmet, John Deere..." required>
+                                <input type="text" class="form-text" name="mmarca" id="m-marca" placeholder="Ex: Valmet, John Deer..." required>
                             </div>
 
                             <div class="form-campo">
@@ -142,10 +98,12 @@ if ($cd_usuario_id) {
                             </div>
 
                             <div class="form-submit">
-                                <button class="item-btn fundo-cinza-b cor-preto" id="form-cancel" type="button" onclick="cancelarEdicao()">
+                                <button class="item-btn fundo-cinza-b cor-preto form-cancel" id="form-cancel-maquina" type="button">
+                                    <!-- <div class="btn-icon icon-x cor-cinza-b"></div> -->
                                     <span class="main-btn-text">Cancelar</span>
                                 </button>
-                                <button class="item-btn fundo-verde" id="form-save" type="button" onclick="salvarMaquina()">
+                                <button class="item-btn fundo-verde form-save" id="form-save-maquina" type="button">
+                                    <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                                     <span class="main-btn-text">Salvar</span>
                                 </button>
                             </div>
@@ -155,10 +113,9 @@ if ($cd_usuario_id) {
             </div>
         </main>
 
-        <?php include '../include/imports.php'; ?>
+        <?php include '../include/imports.php' ?>
     </div>
-    
-    <script src="../js/maquinas.js"></script>   
-    <?php include '../include/footer.php'; ?>
+        
+    <?php include '../include/footer.php' ?>
 </body>
 </html>

@@ -12,15 +12,15 @@ function closePopup() {
     popupProp.classList.add('d-none');
 }
 
-if (document.getElementById('form-cancel')) {
-    document.getElementById('form-cancel').addEventListener('click', function () {
+document.querySelectorAll('.form-cancel').forEach(function(el) {
+    el.addEventListener('click', function(event) {
         overlay.classList.remove('d-none');
         popupCancel.classList.remove('d-none');
     });
-}
+});
 
-if (document.getElementById('form-save')) {
-    document.getElementById('form-save').addEventListener('click', function (event) {
+document.querySelectorAll('.form-save').forEach(function(el) {
+    el.addEventListener('click', function(event) {
         const form = event.target.closest('.main-form');
 
         // Verifica se todos os campos required estão preenchidos
@@ -51,7 +51,7 @@ if (document.getElementById('form-save')) {
             popupFailed.classList.remove('d-none');
         }
     });
-}
+});
 
 function altProp() {
     overlay.classList.remove('d-none');

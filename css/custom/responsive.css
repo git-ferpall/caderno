@@ -3,4 +3,30 @@
         font-size: 0.8em;
         height: 28px;
     }
+
+    .item-bancadas-box .item-bancada-options .item-bancada-option {
+        flex-direction: row;
+        justify-content: left;
+        gap: 6px;
+    }
+
+    .item-bancadas-box .item-bancada-options .item-bancada-option .item-bancada-option-title {
+        font-size: 14px;
+    }
+
+    .item-bancadas-box .item-bancada-options .item-bancada-option .item-bancada-icon-box {
+        width: 18px;
+        height: 18px;
+        padding: 0px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .item-bancadas-box .item-bancada-options {
+        justify-content: center;
+    }
+
+    .item-bancadas-box .item-bancada-options .item-bancada-option {
+        width: auto;
+    }
 }

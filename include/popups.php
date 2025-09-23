@@ -31,41 +31,12 @@
             <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
         </div>
     </div>
-
-    <!-- Novo apontamento -->
-    <div class="popup-box v2 d-none" id="popup-apt">
-        <h2 class="popup-title">Novo Apontamento</h2>
-
-        <div class="apt-box popup-overflow">
-        <?php 
-            $titulos = [
-            'plantio', 'transplantio', 'colheita', 'registros climáticos', 'fertilizante', 
-            'herbicida', 'fungicida', 'inseticida', 'adubação (calcário)', 'adubação orgânica', 'irrigação', 'controle de água', 'mosca-das-frutas', 'pragas e doenças', 'manejo integrado', 'erradicação', 'revisão de máquinas', 'coleta e análise', 'visita técnica', 'personalizado'
-            ];
-
-            foreach ($titulos as $index => $titulo) {
-                $id = $index + 1;
-                echo '
-                <button class="apt-button fundo-apt' . $id . '" type="button" id="apt' . $id . '">
-                    <div class="apt-icon-box">
-                        <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
-                    </div>
-                    <h5 class="apt-title">' . htmlspecialchars($titulo) . '</h5>
-                </button>';
-            }
-        ?>
-        </div>
-
-        <div class="popup-actions">
-            <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
-        </div>
-    </div>
-
+    
     <!-- Alterar Propriedade -->
     <div class="popup-box v2 d-none" id="popup-prop">
         <h2 class="popup-title">Alterar Propriedade</h2>
         
-        <div class="item-box prop-box popup-overflow">
+        <div class="item-box prop-box v2">
 
             <?php
             // Insira aqui a função para pegar as propriedades do sistema

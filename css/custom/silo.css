@@ -64,45 +64,102 @@
 
 .silo .silo-dados .silo-arquivos {
     padding: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    flex-wrap: wrap;  
 }
 
 .silo .silo-dados .silo-arquivos .silo-arquivos-sort {
-    display: none;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 10px;
+}
+
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+}
+
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-btn .silo-sort-btn-text {
+    font-size: 12px;
+}
+
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-btn .btn-icon,
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-btn .btn-icon svg {
+    width: 10px;
+    height: 10px;
+    display: block;
+    padding: 0px;
+    margin: 0px;
+}
+
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-type .btn-icon,
+.silo .silo-dados .silo-arquivos .silo-arquivos-sort .silo-sort-type .btn-icon svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+    padding: 0px;
+    margin: 0px;
 }
 
 .silo .silo-dados .silo-arquivos .btn-icon,
 .silo .silo-dados .silo-arquivos .btn-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     display: block;
 }
 
 .silo .silo-dados .silo-arquivos .silo-item-box {
     display: flex;
     flex-direction: row;
+    border: 1px solid var(--cinza-b);
+    background-color: var(--cinza-c);
+    border-radius: 15px;
     justify-content: space-between;
     align-items: center;
+    width: calc(50% - 3px);
+    box-sizing: border-box;
+    padding: 10px;
 }
+
 .silo .silo-dados .silo-arquivos .silo-item-box .silo-item-edit,
 .silo .silo-dados .silo-arquivos .silo-item-box .silo-item-edit svg {
-    width: 15px;
-    height: 15px;
+    width: 12px;
+    height: 12px;
     display: block;
+    color: var(--vermelho);
+    cursor: pointer;
 }
 
 .silo .silo-dados .silo-arquivos .silo-item {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: left;
+    text-align: left;
     gap: 6px;
+    min-width: 0px;
+    flex: 1;
     cursor: pointer;
 }
 
 .silo .silo-dados .silo-arquivos .silo-item .silo-item-title {
-    font-size: 16px;
+    font-size: 12px;
     font-weight: normal;
-    padding: 0px;
+    padding: 0px 3px 0px 0px;
     margin: 0px;
+    min-width: 0px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: left;
 }
 
 .silo .silo-dados .silo-arquivos .silo-item:hover .silo-item-title {
@@ -111,7 +168,7 @@
 
 .silo .silo-dados .silo-arquivos .silo-item .icon-pasta svg {
     /* Aqui vai a cor para o respectivo ícone, tendo --preto como padrão */
-    color: var(--laranja);
+    color: var(--preto);
 }
 
 .silo .silo-dados .silo-arquivos .silo-item .icon-zip svg {
@@ -136,7 +193,7 @@
 
 .silo .silo-dados .silo-arquivos .silo-item .icon-img svg {
     /* Aqui vai a cor para o respectivo ícone, tendo --preto como padrão */
-    color: var(--azul);
+    color: var(--preto);
 }
 
 .silo .silo-dados .silo-dados-content {
@@ -147,6 +204,7 @@
     right: 20px;
     overflow: hidden;
     height: 0px;
+    z-index: 4;
 }
 
 .silo .silo-dados .silo-dados-content .silo-dados-content-space {
@@ -190,7 +248,13 @@
     bottom: 15px;
     right: 15px;
     transition: all 0.3s ease;
-    z-index: 4;
+    z-index: 6;
+}
+
+.silo .silo-dados .silo-dados-btn.v2 {
+    background-color: var(--vermelho);
+    right: 60px;
+    z-index: 2;
 }
 
 .silo .silo-dados .silo-dados-btn.active {

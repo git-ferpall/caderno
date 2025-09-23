@@ -1,20 +1,3 @@
-<?php
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php'; // Se já não estiver no topo
-
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -55,8 +38,33 @@ if (!isLogged()) {
                 <h2 class="main-title cor-branco">Dados da Propriedade</h2>
             </div>
 
-            <div class="sistema-main container-fluid">
-                <form action="../funcoes/cadastra_propriedade.php" method="POST" class="main-form" id="prop-form">
+            <div class="sistema-main">
+                <div class="item-box container">
+
+                    <?php
+
+                    if(!empty($propriedades)){
+                        // Aqui vai uma função pra pegar a propriedade selecionada atualmente
+                        $propriedade = $propriedades[0]; 
+                        echo '
+                            <div class="item item-propriedade v2" id="prop-' . $propriedade['id'] . '">
+                                <h4 class="item-title">' . $propriedade['nome'] . '</h4>
+                                <div class="item-edit">
+                                    <button class="edit-btn" id="edit-propriedade" type="button" onclick="altProp()">
+                                        Alterar
+                                    </button>
+                                </div>
+                            </div>
+                        ';
+                    } else {
+                        echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
+                    }
+                    
+                    ?>
+                    
+                </div>
+
+                <form action="propriedade.php" class="main-form container" id="prop-form">
                     <div class="form-campo">
                         <label for="pf-razao">Nome ou Razão Social</label>
                         <input type="text" class="form-text" name="pfrazao" id="pf-razao" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>
@@ -116,11 +124,11 @@ if (!isLogged()) {
                     </div>
 
                     <div class="form-submit">
-                        <button class="main-btn fundo-vermelho" id="form-cancel" type="button">
+                        <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-propriedade" type="button">
                             <!-- <div class="btn-icon icon-x cor-vermelho"></div> -->
                             <span class="main-btn-text">Cancelar</span>
                         </button>
-                        <button class="main-btn fundo-verde" id="form-save" type="button">
+                        <button class="main-btn fundo-verde form-save" id="form-save-propriedade" type="button">
                             <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                             <span class="main-btn-text">Salvar</span>
                         </button>

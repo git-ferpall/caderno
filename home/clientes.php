@@ -19,9 +19,9 @@
             <div class="page-title">
                 <h2 class="main-title cor-branco">Painel de Clientes</h2>
             </div>
-        </main>
 
-        <div class="sitema-main"></div>
+            <div class="sistema-main container"></div>
+        </main>
 
         <?php include '../include/imports.php' ?>
     </div>

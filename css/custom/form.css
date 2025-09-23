@@ -61,8 +61,8 @@
 }
 
 .main-form .form-tel {
-    width: 73%;
     padding: 15px 30px !important;
+    margin-left: 100px !important;
 }
 
 .main-form .iti {
@@ -85,7 +85,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 25%;
+    width: 100%;
+    width: 90px;
 }
 
 .main-form .iti__selected-flag {
@@ -95,6 +96,7 @@
     justify-content: center;
     text-align: center;
     width: 100%;
+    width: 90px;
 }
 
 .main-form .iti__selected-flag:hover {
@@ -409,4 +411,8 @@
 
 .main-form .form-submit button {
     flex: 1;
+}
+
+.main-form.form-bancada {
+    padding: 0px;
 }

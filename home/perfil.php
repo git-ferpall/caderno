@@ -1,20 +1,3 @@
-<?php
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php'; // Se já não estiver no topo
-
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -52,8 +35,8 @@ if (!isLogged()) {
                 <h2 class="main-title cor-branco">Dados Pessoais</h2>
             </div>
 
-            <div class="sistema-main container-fluid">
-                <form action="perfil.php" class="main-form" id="perf-form">
+            <div class="sistema-main">
+                <form action="perfil.php" class="main-form container" id="perf-form">
                     <div class="form-campo">
                         <label for="pf-nome">Nome Completo (não abreviar)</label>
                         <input class="form-text" type="text" name="pfnome" id="pf-nome" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>
@@ -113,11 +96,11 @@ if (!isLogged()) {
                     </div>
 
                     <div class="form-submit">
-                        <button class="main-btn fundo-vermelho" id="form-cancel" type="button">
+                        <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-perfil" type="button">
                             <!-- <div class="btn-icon icon-x cor-vermelho"></div> -->
                             <span class="main-btn-text">Cancelar</span>
                         </button>
-                        <button class="main-btn fundo-verde" id="form-save" type="button">
+                        <button class="main-btn fundo-verde form-save" id="form-save-perfil" type="button">
                             <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                             <span class="main-btn-text">Salvar</span>
                         </button>

@@ -1,19 +1,3 @@
-<?php
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php'; // Se já não estiver no topo
-
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
-?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -49,7 +33,7 @@ if (!isLogged()) {
             </div>
 
             <div class="sistema-main silo">
-                <div class="silo-info">
+                <div class="silo-info container">
                     <div class="silo-info-header">
                         <h4 class="silo-info-title"><?php echo $utilizacao; ?>% utilizado</h4>
                         <h4 class="silo-info-title"><?php echo $cap_ocupada; ?>GB de <?php echo $cap_max; ?>GB</h4>
@@ -59,56 +43,82 @@ if (!isLogged()) {
 
                 <div class="silo-dados">
 
-                    <div class="silo-title">
-                        <h2 class="silo-title-text">Arquivos</h2>
-                        <span class="silo-title-subtitle">Pasta raiz</span>
-                    </div>
-
                     <div class="silo-arquivos">
-                        <div class="silo-arquivos-sign">
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-pasta">
-                                    <div class="btn-icon icon-pasta"></div>
-                                    <span class="silo-item-title">Pasta de exemplo</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-arquivo">
-                                    <div class="btn-icon icon-file"></div>
-                                    <span class="silo-item-title">Arquivo de exemplo.file</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-arquivo">
-                                    <div class="btn-icon icon-zip"></div>
-                                    <span class="silo-item-title">ZIP de exemplo.zip</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-arquivo">
-                                    <div class="btn-icon icon-txt"></div>
-                                    <span class="silo-item-title">Texto de exemplo.txt</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-arquivo">
-                                    <div class="btn-icon icon-pdf"></div>
-                                    <span class="silo-item-title">PDF de exemplo.pdf</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
-                            <div class="silo-item-box">
-                                <div class="silo-item silo-arquivo">
-                                    <div class="btn-icon icon-img"></div>
-                                    <span class="silo-item-title">Imagem de exemplo.img</span>
-                                </div>
-                                <div class="silo-item-edit icon-pen"></div>
-                            </div>
+
+                        <div class="silo-arquivos-sort">
+                            <button class="silo-sort-btn" type="button">
+                                <span class="silo-sort-btn-text">Data</span>
+                                <div class="btn-icon icon-angle"></div>
+                            </button>
+                            <button class="silo-sort-type" type="button">
+                                <div class="btn-icon icon-silo"></div>
+                            </button>
                         </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-pasta">
+                                <div class="btn-icon icon-pasta"></div>
+                                <span class="silo-item-title">Pasta de exemplo</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-pasta">
+                                <div class="btn-icon icon-pasta"></div>
+                                <span class="silo-item-title">Pasta de exemplo</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-pasta">
+                                <div class="btn-icon icon-pasta"></div>
+                                <span class="silo-item-title">Pasta de exemplo</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-arquivo">
+                                <div class="btn-icon icon-file"></div>
+                                <span class="silo-item-title">Arquivo de exemplo.file</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-arquivo">
+                                <div class="btn-icon icon-zip"></div>
+                                <span class="silo-item-title">ZIP de exemplo.zip</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-arquivo">
+                                <div class="btn-icon icon-txt"></div>
+                                <span class="silo-item-title">Texto de exemplo.txt</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-arquivo">
+                                <div class="btn-icon icon-pdf"></div>
+                                <span class="silo-item-title">PDF de exemplo.pdf</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+
+                        <div class="silo-item-box">
+                            <div class="silo-item silo-arquivo">
+                                <div class="btn-icon icon-img"></div>
+                                <span class="silo-item-title">Imagem de exemplo.img</span>
+                            </div>
+                            <div class="silo-item-edit icon-trash d-none"></div>
+                        </div>
+                        
                     </div>
                 
                     <div class="silo-dados-add">
@@ -128,8 +138,11 @@ if (!isLogged()) {
                                 </button>
                             </div>
                         </div>
-                        <button class="silo-dados-btn">
-                            <div class="btn-icon icon-upload cor-branco"></div>
+                        <button class="silo-dados-btn v2" type="button" id="dado-remove">
+                            <div class="btn-icon icon-trash cor-branco"></div>
+                        </button>
+                        <button class="silo-dados-btn v1" type="button" id="dado-add">
+                            <div class="btn-icon icon-plus cor-branco"></div>
                         </button>
                     </div>
                 </div>

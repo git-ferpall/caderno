@@ -161,62 +161,88 @@ $(document).ready(function () {
     $('.silo-dados-btn').on('click', function () {
         const $btn = $(this);
         const $content = $('.silo-dados-content');
-        const $icon = $('.silo-dados-btn .btn-icon');
+
+        let $icon;
+        let $iconBefore = '';
+        let $iconAfter = '';
+        if ($btn.hasClass('v1')) {
+            $btnv2 = $('.silo-dados-btn.v2');
+            $icon = $('.silo-dados-btn.v1 .btn-icon');
+            $iconBefore = 'icon-plus';
+            $iconAfter = 'icon-close';
+
+            if ($btn.hasClass('active')) {
+                // Fechar animação
+                const height = $content[0].scrollHeight;
+                
+                $content.css({
+                    height: height + 'px'
+                });
+
+                // Força repaint antes de aplicar a nova altura
+                $content[0].offsetHeight;
+
+                $content.css({
+                    transition: 'all 0.4s ease-in-out',
+                    height: '0px'
+                });
+                
+                $btnv2.removeClass('d-none');
+            } else {
+                // Abrir animação
+                $content.css({
+                    transition: 'none',
+                    height: 'auto'
+                });
+
+                const height = $content[0].scrollHeight;
+
+                $content.css({
+                    height: '0px'
+                });
+
+                // Força repaint
+                $content[0].offsetHeight;
+
+                $content.css({
+                    transition: 'all 0.4s ease-in-out',
+                    height: height + 'px'
+                });
+                
+                $btnv2.addClass('d-none');
+            }
+        } else {
+            $icon = $('.silo-dados-btn.v2 .btn-icon');
+            $iconBefore = 'icon-trash';
+            $iconAfter = 'icon-close';
+
+            const $editIcon = $('.silo-item-edit');
+            if ($btn.hasClass('active')) {
+                $editIcon.addClass('d-none');
+            } else {
+                $editIcon.removeClass('d-none');
+            }
+        }
 
         if ($btn.hasClass('active')) {
             $btn.removeClass('active');
-            $icon.removeClass('icon-upload');
-            $icon.addClass('icon-close');
+            $icon.removeClass($iconAfter);
+            $icon.addClass($iconBefore);
 
-            fetch(`../img/icon/icon-upload.svg`)
+            fetch(`../img/icon/` + $iconBefore + `.svg`)
                 .then(response => response.text())
                 .then(svg => {
                     $icon.html(svg);
-            });
-            
-            // Fechar animação
-            const height = $content[0].scrollHeight;
-            
-            $content.css({
-                height: height + 'px'
-            });
-
-            // Força repaint antes de aplicar a nova altura
-            $content[0].offsetHeight;
-
-            $content.css({
-                transition: 'all 0.4s ease-in-out',
-                height: '0px'
             });
         } else {
             $btn.addClass('active');
-            $icon.addClass('icon-upload');
-            $icon.removeClass('icon-close');
+            $icon.removeClass($iconBefore);
+            $icon.addClass($iconAfter);
 
-            fetch(`../img/icon/icon-close.svg`)
+            fetch(`../img/icon/` + $iconAfter + `.svg`)
                 .then(response => response.text())
                 .then(svg => {
                     $icon.html(svg);
-            });
-
-            // Abrir animação
-            $content.css({
-                transition: 'none',
-                height: 'auto'
-            });
-
-            const height = $content[0].scrollHeight;
-
-            $content.css({
-                height: '0px'
-            });
-
-            // Força repaint
-            $content[0].offsetHeight;
-
-            $content.css({
-                transition: 'all 0.4s ease-in-out',
-                height: height + 'px'
             });
         }
     });
@@ -242,5 +268,39 @@ $(document).ready(function () {
 
         // Insere o novo bloco abaixo do atual
         form.after(novoItem);
+    });
+
+    $('.item-bancada-option').on('click', function () {
+        const $main = $('.item-bancada');
+        const $botao = $(this);
+        const $bancadas = $('.item-bancada-option');
+        const $bancada = $(this).closest('.item-bancada-options');
+        const $header = $('.item-bancada-header');
+        const $edit = $('.item-bancada-edit');
+
+        if($botao.hasClass('active')) {
+            $botao.removeClass('active');
+            $bancadas.removeClass('d-none');
+            $header.removeClass('d-none');
+            $edit.removeClass('d-none');
+            $main.prop('disabled', false)
+
+            if ($botao.hasClass('bancada-defensivo')) $bancada.find('.form-defensivo').addClass('d-none');
+            if ($botao.hasClass('bancada-fertilizante')) $bancada.find('.form-fertilizante').addClass('d-none');
+            if ($botao.hasClass('bancada-colheita')) $bancada.find('.form-colheita').addClass('d-none');
+            if ($botao.hasClass('bancada-historico')) $bancada.find('.form-historico').addClass('d-none');
+        } else {
+            $botao.addClass('active');
+            $bancadas.addClass('d-none');
+            $header.addClass('d-none');
+            $edit.addClass('d-none');
+            $botao.removeClass('d-none');
+            $main.prop('disabled', true)
+
+            if ($botao.hasClass('bancada-defensivo')) $bancada.find('.form-defensivo').removeClass('d-none');
+            if ($botao.hasClass('bancada-fertilizante')) $bancada.find('.form-fertilizante').removeClass('d-none');
+            if ($botao.hasClass('bancada-colheita')) $bancada.find('.form-colheita').removeClass('d-none');
+            if ($botao.hasClass('bancada-historico')) $bancada.find('.form-historico').removeClass('d-none');
+        }
     });
 });

@@ -394,7 +394,7 @@ function toggleSenha(btn) {
 
 function carregarIcons() {
   const icones = [
-    'angle', 'camera', 'check', 'close', 'dots', 'exit', 'file', 'fruit', 'home', 'img', 'pasta', 'pdf', 'pen', 'people', 'pin', 'plant', 'plus', 'silo', 'truck', 'txt', 'upload', 'user', 'water', 'x', 'zip'
+    'angle', 'camera', 'check', 'close', 'dots', 'exit', 'file', 'fruit', 'home', 'img', 'pasta', 'pdf', 'pen', 'people', 'pin', 'plant', 'plus', 'silo', 'trash', 'truck', 'txt', 'upload', 'user', 'water', 'x', 'zip'
   ];
 
   icones.forEach(nome => {
@@ -449,20 +449,87 @@ function coresApt() {
 function novoApontamento(apt) {
     const id = '#apt' + apt.id;
     const idAdd = '#add-apt' + apt.id;
-    const nome = apt.nome;
 
     if ($(id).hasClass('active')) {
-        $(id).removeClass('active');
-        $('.apt-button').removeClass('d-none');
-        $(idAdd).addClass('d-none');
+
+      $(id).removeClass('active');
+      $('.apt-button').removeClass('d-none');
+      $(idAdd).addClass('d-none');
 
     } else {
-        $('.apt-button').addClass('d-none');
-        $(id).removeClass('d-none');
-        $(id).addClass('active');
-        $(idAdd).removeClass('d-none');
-    }
 
+      $('.apt-button').addClass('d-none');
+      $(id).removeClass('d-none');
+      $(id).addClass('active');
+      $(idAdd).removeClass('d-none');
+
+    }
+}
+
+function selectEstufa(estufa) {
+  const id = '#estufa-' + estufa;
+  const idBtn = '#edit-estufa-' + estufa;
+  const addEstufa = '#add-estufa';
+  const estufaContent = '#estufa-' + estufa + '-box';
+
+  if ($(id).hasClass('active')) {
+
+      $(id).removeClass('active');
+      $('.item-estufa').removeClass('d-none');
+      $(addEstufa).removeClass('d-none');
+      $(estufaContent).addClass('d-none');
+      $(idBtn).text('Selecionar');
+
+  } else {
+
+      $('.item-estufa').addClass('d-none');
+      $(id).removeClass('d-none');
+      $(id).addClass('active');
+      $(addEstufa).addClass('d-none');
+      $(estufaContent).removeClass('d-none');
+      $(idBtn).text('Alterar');
+
+  }
+}
+
+function selectBancada(bancada, estufa) {
+  const id = '#estufa-' + estufa;
+  const header = id + '-box .item-estufa-header';
+  const btn = '#item-bancada-' + String(bancada) + '-estufa-' + String(estufa);
+  const content = '#item-bancada-' + String(bancada) + '-content-estufa-' + String(estufa);
+  const novaBancada = '#add-bancada-estufa-' + String(estufa);
+
+  if ($(btn).hasClass('active')) {
+
+      $('.item-bancada').removeClass('d-none');
+      $(btn).removeClass('active');
+      $('.item-bancada-content').addClass('d-none');
+      $(novaBancada).removeClass('d-none');
+      $(id).removeClass('d-none');
+      $(header).removeClass('d-none');
+
+  } else {
+
+      $('.item-bancada').addClass('d-none');
+      $(btn).removeClass('d-none');
+      $(btn).addClass('active');
+      $(content).removeClass('d-none');
+      $(novaBancada).addClass('d-none');
+      $(id).addClass('d-none');
+      $(header).addClass('d-none');
+
+  }
+}
+
+function voltarEstufa(estufa) {
+  const id = '#estufa-' + estufa;
+  const novaBancada = '#add-bancada-estufa-' + estufa;
+  $('.item-bancada').removeClass('d-none');
+  $('.item-bancada').removeClass('active');
+  $('.item-bancada-content').addClass('d-none');
+  $('.item-estufa-header').removeClass('d-none');
+  $(id).removeClass('d-none');
+  $(novaBancada).removeClass('d-none');
 }
 
 function abrirMenu() {

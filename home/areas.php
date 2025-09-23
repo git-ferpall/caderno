@@ -1,21 +1,3 @@
-<?php
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../configuracao/configuracao_funcoes.php';
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    sec_session_start();
-}
-verificaSessaoExpirada();
-
-if (!isLogged()) {
-    header("Location: ../index.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -26,86 +8,56 @@ if (!isLogged()) {
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
-    <style>
-                /* Estilo para botões de editar/excluir */
-        .edit-btn {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .edit-icon {
-            font-size: 18px;
-            color: #333;
-            line-height: 1;
-        }
-
-        .edit-icon.icon-pen::before {
-            content: "✏️";
-            display: inline-block;
-        }
-
-        .edit-icon.icon-trash::before {
-            content: "🗑️";
-            display: inline-block;
-        }
-
-        .edit-btn:hover .edit-icon {
-            color: #007f00;
-            transform: scale(1.1);
-            transition: all 0.2s ease;
-        }
-
-        /* Estilo das colunas da tabela */
-        .item-header, .item {
-            display: flex;
-            align-items: center;
-            padding: 8px 10px;
-            border-radius: 10px;
-            background-color: #f6f6f6;
-            margin-bottom: 4px;
-        }
-
-        .col-nome        { width: 25%; text-align: center; }
-        .col-tipo        { width: 20%; text-align: center; }
-        .col-propriedade { width: 25%; text-align: center; }
-        .item-edit       { width: 10%; display: flex; justify-content: center; gap: 8px; }
-
-        .item-none {
-            padding: 10px;
-            text-align: center;
-            color: #777;
-        }
-        #item-add-area {
-            display: none;
-        }
-
-    </style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?>
 
     <div id="conteudo">
-        <?php include '../include/menu.php' ?>       
+        <?php include '../include/menu.php' ?>
+
+        <?php 
+
+        // Aqui vai uma função pra pegar as áreas já cadastradas que, caso possua alguma, o valor já é colocado automaticamente no campo passível de edição
+
+        // Exemplo de area:
+        // $areas = [['id' => '01', 'nome' => 'Area 01']]
+
+        $areas = []
+        
+        ?>
+
         <main id="areas" class="sistema">
             <div class="page-title">
                 <h2 class="main-title cor-branco">Áreas Cultivadas</h2>
             </div>
 
             <div class="sistema-main">
-                <div class="item-box" id="tabela-areas">
-                    
-                    <!-- Conteúdo carregado dinamicamente via busca_areas.php -->
+                <div class="item-box container">
+
+                    <?php
+
+                    if(!empty($areas)){
+                        foreach($areas as $area) {
+                            echo '
+                                <div class="item" id="area-' . $area['id'] . '">
+                                    <h4 class="item-title">' . $area['nome'] . '</h4>
+                                    <div class="item-edit">
+                                        <button class="edit-btn" id="edit-area" type="button" onclick="editItem(' . json_encode($area) . ')">
+                                            <div class="edit-icon icon-pen"></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            ';
+                        }
+                    } else {
+                        echo '<div class="item-none">Nenhuma área cadastrada.</div>';
+                    }
+
+                    ?>
                 </div>
 
-                <form action="areas.php" class="main-form" id="add-area">
-                    <input type="hidden" name="area_id" id="area-id" />
+                <form action="areas.php" class="main-form container" id="add-area">
 
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="area-add" type="button">
@@ -140,11 +92,12 @@ if (!isLogged()) {
                             </div>
 
                             <div class="form-submit">
-                                <button class="item-btn fundo-cinza-b cor-preto" id="form-cancel" type="button">
+                                <button class="item-btn fundo-cinza-b cor-preto form-cancel" id="form-cancel-area" type="button">
                                     <!-- <div class="btn-icon icon-x cor-cinza-b"></div> -->
                                     <span class="main-btn-text">Cancelar</span>
                                 </button>
-                                <button class="item-btn fundo-verde" id="form-save" type="button">
+                                <button class="item-btn fundo-verde form-save" id="form-save-area" type="button">
+                                    <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                                     <span class="main-btn-text">Salvar</span>
                                 </button>
                             </div>
@@ -158,6 +111,5 @@ if (!isLogged()) {
     </div>
         
     <?php include '../include/footer.php' ?>
-    <script src="/js/areas.js"></script>
 </body>
 </html>

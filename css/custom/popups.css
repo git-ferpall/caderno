@@ -112,3 +112,7 @@
     gap: 6px;
     justify-content: center;
 }
+
+.prop-box.v2 {
+    padding-top: 24px;
+}

@@ -8,6 +8,10 @@
     justify-content: center;
 }
 
+.apt-add {
+    width: 100%;
+}
+
 .apt-box .apt-button {
     background-color: var(--cinza-b);
     border-radius: 15px;

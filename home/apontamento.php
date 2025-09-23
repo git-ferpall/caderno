@@ -1,8 +1,3 @@
-<?php
-
-require_once __DIR__ . '/../configuracao/protect.php';
-
-?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -26,7 +21,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <h2 class="main-title cor-branco">Novo Apontamento</h2>
             </div>
 
-            <div class="sistema-main">
+            <div class="sistema-main container">
                 <div class="apt-box">
                     
                     <?php 
@@ -263,10 +258,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         }
 
                         echo '<div class="form-submit">
-                            <button class="main-btn fundo-vermelho" id="form-cancel" type="button">
+                            <button class="main-btn form-cancel fundo-vermelho" id="form-cancel-apt' . $id . '" type="button">
                                 <span class="main-btn-text">Cancelar</span>
                             </button>
-                            <button class="main-btn fundo-verde" id="form-save" type="button">
+                            <button class="main-btn form-save fundo-verde" id="form-save-apt' . $id . '" type="button">
                                 <span class="main-btn-text">Salvar</span>
                             </button>
                         </div>';
@@ -500,15 +495,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     function campo_obs($id) {
                         echo '<div class="form-campo">
                             <label for="apt'. $id .'-obs">Observações</label>
-                            <textarea class="form-text form-textarea" name="apt1obs" id="apt1-obs" placeholder="Insira aqui suas observações..."></textarea>
+                            <textarea class="form-text form-textarea" name="apt'. $id .'obs" id="apt'. $id .'-obs" placeholder="Insira aqui suas observações..."></textarea>
                         </div>';
                     }
 
                     // Adiciona o campo "Reposições / Manutenções"
                     function campo_reposicoes($id) {
                         echo '<div class="form-campo">
-                            <label for="apt'. $id .'-obs">Reposições / Manutenções</label>
-                            <textarea class="form-text form-textarea" name="apt1obs" id="apt1-obs" placeholder="Insira aqui as reposições ou manutenções realizadas..."></textarea>
+                            <label for="apt'. $id .'-rep">Reposições / Manutenções</label>
+                            <textarea class="form-text form-textarea" name="apt'. $id .'rep" id="apt'. $id .'-rep" placeholder="Insira aqui as reposições ou manutenções realizadas..."></textarea>
                         </div>';
                     }
 
@@ -883,31 +878,31 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     function campos_visita($id) {
                         $itens = [
-                            ['id' => '', 'title' => 'Tratamentos fitossanitários'],
-                            ['id' => '', 'title' => 'Adubação mineral e orgânica'], 
-                            ['id' => '', 'title' => 'Manejo da cobertura verde'], 
-                            ['id' => '', 'title' => 'Colheita'], 
-                            ['id' => '', 'title' => 'Revisão de maquinário'], 
-                            ['id' => '', 'title' => 'Análise de solo'], 
-                            ['id' => '', 'title' => 'Análise foliar'], 
-                            ['id' => '', 'title' => 'Análise de resíduos e agrotóxicos']
+                            ['id' => 'tratamentos-fit', 'title' => 'Tratamentos fitossanitários'],
+                            ['id' => 'adubacao-min', 'title' => 'Adubação mineral e orgânica'], 
+                            ['id' => 'manejo-cob', 'title' => 'Manejo da cobertura verde'], 
+                            ['id' => 'colheita', 'title' => 'Colheita'], 
+                            ['id' => 'revisao-maq', 'title' => 'Revisão de maquinário'], 
+                            ['id' => 'analise-solo', 'title' => 'Análise de solo'], 
+                            ['id' => 'analise-fol', 'title' => 'Análise foliar'], 
+                            ['id' => 'analise-res', 'title' => 'Análise de resíduos e agrotóxicos']
                         ];
                         foreach($itens as $item) {
-                            $title = $item['id'];
+                            $item_id = $item['id'];
                             $nome = $item['title'];
                             echo '<div class="form-campo">
-                                <label class="item-label" for="apt'. $id .'-'. $title .'">'. $nome .'</label>
-                                <div class="form-radio-box" id="apt'. $id .'-'. $title .'">
+                                <label class="item-label" for="apt'. $id .'-'. $item_id .'">'. $nome .'</label>
+                                <div class="form-radio-box" id="apt'. $id .'-'. $item_id .'">
                                     <label class="form-radio v2 full">
-                                        <input type="radio" name="apt'. $id . $title .'" value="1" checked/>
+                                        <input type="radio" name="apt'. $id . $item_id .'" value="1" checked/>
                                         Sim
                                     </label>
                                     <label class="form-radio v2 full">
-                                        <input type="radio" name="apt'. $id . $title .'" value="2" />
+                                        <input type="radio" name="apt'. $id . $item_id .'" value="2" />
                                         Não
                                     </label>
                                 </div>
-                                <textarea class="form-text form-textarea v2" name="apt'. $id . $title .'" id="apt'. $id .'-'. $title .'" placeholder="Observações..."></textarea>
+                                <textarea class="form-text form-textarea v2" name="apt'. $id . $item_id .'" id="apt'. $id .'-'. $item_id .'" placeholder="Observações..."></textarea>
                             </div>';
                         }
                     }

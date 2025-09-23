@@ -34,8 +34,8 @@
                 <h2 class="main-title cor-branco">Relatórios</h2>
             </div>
 
-            <div class="sistema-main container-fluid">
-                <form action="relatorios.php" class="main-form" id="rel-form">
+            <div class="sistema-main">
+                <form action="relatorios.php" class="main-form container" id="rel-form">
 
                     <div class="form-campo">
                         <label for="pf-cult">Cultivos</label>
@@ -90,7 +90,7 @@
                     </div>
 
                     <div class="form-submit">
-                        <button class="main-btn fundo-verde" id="form-save" type="button">
+                        <button class="main-btn fundo-laranja" id="form-pdf-relatorio" type="button">
                             <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                             <span class="main-btn-text">Gerar PDF</span>
                         </button>
