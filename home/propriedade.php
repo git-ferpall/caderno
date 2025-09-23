@@ -52,28 +52,6 @@ if ($user_id) {
             <div class="page-title">
                 <h2 class="main-title cor-branco">Cadastro de Propriedade</h2>
             </div>
-
-            <div class="sistema-main">
-                <div class="item-box container">
-                    <?php if (!empty($propriedades)): ?>
-                        <?php foreach ($propriedades as $prop): ?>
-                            <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
-                                <h4 class="item-title">
-                                    <?php echo htmlspecialchars($prop['nome_razao'] ?? 'Sem nome'); ?>
-                                </h4>
-                                <div class="item-edit">
-                                    <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
-                                        Editar
-                                    </a>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="item-none">Nenhuma propriedade cadastrada.</div>
-                    <?php endif; ?>
-                </div>
-
-
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
 
                     <div class="form-campo">
