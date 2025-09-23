@@ -1,53 +1,37 @@
 <?php
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
-require_once __DIR__ . '/../funcoes/carregar_propriedade.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
+
+session_start();
+
+// garante user_id via token ou sessão
+$payload = verify_jwt();
+if ($payload && !empty($payload['sub'])) {
+    $_SESSION['user_id'] = $payload['sub'];
+}
 
 $user_id = $_SESSION['user_id'] ?? null;
-$propriedades = [];
-
-if ($user_id) {
-    $propriedades = carregarPropriedades($mysqli, $user_id);
+if (!$user_id) {
+    die("Usuário não logado");
 }
-?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Minhas Propriedades</title>
-  <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
-  <h2>Minhas Propriedades</h2>
 
-  <a href="propriedade.php">+ Nova Propriedade</a>
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id <= 0) {
+    die("ID inválido");
+}
 
-  <div class="item-box container">
-    <?php if (!empty($propriedades)): ?>
-        <?php foreach ($propriedades as $prop): ?>
-            <pre><?php print_r($prop); ?></pre> <!-- DEBUG -->
-            <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
-                <h4 class="item-title">
-                    <?php echo !empty($prop['nome_razao']) 
-                        ? htmlspecialchars($prop['nome_razao']) 
-                        : 'Sem nome'; ?>
-                </h4>
-                <div class="item-edit">
-                    <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
-                        Editar
-                    </a>
-                    |
-                    <a class="delete-btn" 
-                       href="/funcoes/excluir_propriedade.php?id=<?php echo (int)$prop['id']; ?>"
-                       onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
-                        Excluir
-                    </a>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <div class="item-none">Nenhuma propriedade cadastrada.</div>
-    <?php endif; ?>
-</div>
+// excluir somente se a propriedade pertence ao usuário
+$stmt = $mysqli->prepare("DELETE FROM propriedades WHERE id = ? AND user_id = ?");
+$stmt->bind_param("ii", $id, $user_id);
+$stmt->execute();
 
-</body>
-</html>
+if ($stmt->affected_rows > 0) {
+    // sucesso → redireciona de volta
+    header("Location: /home/minhas_propriedades.php?msg=excluido");
+    exit;
+} else {
+    // não encontrou ou não pertence ao usuário
+    header("Location: /home/minhas_propriedades.php?msg=erro");
+    exit;
+}
