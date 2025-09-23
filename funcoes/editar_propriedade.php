@@ -42,6 +42,8 @@ if (!$prop) {
 </head>
 <body>
 <?php include '../include/menu.php'; ?>
+<?php include '../include/loading.php'; ?> 
+<?php include '../include/popups.php'; ?>
 
 <main class="sistema">
     <div class="page-title">
@@ -107,7 +109,7 @@ if (!$prop) {
         </div>
     </form>
 </main>
-
+<?php include '../include/imports.php'; ?>
 <?php include '../include/footer.php'; ?>
 </body>
 </html>

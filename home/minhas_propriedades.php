@@ -27,6 +27,8 @@ $propriedades = $res->fetch_all(MYSQLI_ASSOC);
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+    <?php include '../include/loading.php'; ?> 
+    <?php include '../include/popups.php'; ?>
     <?php include '../include/menu.php'; ?>
 
     <main class="sistema container">
@@ -58,6 +60,7 @@ $propriedades = $res->fetch_all(MYSQLI_ASSOC);
                 <?php endif; ?>
             </div>
         </div>
+        <?php include '../include/imports.php'; ?>
     </main>
 
     <?php include '../include/footer.php'; ?>
