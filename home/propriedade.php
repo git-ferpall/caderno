@@ -56,19 +56,21 @@ if ($user_id) {
                 <div class="item-box container">
                     <?php if (!empty($propriedades)): ?>
                         <?php foreach ($propriedades as $prop): ?>
-                            <div class="item item-propriedade v2 <?= $prop['ativo'] ? 'ativo' : '' ?>" id="prop-<?= $prop['id'] ?>">
-                                <h4 class="item-title"><?= htmlspecialchars($prop['nome_razao']) ?></h4>
+                            <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
+                                <h4 class="item-title">
+                                    <?php echo htmlspecialchars($prop['nome_razao'] ?? 'Sem nome'); ?>
+                                </h4>
                                 <div class="item-edit">
-                                    <form method="get" action="propriedade.php" style="display:inline">
-                                        <input type="hidden" name="editar" value="<?= $prop['id'] ?>">
-                                        <button class="edit-btn" type="submit">Editar</button>
-                                    </form>
+                                    <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
+                                        Editar
+                                    </a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="item-none">Nenhuma propriedade cadastrada.</div>
                     <?php endif; ?>
+
                 </div>
 
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
