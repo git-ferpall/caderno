@@ -100,73 +100,96 @@ if (isset($_GET['editar'])) {
 
                     <div class="form-campo">
                         <label for="pf-razao">Nome ou Razão Social</label>
-                        <input type="text" name="pfrazao" value="<?php echo htmlspecialchars($nome); ?>">
+                        <input class="form-text" type="text" name="pfrazao" id="pf-razao" 
+                            placeholder="Seu nome completo" required
+                            value="<?php echo htmlspecialchars($nome); ?>">
                     </div>
 
                     <div class="form-campo">
                         <label for="pf-cnpj-cpf">Tipo e N° do Documento</label>
                         <div class="form-box" id="pf-cnpj-cpf">
                             <select name="pftipo" id="pf-tipo" class="form-select form-text f1" required>
-                                <option value="cnpj">CNPJ</option>
-                                <option value="cpf">CPF</option>
+                                <option value="cnpj" <?php if($tipo==='cnpj') echo 'selected'; ?>>CNPJ</option>
+                                <option value="cpf" <?php if($tipo==='cpf') echo 'selected'; ?>>CPF</option>
                             </select>
-                            <input type="text" name="pfcnpj" value="<?php echo htmlspecialchars($cnpj); ?>">
-                           <input type="text" name="pfcpf" value="<?php echo htmlspecialchars($cpf); ?>">
+                            <input class="form-text only-num f4" type="text" name="pfcnpj" id="pf-cnpj" 
+                                placeholder="12.345.789/0001-10" maxlength="18" 
+                                value="<?php echo htmlspecialchars($cnpj); ?>">
+                            <input class="form-text only-num f4" type="text" name="pfcpf" id="pf-cpf" 
+                                placeholder="123.456.789-10" maxlength="14" 
+                                value="<?php echo htmlspecialchars($cpf); ?>">
                         </div>
                     </div>
 
                     <div class="form-campo">
                         <label for="pf-email-com">E-mail</label>
-                        <input type="email" name="pfemail-com" value="<?php echo htmlspecialchars($email); ?>">
+                        <input class="form-text" type="email" name="pfemail-com" id="pf-email-com"
+                            placeholder="Seu e-mail comercial" required
+                            value="<?php echo htmlspecialchars($email); ?>">
                     </div>
                         
                     <div class="form-box">
                         <div class="form-campo f5">
                             <label for="pf-ender-rua">Endereço</label>
-                            <input class="form-text" type="text" name="pfender-rua" id="pf-ender-rua" placeholder="Rua, logradouro, etc" value="<?php echo $ruaEnder ?>" required>
+                            <input class="form-text" type="text" name="pfender-rua" id="pf-ender-rua" 
+                                placeholder="Rua, logradouro, etc" required
+                                value="<?php echo htmlspecialchars($ruaEnder); ?>">
                         </div>
                         <div class="form-campo f2">
                             <label for="pf-ender-num">N°</label>
-                            <input type="text" class="form-text form-num only-num" name="pfender-num" id="pf-ender-num" placeholder="S/N" maxlength="6" value="<?php echo $numEnder ?>">
+                            <input type="text" class="form-text form-num only-num" 
+                                name="pfender-num" id="pf-ender-num" placeholder="S/N" maxlength="6" 
+                                value="<?php echo htmlspecialchars($numEnder); ?>">
                         </div>
                     </div>
 
                     <div class="form-box">
                         <div class="form-campo f2">
                             <label for="pf-ender-uf">Estado</label>
-                            <select name="pfender-uf" id="pf-ender-uf" class="form-select form-text" value="<?php echo $ufEnder ?>" required></select>
+                            <select name="pfender-uf" id="pf-ender-uf" class="form-select form-text" required>
+                                <option value="">Selecione</option>
+                                <option value="AC" <?php if($ufEnder==='AC') echo 'selected'; ?>>AC</option>
+                                <option value="SP" <?php if($ufEnder==='SP') echo 'selected'; ?>>SP</option>
+                                <option value="PR" <?php if($ufEnder==='PR') echo 'selected'; ?>>PR</option>
+                                <!-- Adicione os demais estados -->
+                            </select>
                         </div>
                         <div class="form-campo f5">
                             <label for="pf-ender-cid">Cidade</label>
-                            <select name="pfender-cid" id="pf-ender-cid" class="form-select form-text" value="<?php echo $cidEnder ?>" required></select>
+                            <input class="form-text" type="text" name="pfender-cid" id="pf-ender-cid" 
+                                placeholder="Cidade" required
+                                value="<?php echo htmlspecialchars($cidEnder); ?>">
                         </div>
                     </div>
 
                     <div class="form-campo">
                         <label for="pf-num1-com">Telefone Comercial</label>
                         <div class="form-box">
-                            <input class="form-text form-tel only-num" type="tel" name="pfnum1-com" id="pf-num1-com" placeholder="(DDD) + Número" maxlength="15" value="<?php echo $telCom ?>">
+                            <input class="form-text form-tel only-num" type="tel" name="pfnum1-com" id="pf-num1-com"
+                                placeholder="(DDD) + Número" maxlength="15" 
+                                value="<?php echo htmlspecialchars($telCom); ?>">
                         </div>
                     </div>
 
                     <div class="form-campo">
                         <label for="pf-num2-com">Telefone Comercial Secundário</label>
                         <div class="form-box">
-                            <input class="form-text form-tel only-num" type="tel" name="pfnum2-com" id="pf-num2-com" placeholder="(DDD) + Número" maxlength="15" value="<?php echo $telCom2 ?>">
+                            <input class="form-text form-tel only-num" type="tel" name="pfnum2-com" id="pf-num2-com"
+                                placeholder="(DDD) + Número" maxlength="15" 
+                                value="<?php echo htmlspecialchars($telCom2); ?>">
                         </div>
                     </div>
 
                     <div class="form-submit">
                         <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-propriedade" type="button">
-                            <!-- <div class="btn-icon icon-x cor-vermelho"></div> -->
                             <span class="main-btn-text">Cancelar</span>
                         </button>
-                        <button class="main-btn fundo-verde form-save" id="form-save-propriedade" type="button">
-                            <!-- <div class="btn-icon icon-check cor-verde"></div> -->
+                        <button class="main-btn fundo-verde form-save" id="form-save-propriedade" type="submit">
                             <span class="main-btn-text">Salvar</span>
                         </button>
                     </div>
                 </form>
+
             </div>
         </main>
 
