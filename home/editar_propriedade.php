@@ -59,7 +59,7 @@ $telCom2  = $prop['telefone2'];
         </div>
 
         <div class="sistema-main">
-            <form action="../funcoes/update_propriedade.php" method="POST" class="main-form container">
+            <form action="/funcoes/update_propriedade.php" method="POST" class="main-form container">
                 <input type="hidden" name="redirect" value="1">
 
                 <!-- Campo escondido para UPDATE -->
@@ -143,7 +143,7 @@ $telCom2  = $prop['telefone2'];
                     <a href="minhas_propriedades.php" class="main-btn fundo-vermelho">
                         <span class="main-btn-text">Cancelar</span>
                     </a>
-                    <button class="main-btn fundo-verde" type="submit">
+                    <button class="main-btn fundo-verde" type="submit" onclick="this.form.submit();">
                         <span class="main-btn-text">Salvar Alterações</span>
                     </button>
                 </div>
