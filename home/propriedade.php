@@ -81,7 +81,7 @@ if (isset($_GET['editar'])) {
                         <?php foreach ($propriedades as $prop): ?>
                             <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
                                 <h4 class="item-title">
-                                    <?php echo htmlspecialchars($prop['nome_razao'] ?? 'Sem nome'); ?>
+                                    <?php echo !empty($prop['nome_razao']) ? htmlspecialchars($prop['nome_razao']) : 'Sem nome'; ?>
                                 </h4>
                                 <div class="item-edit">
                                     <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
@@ -93,8 +93,8 @@ if (isset($_GET['editar'])) {
                     <?php else: ?>
                         <div class="item-none">Nenhuma propriedade cadastrada.</div>
                     <?php endif; ?>
-
                 </div>
+
 
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
 
@@ -109,8 +109,8 @@ if (isset($_GET['editar'])) {
                         <label for="pf-cnpj-cpf">Tipo e N° do Documento</label>
                         <div class="form-box" id="pf-cnpj-cpf">
                             <select name="pftipo" id="pf-tipo" class="form-select form-text f1" required>
-                                <option value="cnpj" <?php if($tipo==='cnpj') echo 'selected'; ?>>CNPJ</option>
-                                <option value="cpf" <?php if($tipo==='cpf') echo 'selected'; ?>>CPF</option>
+                                <option value="cnpj" <?php echo ($tipo === 'cnpj') ? 'selected' : ''; ?>>CNPJ</option>
+                                <option value="cpf"  <?php echo ($tipo === 'cpf')  ? 'selected' : ''; ?>>CPF</option>
                             </select>
                             <input class="form-text only-num f4" type="text" name="pfcnpj" id="pf-cnpj" 
                                 placeholder="12.345.789/0001-10" maxlength="18" 
