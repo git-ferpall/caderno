@@ -23,24 +23,31 @@ if ($user_id) {
 
   <div class="item-box container">
     <?php if (!empty($propriedades)): ?>
-      <?php foreach ($propriedades as $prop): ?>
-        <div class="item item-propriedade v2">
-          <h4 class="item-title">
-            <?php echo htmlspecialchars($prop['nome_razao']); ?>
-          </h4>
-          <div class="item-edit">
-            <a href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">Editar</a>
-            |
-            <a href="/funcoes/excluir_propriedade.php?id=<?php echo (int)$prop['id']; ?>"
-               onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
-               Excluir
-            </a>
-          </div>
-        </div>
-      <?php endforeach; ?>
+        <?php foreach ($propriedades as $prop): ?>
+            <pre><?php print_r($prop); ?></pre> <!-- DEBUG -->
+            <div class="item item-propriedade v2" id="prop-<?php echo (int)$prop['id']; ?>">
+                <h4 class="item-title">
+                    <?php echo !empty($prop['nome_razao']) 
+                        ? htmlspecialchars($prop['nome_razao']) 
+                        : 'Sem nome'; ?>
+                </h4>
+                <div class="item-edit">
+                    <a class="edit-btn" href="propriedade.php?editar=<?php echo (int)$prop['id']; ?>">
+                        Editar
+                    </a>
+                    |
+                    <a class="delete-btn" 
+                       href="/funcoes/excluir_propriedade.php?id=<?php echo (int)$prop['id']; ?>"
+                       onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
+                        Excluir
+                    </a>
+                </div>
+            </div>
+        <?php endforeach; ?>
     <?php else: ?>
-      <div class="item-none">Nenhuma propriedade cadastrada.</div>
+        <div class="item-none">Nenhuma propriedade cadastrada.</div>
     <?php endif; ?>
-  </div>
+</div>
+
 </body>
 </html>
