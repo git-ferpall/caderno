@@ -32,25 +32,7 @@ if ($user_id) {
     <?php include '../include/popups.php' ?>
 
     <div id="conteudo">
-        <?php include '../include/menu.php' ?>
-
-        <?php
-
-        // Aqui vai uma função pra pegar o cadastro já feito do usuário que, caso possua algum dado já informado, esse valor já é colocado automaticamente no campo passível de edição
-
-        $nome = "";
-        $email = "";
-        $cpf = "";
-        $cnpj = "";
-        $ruaEnder = "";
-        $ufEnder = "";
-        $numEnder = "";
-        $cidEnder = "";
-        $telCom = "";
-        $telCom2 = "";
-
-        ?>
-
+        <?php include '../include/menu.php' ?>  
         <main id="propriedade" class="sistema">
             <div class="page-title">
                 <h2 class="main-title cor-branco">Cadastro de Propriedade</h2>
@@ -58,28 +40,21 @@ if ($user_id) {
 
             <div class="sistema-main">
                 <div class="item-box container">
-
-                    <?php
-
-                    if(!empty($propriedades)){
-                        // Aqui vai uma função pra pegar a propriedade selecionada atualmente
-                        $propriedade = $propriedades[0]; 
-                        echo '
-                            <div class="item item-propriedade v2" id="prop-' . $propriedade['id'] . '">
-                                <h4 class="item-title">' . $propriedade['nome'] . '</h4>
+                    <?php if (!empty($propriedades)): ?>
+                        <?php foreach ($propriedades as $prop): ?>
+                            <div class="item item-propriedade v2 <?= $prop['ativo'] ? 'ativo' : '' ?>" id="prop-<?= $prop['id'] ?>">
+                                <h4 class="item-title"><?= htmlspecialchars($prop['nome_razao']) ?></h4>
                                 <div class="item-edit">
-                                    <button class="edit-btn" id="edit-propriedade" type="button" onclick="altProp()">
-                                        Alterar
-                                    </button>
+                                    <form method="get" action="propriedade.php" style="display:inline">
+                                        <input type="hidden" name="editar" value="<?= $prop['id'] ?>">
+                                        <button class="edit-btn" type="submit">Editar</button>
+                                    </form>
                                 </div>
                             </div>
-                        ';
-                    } else {
-                        echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
-                    }
-                    
-                    ?>
-                    
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="item-none">Nenhuma propriedade cadastrada.</div>
+                    <?php endif; ?>
                 </div>
 
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
