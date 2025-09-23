@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 file_put_contents(__DIR__ . "/update_debug.log", date('c') . " POST=" . print_r($_POST, true) . "\n", FILE_APPEND);
 
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
