@@ -43,14 +43,13 @@ try {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
 
-    // Insere nova propriedade
+    // Insere a nova como ativa
     $stmt = $mysqli->prepare("
         INSERT INTO propriedades 
-        (user_id, nome_razao, tipo_doc, cpf_cnpj, email, endereco_rua, endereco_numero, endereco_uf, endereco_cidade, telefone1, telefone2, ativo)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,1)
+        (user_id, nome_razao, tipo_doc, cpf_cnpj, email, endereco_rua, endereco_numero, endereco_uf, endereco_cidade, telefone1, telefone2, ativo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     ");
-    $stmt->bind_param(
-        "issssssssss",
+    $stmt->bind_param("issssssssss", 
         $user_id, $nome, $tipo, $doc, $email, $rua, $num, $uf, $cidade, $tel1, $tel2
     );
     $stmt->execute();
