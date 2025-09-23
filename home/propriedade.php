@@ -1,18 +1,32 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../funcoes/carregar_propriedade.php';
 
-// Captura usuário logado via JWT (já validado pelo protect.php)
 $user_id = $_SESSION['user_id'] ?? null;
-
 $propriedades = [];
+$nome = $email = $cpf = $cnpj = $ruaEnder = $ufEnder = $numEnder = $cidEnder = $telCom = $telCom2 = "";
+
 if ($user_id) {
-    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $propriedades = $res->fetch_all(MYSQLI_ASSOC);
-}
+    // lista todas
+    $propriedades = carregarPropriedades($mysqli, $user_id);
+
+    // se for edição
+    if (isset($_GET['editar'])) {
+        $prop = carregarPropriedadePorId($mysqli, $user_id, (int) $_GET['editar']);
+        if ($prop) {
+            $nome     = $prop['nome_razao'];
+            $email    = $prop['email'];
+            $cnpj     = ($prop['tipo_doc'] === 'cnpj') ? $prop['cpf_cnpj'] : "";
+            $cpf      = ($prop['tipo_doc'] === 'cpf') ? $prop['cpf_cnpj'] : "";
+            $ruaEnder = $prop['endereco_rua'];
+            $ufEnder  = $prop['endereco_uf'];
+            $numEnder = $prop['endereco_numero'];
+            $cidEnder = $prop['endereco_cidade'];
+            $telCom   = $prop['telefone1'];
+            $telCom2  = $prop['telefone2'];
+        }
+    }
+}    
 
 ?>
 
