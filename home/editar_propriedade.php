@@ -1,9 +1,18 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
 
 $id = $_GET['id'] ?? null;
+
+// tenta pegar user_id da sessão
 $user_id = $_SESSION['user_id'] ?? null;
+
+// se não achar, tenta pelo token JWT
+if (!$user_id) {
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? null;
+}
 
 if (!$id || !$user_id) {
     die("Propriedade não encontrada ou usuário não logado.");
@@ -19,6 +28,7 @@ if (!$prop) {
     die("Propriedade não encontrada.");
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
