@@ -28,28 +28,6 @@ if ($user_id) {
     }
 }    
 
-$nome = $email = $cpf = $cnpj = $ruaEnder = $ufEnder = $numEnder = $cidEnder = $telCom = $telCom2 = "";
-
-if (isset($_GET['editar'])) {
-    $id = (int) $_GET['editar'];
-    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE id = ? AND user_id = ?");
-    $stmt->bind_param("ii", $id, $user_id);
-    $stmt->execute();
-    $prop = $stmt->get_result()->fetch_assoc();
-
-    if ($prop) {
-        $nome     = $prop['nome_razao'];
-        $email    = $prop['email'];
-        $cnpj     = ($prop['tipo_doc'] === 'cnpj') ? $prop['cpf_cnpj'] : "";
-        $cpf      = ($prop['tipo_doc'] === 'cpf') ? $prop['cpf_cnpj'] : "";
-        $ruaEnder = $prop['endereco_rua'];
-        $ufEnder  = $prop['endereco_uf'];
-        $numEnder = $prop['endereco_numero'];
-        $cidEnder = $prop['endereco_cidade'];
-        $telCom   = $prop['telefone1'];
-        $telCom2  = $prop['telefone2'];
-    }
-}
 
 ?>
 
@@ -109,9 +87,10 @@ if (isset($_GET['editar'])) {
                         <label for="pf-cnpj-cpf">Tipo e N° do Documento</label>
                         <div class="form-box" id="pf-cnpj-cpf">
                             <select name="pftipo" id="pf-tipo" class="form-select form-text f1" required>
-                                <option value="cnpj" <?php echo ($tipo === 'cnpj') ? 'selected' : ''; ?>>CNPJ</option>
-                                <option value="cpf"  <?php echo ($tipo === 'cpf')  ? 'selected' : ''; ?>>CPF</option>
+                                <option value="cnpj" <?php echo ($cnpj !== '') ? 'selected' : ''; ?>>CNPJ</option>
+                                <option value="cpf"  <?php echo ($cpf !== '')  ? 'selected' : ''; ?>>CPF</option>
                             </select>
+
                             <input class="form-text only-num f4" type="text" name="pfcnpj" id="pf-cnpj" 
                                 placeholder="12.345.789/0001-10" maxlength="18" 
                                 value="<?php echo htmlspecialchars($cnpj); ?>">
