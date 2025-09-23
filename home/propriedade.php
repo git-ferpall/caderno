@@ -125,19 +125,11 @@ if ($user_id) {
                     <div class="form-box">
                         <div class="form-campo f2">
                             <label for="pf-ender-uf">Estado</label>
-                            <select name="pfender-uf" id="pf-ender-uf" class="form-select form-text" required>
-                                <option value="">Selecione</option>
-                                <option value="AC" <?php if($ufEnder==='AC') echo 'selected'; ?>>AC</option>
-                                <option value="SP" <?php if($ufEnder==='SP') echo 'selected'; ?>>SP</option>
-                                <option value="PR" <?php if($ufEnder==='PR') echo 'selected'; ?>>PR</option>
-                                <!-- Adicione os demais estados -->
-                            </select>
+                            <select name="pfender-uf" id="pf-ender-uf" class="form-select form-text" value="<?php echo $ufEnder ?>" required></select>
                         </div>
                         <div class="form-campo f5">
                             <label for="pf-ender-cid">Cidade</label>
-                            <input class="form-text" type="text" name="pfender-cid" id="pf-ender-cid" 
-                                placeholder="Cidade" required
-                                value="<?php echo htmlspecialchars($cidEnder); ?>">
+                            <select name="pfender-cid" id="pf-ender-cid" class="form-select form-text" value="<?php echo $cidEnder ?>" required></select>
                         </div>
                     </div>
 
