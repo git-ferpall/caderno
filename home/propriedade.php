@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
-
 ?>
 
 <!DOCTYPE html>
@@ -70,6 +69,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 </div>
 
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
+
                     <div class="form-campo">
                         <label for="pf-razao">Nome ou Razão Social</label>
                         <input type="text" class="form-text" name="pfrazao" id="pf-razao" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>

@@ -58,8 +58,7 @@ try {
     if (str_contains($accept, 'application/json') || isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
         echo json_encode(['ok'=>true,'id'=>$newId]);
     } else {
-        header("Location: /home/propriedade.php?sucesso=1");
-
+        header("Location: /propriedade.php?sucesso=1");
         exit;
     }
 
