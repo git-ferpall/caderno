@@ -58,7 +58,8 @@ $telCom2  = $prop['telefone2'];
         </div>
 
         <div class="sistema-main">
-            <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container">
+            <form action="/funcoes/update_propriedade.php" method="POST">
+                <input type="hidden" name="redirect" value="1">
 
                 <!-- Campo escondido para UPDATE -->
                 <input type="hidden" name="id" value="<?php echo (int)$prop['id']; ?>">
