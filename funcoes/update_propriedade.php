@@ -4,7 +4,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 $id = (int)($_POST['id'] ?? 0);
-$redirect = isset($_POST['redirect']) ? true : false;
+$redirect = isset($_POST['redirect']);
 
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
@@ -14,7 +14,7 @@ if (!$user_id) {
 
 if (!$id || !$user_id) {
     if ($redirect) {
-        header("Location: /paginas/minhas_propriedades.php?msg=erro");
+        header("Location: /paginas/minhas_propriedades.php?msg=unauthorized");
         exit;
     }
     echo json_encode(['ok' => false, 'err' => 'unauthorized']);
@@ -39,7 +39,8 @@ try {
     $stmt = $mysqli->prepare("UPDATE propriedades 
         SET nome_razao=?, tipo_doc=?, cpf_cnpj=?, email=?, endereco_rua=?, endereco_numero=?, endereco_uf=?, endereco_cidade=?, telefone1=?, telefone2=? 
         WHERE id=? AND user_id=?");
-    $stmt->bind_param("ssssssssssii",
+    $stmt->bind_param(
+        "ssssssssssii",
         $nome, $tipo, $doc, $email, $rua, $num, $uf, $cidade, $tel1, $tel2,
         $id, $user_id
     );
@@ -50,7 +51,7 @@ try {
         exit;
     }
 
-    echo json_encode(['ok' => true]);
+    echo json_encode(['ok' => true, 'id' => $id]);
 } catch (Exception $e) {
     if ($redirect) {
         header("Location: /paginas/minhas_propriedades.php?msg=erro");
