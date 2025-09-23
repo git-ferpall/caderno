@@ -10,11 +10,7 @@ if (!$user_id) {
     die("Usuário não autenticado via token");
 }
 
-$user_id = $_SESSION['user_id'] ?? null;
 
-if (!$user_id) {
-    die("Usuário não logado");
-}
 
 $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ? ORDER BY created_at DESC");
 $stmt->bind_param("i", $user_id);
