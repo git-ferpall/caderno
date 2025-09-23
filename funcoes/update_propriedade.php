@@ -1,6 +1,20 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../configuracao/auth_user.php'; // agora temos $USER_ID disponível
+require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
+
+// tenta pegar via sessão
+$user_id = $_SESSION['user_id'] ?? null;
+
+// se não houver sessão, tenta via JWT
+if (!$user_id) {
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? null;
+}
+
+if (!$user_id) {
+    die(json_encode(["ok" => false, "error" => "Usuário não autenticado"]));
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -27,31 +41,36 @@ if ($id <= 0 || empty($nome)) {
     exit;
 }
 
-// Update seguro
-$stmt = $mysqli->prepare("
-    UPDATE propriedades
-       SET nome_razao = ?, tipo_doc = ?, cpf_cnpj = ?, email = ?,
-           endereco_rua = ?, endereco_numero = ?, endereco_uf = ?, endereco_cidade = ?,
-           telefone1 = ?, telefone2 = ?
-     WHERE id = ? AND user_id = ?
-");
+// Faz o UPDATE
+$stmt = $mysqli->prepare("UPDATE propriedades 
+    SET nome_razao=?, tipo_doc=?, cpf_cnpj=?, email=?, 
+        endereco_rua=?, endereco_numero=?, endereco_uf=?, endereco_cidade=?, 
+        telefone1=?, telefone2=? 
+    WHERE id=? AND user_id=?");
 $stmt->bind_param(
     "ssssssssssii",
     $nome, $tipo, $cpf_cnpj, $email,
     $rua, $num, $uf, $cid,
     $tel1, $tel2,
-    $id, $USER_ID
+    $id, $user_id
 );
-
 $ok = $stmt->execute();
+$updated = $stmt->affected_rows;
+$stmt->close();
 
-echo json_encode([
-    "ok" => $ok,
-    "updated" => $stmt->affected_rows
-]);
-
-// Se veio do formulário normal (não AJAX), redireciona de volta
+// Se veio do form normal (redirect=1), redireciona
 if (!empty($_POST['redirect'])) {
-    header("Location: /home/minhas_propriedades.php");
+    if ($ok) {
+        header("Location: /home/minhas_propriedades.php?sucesso=1");
+    } else {
+        header("Location: /home/minhas_propriedades.php?erro=1");
+    }
     exit;
 }
+
+// Caso contrário, responde JSON (útil para AJAX/teste com curl)
+echo json_encode([
+    "ok"      => $ok,
+    "updated" => $updated,
+    "error"   => $ok ? null : $mysqli->error
+]);
