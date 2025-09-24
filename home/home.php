@@ -25,16 +25,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <div class="container-fluid principais-abas">
                 <h3 class="main-title cor-branco">Principais abas</h3>
 
-                <div class="item-box prop-box">
-
+               <div class="item-box prop-box">
                     <?php
-
-                    if(!empty($propriedades)){
-                        // Aqui vai uma função pra pegar a propriedade selecionada atualmente
+                    if (!empty($propriedades)) {
+                        // Pega a propriedade ativa (ou a primeira retornada)
                         $propriedade = $propriedades[0]; 
                         echo '
-                            <div class="item item-propriedade v2 fundo-branco" id="prop-' . $propriedade['id'] . '-home">
-                                <h4 class="item-title">' . $propriedade['nome'] . '</h4>
+                            <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
+                                <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
                                 <div class="item-edit">
                                     <button class="edit-btn" id="edit-propriedade-home" type="button" onclick="altProp()">
                                         Alterar
@@ -45,9 +43,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     } else {
                         echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
                     }
-
                     ?>
                 </div>
+
 
                 <ul class="menu-links">
                     <a href="./apontamento.php"><li class="menu-link fundo-verde">
