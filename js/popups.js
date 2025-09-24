@@ -58,9 +58,9 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-document.querySelectorAll('.select-propriedade').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
+document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('select-propriedade')) {
+        const id = event.target.getAttribute('data-id');
 
         fetch('/funcoes/ativar_propriedade.php', {
             method: 'POST',
@@ -105,5 +105,5 @@ document.querySelectorAll('.select-propriedade').forEach(function(btn) {
         .catch(err => {
             alert('Erro de rede: ' + err);
         });
-    });
+    }
 });
