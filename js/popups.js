@@ -58,9 +58,9 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-document.querySelectorAll('.select-propriedade').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('select-propriedade')) {
+        const id = e.target.getAttribute('data-id');
 
         fetch('/funcoes/ativar_propriedade.php', {
             method: 'POST',
@@ -70,34 +70,32 @@ document.querySelectorAll('.select-propriedade').forEach(function(btn) {
         .then(r => r.json())
         .then(data => {
             if (data.ok) {
-                // Marca todos como inativos
-                document.querySelectorAll('.item-propriedade').forEach(item => {
-                    item.classList.remove('ativo');
-                    const btn = item.querySelector('button');
-                    if (btn) {
-                        btn.textContent = 'Selecionar';
-                        btn.disabled = false;
-                        btn.classList.remove('fundo-verde');
-                        btn.classList.add('fundo-azul');
-                    }
-                });
-
-                // Atualiza só o que foi escolhido
-                const selected = document.getElementById('prop-' + id);
-                if (selected) {
-                    selected.classList.add('ativo');
-                    const btn = selected.querySelector('button');
-                    if (btn) {
-                        btn.textContent = 'Ativa';
-                        btn.disabled = true;
-                        btn.classList.remove('fundo-azul');
-                        btn.classList.add('fundo-verde');
-                    }
+                // 1. Atualiza a propriedade no "home"
+                const tituloHome = document.querySelector('#prop-ativa-nome');
+                if (tituloHome) {
+                    tituloHome.textContent = data.nome; // backend retorna o nome
                 }
 
-                // Fecha popup depois de atualizar
-                setTimeout(() => closePopup(), 1000);
+                // 2. Atualiza os botões do popup
+                document.querySelectorAll('.item-propriedade').forEach(div => {
+                    div.querySelector('.item-edit').innerHTML = `
+                        <button class="select-propriedade" data-id="${div.dataset.id}">
+                            Selecionar
+                        </button>
+                    `;
+                    div.classList.remove('fundo-preto');
+                });
 
+                const ativoDiv = document.querySelector(`#prop-${id}`);
+                if (ativoDiv) {
+                    ativoDiv.classList.add('fundo-preto');
+                    ativoDiv.querySelector('.item-edit').innerHTML = `
+                        <span class="badge fundo-verde">Ativa</span>
+                    `;
+                }
+
+                // Fecha popup
+                closePopup();
             } else {
                 alert('Erro: ' + data.error);
             }
@@ -105,5 +103,5 @@ document.querySelectorAll('.select-propriedade').forEach(function(btn) {
         .catch(err => {
             alert('Erro de rede: ' + err);
         });
-    });
+    }
 });
