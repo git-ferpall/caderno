@@ -13,17 +13,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
-    <style>
-        .badge {
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            color: #fff;
-            margin-right: 8px;
-        }
-        .fundo-verde { background-color: #28a745; }
-        .fundo-cinza { background-color: #6c757d; }
-    </style>
 </head>
 <body>
     <?php require '../include/loading.php' ?> 
@@ -39,18 +28,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
                <div class="item-box prop-box">
                     <?php
                     if (!empty($propriedades)) {
-                        // pega a ativa (sempre vem primeiro se o SELECT for ordenado)
+                        // Pega a propriedade ativa (ou a primeira retornada)
                         $propriedade = $propriedades[0]; 
-                        $isAtiva = ($propriedade['ativo'] == 1);
-
                         echo '
                             <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
                                 <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
                                 <div class="item-edit">
-                                    <span class="badge ' . ($isAtiva ? 'fundo-verde' : 'fundo-cinza') . '">
-                                        ' . ($isAtiva ? 'Ativa' : 'Inativa') . '
-                                    </span>
-                                    <button class="edit-btn" type="button" onclick="altProp()">
+                                    <button class="edit-btn" id="edit-propriedade-home" type="button" onclick="altProp()">
                                         Alterar
                                     </button>
                                 </div>
