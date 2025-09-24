@@ -34,32 +34,33 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="home" class="sistema fundo-img">
             <div class="container-fluid principais-abas">
+                <h3 class="main-title cor-branco">Principais abas</h3>
 
-              <div class="item-box prop-box">
-                <?php
-                if (!empty($propriedades)) {
-                    // pega a ativa (sempre vem primeiro se o SELECT for ordenado)
-                    $propriedade = $propriedades[0]; 
-                    $isAtiva = ($propriedade['ativo'] == 1);
+               <div class="item-box prop-box">
+                    <?php
+                    if (!empty($propriedades)) {
+                        // pega a ativa (sempre vem primeiro se o SELECT for ordenado)
+                        $propriedade = $propriedades[0]; 
+                        $isAtiva = ($propriedade['ativo'] == 1);
 
-                    echo '
-                        <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
-                            <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
-                            <div class="item-edit">
-                                <span class="badge ' . ($isAtiva ? 'fundo-verde' : 'fundo-cinza') . '">
-                                    ' . ($isAtiva ? 'Ativa' : 'Inativa') . '
-                                </span>
-                                <button class="edit-btn" type="button" onclick="altProp()">
-                                    Alterar
-                                </button>
+                        echo '
+                            <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
+                                <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
+                                <div class="item-edit">
+                                    <span class="badge ' . ($isAtiva ? 'fundo-verde' : 'fundo-cinza') . '">
+                                        ' . ($isAtiva ? 'Ativa' : 'Inativa') . '
+                                    </span>
+                                    <button class="edit-btn" type="button" onclick="altProp()">
+                                        Alterar
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ';
-                } else {
-                    echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
-                }
-                ?>
-            </div>
+                        ';
+                    } else {
+                        echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
+                    }
+                    ?>
+                </div>
 
 
                 <ul class="menu-links">
