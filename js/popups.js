@@ -58,9 +58,9 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-document.addEventListener('click', function (event) {
-    if (event.target.classList.contains('select-propriedade')) {
-        const id = event.target.getAttribute('data-id');
+document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
 
         fetch('/funcoes/ativar_propriedade.php', {
             method: 'POST',
@@ -76,7 +76,6 @@ document.addEventListener('click', function (event) {
                     const btn = item.querySelector('button');
                     if (btn) {
                         btn.textContent = 'Selecionar';
-                        btn.disabled = false;
                         btn.classList.remove('fundo-verde');
                         btn.classList.add('fundo-azul');
                     }
@@ -89,13 +88,12 @@ document.addEventListener('click', function (event) {
                     const btn = selected.querySelector('button');
                     if (btn) {
                         btn.textContent = 'Ativa';
-                        btn.disabled = true;
                         btn.classList.remove('fundo-azul');
                         btn.classList.add('fundo-verde');
                     }
                 }
 
-                // Fecha popup depois de atualizar
+                // Fecha popup depois de atualizar (opcional)
                 setTimeout(() => closePopup(), 1000);
 
             } else {
@@ -105,5 +103,5 @@ document.addEventListener('click', function (event) {
         .catch(err => {
             alert('Erro de rede: ' + err);
         });
-    }
+    });
 });
