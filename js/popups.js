@@ -58,34 +58,38 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-document.addEventListener('click', function(e) {
-    if (e.target && e.target.classList.contains('select-propriedade')) {
-        const id = e.target.getAttribute('data-id');
+// Selecionar propriedade ativa
+document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
 
         fetch('/funcoes/ativar_propriedade.php', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + encodeURIComponent(id)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + encodeURIComponent(id),
+            credentials: 'include' // 🔑 envia cookies da sessão
         })
         .then(r => r.json())
         .then(data => {
             if (data.ok) {
-                // 1. Atualiza a propriedade no "home"
+                // Atualiza nome no box da home
                 const tituloHome = document.querySelector('#prop-ativa-nome');
                 if (tituloHome) {
-                    tituloHome.textContent = data.nome; // backend retorna o nome
+                    tituloHome.textContent = data.nome;
                 }
 
-                // 2. Atualiza os botões do popup
+                // Atualiza lista no popup
                 document.querySelectorAll('.item-propriedade').forEach(div => {
-                    div.querySelector('.item-edit').innerHTML = `
-                        <button class="select-propriedade" data-id="${div.dataset.id}">
-                            Selecionar
-                        </button>
-                    `;
                     div.classList.remove('fundo-preto');
+                    const badge = div.querySelector('.item-edit');
+                    if (badge) {
+                        badge.innerHTML = `
+                            <button class="select-propriedade" data-id="${div.dataset.id}">Selecionar</button>
+                        `;
+                    }
                 });
 
+                // Marca a ativa
                 const ativoDiv = document.querySelector(`#prop-${id}`);
                 if (ativoDiv) {
                     ativoDiv.classList.add('fundo-preto');
@@ -94,7 +98,6 @@ document.addEventListener('click', function(e) {
                     `;
                 }
 
-                // Fecha popup
                 closePopup();
             } else {
                 alert('Erro: ' + data.error);
@@ -103,5 +106,5 @@ document.addEventListener('click', function(e) {
         .catch(err => {
             alert('Erro de rede: ' + err);
         });
-    }
+    });
 });
