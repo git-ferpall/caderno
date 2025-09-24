@@ -57,3 +57,53 @@ function altProp() {
     overlay.classList.remove('d-none');
     popupProp.classList.remove('d-none');
 }
+
+document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+
+        fetch('/funcoes/ativar_propriedade.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + encodeURIComponent(id)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                // Marca todos como inativos
+                document.querySelectorAll('.item-propriedade').forEach(item => {
+                    item.classList.remove('ativo');
+                    const btn = item.querySelector('button');
+                    if (btn) {
+                        btn.textContent = 'Selecionar';
+                        btn.disabled = false;
+                        btn.classList.remove('fundo-verde');
+                        btn.classList.add('fundo-azul');
+                    }
+                });
+
+                // Atualiza só o que foi escolhido
+                const selected = document.getElementById('prop-' + id);
+                if (selected) {
+                    selected.classList.add('ativo');
+                    const btn = selected.querySelector('button');
+                    if (btn) {
+                        btn.textContent = 'Ativa';
+                        btn.disabled = true;
+                        btn.classList.remove('fundo-azul');
+                        btn.classList.add('fundo-verde');
+                    }
+                }
+
+                // Fecha popup depois de atualizar
+                setTimeout(() => closePopup(), 1000);
+
+            } else {
+                alert('Erro: ' + data.error);
+            }
+        })
+        .catch(err => {
+            alert('Erro de rede: ' + err);
+        });
+    });
+});

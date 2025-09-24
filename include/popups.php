@@ -1,3 +1,24 @@
+
+<?php
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
+
+// Pega user_id via sessão ou JWT
+$user_id = $_SESSION['user_id'] ?? null;
+if (!$user_id) {
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? null;
+}
+
+$propriedades = [];
+if ($user_id) {
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ? ORDER BY ativo DESC, created_at DESC");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $propriedades = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+?>
 <!-- Overlay geral -->
 <div id="popup-overlay" class="popup d-none">
 
@@ -31,39 +52,30 @@
             <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
         </div>
     </div>
-    
+
     <!-- Alterar Propriedade -->
     <div class="popup-box v2 d-none" id="popup-prop">
         <h2 class="popup-title">Alterar Propriedade</h2>
         
         <div class="item-box prop-box v2">
-
-            <?php
-            // Insira aqui a função para pegar as propriedades do sistema
-            $propriedades = [
-                ['id' => '01', 'nome' => 'Propriedade 01'],
-                ['id' => '02', 'nome' => 'Propriedade 01'],
-                ['id' => '03', 'nome' => 'Propriedade 03']
-            ];
-
-            if(!empty($propriedades)){
-                foreach($propriedades as $propriedade) {
-                    echo '
-                        <div class="item item-propriedade fundo-preto v3" id="prop-' . $propriedade['id'] . '">
-                            <h4 class="item-title">' . $propriedade['nome'] . '</h4>
-                            <div class="item-edit">
-                                <button class="edit-btn" id="select-propriedade" type="button">
+            <?php if(!empty($propriedades)): ?>
+                <?php foreach($propriedades as $prop): ?>
+                    <div class="item item-propriedade fundo-preto v3 <?= $prop['ativo'] ? 'ativo' : '' ?>" id="prop-<?= $prop['id'] ?>">
+                        <h4 class="item-title"><?= htmlspecialchars($prop['nome_razao']) ?></h4>
+                        <div class="item-edit">
+                            <?php if($prop['ativo']): ?>
+                                <button class="edit-btn fundo-verde" type="button" disabled>Ativa</button>
+                            <?php else: ?>
+                                <button class="edit-btn fundo-azul select-propriedade" data-id="<?= $prop['id'] ?>" type="button">
                                     Selecionar
                                 </button>
-                            </div>
+                            <?php endif; ?>
                         </div>
-                    ';
-                }
-            } else {
-                echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
-            }
-
-            ?>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="item-none">Nenhuma propriedade cadastrada.</div>
+            <?php endif; ?>
         </div>
 
         <div class="popup-actions">

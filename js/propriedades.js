@@ -31,3 +31,21 @@ function carregarPropriedade(id) {
     })
     .catch(() => alert("Erro ao carregar propriedade!"));
 }
+function ativarPropriedade(id) {
+    fetch('/funcoes/ativar_propriedade.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(id)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            // aqui você pode abrir popup-success em vez de alert
+            document.getElementById('popup-success').classList.remove('d-none');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    })
+    .catch(err => alert('Falha na requisição: ' + err));
+}
