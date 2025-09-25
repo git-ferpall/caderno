@@ -34,7 +34,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <div class="page-title">
                 <h2 class="main-title cor-branco">Produtos Cultivados</h2>
                 <?php include '../funcoes/listar_produtos.php'; ?>
-                <?php include '../forms/form_produto.php'; ?>
+                
             </div>
 
             <div class="sistema-main">
