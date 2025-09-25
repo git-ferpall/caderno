@@ -15,6 +15,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <body>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?>
+    <?php include '../funcoes/listar_produtos.php'; ?>
+
 
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
@@ -26,7 +28,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         // Exemplo de produto:
         // $produtos = [['id' => '01', 'nome' => 'Maçã']]
 
-        $produtos = []
+        
         
         ?>
 
