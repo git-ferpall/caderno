@@ -14,6 +14,7 @@
     if (!is_array($info) || empty($info['ok'])) {
         $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
     }
+    // Busca a propriedade ativa do usuário
     $propAtiva = null;
     if ($user_id) {
         $stmt = $mysqli->prepare("SELECT endereco_cidade, endereco_uf, nome_razao 
@@ -26,6 +27,8 @@
         $propAtiva = $res->fetch_assoc();
         $stmt->close();
     }
+
+
 ?>
 
 <header class="menu-principal">
@@ -46,16 +49,16 @@
                 <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj'] ?? 'CPF/CNPJ não encontrado'); ?></h5>
             </div>
             <div class="propriedade">
-            <h5 class="user-type">Propriedade Atual</h5>
-            <?php if ($propAtiva): ?>
-                <h4 class="user-name">
-                    <?= htmlspecialchars($propAtiva['endereco_cidade']) ?> - 
-                    <?= htmlspecialchars($propAtiva['endereco_uf']) ?>
-                </h4>
-            <?php else: ?>
-                <h4 class="user-name">Nenhuma propriedade ativa</h4>
-            <?php endif; ?>
-        </div>
+                <h5 class="user-type">Propriedade Atual</h5>
+                <?php if ($propAtiva): ?>
+                    <h4 class="user-name">
+                        <?= htmlspecialchars($propAtiva['endereco_cidade']) ?> - 
+                        <?= htmlspecialchars($propAtiva['endereco_uf']) ?>
+                    </h4>
+                <?php else: ?>
+                    <h4 class="user-name">Nenhuma propriedade ativa</h4>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="menu-list">
