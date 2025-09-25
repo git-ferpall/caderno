@@ -42,14 +42,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     <?php
 
-                    if(!empty($produtos)){
-                        foreach($produtos as $produto) {
+                    if (!empty($produtos)) {
+                        foreach ($produtos as $produto) {
                             echo '
                                 <div class="item" id="prod-' . $produto['id'] . '">
-                                    <h4 class="item-title">' . $produto['nome'] . '</h4>
+                                    <h4 class="item-title">' . htmlspecialchars($produto['nome']) . '</h4>
                                     <div class="item-edit">
-                                        <button class="edit-btn" id="edit-produto" type="button" onclick="editItem(' . json_encode($produto) . ')">
+                                        <!-- Botão Editar -->
+                                        <button class="edit-btn" type="button" onclick=\'editItem(' . json_encode($produto) . ')\'>
                                             <div class="edit-icon icon-pen"></div>
+                                        </button>
+
+                                        <!-- Botão Excluir -->
+                                        <button class="edit-btn fundo-vermelho" type="button" onclick="deleteProduto(' . $produto['id'] . ')">
+                                            <div class="edit-icon icon-trash"></div>
                                         </button>
                                     </div>
                                 </div>
@@ -58,7 +64,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     } else {
                         echo '<div class="item-none">Nenhum produto cadastrado.</div>';
                     }
-
                     ?>
                 </div>
 

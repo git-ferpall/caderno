@@ -65,3 +65,30 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
         if (msgBox) msgBox.textContent = "Falha na requisição: " + err;
     });
 });
+function deleteProduto(id) {
+    if (!confirm("Deseja realmente excluir este produto?")) {
+        return;
+    }
+
+    fetch('../funcoes/excluir_produto.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(id)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            // Remove da tela
+            document.getElementById('prod-' + id).remove();
+            overlay.classList.remove('d-none');
+            popupSuccess.classList.remove('d-none');
+        } else {
+            overlay.classList.remove('d-none');
+            popupFailed.classList.remove('d-none');
+        }
+    })
+    .catch(() => {
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+    });
+}
