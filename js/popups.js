@@ -58,16 +58,15 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-let selectedId = null; // vai guardar a seleção temporária
+let selectedId = null; // ID temporário da seleção do usuário
 
 document.querySelectorAll('.select-propriedade').forEach(function(btn) {
     btn.addEventListener('click', function() {
         const id = this.getAttribute('data-id');
-        selectedId = id;
+        selectedId = id; // sempre atualiza a escolha
 
-        // Resetar visual
+        // Resetar todos os visuais
         document.querySelectorAll('.item-propriedade').forEach(item => {
-            item.classList.remove('ativo');
             const b = item.querySelector('button');
             if (b) {
                 b.textContent = 'Selecionar';
@@ -76,10 +75,9 @@ document.querySelectorAll('.select-propriedade').forEach(function(btn) {
             }
         });
 
-        // Ativar visualmente a escolhida
+        // Marcar como selecionada a escolhida agora
         const selected = document.getElementById('prop-' + id);
         if (selected) {
-            selected.classList.add('ativo');
             const b = selected.querySelector('button');
             if (b) {
                 b.textContent = 'Selecionada';
@@ -90,7 +88,7 @@ document.querySelectorAll('.select-propriedade').forEach(function(btn) {
     });
 });
 
-// Quando clicar em Voltar/Confirmar, aplica no banco
+// Confirma e aplica no banco só quando o usuário decidir
 function confirmarPropriedade() {
     if (!selectedId) {
         closePopup();
@@ -106,7 +104,7 @@ function confirmarPropriedade() {
     .then(data => {
         if (data.ok) {
             closePopup();
-            location.reload(); // ou atualizar apenas o card da home
+            location.reload(); // ou atualizar só a parte visual
         } else {
             alert('Erro: ' + data.error);
         }
@@ -115,3 +113,4 @@ function confirmarPropriedade() {
         alert('Erro de rede: ' + err);
     });
 }
+
