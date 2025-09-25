@@ -58,64 +58,62 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-let selectedId = null; // sempre guarda a última escolha do usuário
-
-// sempre ativa o clique em todos os botões
-function bindSelectButtons() {
+// Função para registrar os eventos de seleção
+function bindSelectPropriedade() {
     document.querySelectorAll('.select-propriedade').forEach(function(btn) {
         btn.onclick = function() {
             const id = this.getAttribute('data-id');
-            selectedId = id; // armazena a escolha
 
-            // resetar visual de todos
-            document.querySelectorAll('.item-propriedade').forEach(item => {
-                const b = item.querySelector('button');
-                if (b) {
-                    b.textContent = 'Selecionar';
-                    b.classList.remove('fundo-verde');
-                    b.classList.add('fundo-azul');
+            fetch('/funcoes/ativar_propriedade.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'id=' + encodeURIComponent(id)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    // 🔄 Resetar todos os botões e itens
+                    document.querySelectorAll('.item-propriedade').forEach(item => {
+                        item.classList.remove('ativo');
+                        const btn = item.querySelector('button');
+                        if (btn) {
+                            btn.textContent = 'Selecionar';
+                            btn.disabled = false; // garante que sempre possa ser clicado
+                            btn.classList.remove('fundo-verde');
+                            btn.classList.add('fundo-azul');
+                            btn.classList.add('select-propriedade');
+                        }
+                    });
+
+                    // ✅ Ativar só o selecionado
+                    const selected = document.getElementById('prop-' + id);
+                    if (selected) {
+                        selected.classList.add('ativo');
+                        const btn = selected.querySelector('button');
+                        if (btn) {
+                            btn.textContent = 'Ativa';
+                            btn.disabled = false; // permite trocar de novo depois
+                            btn.classList.remove('fundo-azul');
+                            btn.classList.add('fundo-verde');
+                        }
+                    }
+
+                    // Reatribui os eventos para manter funcional
+                    bindSelectPropriedade();
+
+                    // Fecha popup depois de atualizar
+                    setTimeout(() => closePopup(), 800);
+
+                } else {
+                    alert('Erro: ' + data.error);
                 }
+            })
+            .catch(err => {
+                alert('Erro de rede: ' + err);
             });
-
-            // marcar a escolhida
-            const selected = document.getElementById('prop-' + id);
-            if (selected) {
-                const b = selected.querySelector('button');
-                if (b) {
-                    b.textContent = 'Selecionada';
-                    b.classList.remove('fundo-azul');
-                    b.classList.add('fundo-verde');
-                }
-            }
         };
     });
 }
 
-// confirmar aplica no banco só a última escolhida
-function confirmarPropriedade() {
-    if (!selectedId) {
-        closePopup();
-        return;
-    }
-
-    fetch('/funcoes/ativar_propriedade.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + encodeURIComponent(selectedId)
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            closePopup();
-            location.reload(); // força recarregar a página com a ativa correta
-        } else {
-            alert('Erro: ' + data.error);
-        }
-    })
-    .catch(err => {
-        alert('Erro de rede: ' + err);
-    });
-}
-
-// garante que os botões tenham sempre o listener
-bindSelectButtons();
+// 🔄 Garante que os botões fiquem ativos no load inicial
+bindSelectPropriedade();
