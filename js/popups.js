@@ -58,47 +58,58 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-document.getElementById('popup-prop').addEventListener('click', function(e) {
-    if (e.target.classList.contains('select-propriedade')) {
-        const id = e.target.getAttribute('data-id');
+// Função para registrar os eventos de seleção
+function bindSelectPropriedade() {
+    document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
 
-        fetch('/funcoes/ativar_propriedade.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + encodeURIComponent(id)
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                // 🔄 Resetar todos para estado "inativo"
-                document.querySelectorAll('.item-propriedade').forEach(item => {
-                    item.classList.remove('ativo');
-                    const btn = item.querySelector('.select-propriedade');
-                    if (btn) {
-                        btn.textContent = 'Selecionar';
-                        btn.classList.remove('fundo-verde');
-                        btn.classList.add('fundo-azul');
-                    }
-                });
+            fetch('/funcoes/ativar_propriedade.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + encodeURIComponent(id)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    // 🔄 Resetar todos os botões para "Selecionar"
+                    document.querySelectorAll('.item-propriedade').forEach(item => {
+                        item.classList.remove('ativo');
+                        const btn = item.querySelector('button');
+                        if (btn) {
+                            btn.textContent = 'Selecionar';
+                            btn.disabled = false;
+                            btn.classList.remove('fundo-verde');
+                            btn.classList.add('fundo-azul');
+                            btn.classList.add('select-propriedade'); // garante que continua clicável
+                        }
+                    });
 
-                // ✅ Marcar o novo como ativo
-                const selected = document.getElementById('prop-' + id);
-                if (selected) {
-                    selected.classList.add('ativo');
-                    const btn = selected.querySelector('.select-propriedade');
-                    if (btn) {
-                        btn.textContent = 'Ativa';
-                        btn.classList.remove('fundo-azul');
-                        btn.classList.add('fundo-verde');
+                    // ✅ Ativar só o selecionado
+                    const selected = document.getElementById('prop-' + id);
+                    if (selected) {
+                        selected.classList.add('ativo');
+                        const btn = selected.querySelector('button');
+                        if (btn) {
+                            btn.textContent = 'Ativa';
+                            btn.disabled = false; // deixa clicável para voltar depois
+                            btn.classList.remove('fundo-azul');
+                            btn.classList.add('fundo-verde');
+                        }
                     }
+
+                    // Fechar popup depois de atualizar
+                    setTimeout(() => closePopup(), 1000);
+                } else {
+                    alert('Erro: ' + data.error);
                 }
-
-            } else {
-                alert('Erro: ' + data.error);
-            }
-        })
-        .catch(err => {
-            alert('Erro de rede: ' + err);
+            })
+            .catch(err => {
+                alert('Erro de rede: ' + err);
+            });
         });
-    }
-});
+    });
+}
+
+// 🔄 Garante que ao abrir a página ou reabrir o popup, os botões estão com eventos
+bindSelectPropriedade();
