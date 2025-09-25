@@ -58,57 +58,60 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-// Função para registrar os eventos de seleção
+let selectedId = null; // vai guardar a seleção temporária
+
 document.querySelectorAll('.select-propriedade').forEach(function(btn) {
     btn.addEventListener('click', function() {
         const id = this.getAttribute('data-id');
+        selectedId = id;
 
-        fetch('/funcoes/ativar_propriedade.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + encodeURIComponent(id)
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                // 🔄 Resetar todos os botões e itens
-                document.querySelectorAll('.item-propriedade').forEach(item => {
-                    item.classList.remove('ativo');
-                    const btn = item.querySelector('button');
-                    if (btn) {
-                        const propId = item.id.replace('prop-', ''); // recupera ID do elemento
-                        btn.textContent = 'Selecionar';
-                        btn.disabled = false;
-                        btn.setAttribute('data-id', propId); // garante que data-id nunca se perca
-                        btn.classList.remove('fundo-verde');
-                        btn.classList.add('fundo-azul');
-                        btn.classList.add('select-propriedade');
-                    }
-                });
-
-                // ✅ Ativar só o selecionado
-                const selected = document.getElementById('prop-' + id);
-                if (selected) {
-                    selected.classList.add('ativo');
-                    const btn = selected.querySelector('button');
-                    if (btn) {
-                        btn.textContent = 'Ativa';
-                        btn.disabled = false; // permite clicar de novo depois
-                        btn.setAttribute('data-id', id);
-                        btn.classList.remove('fundo-azul');
-                        btn.classList.add('fundo-verde');
-                    }
-                }
-
-                // Fecha popup depois de atualizar
-                setTimeout(() => closePopup(), 800);
-
-            } else {
-                alert('Erro: ' + data.error);
+        // Resetar visual
+        document.querySelectorAll('.item-propriedade').forEach(item => {
+            item.classList.remove('ativo');
+            const b = item.querySelector('button');
+            if (b) {
+                b.textContent = 'Selecionar';
+                b.classList.remove('fundo-verde');
+                b.classList.add('fundo-azul');
             }
-        })
-        .catch(err => {
-            alert('Erro de rede: ' + err);
         });
+
+        // Ativar visualmente a escolhida
+        const selected = document.getElementById('prop-' + id);
+        if (selected) {
+            selected.classList.add('ativo');
+            const b = selected.querySelector('button');
+            if (b) {
+                b.textContent = 'Selecionada';
+                b.classList.remove('fundo-azul');
+                b.classList.add('fundo-verde');
+            }
+        }
     });
 });
+
+// Quando clicar em Voltar/Confirmar, aplica no banco
+function confirmarPropriedade() {
+    if (!selectedId) {
+        closePopup();
+        return;
+    }
+
+    fetch('/funcoes/ativar_propriedade.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + encodeURIComponent(selectedId)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            closePopup();
+            location.reload(); // ou atualizar apenas o card da home
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    })
+    .catch(err => {
+        alert('Erro de rede: ' + err);
+    });
+}
