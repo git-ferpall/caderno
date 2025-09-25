@@ -33,6 +33,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <main id="produtos" class="sistema">
             <div class="page-title">
                 <h2 class="main-title cor-branco">Produtos Cultivados</h2>
+                <?php include '../funcoes/listar_produtos.php'; ?>
+                <?php include '../forms/form_produto.php'; ?>
             </div>
 
             <div class="sistema-main">
@@ -132,5 +134,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
     </div>
         
     <?php include '../include/footer.php' ?>
+    <script src="../js/produtos.js"></script>
 </body>
 </html>
