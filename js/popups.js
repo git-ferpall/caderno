@@ -61,27 +61,27 @@ function altProp() {
 // Função para registrar os eventos de seleção
 function bindSelectPropriedade() {
     document.querySelectorAll('.select-propriedade').forEach(function(btn) {
-        btn.addEventListener('click', function() {
+        btn.onclick = function() {
             const id = this.getAttribute('data-id');
 
             fetch('/funcoes/ativar_propriedade.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: 'id=' + encodeURIComponent(id)
             })
             .then(r => r.json())
             .then(data => {
                 if (data.ok) {
-                    // 🔄 Resetar todos os botões para "Selecionar"
+                    // 🔄 Resetar todos os botões e itens
                     document.querySelectorAll('.item-propriedade').forEach(item => {
                         item.classList.remove('ativo');
                         const btn = item.querySelector('button');
                         if (btn) {
                             btn.textContent = 'Selecionar';
-                            btn.disabled = false;
+                            btn.disabled = false; // garante que sempre possa ser clicado
                             btn.classList.remove('fundo-verde');
                             btn.classList.add('fundo-azul');
-                            btn.classList.add('select-propriedade'); // garante que continua clicável
+                            btn.classList.add('select-propriedade');
                         }
                     });
 
@@ -92,14 +92,18 @@ function bindSelectPropriedade() {
                         const btn = selected.querySelector('button');
                         if (btn) {
                             btn.textContent = 'Ativa';
-                            btn.disabled = false; // deixa clicável para voltar depois
+                            btn.disabled = false; // permite trocar de novo depois
                             btn.classList.remove('fundo-azul');
                             btn.classList.add('fundo-verde');
                         }
                     }
 
-                    // Fechar popup depois de atualizar
-                    setTimeout(() => closePopup(), 1000);
+                    // Reatribui os eventos para manter funcional
+                    bindSelectPropriedade();
+
+                    // Fecha popup depois de atualizar
+                    setTimeout(() => closePopup(), 800);
+
                 } else {
                     alert('Erro: ' + data.error);
                 }
@@ -107,9 +111,9 @@ function bindSelectPropriedade() {
             .catch(err => {
                 alert('Erro de rede: ' + err);
             });
-        });
+        };
     });
 }
 
-// 🔄 Garante que ao abrir a página ou reabrir o popup, os botões estão com eventos
+// 🔄 Garante que os botões fiquem ativos no load inicial
 bindSelectPropriedade();
