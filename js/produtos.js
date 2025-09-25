@@ -5,9 +5,14 @@ function salvarProduto(formId) {
     fetch('/funcoes/salvar_produto.php', { method: 'POST', body: data })
       .then(r => r.json())
       .then(d => {
-          if (d.ok) location.reload();
-          else alert(d.error);
-      });
+        console.log("Resposta salvar_produto.php:", d); // debug
+        if (d.ok) {
+            alert("Produto salvo com sucesso! ID: " + d.id);
+            location.reload();
+        } else {
+            alert("Erro: " + d.error);
+        }
+    });
 }
 
 function removerProduto(id) {
