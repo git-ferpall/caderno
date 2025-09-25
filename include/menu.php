@@ -14,6 +14,18 @@
     if (!is_array($info) || empty($info['ok'])) {
         $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
     }
+    $propAtiva = null;
+    if ($user_id) {
+        $stmt = $mysqli->prepare("SELECT endereco_cidade, endereco_uf, nome_razao 
+                                FROM propriedades 
+                                WHERE user_id = ? AND ativo = 1 
+                                LIMIT 1");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $propAtiva = $res->fetch_assoc();
+        $stmt->close();
+    }
 ?>
 
 <header class="menu-principal">
@@ -35,7 +47,8 @@
             </div>
             <div class="propriedade">
                 <h5 class="user-type">Propriedade Atual</h5>
-                <h4 class="user-name">Nome da Cidade, UF</h4>
+                <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_cidade']) ?> </h4>
+                <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_uf']) ?> </h4>
             </div>
         </div>
 
