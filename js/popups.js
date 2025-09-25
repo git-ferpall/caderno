@@ -81,7 +81,7 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
         return;
     }
 
-    fetch('/api/ativar_propriedade.php', {
+    fetch('/funcoes/ativar_propriedade.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'id=' + encodeURIComponent(selectedPropId)
