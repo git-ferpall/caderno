@@ -58,7 +58,7 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-// Usar delegação de eventos no container do popup
+// Delegação de eventos no container do popup
 document.getElementById('popup-prop').addEventListener('click', function(e) {
     if (e.target.classList.contains('select-propriedade')) {
         const id = e.target.getAttribute('data-id');
@@ -79,6 +79,7 @@ document.getElementById('popup-prop').addEventListener('click', function(e) {
                         btn.textContent = 'Selecionar';
                         btn.classList.remove('fundo-verde');
                         btn.classList.add('fundo-azul');
+                        // 👇 removido btn.disabled = true
                     }
                 });
 
@@ -91,11 +92,13 @@ document.getElementById('popup-prop').addEventListener('click', function(e) {
                         btn.textContent = 'Ativa';
                         btn.classList.remove('fundo-azul');
                         btn.classList.add('fundo-verde');
+                        // 👇 removido btn.disabled = true
                     }
                 }
 
-                // Fecha popup depois de atualizar (opcional)
-                setTimeout(() => closePopup(), 1000);
+                // Não precisa recarregar, nem travar botão
+                // Opcional: fechar popup depois de atualizar
+                // setTimeout(() => closePopup(), 1000);
 
             } else {
                 alert('Erro: ' + data.error);
@@ -106,3 +109,4 @@ document.getElementById('popup-prop').addEventListener('click', function(e) {
         });
     }
 });
+
