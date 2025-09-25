@@ -52,6 +52,11 @@ document.querySelectorAll('.form-save').forEach(function(el) {
         }
     });
 });
+
+function altProp() {
+    overlay.classList.remove('d-none');
+    popupProp.classList.remove('d-none');
+}
 let selectedPropId = null;
 
 // Seleção única
