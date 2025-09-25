@@ -1,19 +1,27 @@
+// =============================
 // Referências aos popups
+// =============================
 const overlay = document.getElementById('popup-overlay');
 const popupSuccess = document.getElementById('popup-success');
 const popupFailed = document.getElementById('popup-failed');
 
+// =============================
 // Botão "Novo Produto" → abre o formulário
+// =============================
 document.getElementById('produto-add').addEventListener('click', () => {
     document.getElementById('item-add-produto').classList.toggle('d-none');
 });
 
+// =============================
 // Botão "Cancelar" → fecha formulário
+// =============================
 document.getElementById('form-cancel-produto').addEventListener('click', () => {
     document.getElementById('item-add-produto').classList.add('d-none');
 });
 
+// =============================
 // Botão "Salvar" → envia para backend
+// =============================
 document.getElementById('form-save-produto').addEventListener('click', () => {
     const nome = document.getElementById('p-nome').value.trim();
     const tipo = document.querySelector('input[name="ptipo"]:checked')?.value;
@@ -31,6 +39,7 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
     fetch('../funcoes/salvar_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'include', // 🔑 Envia cookies/session para pegar user_id
         body: new URLSearchParams({
             pnome: nome,
             ptipo: tipo,
@@ -44,6 +53,7 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
             overlay.classList.remove('d-none');
             popupSuccess.classList.remove('d-none');
 
+            // Quando clicar em OK → recarrega lista
             document.getElementById('btn-ok').addEventListener('click', function () {
                 location.reload();
             }, { once: true });
@@ -65,6 +75,10 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
         if (msgBox) msgBox.textContent = "Falha na requisição: " + err;
     });
 });
+
+// =============================
+// Função para excluir produto
+// =============================
 function deleteProduto(id) {
     if (!confirm("Deseja realmente excluir este produto?")) {
         return;
@@ -73,6 +87,7 @@ function deleteProduto(id) {
     fetch('../funcoes/excluir_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'include', // 🔑 Envia cookies/session
         body: 'id=' + encodeURIComponent(id)
     })
     .then(res => res.json())
