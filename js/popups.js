@@ -52,62 +52,44 @@ document.querySelectorAll('.form-save').forEach(function(el) {
         }
     });
 });
+let selectedPropId = null;
 
-function altProp() {
-    overlay.classList.remove('d-none');
-    popupProp.classList.remove('d-none');
-}
-
-document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+// Seleção única
+document.querySelectorAll('.select-propriedade').forEach(btn => {
     btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-
-        fetch('/funcoes/ativar_propriedade.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + encodeURIComponent(id)
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                // 🔄 Resetar todos os botões e itens
-                document.querySelectorAll('.item-propriedade').forEach(item => {
-                    item.classList.remove('ativo');
-                    const btn = item.querySelector('button');
-                    if (btn) {
-                        const propId = item.id.replace('prop-', ''); // recupera ID do elemento
-                        btn.textContent = 'Selecionar';
-                        btn.disabled = false;
-                        btn.setAttribute('data-id', propId); // garante que data-id nunca se perca
-                        btn.classList.remove('fundo-verde');
-                        btn.classList.add('fundo-azul');
-                        btn.classList.add('select-propriedade');
-                    }
-                });
-
-                // ✅ Ativar só o selecionado
-                const selected = document.getElementById('prop-' + id);
-                if (selected) {
-                    selected.classList.add('ativo');
-                    const btn = selected.querySelector('button');
-                    if (btn) {
-                        btn.textContent = 'Ativa';
-                        btn.disabled = false; // permite clicar de novo depois
-                        btn.setAttribute('data-id', id);
-                        btn.classList.remove('fundo-azul');
-                        btn.classList.add('fundo-verde');
-                    }
-                }
-
-                // Fecha popup depois de atualizar
-                setTimeout(() => closePopup(), 800);
-
-            } else {
-                alert('Erro: ' + data.error);
-            }
-        })
-        .catch(err => {
-            alert('Erro de rede: ' + err);
+        // limpar seleções anteriores
+        document.querySelectorAll('.item-propriedade').forEach(el => {
+            el.classList.remove('selecionada');
         });
+
+        // marcar selecionada
+        const item = this.closest('.item-propriedade');
+        item.classList.add('selecionada');
+        selectedPropId = item.dataset.id;
     });
 });
+
+// Enviar para o backend ao clicar em "Ativar"
+document.getElementById('btn-ativar').addEventListener('click', function() {
+    if (!selectedPropId) {
+        alert('Selecione uma propriedade antes de ativar!');
+        return;
+    }
+
+    fetch('/api/ativar_propriedade.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(selectedPropId)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            alert('Propriedade ativada com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    })
+    .catch(err => alert('Falha na requisição: ' + err));
+});
+

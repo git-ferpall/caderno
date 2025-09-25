@@ -20,6 +20,22 @@ if ($user_id) {
 }
 ?>
 <!-- Overlay geral -->
+ <style>
+    .badge-ativa {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 6px;
+    background: #4caf50;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 12px;
+        font-weight: bold;
+    }
+    .item-propriedade.selecionada {
+        border: 2px solid #2196f3;
+        background: #1e1e1e;
+    }
+ </style>   
 <div id="popup-overlay" class="popup d-none">
 
     <!-- Confirmação de Cancelamento -->
@@ -60,16 +76,21 @@ if ($user_id) {
         <div class="item-box prop-box v2">
             <?php if(!empty($propriedades)): ?>
                 <?php foreach($propriedades as $prop): ?>
-                    <div class="item item-propriedade fundo-preto v3 <?= $prop['ativo'] ? 'ativo' : '' ?>" id="prop-<?= $prop['id'] ?>">
-                        <h4 class="item-title"><?= htmlspecialchars($prop['nome_razao']) ?></h4>
-                        <div class="item-edit">
-                            <?php if($prop['ativo']): ?>
-                                <button class="edit-btn fundo-verde" type="button" disabled>Ativa</button>
-                            <?php else: ?>
-                                <button class="edit-btn fundo-azul select-propriedade" data-id="<?= $prop['id'] ?>" type="button">
-                                    Selecionar
-                                </button>
+                    <div class="item item-propriedade fundo-preto v3 <?= $prop['ativo'] ? 'ativo' : '' ?>" 
+                        id="prop-<?= $prop['id'] ?>" 
+                        data-id="<?= $prop['id'] ?>">
+                        
+                        <h4 class="item-title">
+                            <?= htmlspecialchars($prop['nome_razao']) ?>
+                            <?php if ($prop['ativo']): ?>
+                                <span class="badge-ativa">Ativa</span>
                             <?php endif; ?>
+                        </h4>
+
+                        <div class="item-edit">
+                            <button class="edit-btn fundo-azul select-propriedade" type="button">
+                                Selecionar
+                            </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -80,7 +101,9 @@ if ($user_id) {
 
         <div class="popup-actions">
             <button class="popup-btn" type="button" onclick="closePopup()">Voltar</button>
+            <button class="popup-btn fundo-verde" type="button" id="btn-ativar">Ativar</button>
         </div>
     </div>
+
 
 </div>
