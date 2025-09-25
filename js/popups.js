@@ -58,37 +58,40 @@ function altProp() {
     popupProp.classList.remove('d-none');
 }
 
-let selectedId = null; // ID temporário da seleção do usuário
+let selectedId = null; // sempre guarda a última escolha do usuário
 
-document.querySelectorAll('.select-propriedade').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        selectedId = id; // sempre atualiza a escolha
+// sempre ativa o clique em todos os botões
+function bindSelectButtons() {
+    document.querySelectorAll('.select-propriedade').forEach(function(btn) {
+        btn.onclick = function() {
+            const id = this.getAttribute('data-id');
+            selectedId = id; // armazena a escolha
 
-        // Resetar todos os visuais
-        document.querySelectorAll('.item-propriedade').forEach(item => {
-            const b = item.querySelector('button');
-            if (b) {
-                b.textContent = 'Selecionar';
-                b.classList.remove('fundo-verde');
-                b.classList.add('fundo-azul');
+            // resetar visual de todos
+            document.querySelectorAll('.item-propriedade').forEach(item => {
+                const b = item.querySelector('button');
+                if (b) {
+                    b.textContent = 'Selecionar';
+                    b.classList.remove('fundo-verde');
+                    b.classList.add('fundo-azul');
+                }
+            });
+
+            // marcar a escolhida
+            const selected = document.getElementById('prop-' + id);
+            if (selected) {
+                const b = selected.querySelector('button');
+                if (b) {
+                    b.textContent = 'Selecionada';
+                    b.classList.remove('fundo-azul');
+                    b.classList.add('fundo-verde');
+                }
             }
-        });
-
-        // Marcar como selecionada a escolhida agora
-        const selected = document.getElementById('prop-' + id);
-        if (selected) {
-            const b = selected.querySelector('button');
-            if (b) {
-                b.textContent = 'Selecionada';
-                b.classList.remove('fundo-azul');
-                b.classList.add('fundo-verde');
-            }
-        }
+        };
     });
-});
+}
 
-// Confirma e aplica no banco só quando o usuário decidir
+// confirmar aplica no banco só a última escolhida
 function confirmarPropriedade() {
     if (!selectedId) {
         closePopup();
@@ -104,7 +107,7 @@ function confirmarPropriedade() {
     .then(data => {
         if (data.ok) {
             closePopup();
-            location.reload(); // ou atualizar só a parte visual
+            location.reload(); // força recarregar a página com a ativa correta
         } else {
             alert('Erro: ' + data.error);
         }
@@ -114,3 +117,5 @@ function confirmarPropriedade() {
     });
 }
 
+// garante que os botões tenham sempre o listener
+bindSelectButtons();
