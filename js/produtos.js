@@ -37,7 +37,7 @@ function salvarProduto(formId) {
 
 function removerProduto(id) {
     if (!confirm("Deseja remover este produto?")) return;
-    fetch('/funcoes/remover_produto.php', {
+    fetch('../funcoes/remover_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'id='+id
