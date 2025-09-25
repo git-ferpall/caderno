@@ -67,7 +67,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     ?>
                 </div>
 
-                <form action="produtos.php" class="main-form container" id="add-produto">
+                <form action="../funcoes/salvar_produto.php" method="POST" class="main-form container" id="add-produto">
 
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="produto-add" type="button">
