@@ -57,19 +57,28 @@ function altProp() {
     overlay.classList.remove('d-none');
     popupProp.classList.remove('d-none');
 }
+
 let selectedPropId = null;
 
-// Seleção única
+// Seleção única com troca de botão
 document.querySelectorAll('.select-propriedade').forEach(btn => {
     btn.addEventListener('click', function() {
-        // limpar seleções anteriores
-        document.querySelectorAll('.item-propriedade').forEach(el => {
-            el.classList.remove('selecionada');
+        // resetar todos os botões
+        document.querySelectorAll('.select-propriedade').forEach(b => {
+            b.classList.remove('selecionada');
+            b.classList.add('fundo-azul');
+            b.textContent = 'Selecionar';
+            b.disabled = false;
         });
 
-        // marcar selecionada
+        // aplicar no botão clicado
+        this.classList.remove('fundo-azul');
+        this.classList.add('selecionada');
+        this.textContent = 'Selecionada';
+        this.disabled = true; // opcional
+
+        // armazenar ID da propriedade
         const item = this.closest('.item-propriedade');
-        item.classList.add('selecionada');
         selectedPropId = item.dataset.id;
     });
 });
@@ -97,4 +106,3 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     })
     .catch(err => alert('Falha na requisição: ' + err));
 });
-

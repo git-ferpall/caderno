@@ -35,6 +35,11 @@ if ($user_id) {
         border: 2px solid #2196f3;
         background: #1e1e1e;
     }
+    .select-propriedade.selecionada {
+    background-color: #4caf50; /* verde */
+    color: #fff;
+    cursor: default;
+    }
  </style>   
 <div id="popup-overlay" class="popup d-none">
 
