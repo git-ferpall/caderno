@@ -2,6 +2,20 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+error_log("DEBUG salvar_produto.php INICIO");
+
+// garante que a sessão está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+error_log("DEBUG SESSION: " . print_r($_SESSION, true));
+
+$payload = verify_jwt();
+error_log("DEBUG JWT: " . print_r($payload, true));
+
+$user_id = $_SESSION['user_id'] ?? ($payload['sub'] ?? null);
+error_log("DEBUG USER_ID = " . var_export($user_id, true));
 
 header('Content-Type: application/json; charset=utf-8');
 
