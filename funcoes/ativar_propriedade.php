@@ -1,8 +1,12 @@
 <?php
+ini_set('display_errors', 0);   // não deixar o PHP cuspir HTML
+error_reporting(E_ALL);
+
+
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
-
+header('Content-Type: application/json; charset=utf-8');
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     $payload = verify_jwt();
