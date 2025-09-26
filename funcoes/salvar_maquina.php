@@ -1,75 +1,67 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok'=>false,'err'=>'method_not_allowed']);
+    exit;
+}
+
 try {
-    // Identifica user_id via sessão ou JWT
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
 
     if (!$user_id) {
-        echo json_encode(["ok" => false, "error" => "Usuário não autenticado"]);
+        http_response_code(401);
+        echo json_encode(['ok'=>false,'err'=>'unauthorized']);
         exit;
     }
 
-    // Propriedade ativa do usuário
-    $prop = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
-    $prop->bind_param("i", $user_id);
-    $prop->execute();
-    $res = $prop->get_result()->fetch_assoc();
-    $prop_id = $res['id'] ?? null;
-    $prop->close();
-
-    if (!$prop_id) {
-        echo json_encode(["ok" => false, "error" => "Nenhuma propriedade ativa encontrada"]);
-        exit;
-    }
-
-    // Dados do formulário
     $id    = intval($_POST['id'] ?? 0);
     $nome  = trim($_POST['mnome'] ?? '');
     $marca = trim($_POST['mmarca'] ?? '');
     $tipo  = $_POST['mtipo'] ?? '';
 
+    if ($nome === '' || $marca === '' || $tipo === '') {
+        echo json_encode(["ok" => false, "error" => "Dados incompletos"]);
+        exit;
+    }
+
+    // Mapear tipo
     $mapTipo = ['1'=>'motorizado','2'=>'acoplado','3'=>'manual'];
     $tipoVal = $mapTipo[$tipo] ?? null;
 
-    if ($nome === '' || $marca === '' || !$tipoVal) {
-        echo json_encode(["ok" => false, "error" => "Preencha todos os campos"]);
+    if (!$tipoVal) {
+        echo json_encode(["ok" => false, "error" => "Tipo inválido"]);
         exit;
     }
 
     if ($id > 0) {
-        // Atualiza máquina existente
-        $stmt = $mysqli->prepare("
-            UPDATE maquinas 
-            SET nome = ?, marca = ?, tipo = ? 
-            WHERE id = ? AND user_id = ? AND propriedade_id = ?
-        ");
-        $stmt->bind_param("sssiii", $nome, $marca, $tipoVal, $id, $user_id, $prop_id);
+        $stmt = $mysqli->prepare("UPDATE maquinas SET nome=?, marca=?, tipo=? WHERE id=? AND user_id=?");
+        $stmt->bind_param("sssii", $nome, $marca, $tipoVal, $id, $user_id);
+        $action = "update";
     } else {
-        // Insere nova máquina
-        $stmt = $mysqli->prepare("
-            INSERT INTO maquinas (user_id, propriedade_id, nome, marca, tipo) 
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        $stmt->bind_param("iisss", $user_id, $prop_id, $nome, $marca, $tipoVal);
+        $stmt = $mysqli->prepare("INSERT INTO maquinas (user_id, nome, marca, tipo) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $user_id, $nome, $marca, $tipoVal);
+        $action = "insert";
     }
 
     if ($stmt->execute()) {
-        echo json_encode(["ok" => true, "id" => $id ?: $stmt->insert_id]);
+        echo json_encode([
+            "ok" => true,
+            "id" => $id > 0 ? $id : $stmt->insert_id,
+            "action" => $action
+        ]);
     } else {
         echo json_encode(["ok" => false, "error" => $stmt->error]);
     }
 
     $stmt->close();
 
-} catch (Throwable $e) {
-    echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['ok'=>false,'err'=>'db','msg'=>$e->getMessage()]);
 }

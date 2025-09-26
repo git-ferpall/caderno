@@ -4,21 +4,26 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+// só aceita POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
+    exit;
+}
+
 try {
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? null;
 
     if (!$user_id) {
-        echo json_encode(["ok" => false, "error" => "Usuário não autenticado"]);
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'err' => 'unauthorized']);
         exit;
     }
 
     $id = intval($_POST['id'] ?? 0);
     if ($id <= 0) {
-        echo json_encode(["ok" => false, "error" => "ID inválido"]);
+        echo json_encode(['ok' => false, 'err' => 'invalid_id']);
         exit;
     }
 
@@ -27,13 +32,13 @@ try {
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode(["ok" => true]);
+        echo json_encode(['ok' => true]);
     } else {
-        echo json_encode(["ok" => false, "error" => "Máquina não encontrada ou sem permissão"]);
+        echo json_encode(['ok' => false, 'err' => 'not_found_or_not_owner']);
     }
 
     $stmt->close();
-
-} catch (Throwable $e) {
-    echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'err' => 'db', 'msg' => $e->getMessage()]);
 }

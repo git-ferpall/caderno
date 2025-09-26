@@ -2,28 +2,27 @@
 // Máquinas - Frontend JS
 // =============================
 
-// Referências do formulário
-const formMaq      = document.getElementById('add-maquina');
-const inputIdMaq   = document.getElementById('m-id');   // hidden
-const inputNomeMaq = document.getElementById('m-nome');
-const inputMarcaMaq= document.getElementById('m-marca');
+const formMaq   = document.getElementById('add-maquina');
+const inputIdM  = document.getElementById('m-id');   // hidden
+const inputNomeM= document.getElementById('m-nome');
+const inputMarca= document.getElementById('m-marca');
 
-// Botão "Nova máquina"
+// Botão "Nova Máquina" → mostra o formulário limpo
 document.getElementById('maquina-add').addEventListener('click', () => {
-    limparFormulario();
+    limparFormularioMaq();
     document.getElementById('item-add-maquina').classList.remove('d-none');
 });
 
-// Botão "Cancelar"
+// Botão "Cancelar" → fecha formulário
 document.getElementById('form-cancel-maquina').addEventListener('click', () => {
     document.getElementById('item-add-maquina').classList.add('d-none');
-    limparFormulario();
+    limparFormularioMaq();
 });
 
 // Botão "Salvar"
 document.getElementById('form-save-maquina').addEventListener('click', () => {
-    const nome  = inputNomeMaq.value.trim();
-    const marca = inputMarcaMaq.value.trim();
+    const nome  = inputNomeM.value.trim();
+    const marca = inputMarca.value.trim();
     const tipo  = document.querySelector('input[name="mtipo"]:checked')?.value;
 
     if (!nome || !marca || !tipo) {
@@ -43,7 +42,8 @@ document.getElementById('form-save-maquina').addEventListener('click', () => {
     .then(res => res.json())
     .then(data => {
         if (data.ok) {
-            location.reload(); // ✅ Atualiza lista
+            // Recarrega página para atualizar lista
+            location.reload();
         } else {
             overlay.classList.remove('d-none');
             popupFailed.classList.remove('d-none');
@@ -58,24 +58,6 @@ document.getElementById('form-save-maquina').addEventListener('click', () => {
         if (msgBox) msgBox.textContent = "Falha na comunicação: " + err;
     });
 });
-
-// =============================
-// Editar Máquina
-// =============================
-function editItem(btn) {
-    const maq = JSON.parse(btn.getAttribute('data-maquina'));
-    document.getElementById('maquina-add').click(); // abre box
-
-    inputIdMaq.value    = maq.id;
-    inputNomeMaq.value  = maq.nome;
-    inputMarcaMaq.value = maq.marca;
-
-    if(maq.tipo === 'motorizado') document.querySelector('input[name="mtipo"][value="1"]').checked = true;
-    if(maq.tipo === 'acoplado')   document.querySelector('input[name="mtipo"][value="2"]').checked = true;
-    if(maq.tipo === 'manual')     document.querySelector('input[name="mtipo"][value="3"]').checked = true;
-
-    document.querySelector('#form-save-maquina .main-btn-text').textContent = "Atualizar";
-}
 
 // =============================
 // Excluir Máquina
@@ -115,12 +97,34 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
 });
 
 // =============================
+// Editar Máquina
+// =============================
+function editItem(btn) {
+    const maq = JSON.parse(btn.getAttribute('data-maquina'));
+
+    // Simula clique no botão "Nova Máquina"
+    document.getElementById('maquina-add').click();
+
+    // Preenche o formulário
+    inputIdM.value   = maq.id;
+    inputNomeM.value = maq.nome;
+    inputMarca.value = maq.marca;
+
+    if (maq.tipo === 'motorizado') document.querySelector('input[name="mtipo"][value="1"]').checked = true;
+    if (maq.tipo === 'acoplado')   document.querySelector('input[name="mtipo"][value="2"]').checked = true;
+    if (maq.tipo === 'manual')     document.querySelector('input[name="mtipo"][value="3"]').checked = true;
+
+    // muda texto do botão para "Atualizar"
+    document.querySelector('#form-save-maquina .main-btn-text').textContent = "Atualizar";
+}
+
+// =============================
 // Utilitários
 // =============================
-function limparFormulario(){
-    inputIdMaq.value = '';
-    inputNomeMaq.value = '';
-    inputMarcaMaq.value = '';
+function limparFormularioMaq() {
+    inputIdM.value = '';
+    inputNomeM.value = '';
+    inputMarca.value = '';
     document.querySelector('input[name="mtipo"][value="1"]').checked = true;
-    document.querySelector('#form-save-maquina .main-btn-text').textContent = "Salvar";
+    document.getElementById('form-save-maquina').querySelector('.main-btn-text').textContent = "Salvar";
 }
