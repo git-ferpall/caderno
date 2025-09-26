@@ -99,22 +99,22 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     })
     .then(res => res.json())
     .then(data => {
-        // Fecha tudo antes de abrir qualquer popup
-        closePopup();
-
         if (data.ok) {
-            // Mostra popup bonito de sucesso
-            overlay.classList.remove('d-none');
-            const popup = document.getElementById('popup-success');
-            popup.classList.remove('d-none');
-            popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+        // fecha popup atual (alterar propriedade)
+        closePopup(); 
 
-            // botão OK fecha e recarrega
-            const btnOk = document.getElementById('btn-ok');
-            btnOk.onclick = function() {
-                closePopup();
-                location.reload();
-            };
+        // mostra popup bonito de sucesso
+        overlay.classList.remove('d-none');
+        const popup = document.getElementById('popup-success');
+        popup.classList.remove('d-none');
+        popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+
+        // botão OK fecha e recarrega
+        document.getElementById('btn-ok').onclick = function() {
+            closePopup();
+            location.reload();
+        };
+
         } else {
             overlay.classList.remove('d-none');
             popupFailed.classList.remove('d-none');
@@ -122,7 +122,6 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
         }
     })
     .catch(err => {
-        closePopup(); // garante que nada fique aberto junto
         overlay.classList.remove('d-none');
         popupFailed.classList.remove('d-none');
         popupFailed.querySelector('.popup-text').textContent = "Falha na requisição: " + err;
