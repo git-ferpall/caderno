@@ -98,6 +98,9 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
 // =============================
 // Editar Produto
 // =============================
+// =============================
+// Editar Produto
+// =============================
 function editItem(btn) {
     const produto = JSON.parse(btn.getAttribute('data-produto'));
 
@@ -115,16 +118,17 @@ function editItem(btn) {
     if (produto.atributo === 'semi-hidro') document.querySelector('input[name="patr"][value="semi-hidro"]').checked = true;
     if (produto.atributo === 'solo')       document.querySelector('input[name="patr"][value="solo"]').checked = true;
 
-    // abre a caixa de novo produto
-    document.getElementById('item-add-produto').classList.remove('d-none');
+    // garante que a caixa do formulário vai abrir
+    const box = document.getElementById('item-add-produto');
+    box.classList.remove('d-none');
+    box.style.display = "block"; // força exibição
 
-    // opcional: dar foco no campo nome
+    // foca no campo nome
     inputNome.focus();
 
-    // mudar texto do botão para "Atualizar"
-    document.getElementById('form-save-produto').querySelector('.main-btn-text').textContent = "Atualizar";
+    // muda texto do botão para "Atualizar"
+    document.querySelector('#form-save-produto .main-btn-text').textContent = "Atualizar";
 }
-
 
 // =============================
 // Utilitários
