@@ -89,27 +89,25 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
         return;
     }
 
-    fetch('/funcoes/ativar_propriedade.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(selectedPropId)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ok) {
-            showPopupSuccess("Propriedade ativada com sucesso!");
-            
-            // substitui ação do botão Ok
-            const okBtn = document.querySelector('#popup-success #btn-ok');
-            okBtn.onclick = () => {
-                closePopup();
-                location.reload();
-            };
-        } else {
-            showPopupFailed("Erro ao ativar", data.error || "Falha desconhecida.");
-        }
-    })
-    .catch(err => {
-        showPopupFailed("Erro inesperado", "Falha na requisição: " + err);
-    });
+    fetch('../funcoes/ativar_propriedade.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + encodeURIComponent(selectedPropId)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                showPopupSuccess("Propriedade ativada com sucesso!");
+                document.querySelector('#popup-success #btn-ok').onclick = () => {
+                    closePopup();
+                    location.reload();
+                };
+            } else {
+                showPopupFailed("Erro", data.error || "Não foi possível ativar a propriedade.");
+            }
+        })
+        .catch(err => {
+            showPopupFailed("Falha de comunicação", err);
+        });
+
 });
