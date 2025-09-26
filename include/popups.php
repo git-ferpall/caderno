@@ -74,6 +74,17 @@ if ($user_id) {
         </div>
     </div>
 
+    <!-- Confirmação de Exclusão -->
+    <div class="popup-box d-none" id="popup-delete">
+        <h2 class="popup-title">Deseja realmente excluir este produto?</h2>
+        <p class="popup-text">Esta ação não poderá ser desfeita.</p>
+
+        <div class="popup-actions">
+            <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+            <button class="popup-btn fundo-vermelho" type="button" id="confirm-delete">Excluir</button>
+        </div>
+    </div>
+
     <!-- Alterar Propriedade -->
     <div class="popup-box v2 d-none" id="popup-prop">
         <h2 class="popup-title">Alterar Propriedade</h2>
