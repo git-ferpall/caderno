@@ -115,12 +115,16 @@ function editItem(btn) {
     if (produto.atributo === 'semi-hidro') document.querySelector('input[name="patr"][value="semi-hidro"]').checked = true;
     if (produto.atributo === 'solo')       document.querySelector('input[name="patr"][value="solo"]').checked = true;
 
-    // abre o box
+    // abre a caixa de novo produto
     document.getElementById('item-add-produto').classList.remove('d-none');
 
-    // opcional: mudar texto do botão
+    // opcional: dar foco no campo nome
+    inputNome.focus();
+
+    // mudar texto do botão para "Atualizar"
     document.getElementById('form-save-produto').querySelector('.main-btn-text').textContent = "Atualizar";
 }
+
 
 // =============================
 // Utilitários
