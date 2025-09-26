@@ -98,9 +98,6 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
 // =============================
 // Editar Produto
 // =============================
-// =============================
-// Editar Produto
-// =============================
 function editItem(btn) {
     const produto = JSON.parse(btn.getAttribute('data-produto'));
 
