@@ -76,9 +76,6 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
     });
 });
 
-// =============================
-// Função para excluir produto
-// =============================
 function deleteProduto(id) {
     if (!confirm("Deseja realmente excluir este produto?")) {
         return;
@@ -87,23 +84,30 @@ function deleteProduto(id) {
     fetch('../funcoes/excluir_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        credentials: 'include', // 🔑 Envia cookies/session
-        body: 'id=' + encodeURIComponent(id)
+        body: new URLSearchParams({ id })
     })
     .then(res => res.json())
-    .then(data => {
-        if (data.ok) {
-            // Remove da tela
-            document.getElementById('prod-' + id).remove();
+    .then(d => {
+        if (d.ok) {
+            // remove da tela
+            document.getElementById('prod-' + id)?.remove();
+
+            // popup de sucesso
             overlay.classList.remove('d-none');
             popupSuccess.classList.remove('d-none');
         } else {
             overlay.classList.remove('d-none');
             popupFailed.classList.remove('d-none');
+
+            const msgBox = popupFailed.querySelector('.popup-text');
+            if (msgBox) msgBox.textContent = d.err || "Erro ao excluir produto.";
         }
     })
-    .catch(() => {
+    .catch(err => {
         overlay.classList.remove('d-none');
         popupFailed.classList.remove('d-none');
+
+        const msgBox = popupFailed.querySelector('.popup-text');
+        if (msgBox) msgBox.textContent = "Falha na requisição: " + err;
     });
 }
