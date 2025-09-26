@@ -83,7 +83,6 @@ document.querySelectorAll('.select-propriedade').forEach(btn => {
     });
 });
 
-// Enviar para o backend ao clicar em "Ativar"
 document.getElementById('btn-ativar').addEventListener('click', function() {
     if (!selectedPropId) {
         showPopupFailed("Erro", "Selecione uma propriedade antes de ativar!");
@@ -99,12 +98,13 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     .then(data => {
         if (data.ok) {
             showPopupSuccess("Propriedade ativada com sucesso!");
-
-            // fecha popup e recarrega depois de um tempo (ou no clique do botão OK)
-            setTimeout(() => {
+            
+            // substitui ação do botão Ok
+            const okBtn = document.querySelector('#popup-success #btn-ok');
+            okBtn.onclick = () => {
                 closePopup();
                 location.reload();
-            }, 1500);
+            };
         } else {
             showPopupFailed("Erro ao ativar", data.error || "Falha desconhecida.");
         }
