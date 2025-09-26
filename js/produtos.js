@@ -75,4 +75,8 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     produtoParaExcluir = null;
 });
 
-
+function editItem(btn) {
+    const produto = JSON.parse(btn.getAttribute('data-produto'));
+    console.log("Editando:", produto);
+    // aqui você pode preencher o formulário com os dados do produto
+}
