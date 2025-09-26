@@ -39,7 +39,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
             <div class="sistema-main">
                 <div class="item-box container">
-                <input type="hidden" name="id" id="p-id">
+                
 
 
                     <?php
