@@ -46,6 +46,9 @@
                                         <button class="edit-btn" id="edit-maquina" type="button" onclick="editItem(' . json_encode($maquina) . ')">
                                             <div class="edit-icon icon-pen"></div>
                                         </button>
+                                        <button class="edit-btn fundo-vermelho" type="button" onclick="deleteMaquina(<?= $maquina['id'] ?>)">
+                                            <div class="edit-icon icon-trash"></div>
+                                        </button>
                                     </div>
                                 </div>
                             ';
