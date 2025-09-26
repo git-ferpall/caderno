@@ -39,33 +39,36 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
 // Excluir Produto
 // =============================
 
-window.deleteProduto = function(id) {
-    if (!confirm("Deseja realmente excluir este produto?")) return;
+function deleteProduto(id) {
+    if (!confirm("Deseja realmente excluir este produto?")) {
+        return;
+    }
 
     fetch('../funcoes/excluir_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id })
+        body: 'id=' + encodeURIComponent(id)
     })
     .then(res => res.json())
-    .then(d => {
-        if (d.ok) {
-            // Remove o produto da tela
-            document.getElementById('prod-' + id)?.remove();
-            // mostra popup de sucesso
+    .then(data => {
+        if (data.ok) {
+            // remove da tela
+            document.getElementById('prod-' + id).remove();
+
             overlay.classList.remove('d-none');
             popupSuccess.classList.remove('d-none');
+            popupSuccess.querySelector('.popup-title').textContent = "Produto excluído com sucesso!";
         } else {
             overlay.classList.remove('d-none');
             popupFailed.classList.remove('d-none');
-            const msgBox = popupFailed.querySelector('.popup-text');
-            if (msgBox) msgBox.textContent = d.error || "Erro ao excluir produto.";
+            popupFailed.querySelector('.popup-title').textContent = "Erro ao excluir";
+            popupFailed.querySelector('.popup-text').textContent = data.error || "Não foi possível excluir o produto.";
         }
     })
-    .catch(err => {
+    .catch(() => {
         overlay.classList.remove('d-none');
         popupFailed.classList.remove('d-none');
-        const msgBox = popupFailed.querySelector('.popup-text');
-        if (msgBox) msgBox.textContent = "Falha na requisição: " + err;
+        popupFailed.querySelector('.popup-title').textContent = "Erro inesperado";
+        popupFailed.querySelector('.popup-text').textContent = "Falha de comunicação com o servidor.";
     });
-};
+}

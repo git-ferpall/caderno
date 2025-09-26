@@ -106,3 +106,15 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     })
     .catch(err => alert('Falha na requisição: ' + err));
 });
+function showPopupSuccess(msg) {
+    overlay.classList.remove('d-none');
+    popupSuccess.classList.remove('d-none');
+    popupSuccess.querySelector('.popup-title').textContent = msg;
+}
+
+function showPopupFailed(title, msg) {
+    overlay.classList.remove('d-none');
+    popupFailed.classList.remove('d-none');
+    popupFailed.querySelector('.popup-title').textContent = title;
+    popupFailed.querySelector('.popup-text').textContent = msg;
+}
