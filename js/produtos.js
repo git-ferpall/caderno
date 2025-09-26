@@ -47,7 +47,6 @@ function deleteProduto(id) {
     document.getElementById('popup-delete').classList.remove('d-none');
 }
 
-// quando clicar em confirmar exclusão
 document.getElementById('confirm-delete').addEventListener('click', function() {
     if (!produtoParaExcluir) return;
 
@@ -58,11 +57,13 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     })
     .then(res => res.json())
     .then(data => {
-        closePopup();
+        closePopup(); // fecha o popup de confirmação
+
         if (data.ok) {
-            document.getElementById('prod-' + produtoParaExcluir)?.remove();
-            showPopupSuccess("Produto excluído com sucesso!");
+            // ✅ ao invés de mostrar popup de sucesso, recarrega a página
+            location.reload();
         } else {
+            // ❌ mantém padrão de erro
             showPopupFailed("Erro ao excluir", data.error || "Não foi possível excluir o produto.");
         }
     })
@@ -73,4 +74,5 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
 
     produtoParaExcluir = null;
 });
+
 
