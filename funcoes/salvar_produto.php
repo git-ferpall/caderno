@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // valida JWT / sessão
+    // valida JWT ou sessão
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
 
@@ -22,7 +22,7 @@ try {
         exit;
     }
 
-    // pega dados do formulário
+    // pega dados
     $id   = intval($_POST['id'] ?? 0);
     $nome = trim($_POST['pnome'] ?? '');
     $tipo = $_POST['ptipo'] ?? '';
@@ -46,37 +46,30 @@ try {
     }
 
     if ($id > 0) {
-        // ==========================
-        // UPDATE (editar produto)
-        // ==========================
+        // UPDATE
         $stmt = $mysqli->prepare("UPDATE produtos SET nome=?, tipo=?, atributo=? WHERE id=? AND user_id=?");
         $stmt->bind_param("sssii", $nome, $tipoVal, $atrVal, $id, $user_id);
-
-        if ($stmt->execute()) {
-            echo json_encode(["ok" => true, "id" => $id, "action" => "update"]);
-        } else {
-            error_log("SALVAR_PRODUTO UPDATE ERRO: " . $stmt->error);
-            echo json_encode(["ok" => false, "error" => $stmt->error]);
-        }
-        $stmt->close();
+        $action = "update";
     } else {
-        // ==========================
-        // INSERT (novo produto)
-        // ==========================
+        // INSERT
         $stmt = $mysqli->prepare("INSERT INTO produtos (user_id, nome, tipo, atributo) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("isss", $user_id, $nome, $tipoVal, $atrVal);
-
-        if ($stmt->execute()) {
-            echo json_encode(["ok" => true, "id" => $stmt->insert_id, "action" => "insert"]);
-        } else {
-            error_log("SALVAR_PRODUTO INSERT ERRO: " . $stmt->error);
-            echo json_encode(["ok" => false, "error" => $stmt->error]);
-        }
-        $stmt->close();
+        $action = "insert";
     }
 
+    if ($stmt->execute()) {
+        echo json_encode([
+            "ok" => true,
+            "id" => $id > 0 ? $id : $stmt->insert_id,
+            "action" => $action
+        ]);
+    } else {
+        echo json_encode(["ok" => false, "error" => $stmt->error]);
+    }
+
+    $stmt->close();
+
 } catch (Exception $e) {
-    error_log("SALVAR_PRODUTO EXCEPTION: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['ok'=>false,'err'=>'db','msg'=>$e->getMessage()]);
 }
