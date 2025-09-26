@@ -64,6 +64,16 @@ if ($user_id) {
         </div>
     </div>
 
+    <!-- Alerta de Sucesso Propriedade-->
+    <div class="popup-box success d-none" id="popup-success">
+        <div class="popup-icon icon-check cor-branco"></div>
+        <h2 class="popup-title">Propriedade ativada com sucesso!</h2>
+
+        <div class="popup-actions">
+            <button class="popup-btn fundo-branco cor-verde" id="btn-ok" type="button" onclick="closePopup()">Ok</button>
+        </div>
+    </div>
+
     <!-- Alerta de Campos a preencher -->
     <div class="popup-box d-none" id="popup-failed">
         <h2 class="popup-title">Não foi possível salvar os dados</h2>
