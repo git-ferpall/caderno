@@ -100,20 +100,21 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     .then(res => res.json())
     .then(data => {
         if (data.ok) {
-        // fecha popup atual (alterar propriedade)
-        closePopup(); 
+            // fecha popup atual (alterar propriedade)
+            closePopup(); 
 
-        // mostra popup bonito de sucesso
-        overlay.classList.remove('d-none');
-        const popup = document.getElementById('popup-success');
-        popup.classList.remove('d-none');
-        popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+            // mostra popup bonito de sucesso (usando id novo)
+            overlay.classList.remove('d-none');
+            const popup = document.getElementById('popup-ativar');
+            popup.classList.remove('d-none');
+            popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
 
-        // botão OK fecha e recarrega
-        document.getElementById('btn-ok').onclick = function() {
-            closePopup();
-            location.reload();
-        };
+            // botão OK fecha e recarrega
+            const btnOk = popup.querySelector('#btn-ok');
+            btnOk.onclick = function() {
+                closePopup();
+                location.reload();
+            };
 
         } else {
             overlay.classList.remove('d-none');
