@@ -2,9 +2,10 @@
 // Produtos - Frontend JS
 // =============================
 
-// Botão "Novo Produto" → abre/fecha o formulário
+// Botão "Novo Produto" → mostra a caixa do formulário
 document.getElementById('produto-add').addEventListener('click', () => {
-    document.getElementById('item-add-produto').classList.toggle('d-none');
+    const box = document.getElementById('item-add-produto');
+    box.classList.remove('d-none');   // garante que aparece
 });
 
 // Botão "Cancelar" → fecha formulário sem enviar
