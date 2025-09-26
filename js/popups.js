@@ -86,7 +86,9 @@ document.querySelectorAll('.select-propriedade').forEach(btn => {
 // Enviar para o backend ao clicar em "Ativar"
 document.getElementById('btn-ativar').addEventListener('click', function() {
     if (!selectedPropId) {
-        alert('Selecione uma propriedade antes de ativar!');
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+        popupFailed.querySelector('.popup-text').textContent = "Selecione uma propriedade antes de ativar!";
         return;
     }
 
@@ -98,11 +100,26 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     .then(res => res.json())
     .then(data => {
         if (data.ok) {
-            alert('Propriedade ativada com sucesso!');
-            location.reload();
+            // mostra popup bonito de sucesso
+            overlay.classList.remove('d-none');
+            const popup = document.getElementById('popup-success');
+            popup.classList.remove('d-none');
+            popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+
+            // botão OK fecha e recarrega
+            document.getElementById('btn-ok').onclick = function() {
+                closePopup();
+                location.reload();
+            };
         } else {
-            alert('Erro: ' + data.error);
+            overlay.classList.remove('d-none');
+            popupFailed.classList.remove('d-none');
+            popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao ativar propriedade.";
         }
     })
-    .catch(err => alert('Falha na requisição: ' + err));
+    .catch(err => {
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+        popupFailed.querySelector('.popup-text').textContent = "Falha na requisição: " + err;
+    });
 });
