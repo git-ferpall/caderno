@@ -83,31 +83,26 @@ document.querySelectorAll('.select-propriedade').forEach(btn => {
     });
 });
 
+// Enviar para o backend ao clicar em "Ativar"
 document.getElementById('btn-ativar').addEventListener('click', function() {
     if (!selectedPropId) {
-        showPopupFailed("Erro", "Selecione uma propriedade antes de ativar!");
+        alert('Selecione uma propriedade antes de ativar!');
         return;
     }
 
-    fetch('../funcoes/ativar_propriedade.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'id=' + encodeURIComponent(selectedPropId)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                showPopupSuccess("Propriedade ativada com sucesso!");
-                document.querySelector('#popup-success #btn-ok').onclick = () => {
-                    closePopup();
-                    location.reload();
-                };
-            } else {
-                showPopupFailed("Erro", data.error || "Não foi possível ativar a propriedade.");
-            }
-        })
-        .catch(err => {
-            showPopupFailed("Falha de comunicação", err);
-        });
-
+    fetch('/funcoes/ativar_propriedade.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(selectedPropId)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            alert('Propriedade ativada com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    })
+    .catch(err => alert('Falha na requisição: ' + err));
 });
