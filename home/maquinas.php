@@ -31,16 +31,17 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         foreach ($maquinas as $maquina) {
                             echo '
                                 <div class="item" id="maq-' . $maquina['id'] . '">
-                                    <h4 class="item-title">' . htmlspecialchars($maquina['nome']) . '</h4>
+                                    <h4 class="item-title">' . htmlspecialchars($maquina['nome']) . ' <small>(' . htmlspecialchars($maquina['marca']) . ')</small></h4>
                                     <div class="item-edit">
-                                        <!-- Editar -->
+                                        <!-- Botão Editar -->
                                         <button class="edit-btn" type="button"
                                             onclick="editItem(this)"
                                             data-maquina=\'' . json_encode($maquina, JSON_HEX_APOS | JSON_HEX_QUOT) . '\'>
                                             <div class="edit-icon icon-pen"></div>
                                         </button>
-                                        <!-- Excluir -->
-                                        <button class="edit-btn" type="button" onclick="deleteMaquina(' . $maquina['id'] . ')">
+
+                                        <!-- Botão Excluir -->
+                                        <button class="edit-btn fundo-vermelho" type="button" onclick="deleteMaquina(' . $maquina['id'] . ')">
                                             <div class="edit-icon icon-trash"></div>
                                         </button>
                                     </div>
@@ -48,8 +49,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             ';
                         }
                     } else {
-                        echo '<div class="item-none">Nenhuma máquina cadastrada.</div>';
+                        echo '<div class="item-none">Nenhuma máquina cadastrada para a propriedade ativa.</div>';
                     }
+
                     ?>
                 </div>
 
