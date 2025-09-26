@@ -63,6 +63,16 @@ button {
     display: block;
 }
 
+.icon-trash,
+.icon-trash svg {
+    padding: 0px;
+    margin: 0px;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+
 .main-btn {
     display: flex;
     align-items: center;
