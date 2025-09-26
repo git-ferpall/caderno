@@ -31,21 +31,31 @@ function carregarPropriedade(id) {
     })
     .catch(() => alert("Erro ao carregar propriedade!"));
 }
-function ativarPropriedade(id) {
-    fetch('/funcoes/ativar_propriedade.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(id)
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            // aqui você pode abrir popup-success em vez de alert
-            document.getElementById('popup-success').classList.remove('d-none');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            alert('Erro: ' + data.error);
-        }
-    })
-    .catch(err => alert('Falha na requisição: ' + err));
-}
+fetch('/funcoes/ativar_propriedade.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'id=' + encodeURIComponent(selectedPropId)
+})
+.then(res => res.json())
+.then(data => {
+    if (data.ok) {
+        // Mostra popup de sucesso
+        overlay.classList.remove('d-none');
+        popupSuccess.classList.remove('d-none');
+        popupSuccess.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+
+        document.getElementById('btn-ok').onclick = function() {
+            closePopup();
+            location.reload();
+        };
+    } else {
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+        popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao ativar propriedade.";
+    }
+})
+.catch(err => {
+    overlay.classList.remove('d-none');
+    popupFailed.classList.remove('d-none');
+    popupFailed.querySelector('.popup-text').textContent = "Falha na requisição: " + err;
+});
