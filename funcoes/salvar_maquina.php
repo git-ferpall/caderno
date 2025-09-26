@@ -48,13 +48,13 @@ try {
 
     if ($id > 0) {
         // UPDATE
-        $stmt = $mysqli->prepare("UPDATE maquinas SET nome=?, marca=?, tipo=? WHERE id=? AND propriedade_id=?");
-        $stmt->bind_param("sssii", $nome, $marca, $tipo, $id, $propriedade_id);
+        $stmt = $mysqli->prepare("UPDATE maquinas SET nome=?, marca=?, tipo=? WHERE id=? AND user_id=? AND propriedade_id=?");
+        $stmt->bind_param("sssiii", $nome, $marca, $tipo, $id, $user_id, $propriedade_id);
         $action = "update";
     } else {
         // INSERT
-        $stmt = $mysqli->prepare("INSERT INTO maquinas (propriedade_id, nome, marca, tipo) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $propriedade_id, $nome, $marca, $tipo);
+        $stmt = $mysqli->prepare("INSERT INTO maquinas (user_id, propriedade_id, nome, marca, tipo) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iisss", $user_id, $propriedade_id, $nome, $marca, $tipo);
         $action = "insert";
     }
 
