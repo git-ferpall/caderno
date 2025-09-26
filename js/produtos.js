@@ -39,36 +39,38 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
 // Excluir Produto
 // =============================
 
+let produtoParaExcluir = null;
+
 function deleteProduto(id) {
-    if (!confirm("Deseja realmente excluir este produto?")) {
-        return;
-    }
+    produtoParaExcluir = id;
+    overlay.classList.remove('d-none');
+    document.getElementById('popup-delete').classList.remove('d-none');
+}
+
+// quando clicar em confirmar exclusão
+document.getElementById('confirm-delete').addEventListener('click', function() {
+    if (!produtoParaExcluir) return;
 
     fetch('../funcoes/excluir_produto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(id)
+        body: 'id=' + encodeURIComponent(produtoParaExcluir)
     })
     .then(res => res.json())
     .then(data => {
+        closePopup();
         if (data.ok) {
-            // remove da tela
-            document.getElementById('prod-' + id).remove();
-
-            overlay.classList.remove('d-none');
-            popupSuccess.classList.remove('d-none');
-            popupSuccess.querySelector('.popup-title').textContent = "Produto excluído com sucesso!";
+            document.getElementById('prod-' + produtoParaExcluir)?.remove();
+            showPopupSuccess("Produto excluído com sucesso!");
         } else {
-            overlay.classList.remove('d-none');
-            popupFailed.classList.remove('d-none');
-            popupFailed.querySelector('.popup-title').textContent = "Erro ao excluir";
-            popupFailed.querySelector('.popup-text').textContent = data.error || "Não foi possível excluir o produto.";
+            showPopupFailed("Erro ao excluir", data.error || "Não foi possível excluir o produto.");
         }
     })
     .catch(() => {
-        overlay.classList.remove('d-none');
-        popupFailed.classList.remove('d-none');
-        popupFailed.querySelector('.popup-title').textContent = "Erro inesperado";
-        popupFailed.querySelector('.popup-text').textContent = "Falha de comunicação com o servidor.";
+        closePopup();
+        showPopupFailed("Erro inesperado", "Falha de comunicação com o servidor.");
     });
-}
+
+    produtoParaExcluir = null;
+});
+
