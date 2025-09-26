@@ -23,3 +23,12 @@
 .edit-btn:hover .icon-trash {
     fill: #e53935; /* vermelho */
 }
+.icon-btn {
+  width: 20px;     /* tamanho fixo */
+  height: 20px;
+  display: inline-block;
+  object-fit: contain;
+  background: none;  /* remove qualquer fundo */
+  padding: 0;
+  margin: 0;
+}
