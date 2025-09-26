@@ -54,7 +54,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                         </button>
 
                                         <!-- Botão Excluir -->
-                                        <button class="edit-btn fundo-vermelho" type="button" onclick="deleteProduto(' . $produto['id'] . ')">
+                                        <button class="edit-btn" type="button" onclick="deleteProduto(<?= $produto['id'] ?>)">
                                             <div class="edit-icon icon-trash"></div>
                                         </button>
                                     </div>
