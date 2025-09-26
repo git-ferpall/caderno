@@ -39,6 +39,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
             <div class="sistema-main">
                 <div class="item-box container">
+                <input type="hidden" name="id" id="p-id">
+
 
                     <?php
 
@@ -49,7 +51,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                     <h4 class="item-title">' . htmlspecialchars($produto['nome']) . '</h4>
                                     <div class="item-edit">
                                         <!-- Botão Editar -->
-                                        <button class="edit-btn" type="button" onclick=\'editItem(' . json_encode($produto) . ')\'>
+                                        <button class="edit-btn" type="button"
+                                            onclick="editItem(this)"
+                                            data-produto=\'' . json_encode($produto, JSON_HEX_APOS | JSON_HEX_QUOT) . '\'>
                                             <div class="edit-icon icon-pen"></div>
                                         </button>
 
@@ -64,6 +68,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     } else {
                         echo '<div class="item-none">Nenhum produto cadastrado.</div>';
                     }
+
 
                     ?>
                 </div>

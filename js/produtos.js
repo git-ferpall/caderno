@@ -2,24 +2,25 @@
 // Produtos - Frontend JS
 // =============================
 
-// Botão "Novo Produto" → mostra a caixa do formulário
+const form = document.getElementById('add-produto');
+const inputId   = document.getElementById('p-id');
+const inputNome = document.getElementById('p-nome');
+
+// Botão "Novo Produto" → mostra o formulário limpo
 document.getElementById('produto-add').addEventListener('click', () => {
-    const box = document.getElementById('item-add-produto');
-    box.classList.remove('d-none');   // garante que aparece
+    limparFormulario();
+    document.getElementById('item-add-produto').classList.remove('d-none');
 });
 
-// Botão "Cancelar" → fecha formulário sem enviar
+// Botão "Cancelar" → fecha formulário
 document.getElementById('form-cancel-produto').addEventListener('click', () => {
     document.getElementById('item-add-produto').classList.add('d-none');
+    limparFormulario();
 });
 
-// Botão "Salvar" → submete formulário normalmente (form action = salvar_produto.php)
-// O popup de sucesso/erro já é tratado pelo backend + popups.js
+// Botão "Salvar"
 document.getElementById('form-save-produto').addEventListener('click', () => {
-    const form = document.getElementById('add-produto');
-
-    // validação simples antes de enviar
-    const nome = document.getElementById('p-nome').value.trim();
+    const nome = inputNome.value.trim();
     const tipo = document.querySelector('input[name="ptipo"]:checked')?.value;
     const atr  = document.querySelector('input[name="patr"]:checked')?.value;
 
@@ -31,14 +32,12 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
         return;
     }
 
-    // envia formulário (vai para salvar_produto.php)
-    form.submit();
+    form.submit(); // envia para salvar_produto.php
 });
 
 // =============================
 // Excluir Produto
 // =============================
-
 let produtoParaExcluir = null;
 
 function deleteProduto(id) {
@@ -57,13 +56,11 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     })
     .then(res => res.json())
     .then(data => {
-        closePopup(); // fecha o popup de confirmação
+        closePopup();
 
         if (data.ok) {
-            // ✅ ao invés de mostrar popup de sucesso, recarrega a página
             location.reload();
         } else {
-            // ❌ mantém padrão de erro
             showPopupFailed("Erro ao excluir", data.error || "Não foi possível excluir o produto.");
         }
     })
@@ -75,8 +72,40 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     produtoParaExcluir = null;
 });
 
+// =============================
+// Editar Produto
+// =============================
 function editItem(btn) {
     const produto = JSON.parse(btn.getAttribute('data-produto'));
-    console.log("Editando:", produto);
-    // aqui você pode preencher o formulário com os dados do produto
+
+    // preenche o formulário
+    inputId.value   = produto.id;
+    inputNome.value = produto.nome;
+
+    // tipo
+    if (produto.tipo === 'convencional') document.querySelector('input[name="ptipo"][value="1"]').checked = true;
+    if (produto.tipo === 'organico')     document.querySelector('input[name="ptipo"][value="2"]').checked = true;
+    if (produto.tipo === 'integrado')    document.querySelector('input[name="ptipo"][value="3"]').checked = true;
+
+    // atributo
+    if (produto.atributo === 'hidro')      document.querySelector('input[name="patr"][value="hidro"]').checked = true;
+    if (produto.atributo === 'semi-hidro') document.querySelector('input[name="patr"][value="semi-hidro"]').checked = true;
+    if (produto.atributo === 'solo')       document.querySelector('input[name="patr"][value="solo"]').checked = true;
+
+    // abre o box
+    document.getElementById('item-add-produto').classList.remove('d-none');
+
+    // opcional: mudar texto do botão
+    document.getElementById('form-save-produto').querySelector('.main-btn-text').textContent = "Atualizar";
+}
+
+// =============================
+// Utilitários
+// =============================
+function limparFormulario() {
+    inputId.value = '';
+    inputNome.value = '';
+    document.querySelector('input[name="ptipo"][value="1"]').checked = true;
+    document.querySelector('input[name="patr"][value="hidro"]').checked = true;
+    document.getElementById('form-save-produto').querySelector('.main-btn-text').textContent = "Salvar";
 }

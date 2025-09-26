@@ -26,11 +26,12 @@ try {
     }
 
     // pega dados do formulário
+    $id   = intval($_POST['id'] ?? 0);
     $nome = trim($_POST['pnome'] ?? '');
     $tipo = $_POST['ptipo'] ?? '';
     $atr  = $_POST['patr'] ?? '';
 
-    error_log("SALVAR_PRODUTO: nome=$nome tipo=$tipo atr=$atr");
+    error_log("SALVAR_PRODUTO: id=$id nome=$nome tipo=$tipo atr=$atr");
 
     if ($nome === '' || $tipo === '' || $atr === '') {
         echo json_encode(["ok" => false, "error" => "Dados incompletos"]);
@@ -49,26 +50,36 @@ try {
         exit;
     }
 
-    // salvar no banco
-    $stmt = $mysqli->prepare("INSERT INTO produtos (user_id, nome, tipo, atributo) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $user_id, $nome, $tipoVal, $atrVal);
+    if ($id > 0) {
+        // UPDATE
+        $stmt = $mysqli->prepare("UPDATE produtos SET nome=?, tipo=?, atributo=? WHERE id=? AND user_id=?");
+        $stmt->bind_param("sssii", $nome, $tipoVal, $atrVal, $id, $user_id);
+        $ok = $stmt->execute();
+        $stmt->close();
 
-    if ($stmt->execute()) {
-        error_log("SALVAR_PRODUTO: insert OK id=" . $stmt->insert_id);
-
-        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
-        if (str_contains($accept, 'application/json') || isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-            echo json_encode(["ok" => true, "id" => $stmt->insert_id]);
+        if ($ok) {
+            error_log("SALVAR_PRODUTO: update OK id=$id");
+            header("Location: /home/produtos.php?atualizado=1");
+            exit;
         } else {
-            // Se acesso direto → redireciona
-            header("Location: /home/produtos.php?sucesso=1");
+            error_log("SALVAR_PRODUTO: erro no update " . $mysqli->error);
+            echo json_encode(["ok" => false, "error" => $mysqli->error]);
         }
     } else {
-        error_log("SALVAR_PRODUTO: erro no insert " . $stmt->error);
-        echo json_encode(["ok" => false, "error" => $stmt->error]);
-    }
+        // INSERT
+        $stmt = $mysqli->prepare("INSERT INTO produtos (user_id, nome, tipo, atributo) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $user_id, $nome, $tipoVal, $atrVal);
 
-    $stmt->close();
+        if ($stmt->execute()) {
+            error_log("SALVAR_PRODUTO: insert OK id=" . $stmt->insert_id);
+            header("Location: /home/produtos.php?sucesso=1");
+            exit;
+        } else {
+            error_log("SALVAR_PRODUTO: erro no insert " . $stmt->error);
+            echo json_encode(["ok" => false, "error" => $stmt->error]);
+        }
+        $stmt->close();
+    }
 
 } catch (Exception $e) {
     error_log("SALVAR_PRODUTO: exception " . $e->getMessage());
