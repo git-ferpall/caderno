@@ -54,9 +54,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                         </button>
 
                                        <!-- Botão Excluir -->
-                                        <button class="edit-btn btn-delete" type="button" onclick="deleteProduto(<?= $produto['id'] ?>)">
-                                            <img src="../img/icon/icon-trash.svg" alt="Excluir" class="icon-trash">
+                                        <button class="edit-btn" type="button"
+                                            onclick='editItem(<?php echo json_encode($produto, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
+                                            <img src="../img/icon/icon-pen.svg" alt="Editar" class="icon-btn">
                                         </button>
+
 
                                     </div>
                                 </div>
