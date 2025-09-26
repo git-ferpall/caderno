@@ -57,8 +57,8 @@
                     ?>
                 </div>
 
-                <form action="maquinas.php" class="main-form container" id="add-maquina">
-
+                <form action="../funcoes/salvar_maquina.php" method="POST" class="main-form container" id="add-maquina">
+                    <input type="hidden" name="id" id="m-id">
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="maquina-add" type="button">
                             <div class="btn-icon icon-plus cor-verde"></div>
