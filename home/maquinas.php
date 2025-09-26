@@ -54,7 +54,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     ?>
                 </div>
-                                      
                 <form action="../funcoes/salvar_maquina.php" method="POST" class="main-form container" id="add-maquina">
                     <input type="hidden" name="id" id="m-id">
 
