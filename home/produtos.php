@@ -44,19 +44,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     if (!empty($produtos)) {
                         foreach ($produtos as $produto) {
-                            $jsonProduto = htmlspecialchars(json_encode($produto), ENT_QUOTES, 'UTF-8');
                             echo '
                                 <div class="item" id="prod-' . $produto['id'] . '">
                                     <h4 class="item-title">' . htmlspecialchars($produto['nome']) . '</h4>
                                     <div class="item-edit">
                                         <!-- Botão Editar -->
-                                        <button class="edit-btn" type="button" data-produto="' . $jsonProduto . '" onclick="editItem(this)">
-                                            <img src="../img/icon/icon-pen.svg" alt="Editar" class="icon-btn">
+                                        <button class="edit-btn" type="button" onclick=\'editItem(' . json_encode($produto) . ')\'>
+                                            <div class="edit-icon icon-pen"></div>
                                         </button>
 
-                                        <button class="edit-btn" type="button" onclick="deleteProduto(' . $produto['id'] . ')">
-                                            <img src="../img/icon/icon-trash.svg" alt="Excluir" class="icon-btn">
+                                       <!-- Botão Excluir -->
+                                        <button class="edit-btn btn-delete" type="button" onclick="deleteProduto(<?= $produto['id'] ?>)">
+                                            <img src="../img/icon/icon-trash.svg" alt="Excluir" class="icon-trash">
                                         </button>
+
                                     </div>
                                 </div>
                             ';
