@@ -31,31 +31,38 @@ function carregarPropriedade(id) {
     })
     .catch(() => alert("Erro ao carregar propriedade!"));
 }
-fetch('/funcoes/ativar_propriedade.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'id=' + encodeURIComponent(selectedPropId)
-})
-.then(res => res.json())
-.then(data => {
-    if (data.ok) {
-        // Mostra popup de sucesso
-        overlay.classList.remove('d-none');
-        popupSuccess.classList.remove('d-none');
-        popupSuccess.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
+function ativarPropriedade(id) {
+    fetch('../funcoes/ativar_propriedade.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(id)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            // Mostra popup de sucesso
+            overlay.classList.remove('d-none');
+            popupSuccess.classList.remove('d-none');
+            popupSuccess.querySelector('.popup-title').textContent = "Propriedade ativada!";
+            popupSuccess.querySelector('.popup-text').textContent = "Propriedade ativada com sucesso.";
 
-        document.getElementById('btn-ok').onclick = function() {
-            closePopup();
-            location.reload();
-        };
-    } else {
+            // Botão de OK recarrega a página
+            document.getElementById('btn-ok').onclick = function() {
+                closePopup();
+                location.reload();
+            };
+
+        } else {
+            // Mostra popup de erro
+            overlay.classList.remove('d-none');
+            popupFailed.classList.remove('d-none');
+            popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao ativar a propriedade.";
+        }
+    })
+    .catch(err => {
         overlay.classList.remove('d-none');
         popupFailed.classList.remove('d-none');
-        popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao ativar propriedade.";
-    }
-})
-.catch(err => {
-    overlay.classList.remove('d-none');
-    popupFailed.classList.remove('d-none');
-    popupFailed.querySelector('.popup-text').textContent = "Falha na requisição: " + err;
-});
+        popupFailed.querySelector('.popup-text').textContent = "Falha na comunicação: " + err;
+    });
+}
+
