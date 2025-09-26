@@ -86,7 +86,7 @@ document.querySelectorAll('.select-propriedade').forEach(btn => {
 // Enviar para o backend ao clicar em "Ativar"
 document.getElementById('btn-ativar').addEventListener('click', function() {
     if (!selectedPropId) {
-        alert('Selecione uma propriedade antes de ativar!');
+        showPopupFailed("Erro", "Selecione uma propriedade antes de ativar!");
         return;
     }
 
@@ -98,23 +98,18 @@ document.getElementById('btn-ativar').addEventListener('click', function() {
     .then(res => res.json())
     .then(data => {
         if (data.ok) {
-            alert('Propriedade ativada com sucesso!');
-            location.reload();
+            showPopupSuccess("Propriedade ativada com sucesso!");
+
+            // fecha popup e recarrega depois de um tempo (ou no clique do botão OK)
+            setTimeout(() => {
+                closePopup();
+                location.reload();
+            }, 1500);
         } else {
-            alert('Erro: ' + data.error);
+            showPopupFailed("Erro ao ativar", data.error || "Falha desconhecida.");
         }
     })
-    .catch(err => alert('Falha na requisição: ' + err));
+    .catch(err => {
+        showPopupFailed("Erro inesperado", "Falha na requisição: " + err);
+    });
 });
-function showPopupSuccess(msg) {
-    overlay.classList.remove('d-none');
-    popupSuccess.classList.remove('d-none');
-    popupSuccess.querySelector('.popup-title').textContent = msg;
-}
-
-function showPopupFailed(title, msg) {
-    overlay.classList.remove('d-none');
-    popupFailed.classList.remove('d-none');
-    popupFailed.querySelector('.popup-title').textContent = title;
-    popupFailed.querySelector('.popup-text').textContent = msg;
-}
