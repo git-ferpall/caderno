@@ -32,8 +32,31 @@ document.getElementById('form-save-produto').addEventListener('click', () => {
         return;
     }
 
-    form.submit(); // envia para salvar_produto.php
-});
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            // Recarrega página para atualizar lista
+            location.reload();
+        } else {
+            overlay.classList.remove('d-none');
+            popupFailed.classList.remove('d-none');
+            const msgBox = popupFailed.querySelector('.popup-text');
+            if (msgBox) msgBox.textContent = data.error || "Erro ao salvar o produto.";
+        }
+    })
+    .catch(err => {
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+        const msgBox = popupFailed.querySelector('.popup-text');
+        if (msgBox) msgBox.textContent = "Falha na comunicação: " + err;
+    });
+    });
 
 // =============================
 // Excluir Produto
