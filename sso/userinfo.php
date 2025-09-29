@@ -85,7 +85,8 @@ echo json_encode([
     'tipo'         => $payload['tipo'] ?? null,
     'name'         => $payload['name'] ?? null,
     'email'        => $payload['email'] ?? null,
-    'empresa'      => $extra['empresa'] ?? null,
-    'razao_social' => $extra['razao_social'] ?? null,
-    'cpf_cnpj'     => $extra['cpf_cnpj'] ?? null,
+    // Prioriza valores do banco remoto
+    'empresa'      => $extra['cli_empresa']     ?? $payload['empresa']      ?? null,
+    'razao_social' => $extra['cli_razao_social']?? $payload['razao_social'] ?? null,
+    'cpf_cnpj'     => $extra['cli_cnpj_cpf']    ?? $payload['cpf_cnpj']     ?? null,
 ]);
