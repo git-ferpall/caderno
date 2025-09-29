@@ -18,9 +18,10 @@ $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 $jwt = null;
 if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
     $jwt = $m[1];
-} elseif (!empty($_COOKIE[AUTH_COOKIE])) {
-    $jwt = $_COOKIE[AUTH_COOKIE];
+} elseif (!empty($_COOKIE['token'])) {   // usa o cookie real
+    $jwt = $_COOKIE['token'];
 }
+
 if (!$jwt) fail(401, 'no_token');
 
 // 2. Valida formato
