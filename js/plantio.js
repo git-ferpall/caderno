@@ -50,14 +50,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // === Botão adicionar ÁREA ===
+  // Botões de adicionar (sem alert)
   document.querySelector(".add-area").addEventListener("click", () => {
-    alert("Abrir modal/cadastro rápido de Área");
-    // Aqui você pode redirecionar para cadastro ou abrir popup
+    // Aqui futuramente podemos abrir o modal de cadastro rápido de área
+    console.log("Botão Adicionar Área clicado");
   });
 
-  // === Botão adicionar PRODUTO ===
   document.querySelector(".add-produto").addEventListener("click", () => {
-    alert("Abrir modal/cadastro rápido de Produto");
-    // Aqui você pode redirecionar para cadastro ou abrir popup
+    // Aqui futuramente podemos abrir o modal de cadastro rápido de produto
+    console.log("Botão Adicionar Produto clicado");
   });
+
 });
