@@ -1,43 +1,47 @@
 <?php
-    // Pega token do AUTH_COOKIE ou do cookie "token"
-    $bearer = $_COOKIE[AUTH_COOKIE] ?? ($_COOKIE['token'] ?? '');
+// Pega token do AUTH_COOKIE ou do cookie "token"
+$bearer = $_COOKIE[AUTH_COOKIE] ?? ($_COOKIE['token'] ?? '');
 
-    $ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $bearer],
-    ]);
-    $resp = curl_exec($ch);
+$ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $bearer],
+]);
+$resp = curl_exec($ch);
+curl_close($ch);
 
-    // DEBUG: loga a resposta bruta do endpoint userinfo
-    error_log("USERINFO RESP: " . $resp);
+// DEBUG opcional no log do servidor
+error_log("USERINFO RESP: " . $resp);
 
-    $info = json_decode($resp, true);
+// Decodifica sempre como array
+$info = json_decode($resp, true);
 
-    // Só zera se realmente falhou
-    if (!is_array($info) || !isset($info['ok']) || $info['ok'] !== true) {
-        $info = [
-            'empresa'      => null,
-            'razao_social' => null,
-            'cpf_cnpj'     => null
-        ];
-    }
+// Só aplica fallback se o JSON for inválido ou se não retornar ok=true
+if (!is_array($info) || empty($info['ok'])) {
+    $info = [
+        'empresa'      => null,
+        'razao_social' => null,
+        'cpf_cnpj'     => null
+    ];
+}
 
-
-    $propAtiva = null;
-    if ($user_id) {
-        $stmt = $mysqli->prepare("SELECT endereco_cidade, endereco_uf, nome_razao 
-                                FROM propriedades 
-                                WHERE user_id = ? AND ativo = 1 
-                                LIMIT 1");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $propAtiva = $res->fetch_assoc();
-        $stmt->close();
-    }
-    
+// Busca a propriedade ativa no banco local
+$propAtiva = null;
+if (!empty($user_id)) {
+    $stmt = $mysqli->prepare("
+        SELECT endereco_cidade, endereco_uf, nome_razao 
+        FROM propriedades 
+        WHERE user_id = ? AND ativo = 1 
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $propAtiva = $res->fetch_assoc();
+    $stmt->close();
+}
 ?>
+
 
 
 <header class="menu-principal">
