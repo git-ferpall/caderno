@@ -57,7 +57,7 @@
                     ?>
                 </div>
 
-                <form action="areas.php" class="main-form container" id="add-area">
+                <form action="../funcoes/salvar_area.php" class="main-form container" id="add-area">
 
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="area-add" type="button">
