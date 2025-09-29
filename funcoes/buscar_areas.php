@@ -14,12 +14,11 @@ if (!$user_id) {
 $areas = [];
 
 if ($user_id) {
-    // Buscar propriedade ativa do usuário
-    $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
-    $stmt->bind_param("i", $user_id);
+   // Lista todas as áreas vinculadas à propriedade ativa
+    $stmt = $mysqli->prepare("SELECT id, nome_razao AS nome FROM areas WHERE propriedade_id = ? ORDER BY created_at DESC");
+    $stmt->bind_param("i", $propriedade_id);
     $stmt->execute();
-    $res  = $stmt->get_result();
-    $prop = $res->fetch_assoc();
+    $areas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     if ($prop) {
