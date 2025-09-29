@@ -2,35 +2,49 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
-header('Content-Type: application/json');
+// Força resposta em JSON
+header('Content-Type: application/json; charset=utf-8');
 
-// Descobre user_id da sessão ou do JWT
+// Pega user_id via sessão ou JWT
+session_start();
 $user_id = $_SESSION['user_id'] ?? null;
+
 if (!$user_id) {
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? null;
 }
 
 $areas = [];
-
 if ($user_id) {
-   // Lista todas as áreas vinculadas à propriedade ativa
-    $stmt = $mysqli->prepare("SELECT id, nome_razao AS nome FROM areas WHERE propriedade_id = ? ORDER BY created_at DESC");
-    $stmt->bind_param("i", $propriedade_id);
+    // Descobrir a propriedade ativa do usuário
+    $stmt = $mysqli->prepare("
+        SELECT id 
+        FROM propriedades 
+        WHERE user_id = ? AND ativo = 1 
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $user_id);
     $stmt->execute();
-    $areas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $res = $stmt->get_result();
+    $prop = $res->fetch_assoc();
     $stmt->close();
 
     if ($prop) {
         $propriedade_id = $prop['id'];
 
-        // Buscar áreas SOMENTE da propriedade ativa
-        $stmt = $mysqli->prepare("SELECT id, nome FROM areas WHERE propriedade_id = ? ORDER BY created_at DESC");
-        $stmt->bind_param("i", $propriedade_id);
+        // Buscar áreas vinculadas a essa propriedade ativa
+        $stmt = $mysqli->prepare("
+            SELECT id, nome, tipo 
+            FROM areas 
+            WHERE user_id = ? AND propriedade_id = ? 
+            ORDER BY created_at DESC
+        ");
+        $stmt->bind_param("ii", $user_id, $propriedade_id);
         $stmt->execute();
         $areas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
     }
 }
 
-echo json_encode($areas);
+// Retorna sempre JSON (mesmo vazio [])
+echo json_encode($areas, JSON_UNESCAPED_UNICODE);
