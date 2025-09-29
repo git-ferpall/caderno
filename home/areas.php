@@ -15,20 +15,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <body>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?>
+    <?php include '../funcoes/listar_areas.php'; ?>
 
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <?php 
-
-        // Aqui vai uma função pra pegar as áreas já cadastradas que, caso possua alguma, o valor já é colocado automaticamente no campo passível de edição
-
-        // Exemplo de area:
-        // $areas = [['id' => '01', 'nome' => 'Area 01']]
-
-        $areas = []
-        
-        ?>
+         
 
         <main id="areas" class="sistema">
             <div class="page-title">
@@ -37,26 +29,32 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
             <div class="sistema-main">
                 <div class="item-box container">
-
                     <?php
-
-                    if(!empty($areas)){
-                        foreach($areas as $area) {
+                    if (!empty($areas)) {
+                        foreach ($areas as $area) {
                             echo '
                                 <div class="item" id="area-' . $area['id'] . '">
-                                    <h4 class="item-title">' . $area['nome'] . '</h4>
+                                    <h4 class="item-title">' . htmlspecialchars($area['nome']) . 
+                                    ' <small>(' . htmlspecialchars($area['tipo']) . ')</small></h4>
                                     <div class="item-edit">
-                                        <button class="edit-btn" id="edit-area" type="button" onclick="editItem(' . json_encode($area) . ')">
+                                        <!-- Botão Editar -->
+                                        <button class="edit-btn" type="button"
+                                            onclick="editItem(this)"
+                                            data-area=\'' . json_encode($area, JSON_HEX_APOS | JSON_HEX_QUOT) . '\'>
                                             <div class="edit-icon icon-pen"></div>
+                                        </button>
+
+                                        <!-- Botão Excluir -->
+                                        <button class="edit-btn fundo-vermelho" type="button" onclick="deleteArea(' . $area['id'] . ')">
+                                            <div class="edit-icon icon-trash"></div>
                                         </button>
                                     </div>
                                 </div>
                             ';
                         }
                     } else {
-                        echo '<div class="item-none">Nenhuma área cadastrada.</div>';
+                        echo '<div class="item-none">Nenhuma área cadastrada para a propriedade ativa.</div>';
                     }
-
                     ?>
                 </div>
 
