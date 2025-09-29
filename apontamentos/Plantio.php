@@ -1,66 +1,63 @@
 <?php
-// apontamentos/Plantio.php
+require_once __DIR__ . '/../configuracao/protect.php';
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caderno de Campo - Plantio</title>
 
-class Plantio {
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+</head>
+<body>
+    <?php require '../include/loading.php'; ?> 
+    <?php include '../include/popups.php'; ?>
+    
+    <div id="conteudo">
+        <?php include '../include/menu.php'; ?>
 
-    private $pdo;
+        <main id="apontamento" class="sistema">
+            <div class="page-title">
+                <h2 class="main-title cor-branco">Apontamento - Plantio</h2>
+            </div>
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
-    }
+            <div class="sistema-main container">
+                <div class="apt-box">
+                    
+                    <form action="salvar.php" method="post" class="main-form" id="plantio-form">
+                        <?php
+                        // Campos do apontamento de Plantio
+                        campo_data(1);
+                        campo_area_cultivada(1);
+                        campo_produto_cultivado(1);
+                        campo_quantidade(1);
+                        campo_previsao_colheita(1);
+                        campo_obs(1);
+                        ?>
 
-    public function salvar($dados) {
-        try {
-            $this->pdo->beginTransaction();
+                        <div class="form-submit">
+                            <button class="main-btn form-cancel fundo-vermelho" type="button" onclick="window.history.back();">
+                                <span class="main-btn-text">Cancelar</span>
+                            </button>
+                            <button class="main-btn form-save fundo-verde" type="submit">
+                                <span class="main-btn-text">Salvar</span>
+                            </button>
+                        </div>
+                    </form>
 
-            // 1. Inserir cabeçalho do apontamento
-            $sql = "INSERT INTO apontamentos (propriedade_id, tipo, data, status, obs) 
-                    VALUES (:prop, 'plantio', :data, 'pendente', :obs)";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                ':prop' => $dados['propriedade_id'],
-                ':data' => $dados['data'],
-                ':obs'  => $dados['obs'] ?? null
-            ]);
-            $apontamentoId = $this->pdo->lastInsertId();
+                </div>
+            </div>
+        </main>
 
-            // 2. Inserir áreas
-            if (!empty($dados['areas']) && is_array($dados['areas'])) {
-                $stmtArea = $this->pdo->prepare("
-                    INSERT INTO apontamento_areas (apontamento_id, area_id) 
-                    VALUES (:apont, :area)
-                ");
-                foreach ($dados['areas'] as $areaId) {
-                    $stmtArea->execute([
-                        ':apont' => $apontamentoId,
-                        ':area'  => $areaId
-                    ]);
-                }
-            }
+        <?php include '../include/imports.php'; ?>
+    </div>
+        
+    <?php include '../include/footer.php'; ?>
+</body>
+</html>
 
-            // 3. Inserir produtos
-            if (!empty($dados['produtos']) && is_array($dados['produtos'])) {
-                $stmtProd = $this->pdo->prepare("
-                    INSERT INTO apontamento_produtos 
-                    (apontamento_id, produto_id, quantidade, previsao_colheita) 
-                    VALUES (:apont, :produto, :qtd, :prev)
-                ");
-                foreach ($dados['produtos'] as $produto) {
-                    $stmtProd->execute([
-                        ':apont'   => $apontamentoId,
-                        ':produto' => $produto['id'],
-                        ':qtd'     => $produto['quantidade'] ?? null,
-                        ':prev'    => $produto['previsao_colheita'] ?? null
-                    ]);
-                }
-            }
-
-            $this->pdo->commit();
-            return ['ok' => true, 'id' => $apontamentoId];
-
-        } catch (Throwable $e) {
-            $this->pdo->rollBack();
-            return ['ok' => false, 'erro' => $e->getMessage()];
-        }
-    }
-}
+<?php
+// 🔹 Importa as funções de campos que você já tem
+require_once __DIR__ . '/../funcoes/campos_apontamento.php';
