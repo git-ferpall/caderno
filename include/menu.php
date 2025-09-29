@@ -36,6 +36,11 @@
         $propAtiva = $res->fetch_assoc();
         $stmt->close();
     }
+    echo "<pre>DEBUG USERINFO:\n";
+    echo "Resposta bruta:\n" . htmlspecialchars($resp) . "\n\n";
+    echo "Decodificado:\n";
+    var_dump($info);
+    echo "</pre>";
 ?>
 
 
