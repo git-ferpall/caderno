@@ -78,6 +78,9 @@ try {
     fail(500, 'db_frutag: '.$e->getMessage());
 }
 
+// DEBUG opcional
+error_log("USERINFO extra: " . json_encode($extra));
+
 // 6. Resposta final
 echo json_encode([
     'ok'           => true,
@@ -86,7 +89,7 @@ echo json_encode([
     'name'         => $payload['name'] ?? null,
     'email'        => $payload['email'] ?? null,
     // Prioriza valores do banco remoto
-    'empresa'      => $extra['cli_empresa']     ?? $payload['empresa']      ?? null,
-    'razao_social' => $extra['cli_razao_social']?? $payload['razao_social'] ?? null,
-    'cpf_cnpj'     => $extra['cli_cnpj_cpf']    ?? $payload['cpf_cnpj']     ?? null,
+    'empresa'      => $extra['empresa']      ?? $payload['empresa']      ?? null,
+    'razao_social' => $extra['razao_social'] ?? $payload['razao_social'] ?? null,
+    'cpf_cnpj'     => $extra['cpf_cnpj']     ?? $payload['cpf_cnpj']     ?? null,
 ]);
