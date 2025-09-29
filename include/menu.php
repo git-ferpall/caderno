@@ -1,38 +1,14 @@
 <?php
 
-// DEBUG: mostra todos os cookies recebidos pelo PHP
-echo "<pre>COOKIES DISPONÍVEIS:\n";
-var_dump($_COOKIE);
-echo "</pre>";
+require_once __DIR__ . '/../sso/verify_jwt.php';
 
-// Pega o token diretamente do cookie "token"
-$bearer = $_COOKIE['token'] ?? '';
-if (!$bearer) {
-    error_log("⚠ Nenhum token encontrado nos cookies!");
-}
+$payload = verify_jwt();
 
-// Faz a chamada ao userinfo
-$ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $bearer],
-]);
-$resp = curl_exec($ch);
-curl_close($ch);
-
-// DEBUG: loga a resposta bruta
-error_log("USERINFO RESP: " . $resp);
-
-$info = json_decode($resp, true) ?: [];
-
-// Só aplica fallback se não vier ok=true
-if (!is_array($info) || empty($info['ok'])) {
-    $info = [
-        'empresa'      => null,
-        'razao_social' => null,
-        'cpf_cnpj'     => null
-    ];
-}
+$info = [
+    'empresa'      => $payload['empresa']      ?? null,
+    'razao_social' => $payload['razao_social'] ?? null,
+    'cpf_cnpj'     => $payload['cpf_cnpj']     ?? null,
+];
 
 
 
@@ -68,9 +44,9 @@ if (!empty($user_id)) {
     <div class="menu-content">
         <div class="user-settings mobile-only">
             <div class="user">
-                <h5 class="user-type"><?= htmlspecialchars($info['empresa'] ?? 'Empresa não encontrada'); ?></h5>
+                <h5 class="user-type"><?= htmlspecialchars($info['empresa']      ?? 'Empresa não encontrada'); ?></h5>
                 <h5 class="user-name"><?= htmlspecialchars($info['razao_social'] ?? 'Razão Social não encontrada'); ?></h5>
-                <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj'] ?? 'CPF/CNPJ não encontrado'); ?></h5>
+                <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj']     ?? 'CPF/CNPJ não encontrado'); ?></h5>
 
             </div>
             <div class="propriedade">
