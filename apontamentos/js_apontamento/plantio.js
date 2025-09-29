@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Carregar áreas
-  fetch("../apontamentos/funcoes/buscar_areas.php")
+  fetch("funcoes/buscar_areas.php")
     .then(r => r.json())
     .then(data => {
+      console.log("Áreas recebidas:", data); // debug
       const sel = document.getElementById("area");
       data.forEach(item => {
         const opt = document.createElement("option");
@@ -10,12 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
         opt.textContent = item.nome_razao;
         sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
 
   // Carregar produtos
-  fetch("../apontamentos/funcoes/buscar_produtos.php")
+  fetch("funcoes/buscar_produtos.php")
     .then(r => r.json())
     .then(data => {
+      console.log("Produtos recebidos:", data); // debug
       const sel = document.getElementById("produto");
       data.forEach(item => {
         const opt = document.createElement("option");
@@ -23,11 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
         opt.textContent = item.nome;
         sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Erro ao carregar produtos:", err));
 
   // Evita duplicar seleção
   ["area","produto"].forEach(id => {
-    document.getElementById(id).addEventListener("change", e => {
+    const el = document.getElementById(id);
+    if (!el) return; // segurança
+    el.addEventListener("change", e => {
       const val = e.target.value;
       document.querySelectorAll(`#${id} option`).forEach(opt => {
         opt.disabled = false; // reseta
@@ -41,11 +47,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Botões de adicionar
-  document.querySelector(".add-area").addEventListener("click", () => {
-    alert("Abrir modal/cadastro rápido de Área");
-  });
+  const btnArea = document.querySelector(".add-area");
+  if (btnArea) {
+    btnArea.addEventListener("click", () => {
+      alert("Abrir modal/cadastro rápido de Área");
+    });
+  }
 
-  document.querySelector(".add-produto").addEventListener("click", () => {
-    alert("Abrir modal/cadastro rápido de Produto");
-  });
+  const btnProduto = document.querySelector(".add-produto");
+  if (btnProduto) {
+    btnProduto.addEventListener("click", () => {
+      alert("Abrir modal/cadastro rápido de Produto");
+    });
+  }
 });
