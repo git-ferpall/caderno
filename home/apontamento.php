@@ -28,44 +28,67 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <div class="apt-box">
                     
                     <?php 
-                    $apts = [
-                        ['id' => 1, 'nome' => 'Plantio'],
-                        ['id' => 2, 'nome' => 'Transplantio'],
-                        ['id' => 3, 'nome' => 'Colheita'],
-                        ['id' => 4, 'nome' => 'Registros Climáticos'],
-                        ['id' => 5, 'nome' => 'Fertilizante'],
-                        ['id' => 6, 'nome' => 'Herbicida'],
-                        ['id' => 7, 'nome' => 'Fungicida'],
-                        ['id' => 8, 'nome' => 'Inseticida'],
-                        ['id' => 9, 'nome' => 'Adubação (Calcário)'],
-                        ['id' => 10, 'nome' => 'Adubação Orgânica'],
-                        ['id' => 11, 'nome' => 'Irrigação'],
-                        ['id' => 12, 'nome' => 'Controle de Água'],
-                        ['id' => 13, 'nome' => 'Mosca-das-frutas'],
-                        ['id' => 14, 'nome' => 'Pragas e Doenças'],
-                        ['id' => 15, 'nome' => 'Manejo Integrado'],
-                        ['id' => 16, 'nome' => 'Erradicação'],
-                        ['id' => 17, 'nome' => 'Revisão de Máquinas'],
-                        ['id' => 18, 'nome' => 'Coleta e Análise'],
-                        ['id' => 19, 'nome' => 'Visita Técnica'],
-                        ['id' => 20, 'nome' => 'Personalizado']
-                    ];
+                        $apts = [
+                            ['id' => 1, 'nome' => 'Plantio'],
+                            ['id' => 2, 'nome' => 'Transplantio'],
+                            ['id' => 3, 'nome' => 'Colheita'],
+                            ['id' => 4, 'nome' => 'Registros Climáticos'],
+                            ['id' => 5, 'nome' => 'Fertilizante'],
+                            ['id' => 6, 'nome' => 'Herbicida'],
+                            ['id' => 7, 'nome' => 'Fungicida'],
+                            ['id' => 8, 'nome' => 'Inseticida'],
+                            ['id' => 9, 'nome' => 'Adubação (Calcário)'],
+                            ['id' => 10, 'nome' => 'Adubação Orgânica'],
+                            ['id' => 11, 'nome' => 'Irrigação'],
+                            ['id' => 12, 'nome' => 'Controle de Água'],
+                            ['id' => 13, 'nome' => 'Mosca-das-frutas'],
+                            ['id' => 14, 'nome' => 'Pragas e Doenças'],
+                            ['id' => 15, 'nome' => 'Manejo Integrado'],
+                            ['id' => 16, 'nome' => 'Erradicação'],
+                            ['id' => 17, 'nome' => 'Revisão de Máquinas'],
+                            ['id' => 18, 'nome' => 'Coleta e Análise'],
+                            ['id' => 19, 'nome' => 'Visita Técnica'],
+                            ['id' => 20, 'nome' => 'Personalizado']
+                        ];
 
-                    // Adiciona os ícones dos apontamentos
-                    foreach ($apts as $apt) {
-                        $id = $apt['id'];
-                        $nome = $apt['nome'];
-                        $aptJson = htmlspecialchars(json_encode($apt), ENT_QUOTES, 'UTF-8');
+                        // mapa de ID → nome do arquivo
+                        $mapaArquivos = [
+                            1  => 'Plantio.php',
+                            2  => 'Transplantio.php',
+                            3  => 'Colheita.php',
+                            4  => 'RegistrosClimaticos.php',
+                            5  => 'Fertilizante.php',
+                            6  => 'Herbicida.php',
+                            7  => 'Fungicida.php',
+                            8  => 'Inseticida.php',
+                            9  => 'AdubacaoCalcario.php',
+                            10 => 'AdubacaoOrganica.php',
+                            11 => 'Irrigacao.php',
+                            12 => 'ControleAgua.php',
+                            13 => 'MoscaFrutas.php',
+                            14 => 'PragasDoencas.php',
+                            15 => 'ManejoIntegrado.php',
+                            16 => 'Erradicacao.php',
+                            17 => 'RevisaoMaquinas.php',
+                            18 => 'ColetaAnalise.php',
+                            19 => 'VisitaTecnica.php',
+                            20 => 'Personalizado.php'
+                        ];
 
-                        echo '<a href="../apontamentos/apontamento' . $id . '.php" class="apt-button fundo-apt' . $id . '">
-                            <div class="apt-icon-box">
-                                <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
-                            </div>
-                            <h5 class="apt-title">' . htmlspecialchars($nome) . '</h5>
-                        </a>';
+                        // botões
+                        foreach ($apts as $apt) {
+                            $id = $apt['id'];
+                            $nome = $apt['nome'];
+                            $arquivo = $mapaArquivos[$id] ?? null;
 
-
-
+                            if ($arquivo) {
+                                echo '<a href="../apontamentos/' . $arquivo . '" class="apt-button fundo-apt' . $id . '">
+                                    <div class="apt-icon-box">
+                                        <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
+                                    </div>
+                                    <h5 class="apt-title">' . htmlspecialchars($nome) . '</h5>
+                                </a>';
+                            }
                         #echo '<button class="apt-button fundo-apt' . $id . '" type="button" id="apt' . $id . '" onclick="novoApontamento(' . $aptJson . ')">
                         #    <div class="apt-icon-box">
                         #        <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
