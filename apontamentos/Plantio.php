@@ -32,6 +32,7 @@ require_once __DIR__ . '/funcoes_apontamento/campos_plantio.php';
                 </form>
             </div>
         </main>
+        <script src="js_apontamento/apontamento.js"></script>
         <?php include '../include/imports.php' ?>
         <?php include '../include/footer.php'; ?>
     </div>
