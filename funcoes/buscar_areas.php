@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../configuracao/conexao.php';
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
+
 
 header('Content-Type: application/json');
 
