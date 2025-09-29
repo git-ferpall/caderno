@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll("select[id*='-area']").forEach(other => {
         if (other !== select) {
           const opt = other.querySelector(`option[value='${val}']`);
-          if (opt) opt.remove(); // remove do outro select
+          if (opt) opt.remove();
         }
       });
     });
