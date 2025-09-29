@@ -1,72 +1,106 @@
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("form-save").addEventListener("click", salvarArea);
-    document.getElementById("form-cancel").addEventListener("click", cancelarEdicao);
-    document.getElementById("area-add").addEventListener("click", novaArea);
+// =============================
+// Áreas - Frontend JS
+// =============================
 
-    atualizarTabelaAreas(); // carrega tabela ao abrir
+const formArea   = document.getElementById('add-area');
+const inputIdA   = document.getElementById('a-id'); // hidden input
+const inputNomeA = document.getElementById('a-nome');
+
+// Botão "Nova Área"
+document.getElementById('area-add').addEventListener('click', () => {
+    limparFormularioArea();
+    document.getElementById('item-add-area').classList.remove('d-none');
 });
 
-function novaArea() {
-    document.getElementById("area-id").value = "";
-    document.getElementById("a-nome").value = "";
-    document.querySelector('input[name="atipo"][value="1"]').checked = true;
-    document.getElementById("item-add-area").style.display = "block";
-}
+// Cancelar
+document.getElementById('form-cancel-area').addEventListener('click', () => {
+    document.getElementById('item-add-area').classList.add('d-none');
+    limparFormularioArea();
+});
 
-function cancelarEdicao() {
-    document.getElementById("add-area").reset();
-    document.getElementById("item-add-area").style.display = "none";
-}
+// Salvar
+document.getElementById('form-save-area').addEventListener('click', () => {
+    const nome = inputNomeA.value.trim();
+    const tipo = document.querySelector('input[name="atipo"]:checked')?.value;
 
-function salvarArea() {
-    const form = document.getElementById("add-area");
-    const formData = new FormData(form);
+    if (!nome || !tipo) {
+        overlay.classList.remove('d-none');
+        popupFailed.classList.remove('d-none');
+        popupFailed.querySelector('.popup-text').textContent = "Preencha todos os campos.";
+        return;
+    }
 
-    fetch("../funcoes/cadastra_area.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(r => r.text())
-    .then(resposta => {
-        if (resposta.includes("sucesso")) {
-            atualizarTabelaAreas();
-            cancelarEdicao();
-        } else {
-            alert(resposta);
-        }
-    })
-    .catch(err => console.error("Erro:", err));
-}
+    const formData = new FormData(formArea);
 
-function atualizarTabelaAreas() {
-    fetch("../funcoes/busca_areas.php")
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById("tabela-areas").innerHTML = html;
+    fetch(formArea.action, { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                location.reload();
+            } else {
+                overlay.classList.remove('d-none');
+                popupFailed.classList.remove('d-none');
+                popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao salvar área.";
+            }
+        })
+        .catch(err => {
+            overlay.classList.remove('d-none');
+            popupFailed.classList.remove('d-none');
+            popupFailed.querySelector('.popup-text').textContent = "Falha: " + err;
         });
+});
+
+// Excluir
+let areaParaExcluir = null;
+function deleteArea(id) {
+    areaParaExcluir = id;
+    overlay.classList.remove('d-none');
+    document.getElementById('popup-delete').classList.remove('d-none');
 }
+document.getElementById('confirm-delete').addEventListener('click', () => {
+    if (!areaParaExcluir) return;
 
-function editArea(area) {
-    document.getElementById("area-add").click(); // 🔧 garante que o campo apareça
-
-    document.getElementById("area-id").value = area.id;
-    document.getElementById("a-nome").value = area.nome;
-    document.querySelector(`input[name="atipo"][value="${area.tipo}"]`).checked = true;
-}
-
-function excluirArea(id) {
-    if (!confirm("Deseja excluir esta área?")) return;
-
-    fetch("../funcoes/exclui_area.php", {
-        method: "POST",
-        body: new URLSearchParams({ id })
+    fetch('../funcoes/excluir_area.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(areaParaExcluir)
     })
-    .then(r => r.text())
-    .then(resposta => {
-        if (resposta.includes("sucesso")) {
-            atualizarTabelaAreas();
-        } else {
-            alert(resposta);
-        }
-    });
+        .then(res => res.json())
+        .then(data => {
+            closePopup();
+            if (data.ok) {
+                location.reload();
+            } else {
+                showPopupFailed("Erro ao excluir", data.error || "Não foi possível excluir.");
+            }
+        })
+        .catch(() => {
+            closePopup();
+            showPopupFailed("Erro inesperado", "Falha de comunicação.");
+        });
+
+    areaParaExcluir = null;
+});
+
+// Editar
+function editItem(btn) {
+    const area = JSON.parse(btn.getAttribute('data-area'));
+    document.getElementById('area-add').click();
+
+    inputIdA.value   = area.id;
+    inputNomeA.value = area.nome;
+
+    if (area.tipo === 'estufa') document.querySelector('input[name="atipo"][value="1"]').checked = true;
+    if (area.tipo === 'solo')   document.querySelector('input[name="atipo"][value="2"]').checked = true;
+    if (area.tipo === 'outro')  document.querySelector('input[name="atipo"][value="3"]').checked = true;
+
+    document.querySelector('#form-save-area .main-btn-text').textContent = "Atualizar";
+}
+
+// Utilitários
+function limparFormularioArea() {
+    inputIdA.value = '';
+    inputNomeA.value = '';
+    document.querySelector('input[name="atipo"][value="1"]').checked = true;
+    document.getElementById('form-save-area').querySelector('.main-btn-text').textContent = "Salvar";
 }
