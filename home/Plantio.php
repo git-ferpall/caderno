@@ -75,7 +75,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
       </form>
     </div>
   </main>
-
+  <?php include '../include/imports.php' ?>
   <?php include '../include/footer.php'; ?>
   <script src="../js/plantio.js"></script>
 </body>
