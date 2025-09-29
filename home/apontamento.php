@@ -82,7 +82,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             $arquivo = $mapaArquivos[$id] ?? null;
 
                             if ($arquivo) {
-                                echo '<a href="../apontamentos/' . $arquivo . '" class="apt-button fundo-apt' . $id . '">
+                                echo '<a href="../home/' . $arquivo . '" class="apt-button fundo-apt' . $id . '">
                                     <div class="apt-icon-box">
                                         <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
                                     </div>
