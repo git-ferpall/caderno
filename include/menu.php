@@ -1,11 +1,9 @@
 <?php
-
 require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/../configuracao/conexao_frutag.php';
 
 $payload = verify_jwt();
 
-// Busca infos extras no banco
 $id   = (int)($payload['sub'] ?? 0);
 $tipo = $payload['tipo'] ?? '';
 $extra = [];
@@ -13,30 +11,29 @@ $extra = [];
 if ($id && $tipo) {
     try {
         if ($tipo === 'cliente') {
-            $st = $mysqli->prepare("SELECT cli_empresa, cli_razao_social, cli_cnpj_cpf FROM cliente WHERE cli_cod = ? LIMIT 1");
-            $st->bind_param("i", $id);
-            $st->execute();
-            $res = $st->get_result();
-            $extra = $res->fetch_assoc() ?: [];
-            $st->close();
+            $st = $pdo_frutag->prepare("SELECT cli_empresa, cli_razao_social, cli_cnpj_cpf 
+                                        FROM cliente 
+                                        WHERE cli_cod = :id 
+                                        LIMIT 1");
+            $st->execute([':id'=>$id]);
+            $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
         } elseif ($tipo === 'usuario') {
-            $st = $mysqli->prepare("SELECT usu_nome AS cli_empresa, usu_nome AS cli_razao_social, usu_cpf AS cli_cnpj_cpf FROM usuario WHERE usu_cod = ? LIMIT 1");
-            $st->bind_param("i", $id);
-            $st->execute();
-            $res = $st->get_result();
-            $extra = $res->fetch_assoc() ?: [];
-            $st->close();
+            $st = $pdo_frutag->prepare("SELECT usu_nome AS cli_empresa, usu_nome AS cli_razao_social, usu_cpf AS cli_cnpj_cpf 
+                                        FROM usuario 
+                                        WHERE usu_cod = :id 
+                                        LIMIT 1");
+            $st->execute([':id'=>$id]);
+            $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
         }
     } catch (Throwable $e) {
         error_log("Erro banco remoto: ".$e->getMessage());
     }
 }
 
-// Monta $info igual ao teste
 $info = [
-    'empresa'      => $extra['cli_empresa']     ?? $payload['empresa']      ?? null,
-    'razao_social' => $extra['cli_razao_social']?? $payload['razao_social'] ?? null,
-    'cpf_cnpj'     => $extra['cli_cnpj_cpf']    ?? $payload['cpf_cnpj']     ?? null,
+    'empresa'      => $extra['cli_empresa']     ?? $payload['empresa']      ?? 'Empresa não encontrada',
+    'razao_social' => $extra['cli_razao_social']?? $payload['razao_social'] ?? 'Razão Social não encontrada',
+    'cpf_cnpj'     => $extra['cli_cnpj_cpf']    ?? $payload['cpf_cnpj']     ?? 'CPF/CNPJ não encontrado',
 ];
 
 
@@ -73,10 +70,11 @@ if (!empty($user_id)) {
     <div class="menu-content">
         <div class="user-settings mobile-only">
             <div class="user">
-                <h5 class="user-type"><?= htmlspecialchars($info['empresa']      ?? 'Empresa não encontrada'); ?></h5>
-                <h5 class="user-name"><?= htmlspecialchars($info['razao_social'] ?? 'Razão Social não encontrada'); ?></h5>
-                <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj']       ?? 'CPF/CNPJ não encontrado'); ?></h5>
+                <h5 class="user-type"><?= htmlspecialchars($info['empresa']) ?></h5>
+                <h5 class="user-name"><?= htmlspecialchars($info['razao_social']) ?></h5>
+                <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj']) ?></h5>
             </div>
+
 
             <div class="propriedade">
                 <h5 class="user-type">Propriedade Atual</h5>
