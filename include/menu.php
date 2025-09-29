@@ -1,7 +1,17 @@
 <?php
-// Pega token do AUTH_COOKIE ou do cookie "token"
-$bearer = $_COOKIE[AUTH_COOKIE] ?? ($_COOKIE['token'] ?? '');
 
+// DEBUG: mostra todos os cookies recebidos pelo PHP
+echo "<pre>COOKIES DISPONÍVEIS:\n";
+var_dump($_COOKIE);
+echo "</pre>";
+
+// Pega o token diretamente do cookie "token"
+$bearer = $_COOKIE['token'] ?? '';
+if (!$bearer) {
+    error_log("⚠ Nenhum token encontrado nos cookies!");
+}
+
+// Faz a chamada ao userinfo
 $ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
@@ -10,13 +20,12 @@ curl_setopt_array($ch, [
 $resp = curl_exec($ch);
 curl_close($ch);
 
-// DEBUG opcional no log do servidor
+// DEBUG: loga a resposta bruta
 error_log("USERINFO RESP: " . $resp);
 
-// Decodifica sempre como array
-$info = json_decode($resp, true);
+$info = json_decode($resp, true) ?: [];
 
-// Só aplica fallback se o JSON for inválido ou se não retornar ok=true
+// Só aplica fallback se não vier ok=true
 if (!is_array($info) || empty($info['ok'])) {
     $info = [
         'empresa'      => null,
@@ -24,6 +33,8 @@ if (!is_array($info) || empty($info['ok'])) {
         'cpf_cnpj'     => null
     ];
 }
+
+
 
 // Busca a propriedade ativa no banco local
 $propAtiva = null;
