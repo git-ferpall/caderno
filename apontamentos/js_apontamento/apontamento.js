@@ -39,4 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // Botões de adicionar
+  document.querySelector(".add-area").addEventListener("click", () => {
+    alert("Abrir modal/cadastro rápido de Área");
+  });
+
+  document.querySelector(".add-produto").addEventListener("click", () => {
+    alert("Abrir modal/cadastro rápido de Produto");
+  });
 });

@@ -28,20 +28,31 @@ $propriedade_id = $_SESSION['propriedade_id'] ?? 0;
         </div>
 
         <!-- Área cultivada -->
-        <div class="form-campo">
-          <label for="area">Área cultivada</label>
-          <select id="area" name="area" class="form-select" required>
-            <option value="">Selecione...</option>
-          </select>
-        </div>
+            <div class="form-campo">
+            <label for="area">Área cultivada</label>
+            <div class="form-box form-box-area">
+                <select id="area" name="area" class="form-select form-text" required>
+                <option value="">Selecione...</option>
+                </select>
+                <button type="button" class="add-btn add-area">
+                <div class="btn-icon icon-plus cor-branco"></div>
+                </button>
+            </div>
+            </div>
 
-        <!-- Produto cultivado -->
-        <div class="form-campo">
-          <label for="produto">Produto cultivado</label>
-          <select id="produto" name="produto" class="form-select" required>
-            <option value="">Selecione...</option>
-          </select>
-        </div>
+            <!-- Produto cultivado -->
+            <div class="form-campo">
+            <label for="produto">Produto cultivado</label>
+            <div class="form-box form-box-produto">
+                <select id="produto" name="produto" class="form-select form-text" required>
+                <option value="">Selecione...</option>
+                </select>
+                <button type="button" class="add-btn add-produto">
+                <div class="btn-icon icon-plus cor-branco"></div>
+                </button>
+            </div>
+            </div>
+
 
         <!-- Quantidade -->
         <div class="form-campo">
