@@ -107,7 +107,7 @@ if (!empty($user_id)) {
                 </li></a>
                 <a href="./propriedade.php"><li class="menu-link">
                     <div class="btn-icon icon-pin"></div>
-                    <span class="link-title">Dados da Propriedade</span>
+                    <span class="link-title">Cadastro de Propriedade</span>
                 </li></a>
                 <a href="./produtos.php"><li class="menu-link">
                     <div class="btn-icon icon-fruit"></div>
