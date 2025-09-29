@@ -11,8 +11,8 @@ require_once __DIR__ . '/funcoes_apontamento/campos_plantio.php';
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <?php require '../include/loading.php'; ?> 
-    <?php include '../include/popups.php'; ?>
+    <?php include '../include/loading.php' ?> 
+    <?php include '../include/popups.php' ?>
     <div id="conteudo">
         <?php include '../include/menu.php'; ?>
 
@@ -32,6 +32,7 @@ require_once __DIR__ . '/funcoes_apontamento/campos_plantio.php';
                 </form>
             </div>
         </main>
+        <?php include '../include/imports.php' ?>
         <?php include '../include/footer.php'; ?>
     </div>
 </body>
