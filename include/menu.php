@@ -58,9 +58,6 @@ if (!empty($user_id)) {
 
         <div class="menu-list">
             <ul class="menu-links">
-                <?php
-               
-    ?>
                 <a href="./apontamento.php"><li class="menu-link fundo-verde">
                     <div class="btn-icon icon-plus cor-branco"></div>
                     <span class="link-title cor-branco">Novo Apontamento</span>
