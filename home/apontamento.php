@@ -64,6 +64,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <h5 class="apt-title">' . htmlspecialchars($nome) . '</h5>
                         </a>';
 
+
+
+                        #echo '<button class="apt-button fundo-apt' . $id . '" type="button" id="apt' . $id . '" onclick="novoApontamento(' . $aptJson . ')">
+                        #    <div class="apt-icon-box">
+                        #        <div class="apt-icon icon-apt' . $id . ' cor-apt' . $id . '"></div>
+                        #    </div>
+                        #    <h5 class="apt-title">' . htmlspecialchars($nome) . '</h5>
+                       # </button>'; 
                     }
 
                     // Adiciona os formulários de adição de cada apontamento
