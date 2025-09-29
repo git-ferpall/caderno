@@ -14,9 +14,15 @@
 
     $info = json_decode($resp, true);
 
-    if (!is_array($info) || empty($info['ok'])) {
-        $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
+    // Só zera se realmente falhou
+    if (!is_array($info) || !isset($info['ok']) || $info['ok'] !== true) {
+        $info = [
+            'empresa'      => null,
+            'razao_social' => null,
+            'cpf_cnpj'     => null
+        ];
     }
+
 
     $propAtiva = null;
     if ($user_id) {
@@ -49,6 +55,7 @@
                 <h5 class="user-type"><?= htmlspecialchars($info['empresa'] ?? 'Empresa não encontrada'); ?></h5>
                 <h5 class="user-name"><?= htmlspecialchars($info['razao_social'] ?? 'Razão Social não encontrada'); ?></h5>
                 <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj'] ?? 'CPF/CNPJ não encontrado'); ?></h5>
+
             </div>
             <div class="propriedade">
                 <h5 class="user-type">Propriedade Atual</h5>
