@@ -1,65 +1,63 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("form-plantio");
-  const selArea = document.getElementById("area");
-  const selProduto = document.getElementById("produto");
-
-  // Carregar áreas
+  // === Carregar ÁREAS ===
   fetch("../funcoes/buscar_areas.php")
     .then(r => r.json())
     .then(data => {
+      const sel = document.getElementById("area");
+      sel.innerHTML = '<option value="">Selecione a área</option>'; // reseta
       data.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
-        opt.textContent = item.nome_razao;
-        selArea.appendChild(opt);
+        opt.textContent = `${item.nome} (${item.tipo})`; // exibe nome + tipo
+        sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
 
-  // Carregar produtos
+  // === Carregar PRODUTOS ===
   fetch("../funcoes/buscar_produtos.php")
     .then(r => r.json())
     .then(data => {
+      const sel = document.getElementById("produto");
+      sel.innerHTML = '<option value="">Selecione o produto</option>'; // reseta
       data.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
         opt.textContent = item.nome;
-        selProduto.appendChild(opt);
+        sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Erro ao carregar produtos:", err));
 
-  // Evitar seleção duplicada
-  [selArea, selProduto].forEach(sel => {
-    sel.addEventListener("change", e => {
+  // === Prevenir duplicação ===
+  ["area", "produto"].forEach(id => {
+    const select = document.getElementById(id);
+    select.addEventListener("change", e => {
       const val = e.target.value;
-      Array.from(sel.options).forEach(opt => opt.disabled = false);
+      // reseta
+      document.querySelectorAll(`#${id} option`).forEach(opt => {
+        opt.disabled = false;
+      });
+      // desabilita selecionado em outros selects iguais (se houver mais selects no futuro)
       if (val) {
-        sel.querySelectorAll(`option[value='${val}']`).forEach(opt => opt.disabled = true);
+        document.querySelectorAll(`#${id} option[value='${val}']`).forEach(opt => {
+          if (opt.parentElement !== e.target) {
+            opt.disabled = true;
+          }
+        });
       }
     });
   });
 
-  // Enviar form
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const fd = new FormData(form);
-    fetch("../funcoes/salvar_plantio.php", { method: "POST", body: fd })
-      .then(r => r.json())
-      .then(resp => {
-        if (resp.status === "ok") {
-          alert("Plantio salvo com sucesso!");
-          form.reset();
-        } else {
-          alert("Erro: " + resp.msg);
-        }
-      })
-      .catch(err => alert("Erro ao salvar: " + err));
+  // === Botão adicionar ÁREA ===
+  document.querySelector(".add-area").addEventListener("click", () => {
+    alert("Abrir modal/cadastro rápido de Área");
+    // Aqui você pode redirecionar para cadastro ou abrir popup
   });
 
-  // Botões de adicionar (apenas alerta por enquanto)
-  document.querySelector(".add-area").addEventListener("click", () => {
-    alert("Abrir cadastro rápido de Área");
-  });
+  // === Botão adicionar PRODUTO ===
   document.querySelector(".add-produto").addEventListener("click", () => {
-    alert("Abrir cadastro rápido de Produto");
+    alert("Abrir modal/cadastro rápido de Produto");
+    // Aqui você pode redirecionar para cadastro ou abrir popup
   });
 });
