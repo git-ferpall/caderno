@@ -1,8 +1,11 @@
 <?php
+    // Pega token do AUTH_COOKIE ou do cookie "token"
+    $bearer = $_COOKIE[AUTH_COOKIE] ?? ($_COOKIE['token'] ?? '');
+
     $ch = curl_init('https://caderno.frutag.com.br/sso/userinfo.php');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . ($_COOKIE[AUTH_COOKIE] ?? '')],
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $bearer],
     ]);
     $resp = curl_exec($ch);
 
@@ -14,6 +17,7 @@
     if (!is_array($info) || empty($info['ok'])) {
         $info = ['empresa'=>null, 'razao_social'=>null, 'cpf_cnpj'=>null];
     }
+
     $propAtiva = null;
     if ($user_id) {
         $stmt = $mysqli->prepare("SELECT endereco_cidade, endereco_uf, nome_razao 
@@ -27,6 +31,7 @@
         $stmt->close();
     }
 ?>
+
 
 <header class="menu-principal">
     <nav class="navbar nav-menu">
