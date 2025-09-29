@@ -80,7 +80,8 @@ $propriedade_id = $_SESSION['propriedade_id'] ?? 0;
       </form>
     </div>
   </main>
-
+    <?php include '../include/imports.php' ?>
   <script src="../apontamentos/js/plantio.js"></script>
+  <?php include '../include/footer.php' ?>
 </body>
 </html>
