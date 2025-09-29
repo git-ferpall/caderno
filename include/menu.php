@@ -59,11 +59,7 @@ if (!empty($user_id)) {
         <div class="menu-list">
             <ul class="menu-links">
                 <?php
-                echo "<pre>DEBUG USERINFO:\n";
-    echo "Resposta bruta:\n" . htmlspecialchars($resp) . "\n\n";
-    echo "Decodificado:\n";
-    var_dump($info);
-    echo "</pre>";
+               
     ?>
                 <a href="./apontamento.php"><li class="menu-link fundo-verde">
                     <div class="btn-icon icon-plus cor-branco"></div>
