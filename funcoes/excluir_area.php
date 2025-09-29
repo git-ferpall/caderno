@@ -4,39 +4,42 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Só aceita POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['ok'=>false,'err'=>'method_not_allowed']);
+    echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
     exit;
 }
 
 try {
+    // Valida JWT
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+
     if (!$user_id) {
         http_response_code(401);
-        echo json_encode(['ok'=>false,'err'=>'unauthorized']);
+        echo json_encode(['ok' => false, 'err' => 'unauthorized']);
         exit;
     }
 
     $id = intval($_POST['id'] ?? 0);
     if ($id <= 0) {
-        echo json_encode(['ok'=>false,'err'=>'invalid_id']);
+        echo json_encode(['ok' => false, 'err' => 'invalid_id']);
         exit;
     }
 
-    $stmt = $mysqli->prepare("DELETE FROM areas WHERE id=? AND user_id=?");
+    $stmt = $mysqli->prepare("DELETE FROM areas WHERE id = ? AND user_id = ?");
     $stmt->bind_param("ii", $id, $user_id);
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode(['ok'=>true]);
+        echo json_encode(['ok' => true]);
     } else {
-        echo json_encode(['ok'=>false,'err'=>'not_found_or_not_owner']);
+        echo json_encode(['ok' => false, 'err' => 'not_found_or_not_owner']);
     }
-    $stmt->close();
 
+    $stmt->close();
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['ok'=>false,'err'=>'db','msg'=>$e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => 'db', 'msg' => $e->getMessage()]);
 }
