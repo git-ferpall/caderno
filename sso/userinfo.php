@@ -16,11 +16,12 @@ function fail($code, $msg) {
 // 1. Captura token
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 $jwt = null;
+
 if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
     $jwt = $m[1];
 } elseif (!empty($_COOKIE[AUTH_COOKIE])) {
     $jwt = $_COOKIE[AUTH_COOKIE];
-} elseif (!empty($_COOKIE['token'])) {   // fallback
+} elseif (!empty($_COOKIE['token'])) {   // fallback para cookie "token"
     $jwt = $_COOKIE['token'];
 }
 
@@ -51,9 +52,9 @@ try {
     if ($tipo === 'cliente') {
         $st = $pdo_frutag->prepare("
             SELECT 
-                cli_empresa     AS empresa,
+                cli_empresa      AS empresa,
                 cli_razao_social AS razao_social,
-                cli_cnpj_cpf    AS cpf_cnpj
+                cli_cnpj_cpf     AS cpf_cnpj
             FROM cliente
             WHERE cli_cod = :id
             LIMIT 1
