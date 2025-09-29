@@ -61,6 +61,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 </div>
 
                 <form action="../funcoes/salvar_area.php" class="main-form container" id="add-area">
+                    <input type="hidden" name="id" id="a-id">
 
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="area-add" type="button">
