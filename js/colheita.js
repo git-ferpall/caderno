@@ -3,12 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const qtdInput = document.getElementById("quantidade");
   const avisoQtd = document.createElement("small");
 
-  // Inserir aviso logo abaixo do campo quantidade
+  // === Aviso abaixo do campo quantidade ===
   if (qtdInput && qtdInput.parentElement) {
     avisoQtd.style.display = "block";
     avisoQtd.style.marginTop = "4px";
     avisoQtd.style.fontSize = "0.9em";
-    avisoQtd.style.color = "orange";
     qtdInput.parentElement.appendChild(avisoQtd);
 
     const atualizarAviso = () => {
@@ -23,16 +22,46 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    // Atualiza no carregamento e quando o usuário digita
     atualizarAviso();
     qtdInput.addEventListener("input", atualizarAviso);
   }
 
-  // Submit do formulário
+  // === Carregar áreas ===
+  fetch("../funcoes/buscar_areas.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("area");
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Selecione a área</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome; // usa campo "nome" da tabela areas
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
+
+  // === Carregar produtos ===
+  fetch("../funcoes/buscar_produtos.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("produto");
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Selecione o produto</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Erro ao carregar produtos:", err));
+
+  // === Submit do formulário ===
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const formData = new FormData(form);
 
       try {
@@ -40,13 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "POST",
           body: formData
         });
-
         const data = await resp.json();
 
         if (data.ok) {
           showPopup("sucesso", data.msg);
           form.reset();
-          if (qtdInput) qtdInput.dispatchEvent(new Event("input")); // força atualizar aviso
+          if (qtdInput) qtdInput.dispatchEvent(new Event("input"));
         } else {
           showPopup("erro", data.msg);
         }
@@ -57,26 +85,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/**
- * Exibe popup padrão do sistema
- * @param {"sucesso"|"erro"|"aviso"} tipo
- * @param {string} mensagem
- */
+// === Função popup padrão ===
 function showPopup(tipo, mensagem) {
   const popup = document.getElementById("popup-msg");
   const popupText = document.getElementById("popup-text");
 
   if (popup && popupText) {
-    popup.className = "popup " + tipo; // aplica classe de cor
+    popup.className = "popup " + tipo;
     popupText.textContent = mensagem;
     popup.style.display = "block";
 
-    // Fecha automaticamente em 4s
     setTimeout(() => {
       popup.style.display = "none";
     }, 4000);
   } else {
-    // fallback caso popup não exista
     alert(mensagem);
   }
 }
