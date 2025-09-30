@@ -34,7 +34,8 @@ $propriedade_id = $prop['id'];
 $data        = $_POST['data'] ?? null;
 $area_id     = (int)($_POST['area'] ?? 0);
 $fertilizante = $_POST['fertilizante'] ?? null;
-$quantidade  = $_POST['quantidade'] ?? null;
+$quantidade = $_POST['quantidade'] ?? null;
+$quantidade = is_numeric($quantidade) ? (float)$quantidade : null;
 $obs         = $_POST['obs'] ?? null;
 
 if (!$data || !$area_id || !$fertilizante) {

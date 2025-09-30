@@ -57,13 +57,17 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </div>
 
         <div class="form-campo">
-          <label for="quantidade">Quantidade Aplicada</label>
-          <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 100 kg/ha">
+            <label for="quantidade">Quantidade Aplicada (Kg)</label>
+            <input type="number" step="0.01" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 1.5" required>
         </div>
 
         <div class="form-campo">
-          <label for="obs">Observações</label>
-          <textarea id="obs" name="obs" class="form-text form-textarea"></textarea>
+        <label for="obs">Observações</label>
+        <textarea 
+            id="obs" 
+            name="obs" 
+            class="form-text form-textarea" 
+            placeholder="Ex: 100 kg/ha, aplicação foliar, 2x ao mês..."></textarea>
         </div>
 
         <div class="form-submit">
