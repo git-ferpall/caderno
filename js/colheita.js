@@ -85,7 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// === Função popup padrão ===
 function showPopup(tipo, mensagem) {
   const popup = document.getElementById("popup-msg");
   const popupText = document.getElementById("popup-text");
@@ -99,6 +98,7 @@ function showPopup(tipo, mensagem) {
       popup.style.display = "none";
     }, 4000);
   } else {
-    alert(mensagem);
+    alert(mensagem); // fallback apenas se o popup não existe
   }
 }
+
