@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Erro ao carregar produtos:", err));
 
-  // === Prevenir duplicação ===
+  // === Prevenir duplicação (área/produto) ===
   ["area", "produto"].forEach(id => {
     const select = document.getElementById(id);
     select.addEventListener("change", e => {
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(`#${id} option`).forEach(opt => {
         opt.disabled = false;
       });
-      // desabilita selecionado em outros selects iguais (se houver mais selects no futuro)
+      // desabilita selecionado em outros selects iguais
       if (val) {
         document.querySelectorAll(`#${id} option[value='${val}']`).forEach(opt => {
           if (opt.parentElement !== e.target) {
@@ -63,25 +63,32 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    // Popup de confirmação
     const overlay = document.getElementById("popup-overlay");
-    const popupConfirm = document.createElement("div");
-    popupConfirm.className = "popup-box";
-    popupConfirm.innerHTML = `
-      <h2 class="popup-title">Gerar também colheita?</h2>
-      <p class="popup-text">
-        Deseja que seja criado automaticamente um apontamento de <b>colheita</b> 
-        com status <b>PENDENTE</b> para este plantio?
-      </p>
-      <div class="popup-actions">
-        <button class="popup-btn fundo-cinza-b cor-preto" id="btn-no">Não</button>
-        <button class="popup-btn fundo-verde" id="btn-yes">Sim</button>
-      </div>
-    `;
+    let popupConfirm = document.getElementById("popup-confirm-plantio");
 
-    overlay.innerHTML = ""; // limpa
-    overlay.appendChild(popupConfirm);
+    // Cria o popup de confirmação apenas se ainda não existir
+    if (!popupConfirm) {
+      popupConfirm = document.createElement("div");
+      popupConfirm.className = "popup-box d-none";
+      popupConfirm.id = "popup-confirm-plantio";
+      popupConfirm.innerHTML = `
+        <h2 class="popup-title">Gerar também colheita?</h2>
+        <p class="popup-text">
+          Deseja que seja criado automaticamente um apontamento de <b>colheita</b> 
+          com status <b>PENDENTE</b> para este plantio?
+        </p>
+        <div class="popup-actions">
+          <button class="popup-btn fundo-cinza-b cor-preto" id="btn-no">Não</button>
+          <button class="popup-btn fundo-verde" id="btn-yes">Sim</button>
+        </div>
+      `;
+      overlay.appendChild(popupConfirm);
+    }
+
+    // Oculta todos os outros popups e exibe só este
+    document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
     overlay.classList.remove("d-none");
+    popupConfirm.classList.remove("d-none");
 
     const enviarFormulario = (incluir_colheita) => {
       const dados = new FormData(form);
@@ -93,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })
         .then(r => r.json())
         .then(res => {
-          overlay.classList.add("d-none");
           if (res.ok) {
             showPopup("success", res.msg || "Plantio salvo com sucesso!");
             form.reset();
@@ -102,18 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         })
         .catch(err => {
-          overlay.classList.add("d-none");
           showPopup("failed", "Falha na comunicação: " + err);
         });
     };
 
-    popupConfirm.querySelector("#btn-yes").addEventListener("click", () => {
-      enviarFormulario(true);
-    });
-
-    popupConfirm.querySelector("#btn-no").addEventListener("click", () => {
-      enviarFormulario(false);
-    });
+    // Liga os botões
+    popupConfirm.querySelector("#btn-yes").onclick = () => enviarFormulario(true);
+    popupConfirm.querySelector("#btn-no").onclick = () => enviarFormulario(false);
   });
 });
 
@@ -122,6 +123,9 @@ function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
+
+  // esconde todos antes
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
 
   overlay.classList.remove("d-none");
 
