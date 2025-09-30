@@ -36,6 +36,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <option value="umidade">Umidade</option>
             <option value="geada">Geada</option>
             <option value="vento">Vento</option>
+            <option value="vento">Granizo</option>
           </select>
         </div>
 
