@@ -55,7 +55,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <div class="form-campo">
           <label for="quantidade">Quantidade Colhida</label>
           <small style="color:#d9534f">(Para deixar com status pendente, deixe em branco)</small>
-          <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 1500 kg" required>
+          <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 1500 kg">
         </div>
 
         <div class="form-campo">
