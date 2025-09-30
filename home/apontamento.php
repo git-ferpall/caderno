@@ -56,7 +56,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             1  => 'Plantio.php',
                             2  => 'Transplantio.php',
                             3  => 'Colheita.php',
-                            4  => 'Clima.php',
+                            4  => 'Climatico.php',
                             5  => 'Fertilizante.php',
                             6  => 'Herbicida.php',
                             7  => 'Fungicida.php',
