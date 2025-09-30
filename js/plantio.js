@@ -49,44 +49,93 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // === Botão adicionar ÁREA ===
-  // Botões de adicionar (sem alert)
+  // === Botões adicionar (futuro modal de cadastro rápido) ===
   document.querySelector(".add-area").addEventListener("click", () => {
-    // Aqui futuramente podemos abrir o modal de cadastro rápido de área
     console.log("Botão Adicionar Área clicado");
   });
 
   document.querySelector(".add-produto").addEventListener("click", () => {
-    // Aqui futuramente podemos abrir o modal de cadastro rápido de produto
     console.log("Botão Adicionar Produto clicado");
   });
 
-});
-document.addEventListener("DOMContentLoaded", () => {
+  // === Submit do formulário ===
   const form = document.getElementById("form-plantio");
-
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const dados = new FormData(form);
+    // Popup de confirmação
+    const overlay = document.getElementById("popup-overlay");
+    const popupConfirm = document.createElement("div");
+    popupConfirm.className = "popup-box";
+    popupConfirm.innerHTML = `
+      <h2 class="popup-title">Gerar também colheita?</h2>
+      <p class="popup-text">
+        Deseja que seja criado automaticamente um apontamento de <b>colheita</b> 
+        com status <b>PENDENTE</b> para este plantio?
+      </p>
+      <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" id="btn-no">Não</button>
+        <button class="popup-btn fundo-verde" id="btn-yes">Sim</button>
+      </div>
+    `;
 
-    fetch("../funcoes/salvar_plantio.php", {
-      method: "POST",
-      body: dados
-    })
-    .then(r => r.json())
-    .then(res => {
-      if (res.ok) {
-        alert("Plantio salvo com sucesso!");
-        form.reset();
-      } else {
-        alert("Erro: " + res.err);
-      }
-    })
-    .catch(err => {
-      console.error("Erro no envio:", err);
-      alert("Falha ao salvar no servidor.");
+    overlay.innerHTML = ""; // limpa
+    overlay.appendChild(popupConfirm);
+    overlay.classList.remove("d-none");
+
+    const enviarFormulario = (incluir_colheita) => {
+      const dados = new FormData(form);
+      dados.append("incluir_colheita", incluir_colheita ? "1" : "0");
+
+      fetch("../funcoes/salvar_plantio.php", {
+        method: "POST",
+        body: dados
+      })
+        .then(r => r.json())
+        .then(res => {
+          overlay.classList.add("d-none");
+          if (res.ok) {
+            showPopup("success", res.msg || "Plantio salvo com sucesso!");
+            form.reset();
+          } else {
+            showPopup("failed", res.err || "Erro ao salvar o plantio.");
+          }
+        })
+        .catch(err => {
+          overlay.classList.add("d-none");
+          showPopup("failed", "Falha na comunicação: " + err);
+        });
+    };
+
+    popupConfirm.querySelector("#btn-yes").addEventListener("click", () => {
+      enviarFormulario(true);
+    });
+
+    popupConfirm.querySelector("#btn-no").addEventListener("click", () => {
+      enviarFormulario(false);
     });
   });
 });
 
+// === Função para usar os popups padrões do sistema ===
+function showPopup(tipo, mensagem) {
+  const overlay = document.getElementById("popup-overlay");
+  const popupSuccess = document.getElementById("popup-success");
+  const popupFailed = document.getElementById("popup-failed");
+
+  overlay.classList.remove("d-none");
+
+  if (tipo === "success") {
+    popupSuccess.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
+  } else {
+    popupFailed.classList.remove("d-none");
+    popupFailed.querySelector(".popup-text").textContent = mensagem;
+  }
+
+  setTimeout(() => {
+    overlay.classList.add("d-none");
+    popupSuccess?.classList.add("d-none");
+    popupFailed?.classList.add("d-none");
+  }, 4000);
+}

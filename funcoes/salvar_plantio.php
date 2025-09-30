@@ -34,12 +34,12 @@ if (!$prop) {
 $propriedade_id = $prop['id'];
 
 // Dados do formulário
-$data        = $_POST['data'] ?? null;
-$area_id     = (int)($_POST['area'] ?? 0);
-$produto_id  = (int)($_POST['produto'] ?? 0);
-$quantidade  = $_POST['quantidade'] ?? null;
+$data         = $_POST['data'] ?? null;
+$area_id      = (int)($_POST['area'] ?? 0);
+$produto_id   = (int)($_POST['produto'] ?? 0);
+$quantidade   = $_POST['quantidade'] ?? null;
 $previsaoDias = $_POST['previsao'] ?? null; // vem como número de dias
-$previsao = null;
+$previsao     = null;
 
 if ($previsaoDias && is_numeric($previsaoDias)) {
     // transforma "120" em uma data adicionada à data do plantio
@@ -48,7 +48,10 @@ if ($previsaoDias && is_numeric($previsaoDias)) {
     $previsao = $dataBase->format("Y-m-d");
 }
 
-$obs         = $_POST['obs'] ?? null;
+$obs = $_POST['obs'] ?? null;
+
+// Flag do JS
+$incluir_colheita = $_POST['incluir_colheita'] ?? 0;
 
 if (!$data || !$area_id || !$produto_id) {
     echo json_encode(['ok' => false, 'err' => 'Campos obrigatórios não preenchidos']);
@@ -58,39 +61,51 @@ if (!$data || !$area_id || !$produto_id) {
 $mysqli->begin_transaction();
 
 try {
-    // 1. Insere na tabela apontamentos
-    $tipo = "plantio";
+    // 1. Insere PLANTIO
+    $tipo   = "plantio";
     $status = "pendente";
 
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, previsao, observacoes, status)
+        INSERT INTO apontamentos 
+        (propriedade_id, tipo, data, quantidade, previsao, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->bind_param("issdsss", $propriedade_id, $tipo, $data, $quantidade, $previsao, $obs, $status);
     $stmt->execute();
-    $apontamento_id = $stmt->insert_id;
+    $plantio_id = $stmt->insert_id;
     $stmt->close();
 
     // 2. Insere detalhes (área e produto)
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-    
-    // área
     $campo = "area_id";
     $valor = $area_id;
-    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->bind_param("iss", $plantio_id, $campo, $valor);
     $stmt->execute();
 
-    // produto
     $campo = "produto_id";
     $valor = $produto_id;
-    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->bind_param("iss", $plantio_id, $campo, $valor);
     $stmt->execute();
-
     $stmt->close();
 
-    $mysqli->commit();
+    // 3. Se usuário pediu, insere COLHEITA pendente
+    if ($incluir_colheita == "1") {
+        $tipo   = "colheita";
+        $status = "pendente";
+        $obsColheita = "Gerado automaticamente pelo plantio #$plantio_id";
 
-    echo json_encode(['ok' => true]);
+        $stmt = $mysqli->prepare("
+            INSERT INTO apontamentos 
+            (propriedade_id, tipo, data, quantidade, previsao, observacoes, status)
+            VALUES (?, ?, ?, NULL, ?, ?, ?)
+        ");
+        $stmt->bind_param("isssss", $propriedade_id, $tipo, $data, $previsao, $obsColheita, $status);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    $mysqli->commit();
+    echo json_encode(['ok' => true, 'msg' => 'Apontamento de plantio salvo com sucesso!']);
 } catch (Exception $e) {
     $mysqli->rollback();
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
