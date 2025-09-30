@@ -86,9 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showPopup(tipo, mensagem) {
-  const overlay = document.getElementById("overlay");
-  const popupSuccess = document.getElementById("popupSuccess");
-  const popupFailed = document.getElementById("popupFailed");
+  const overlay = document.getElementById("popup-overlay");
+  const popupSuccess = document.getElementById("popup-success");
+  const popupFailed = document.getElementById("popup-failed");
 
   let popup;
   if (tipo === "sucesso") {
@@ -101,10 +101,20 @@ function showPopup(tipo, mensagem) {
     overlay.classList.remove("d-none");
     popup.classList.remove("d-none");
 
+    // se tiver texto dinâmico
     const msgBox = popup.querySelector(".popup-text");
     if (msgBox) msgBox.textContent = mensagem;
+
+    // botão fechar genérico
+    const btnOk = popup.querySelector(".popup-btn");
+    if (btnOk) {
+      btnOk.onclick = () => {
+        overlay.classList.add("d-none");
+        popup.classList.add("d-none");
+      };
+    }
   } else {
-    alert(mensagem); // fallback só se não existir o popup padrão
+    alert(mensagem); // fallback
   }
 }
 
