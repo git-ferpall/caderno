@@ -62,3 +62,31 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("form-plantio");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const dados = new FormData(form);
+
+    fetch("../funcoes/salvar_plantio.php", {
+      method: "POST",
+      body: dados
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        alert("Plantio salvo com sucesso!");
+        form.reset();
+      } else {
+        alert("Erro: " + res.err);
+      }
+    })
+    .catch(err => {
+      console.error("Erro no envio:", err);
+      alert("Falha ao salvar no servidor.");
+    });
+  });
+});
+
