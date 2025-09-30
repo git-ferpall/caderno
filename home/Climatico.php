@@ -36,7 +36,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <option value="umidade">Umidade</option>
             <option value="geada">Geada</option>
             <option value="vento">Vento</option>
-            <option value="vento">Granizo</option>
+            <option value="granizo">Granizo</option>
           </select>
         </div>
 
@@ -64,6 +64,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
   <?php include '../include/imports.php'; ?>
   <?php include '../include/footer.php'; ?>
-  <script src="../js/clima.js"></script>
+  <script src="../js/climatico.js"></script>
 </body>
 </html>
