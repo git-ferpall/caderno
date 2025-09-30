@@ -38,7 +38,16 @@ $data        = $_POST['data'] ?? null;
 $area_id     = (int)($_POST['area'] ?? 0);
 $produto_id  = (int)($_POST['produto'] ?? 0);
 $quantidade  = $_POST['quantidade'] ?? null;
-$previsao    = $_POST['previsao'] ?? null; // no banco é DATE, precisa converter se for dias
+$previsaoDias = $_POST['previsao'] ?? null; // vem como número de dias
+$previsao = null;
+
+if ($previsaoDias && is_numeric($previsaoDias)) {
+    // transforma "120" em uma data adicionada à data do plantio
+    $dataBase = new DateTime($data);
+    $dataBase->modify("+{$previsaoDias} days");
+    $previsao = $dataBase->format("Y-m-d");
+}
+
 $obs         = $_POST['obs'] ?? null;
 
 if (!$data || !$area_id || !$produto_id) {
