@@ -86,19 +86,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showPopup(tipo, mensagem) {
-  const popup = document.getElementById("popup-msg");
-  const popupText = document.getElementById("popup-text");
+  const overlay = document.getElementById("overlay");
+  const popupSuccess = document.getElementById("popupSuccess");
+  const popupFailed = document.getElementById("popupFailed");
 
-  if (popup && popupText) {
-    popup.className = "popup " + tipo;
-    popupText.textContent = mensagem;
-    popup.style.display = "block";
-
-    setTimeout(() => {
-      popup.style.display = "none";
-    }, 4000);
+  let popup;
+  if (tipo === "sucesso") {
+    popup = popupSuccess;
   } else {
-    alert(mensagem); // fallback apenas se o popup não existe
+    popup = popupFailed;
+  }
+
+  if (overlay && popup) {
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+
+    const msgBox = popup.querySelector(".popup-text");
+    if (msgBox) msgBox.textContent = mensagem;
+  } else {
+    alert(mensagem); // fallback só se não existir o popup padrão
   }
 }
 
