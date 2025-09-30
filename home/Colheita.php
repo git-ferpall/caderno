@@ -10,9 +10,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <?php include '../include/menu.php'; ?>
+  
   <?php include '../include/loading.php'; ?> 
   <?php include '../include/popups.php'; ?>
+  <?php include '../include/menu.php'; ?>
 
   <main class="sistema">
     <div class="page-title">
@@ -53,6 +54,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <div class="form-campo">
           <label for="quantidade">Quantidade Colhida</label>
+          <small style="color:#d9534f">(Para deixar com status pendente, deixe em branco)</small>
           <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 1500 kg" required>
         </div>
 

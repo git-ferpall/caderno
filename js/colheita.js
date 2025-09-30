@@ -47,3 +47,16 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => alert("Falha: " + err));
   });
 });
+document.addEventListener("DOMContentLoaded", () => {
+  const qtd = document.getElementById("quantidade");
+
+  qtd.addEventListener("input", () => {
+    if (qtd.value.trim() === "") {
+      qtd.style.borderColor = "orange";
+      qtd.title = "Deixe vazio para manter como PENDENTE";
+    } else {
+      qtd.style.borderColor = "";
+      qtd.title = "";
+    }
+  });
+});
