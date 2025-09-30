@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 session_start();
 
-// Pega user_id
+// Pega user_id só para descobrir propriedade ativa
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     $payload = verify_jwt();
@@ -38,7 +38,7 @@ $data        = $_POST['data'] ?? null;
 $area_id     = (int)($_POST['area'] ?? 0);
 $produto_id  = (int)($_POST['produto'] ?? 0);
 $quantidade  = $_POST['quantidade'] ?? null;
-$previsao    = (int)($_POST['previsao'] ?? 0);
+$previsao    = $_POST['previsao'] ?? null; // no banco é DATE, precisa converter se for dias
 $obs         = $_POST['obs'] ?? null;
 
 if (!$data || !$area_id || !$produto_id) {
@@ -49,20 +49,34 @@ if (!$data || !$area_id || !$produto_id) {
 $mysqli->begin_transaction();
 
 try {
-    // Salva apontamento principal
-    $stmt = $mysqli->prepare("INSERT INTO apontamentos (user_id, propriedade_id, data) VALUES (?, ?, ?)");
-    $stmt->bind_param("iis", $user_id, $propriedade_id, $data);
+    // 1. Insere na tabela apontamentos
+    $tipo = "plantio";
+    $status = "pendente";
+
+    $stmt = $mysqli->prepare("
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, previsao, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("issdsss", $propriedade_id, $tipo, $data, $quantidade, $previsao, $obs, $status);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // Salva detalhes do plantio
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, area_id, produto_id, quantidade, previsao_colheita, observacoes)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->bind_param("iii sis", $apontamento_id, $area_id, $produto_id, $quantidade, $previsao, $obs);
+    // 2. Insere detalhes (área e produto)
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    
+    // área
+    $campo = "area_id";
+    $valor = $area_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
     $stmt->execute();
+
+    // produto
+    $campo = "produto_id";
+    $valor = $produto_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
+
     $stmt->close();
 
     $mysqli->commit();
