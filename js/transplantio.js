@@ -1,28 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-transplantio");
-  const qtdInput = document.getElementById("quantidade");
-
-  // === Aviso abaixo da quantidade (se existir esse campo na tela) ===
-  if (qtdInput && qtdInput.parentElement) {
-    const avisoQtd = document.createElement("small");
-    avisoQtd.style.display = "block";
-    avisoQtd.style.marginTop = "4px";
-    avisoQtd.style.fontSize = "0.9em";
-    qtdInput.parentElement.appendChild(avisoQtd);
-
-    const atualizarAviso = () => {
-      if (qtdInput.value.trim() === "") {
-        avisoQtd.textContent = "⚠ Para deixar o apontamento PENDENTE, mantenha este campo vazio.";
-        avisoQtd.style.color = "orange";
-      } else {
-        avisoQtd.textContent = "✔ Com quantidade informada, o status será CONCLUÍDO.";
-        avisoQtd.style.color = "green";
-      }
-    };
-
-    atualizarAviso();
-    qtdInput.addEventListener("input", atualizarAviso);
-  }
 
   // === Função para carregar áreas nos selects ===
   function carregarAreas() {
