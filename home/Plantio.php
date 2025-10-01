@@ -32,7 +32,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <div class="form-campo">
             <label for="area">Área cultivada</label>
             <div class="form-box form-box-area">
-              <select id="area" name="area" class="form-select form-text" required>
+              <select id="area" name="area[]" class="form-select form-text" multiple required>
                 <option value="">Selecione a área</option>
               </select>
               <button class="add-btn add-area" type="button">

@@ -55,7 +55,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <!-- Quantidade -->
         <div class="form-campo">
-          <label for="quantidade">Quantidade Aplicada (L ou mL)</label>
+          <label for="quantidade">Quantidade Aplicada (L)</label>
           <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 5" required>
         </div>
 
