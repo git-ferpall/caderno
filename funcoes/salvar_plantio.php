@@ -5,7 +5,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 header('Content-Type: application/json');
 session_start();
 
-// Pega user_id (sessão ou JWT)
+// Pega user_id
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     $payload = verify_jwt();
@@ -34,31 +34,30 @@ $propriedade_id = $prop['id'];
 
 // Dados do formulário
 $data         = $_POST['data'] ?? null;
-$areas        = $_POST['area'] ?? [];   // agora é array
+$areas        = $_POST['area'] ?? [];   // vem como array
 $produto_id   = (int)($_POST['produto'] ?? 0);
 $quantidade   = $_POST['quantidade'] ?? null;
 $previsaoDias = $_POST['previsao'] ?? null;
-$previsao     = null;
+$obs          = $_POST['obs'] ?? null;
+$incluir_colheita = $_POST['incluir_colheita'] ?? 0;
 
+if (!$data || empty($areas) || !$produto_id) {
+    echo json_encode(['ok' => false, 'err' => 'Campos obrigatórios não preenchidos']);
+    exit;
+}
+
+// Calcula previsão
+$previsao = null;
 if ($previsaoDias && is_numeric($previsaoDias)) {
     $dataBase = new DateTime($data);
     $dataBase->modify("+{$previsaoDias} days");
     $previsao = $dataBase->format("Y-m-d");
 }
 
-$obs = $_POST['obs'] ?? null;
-$incluir_colheita = $_POST['incluir_colheita'] ?? 0;
-
-// Validação
-if (!$data || empty($areas) || !$produto_id) {
-    echo json_encode(['ok' => false, 'err' => 'Campos obrigatórios não preenchidos']);
-    exit;
-}
-
 $mysqli->begin_transaction();
 
 try {
-    // 1. Inserir PLANTIO
+    // 1. Insere PLANTIO
     $tipo   = "plantio";
     $status = "pendente";
 
@@ -72,10 +71,9 @@ try {
     $plantio_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Inserir DETALHES (todas as áreas + produto)
+    // 2. Insere detalhes (todas as áreas e o produto)
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
-    // várias áreas
     foreach ($areas as $area_id) {
         $campo = "area_id";
         $valor = (int)$area_id;
@@ -83,7 +81,6 @@ try {
         $stmt->execute();
     }
 
-    // produto
     $campo = "produto_id";
     $valor = $produto_id;
     $stmt->bind_param("iss", $plantio_id, $campo, $valor);
@@ -91,7 +88,7 @@ try {
 
     $stmt->close();
 
-    // 3. Se usuário pediu, insere COLHEITA
+    // 3. Se pediu colheita, cria apontamento colheita pendente
     if ($incluir_colheita == "1") {
         $tipo   = "colheita";
         $status = "pendente";
