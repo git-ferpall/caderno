@@ -3,34 +3,16 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("../funcoes/buscar_areas.php")
     .then(r => r.json())
     .then(data => {
-      // Função para popular um select
-      function populaSelect(select) {
-        select.innerHTML = '<option value="">Selecione a área</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = `${item.nome} (${item.tipo})`;
-          select.appendChild(opt);
-        });
-      }
-
-      // Popula o primeiro select
-      document.querySelectorAll(".area-select").forEach(populaSelect);
-
-      // Botão adicionar nova área
-      document.querySelector(".add-area").addEventListener("click", () => {
-        const lista = document.getElementById("lista-areas");
-        const div = document.createElement("div");
-        div.className = "form-box form-box-area";
-        const sel = document.createElement("select");
-        sel.name = "area[]";
-        sel.className = "form-select form-text area-select";
-        populaSelect(sel);
-        div.appendChild(sel);
-        lista.appendChild(div);
+      const sel = document.getElementById("area");
+      sel.innerHTML = ""; // limpa
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.nome} (${item.tipo})`;
+        sel.appendChild(opt);
       });
-    });
-
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
 
   // === Carregar PRODUTOS ===
   fetch("../funcoes/buscar_produtos.php")
