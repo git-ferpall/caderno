@@ -44,9 +44,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </button>
         </div>
 
-        <button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-herbicida')" style="margin-top:8px">
-          Solicitar cadastro de novo herbicida
-        </button>
 
 
         <div class="form-campo">
