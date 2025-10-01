@@ -71,22 +71,26 @@ try {
     $plantio_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Insere detalhes (todas as áreas e o produto)
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    // 2. Insere detalhes (área e produto)
+        $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
-    foreach ($areas as $area_id) {
-        $campo = "area_id";
-        $valor = (int)$area_id;
+        // ÁREAS (pode ter várias)
+        if (!empty($_POST['area']) && is_array($_POST['area'])) {
+            foreach ($_POST['area'] as $area_id) {
+                $campo = "area_id";
+                $valor = (int)$area_id;
+                $stmt->bind_param("iss", $plantio_id, $campo, $valor);
+                $stmt->execute();
+            }
+        }
+
+        // PRODUTO (sempre 1)
+        $campo = "produto_id";
+        $valor = $produto_id;
         $stmt->bind_param("iss", $plantio_id, $campo, $valor);
         $stmt->execute();
-    }
 
-    $campo = "produto_id";
-    $valor = $produto_id;
-    $stmt->bind_param("iss", $plantio_id, $campo, $valor);
-    $stmt->execute();
-
-    $stmt->close();
+        $stmt->close();
 
     // 3. Se pediu colheita, cria apontamento colheita pendente
     if ($incluir_colheita == "1") {
