@@ -38,7 +38,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <button class="add-btn add-area" type="button">
                   <div class="btn-icon icon-plus cor-branco"></div>
                 </button>
-                 <button class="remove-btn remove-area" type="button">x</button>
+                
               </div>
           </div>
 
