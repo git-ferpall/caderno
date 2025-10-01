@@ -57,6 +57,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
 
+
           <div class="form-campo">
             <label for="quantidade">Quantidade</label>
             <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 2000 mudas" required>
