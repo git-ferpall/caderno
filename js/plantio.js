@@ -1,42 +1,76 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // === Carregar ÁREAS ===
-  fetch("../funcoes/buscar_areas.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("area");
-      sel.innerHTML = ""; // limpa
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = `${item.nome} (${item.tipo})`;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar áreas:", err));
 
-  // === Carregar PRODUTOS ===
-  fetch("../funcoes/buscar_produtos.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("produto");
-      sel.innerHTML = '<option value="">Selecione o produto</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar produtos:", err));
+  // === Função para carregar ÁREAS em todos os selects ===
+  function carregarAreas() {
+    fetch("../funcoes/buscar_areas.php")
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll(".area-select").forEach(sel => {
+          sel.innerHTML = '<option value="">Selecione a área</option>';
+          data.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = `${item.nome} (${item.tipo})`;
+            sel.appendChild(opt);
+          });
+        });
+      })
+      .catch(err => console.error("Erro ao carregar áreas:", err));
+  }
 
-  // === Botões adicionar (futuro modal de cadastro rápido) ===
+  // === Função para carregar PRODUTOS em todos os selects ===
+  function carregarProdutos() {
+    fetch("../funcoes/buscar_produtos.php")
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll(".produto-select").forEach(sel => {
+          sel.innerHTML = '<option value="">Selecione o produto</option>';
+          data.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.nome;
+            sel.appendChild(opt);
+          });
+        });
+      })
+      .catch(err => console.error("Erro ao carregar produtos:", err));
+  }
+
+  // === Botão adicionar ÁREA ===
   document.querySelector(".add-area").addEventListener("click", () => {
-    console.log("Botão Adicionar Área clicado");
+    const container = document.querySelector(".form-box-area");
+    const original = container.querySelector("select");
+    const novo = original.cloneNode(true);
+
+    novo.value = "";
+    novo.removeAttribute("id"); // evita ids duplicados
+    novo.name = "area[]";       // garante array no POST
+    novo.classList.add("area-select");
+
+    container.insertBefore(novo, container.querySelector(".add-area"));
+
+    carregarAreas(); // popula o novo select
   });
 
+  // === Botão adicionar PRODUTO ===
   document.querySelector(".add-produto").addEventListener("click", () => {
-    console.log("Botão Adicionar Produto clicado");
+    const container = document.querySelector(".form-box-produto");
+    const original = container.querySelector("select");
+    const novo = original.cloneNode(true);
+
+    novo.value = "";
+    novo.removeAttribute("id");
+    novo.name = "produto[]";    // garante array no POST
+    novo.classList.add("produto-select");
+
+    container.insertBefore(novo, container.querySelector(".add-produto"));
+
+    carregarProdutos(); // popula o novo select
   });
+
+  // === Carregar selects iniciais ===
+  carregarAreas();
+  carregarProdutos();
 
   // === Submit do formulário ===
   const form = document.getElementById("form-plantio");
@@ -82,6 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (res.ok) {
             showPopup("success", res.msg || "Plantio salvo com sucesso!");
             form.reset();
+            carregarAreas();
+            carregarProdutos();
           } else {
             showPopup("failed", res.err || "Erro ao salvar o plantio.");
           }
