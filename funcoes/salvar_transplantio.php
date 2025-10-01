@@ -35,11 +35,13 @@ $propriedade_id = $prop['id'];
 $data          = $_POST['data'] ?? null;
 $areas_origem  = $_POST['area_origem'] ?? [];
 $areas_dest    = $_POST['area_destino'] ?? [];
-$produto_id    = (int)($_POST['produto'] ?? 0);
+$produto_id    = isset($_POST['produto']) ? (int)$_POST['produto'] : 0;
 $quantidade    = $_POST['quantidade'] ?? null;
 $obs           = $_POST['obs'] ?? null;
 
-// validação
+// Debug opcional (ver no error_log do PHP)
+// error_log("Produto recebido: " . print_r($_POST['produto'], true));
+
 if (!$data || empty($areas_origem) || empty($areas_dest) || !$produto_id) {
   echo json_encode(['ok' => false, 'err' => 'Campos obrigatórios não preenchidos']);
   exit;
@@ -48,8 +50,8 @@ if (!$data || empty($areas_origem) || empty($areas_dest) || !$produto_id) {
 try {
   $mysqli->begin_transaction();
 
-  // Inserir apontamento principal
-  $status = "pendente"; // sempre pendente
+  // Inserir apontamento principal (sempre pendente)
+  $status = "pendente";
   $stmt = $mysqli->prepare("
     INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
     VALUES (?, 'transplantio', ?, ?, ?, ?)
@@ -79,13 +81,15 @@ try {
     $stmt->close();
   }
 
-  // Inserir produto
-  $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-  $campo = "produto_id";
-  $valor = (string)(int)$produto_id;
-  $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-  $stmt->execute();
-  $stmt->close();
+  // Inserir produto único
+  if ($produto_id > 0) {
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    $campo = "produto_id";
+    $valor = (string)$produto_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
+    $stmt->close();
+  }
 
   $mysqli->commit();
 
