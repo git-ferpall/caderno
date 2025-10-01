@@ -61,3 +61,30 @@ function showPopup(tipo, mensagem) {
     popupFailed?.classList.add("d-none");
   }, 4000);
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const formSolicitar = document.getElementById("form-solicitar-herbicida");
+
+  if (formSolicitar) {
+    formSolicitar.addEventListener("submit", e => {
+      e.preventDefault();
+      const dados = new FormData(formSolicitar);
+
+      fetch("../funcoes/solicitar_herbicida.php", {
+        method: "POST",
+        body: dados
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          showPopup("success", res.msg);
+          closePopup(); // fecha o popup de solicitação
+        } else {
+          showPopup("failed", res.msg);
+        }
+      })
+      .catch(() => {
+        showPopup("failed", "Erro ao enviar a solicitação.");
+      });
+    });
+  }
+});

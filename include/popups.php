@@ -129,6 +129,28 @@ if ($user_id) {
             <button class="popup-btn fundo-verde" type="button" id="btn-ativar">Ativar</button>
         </div>
     </div>
+    <!-- Solicitar Herbicida -->
+    <div class="popup-box v2 d-none" id="popup-solicitar-herbicida">
+    <h2 class="popup-title">Solicitar Cadastro de Herbicida</h2>
+
+    <form id="form-solicitar-herbicida" class="main-form">
+        <div class="form-campo">
+        <label for="herbicida-nome">Nome do Herbicida</label>
+        <input type="text" id="herbicida-nome" name="nome" class="form-text" required placeholder="Ex: Glifosato 480 SL">
+        </div>
+
+        <div class="form-campo">
+        <label for="herbicida-obs">Observações</label>
+        <textarea id="herbicida-obs" name="obs" class="form-text form-textarea" placeholder="Informe detalhes como concentração, fabricante etc."></textarea>
+        </div>
+
+        <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+        <button class="popup-btn fundo-verde" type="submit">Enviar Solicitação</button>
+        </div>
+    </form>
+    </div>
+
 
 
 </div>
