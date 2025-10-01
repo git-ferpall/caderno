@@ -64,6 +64,18 @@ function showPopup(tipo, mensagem) {
 document.addEventListener("DOMContentLoaded", () => {
   const formSolicitar = document.getElementById("form-solicitar-herbicida");
 
+  // === Função para abrir popup ===
+  window.abrirPopup = function (id) {
+    const overlay = document.getElementById("popup-overlay");
+    const popup = document.getElementById(id);
+
+    if (overlay && popup) {
+      overlay.classList.remove("d-none");
+      popup.classList.remove("d-none");
+    }
+  };
+
+  // === Envio do formulário de solicitação ===
   if (formSolicitar) {
     formSolicitar.addEventListener("submit", e => {
       e.preventDefault();
@@ -73,18 +85,18 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         body: dados
       })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
-          showPopup("success", res.msg);
-          closePopup(); // fecha o popup de solicitação
-        } else {
-          showPopup("failed", res.msg);
-        }
-      })
-      .catch(() => {
-        showPopup("failed", "Erro ao enviar a solicitação.");
-      });
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            showPopup("success", res.msg);
+            closePopup(); // fecha o popup de solicitação
+          } else {
+            showPopup("failed", res.msg);
+          }
+        })
+        .catch(() => {
+          showPopup("failed", "Erro ao enviar a solicitação.");
+        });
     });
   }
 });
