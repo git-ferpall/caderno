@@ -3,7 +3,9 @@ require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json');
+session_start();
 
+// === Identifica usuário autenticado ===
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     $payload = verify_jwt();
@@ -15,12 +17,19 @@ if (!$user_id) {
     exit;
 }
 
+// === Dados do formulário ===
 $data        = $_POST['data'] ?? null;
-$area_id     = $_POST['area'] ?? null;
-$produto_id  = $_POST['produto'] ?? null;
+$areas       = $_POST['area'] ?? [];     // array de áreas
+$produtos    = $_POST['produto'] ?? [];  // array de produtos
 $quantidade  = $_POST['quantidade'] ?? null;
 $obs         = $_POST['obs'] ?? null;
 
+if (!$data || empty($areas) || empty($produtos)) {
+    echo json_encode(['ok' => false, 'msg' => 'Preencha os campos obrigatórios.']);
+    exit;
+}
+
+// === Busca propriedade ativa ===
 $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -34,38 +43,62 @@ if (!$prop) {
 }
 
 $propriedade_id = $prop['id'];
+
+// === Define status conforme quantidade ===
 $status = !empty($quantidade) ? "concluido" : "pendente";
 
-$tipo = "colheita";
-$stmt = $mysqli->prepare("
-    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-    VALUES (?, ?, ?, ?, ?, ?)
-");
-$stmt->bind_param("issdss", $propriedade_id, $tipo, $data, $quantidade, $obs, $status);
+// === Início da transação ===
+$mysqli->begin_transaction();
 
-if (!$stmt->execute()) {
-    echo json_encode(['ok' => false, 'msg' => "Erro: " . $stmt->error]);
-    exit;
-}
+try {
+    // 1. Insere o apontamento de colheita
+    $tipo = "colheita";
+    $stmt = $mysqli->prepare("
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("issdss", $propriedade_id, $tipo, $data, $quantidade, $obs, $status);
+    $stmt->execute();
+    $apontamento_id = $stmt->insert_id;
+    $stmt->close();
 
-$apontamento_id = $stmt->insert_id;
-$stmt->close();
-
-$detalhes = [
-    'area_id'    => $area_id,
-    'produto_id' => $produto_id,
-];
-
-foreach ($detalhes as $campo => $valor) {
-    if (!empty($valor)) {
-        $stmt = $mysqli->prepare("
-            INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-            VALUES (?, ?, ?)
-        ");
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
-        $stmt->close();
+    // 2. Insere todas as áreas
+    if (!empty($areas) && is_array($areas)) {
+        foreach ($areas as $area_id) {
+            if (!empty($area_id)) {
+                $stmt = $mysqli->prepare("
+                    INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
+                    VALUES (?, ?, ?)
+                ");
+                $campo = "area_id";
+                $stmt->bind_param("iss", $apontamento_id, $campo, $area_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
     }
-}
 
-echo json_encode(['ok' => true, 'msg' => 'Apontamento de colheita salvo com sucesso!']);
+    // 3. Insere todos os produtos
+    if (!empty($produtos) && is_array($produtos)) {
+        foreach ($produtos as $produto_id) {
+            if (!empty($produto_id)) {
+                $stmt = $mysqli->prepare("
+                    INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
+                    VALUES (?, ?, ?)
+                ");
+                $campo = "produto_id";
+                $stmt->bind_param("iss", $apontamento_id, $campo, $produto_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+
+    // Confirma tudo
+    $mysqli->commit();
+    echo json_encode(['ok' => true, 'msg' => 'Apontamento de colheita salvo com sucesso!']);
+
+} catch (Exception $e) {
+    $mysqli->rollback();
+    echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar colheita: ' . $e->getMessage()]);
+}
