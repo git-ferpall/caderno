@@ -88,10 +88,13 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg);
+            showPopup(
+              "success", 
+              "✅ Dados enviados com sucesso! Aguarde a resposta por e-mail."
+            );
             closePopup(); // fecha o popup de solicitação
           } else {
-            showPopup("failed", res.msg);
+            showPopup("failed", res.msg || "Erro ao salvar solicitação.");
           }
         })
         .catch(() => {
