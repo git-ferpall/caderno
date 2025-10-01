@@ -20,16 +20,25 @@ document.addEventListener("DOMContentLoaded", () => {
       // Botão adicionar nova área
       document.querySelector(".add-area").addEventListener("click", () => {
         const lista = document.getElementById("lista-areas");
+
         const div = document.createElement("div");
         div.className = "form-box form-box-area";
+
         const sel = document.createElement("select");
         sel.name = "area[]";
         sel.className = "form-select form-text area-select";
-        populaSelect(sel);
+
+        // popula as opções
+        data.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = `${item.nome} (${item.tipo})`;
+          sel.appendChild(opt);
+        });
+
         div.appendChild(sel);
         lista.appendChild(div);
       });
-    });
 
 
   // === Carregar PRODUTOS ===
