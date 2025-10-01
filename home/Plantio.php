@@ -9,6 +9,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <title>Plantio - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="icon" type="image/png" href="/img/logo-icon.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 <body>
   <?php include '../include/loading.php'; ?> 
@@ -29,7 +31,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <input type="date" id="data" name="data" class="form-text" required>
           </div>
 
-          <!-- ÁREAS -->
           <div class="mb-3">
             <label class="form-label">Áreas cultivadas</label>
             <div class="row g-2 align-items-center">
@@ -52,8 +53,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
 
-
-          <!-- PRODUTOS -->
           <div class="mb-3">
             <label class="form-label">Produtos cultivados</label>
             <div class="row g-2 align-items-center">
@@ -74,10 +73,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
               </div>
             </div>
           </div>
-
-
-
-
 
           <div class="form-campo">
             <label for="quantidade">Quantidade</label>
@@ -108,6 +103,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <?php include '../include/imports.php'; ?>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <?php include '../include/footer.php'; ?>
   <script src="../js/plantio.js"></script>
 </body>
