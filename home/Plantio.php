@@ -46,7 +46,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <div class="form-campo">
             <label for="produto">Produto cultivado</label>
             <div class="form-box form-box-produto">
-              <select id="produto" name="produto[]" class="form-select form-text" multiple required>
+              <select id="produto" name="produto[]" class="form-select form-text produto-select" required>
                 <option value="">Selecione o produto</option>
               </select>
               <button class="add-btn add-produto" type="button">
@@ -54,6 +54,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
               </button>
             </div>
           </div>
+
 
           <div class="form-campo">
             <label for="quantidade">Quantidade</label>
