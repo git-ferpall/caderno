@@ -31,19 +31,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <div class="form-campo">
             <label for="area">Áreas cultivadas</label>
-              <div class="form-box form-box-area">
-                <select name="area[]" class="form-select form-text area-select" required>
-                  <option value="">Selecione a área</option>
-                </select>
-                <button class="add-btn add-area" type="button">
-                  <div class="btn-icon icon-plus cor-branco"></div>
-                </button>
-              </div>
-          </div>
-
-
-          <div class="form-campo">
-            <label for="area">Áreas cultivadas</label>
             <div id="lista-areas">
               <div class="form-box form-box-area">
                 <select name="area[]" class="form-select form-text area-select" required>
@@ -57,6 +44,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
 
+
+
+          <div class="form-campo">
+            <label for="produto">Produto cultivado</label>
+            <div class="form-box form-box-produto">
+              <select id="produto" name="produto" class="form-select form-text" required>
+                <option value="">Selecione o produto</option>
+              </select>
+              <button class="add-btn add-produto" type="button">
+                <div class="btn-icon icon-plus cor-branco"></div>
+              </button>
+            </div>
+          </div>
 
           <div class="form-campo">
             <label for="quantidade">Quantidade</label>
