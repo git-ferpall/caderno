@@ -12,20 +12,21 @@ require_once __DIR__ . '/../configuracao/protect.php';
   
 </head>
 <style>
-  .linha {
-  display: flex;
-  align-items: center;   /* centraliza verticalmente */
-  gap: 10px;             /* espaço entre o select e o botão */
-}
+      .linha {
+      display: flex;
+      align-items: center; /* centraliza verticalmente */
+      gap: 10px;           /* espaço entre select e botão */
+    }
 
-.lista-areas {
-  flex: 1;               /* faz os selects ocuparem toda a largura */
-}
+    .lista-areas,
+    .lista-produtos {
+      flex: 1; /* ocupa todo o espaço da linha */
+    }
 
-.lista-areas .form-box-area {
-  margin-bottom: 5px;    /* dá espaçamento entre selects empilhados */
-}
-
+    .lista-areas .form-box-area,
+    .lista-produtos .form-box-produto {
+      margin-bottom: 5px; /* espaço entre selects empilhados */
+    }
 </style>  
 <body>
   <?php include '../include/loading.php'; ?> 
@@ -67,18 +68,21 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <!-- PRODUTOS -->
           <div class="form-campo">
-            <label for="produto">Produto cultivado</label>
-            <div id="lista-produtos">
-              <div class="form-box form-box-produto">
-                <select id="produto" name="produto[]" class="form-select form-text produto-select" required>
-                  <option value="">Selecione o produto</option>
-                </select>
+            <label>Produtos cultivados</label>
+            <div class="linha">
+              <div id="lista-produtos" class="lista-produtos">
+                <div class="form-box form-box-produto">
+                  <select name="produto[]" class="form-select form-text produto-select" required>
+                    <option value="">Selecione o produto</option>
+                  </select>
+                </div>
               </div>
+              <button class="add-btn add-produto" type="button">
+                <div class="btn-icon icon-plus cor-branco"></div>
+              </button>
             </div>
-            <button class="add-btn add-produto" type="button">
-              <div class="btn-icon icon-plus cor-branco"></div>
-            </button>
           </div>
+
 
 
 
