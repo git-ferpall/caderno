@@ -27,36 +27,46 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <input type="date" id="data" name="data" class="form-text" required>
         </div>
 
+        <!-- ÁREAS cultivadas -->
         <div class="form-campo">
-          <label for="area">Área cultivada</label>
-          <select id="area" name="area" class="form-select form-text" required>
-            <option value="">Selecione a área</option>
-          </select>
+          <label>Áreas cultivadas</label>
+          <div id="areas-container">
+            <div class="form-box form-box-area">
+              <select name="area[]" class="form-select form-text area-select" required>
+                <option value="">Selecione a área</option>
+              </select>
+              <button type="button" class="add-btn add-area" onclick="addAreaSelect()">
+                <div class="btn-icon icon-plus cor-branco"></div>
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- Herbicida -->
         <div class="form-campo">
           <label for="herbicida">Herbicida</label>
           <select id="herbicida" name="herbicida" class="form-select form-text" required>
-            <option value="">Selecione o herbicida</option>
+            <option value="">Selecione</option>
           </select>
-          <button type="button" class="add-btn add-herbicida" onclick="abrirPopup('popup-solicitar-herbicida')">
-            <div class="btn-icon icon-plus cor-branco"></div>
-          </button>
         </div>
+        <button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-herbicida')" style="margin-top:8px">
+          Solicitar cadastro de novo herbicida
+        </button>
 
-
-
+        <!-- Quantidade -->
         <div class="form-campo">
           <label for="quantidade">Quantidade Aplicada (L ou mL)</label>
           <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 5" required>
         </div>
 
+        <!-- Observações -->
         <div class="form-campo">
           <label for="obs">Observações</label>
           <textarea id="obs" name="obs" class="form-text form-textarea"
             placeholder="Ex: 200ml/ha, aplicação em pós-emergência..."></textarea>
         </div>
 
+        <!-- Botões -->
         <div class="form-submit">
           <button type="reset" class="main-btn fundo-vermelho">
             <span class="main-btn-text">Cancelar</span>
@@ -72,5 +82,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <?php include '../include/imports.php'; ?>
   <?php include '../include/footer.php'; ?>
   <script src="../js/herbicida.js"></script>
+
+  
 </body>
 </html>
