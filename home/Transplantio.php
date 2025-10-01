@@ -8,6 +8,24 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Transplantio - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .linha {
+      display: flex;
+      align-items: center; /* centraliza verticalmente */
+      gap: 10px;           /* espaço entre select e botão */
+    }
+
+    #lista-origens,
+    #lista-destinos {
+      flex: 1; /* ocupa toda a largura disponível */
+    }
+
+    #lista-origens .form-box-area,
+    #lista-destinos .form-box-area {
+      margin-bottom: 5px; /* espaço entre selects empilhados */
+    }
+
+  </style>  
 </head>
 <body>
   <?php include '../include/loading.php'; ?> 
@@ -28,18 +46,37 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </div>
 
         <div class="form-campo">
-          <label for="area_origem">Área Origem</label>
-          <select id="area_origem" name="area_origem" class="form-select form-text" required>
-            <option value="">Selecione a área de origem</option>
-          </select>
+          <label>Áreas de Origem</label>
+          <div class="linha">
+            <div id="lista-origens">
+              <div class="form-box form-box-area">
+                <select name="area_origem[]" class="form-select form-text area-origem-select" required>
+                  <option value="">Selecione a área de origem</option>
+                </select>
+              </div>
+            </div>
+            <button class="add-btn add-origem" type="button">
+              <div class="btn-icon icon-plus cor-branco"></div>
+            </button>
+          </div>
         </div>
 
         <div class="form-campo">
-          <label for="area_destino">Área Destino</label>
-          <select id="area_destino" name="area_destino" class="form-select form-text" required>
-            <option value="">Selecione a área de destino</option>
-          </select>
+          <label>Áreas de Destino</label>
+          <div class="linha">
+            <div id="lista-destinos">
+              <div class="form-box form-box-area">
+                <select name="area_destino[]" class="form-select form-text area-destino-select" required>
+                  <option value="">Selecione a área de destino</option>
+                </select>
+              </div>
+            </div>
+            <button class="add-btn add-destino" type="button">
+              <div class="btn-icon icon-plus cor-branco"></div>
+            </button>
+          </div>
         </div>
+
 
         <div class="form-campo">
           <label for="produto">Produto</label>
