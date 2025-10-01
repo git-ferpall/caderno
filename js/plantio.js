@@ -4,11 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(r => r.json())
     .then(data => {
       const sel = document.getElementById("area");
-      sel.innerHTML = '<option value="">Selecione a área</option>'; // reseta
+      sel.innerHTML = ""; // limpa
       data.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
-        opt.textContent = `${item.nome} (${item.tipo})`; // exibe nome + tipo
+        opt.textContent = `${item.nome} (${item.tipo})`;
         sel.appendChild(opt);
       });
     })
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(r => r.json())
     .then(data => {
       const sel = document.getElementById("produto");
-      sel.innerHTML = '<option value="">Selecione o produto</option>'; // reseta
+      sel.innerHTML = '<option value="">Selecione o produto</option>';
       data.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
@@ -28,26 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     })
     .catch(err => console.error("Erro ao carregar produtos:", err));
-
-  // === Prevenir duplicação (área/produto) ===
-  ["area", "produto"].forEach(id => {
-    const select = document.getElementById(id);
-    select.addEventListener("change", e => {
-      const val = e.target.value;
-      // reseta
-      document.querySelectorAll(`#${id} option`).forEach(opt => {
-        opt.disabled = false;
-      });
-      // desabilita selecionado em outros selects iguais
-      if (val) {
-        document.querySelectorAll(`#${id} option[value='${val}']`).forEach(opt => {
-          if (opt.parentElement !== e.target) {
-            opt.disabled = true;
-          }
-        });
-      }
-    });
-  });
 
   // === Botões adicionar (futuro modal de cadastro rápido) ===
   document.querySelector(".add-area").addEventListener("click", () => {
@@ -66,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById("popup-overlay");
     let popupConfirm = document.getElementById("popup-confirm-plantio");
 
-    // Cria o popup de confirmação apenas se ainda não existir
     if (!popupConfirm) {
       popupConfirm = document.createElement("div");
       popupConfirm.className = "popup-box d-none";
@@ -85,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
       overlay.appendChild(popupConfirm);
     }
 
-    // Oculta todos os outros popups e exibe só este
+    // Oculta outros popups
     document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
     overlay.classList.remove("d-none");
     popupConfirm.classList.remove("d-none");
@@ -112,19 +91,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // Liga os botões
     popupConfirm.querySelector("#btn-yes").onclick = () => enviarFormulario(true);
     popupConfirm.querySelector("#btn-no").onclick = () => enviarFormulario(false);
   });
 });
 
-// === Função para usar os popups padrões do sistema ===
+// === Função padrão de popup ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  // esconde todos antes
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
 
   overlay.classList.remove("d-none");
