@@ -38,33 +38,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Botão adicionar ÁREA ===
   document.querySelector(".add-area").addEventListener("click", () => {
-    const container = document.querySelector(".form-box-area");
-    const original = container.querySelector("select");
+    const lista = document.getElementById("lista-areas");
+    const original = lista.querySelector("select");
     const novo = original.cloneNode(true);
 
     novo.value = "";
-    novo.removeAttribute("id"); // evita ids duplicados
-    novo.name = "area[]";       // garante array no POST
+    novo.removeAttribute("id");
+    novo.name = "area[]";
     novo.classList.add("area-select");
 
-    container.insertBefore(novo, container.querySelector(".add-area"));
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-box form-box-area";
+    wrapper.appendChild(novo);
 
+    lista.appendChild(wrapper);
     carregarAreas(); // popula o novo select
   });
 
   // === Botão adicionar PRODUTO ===
   document.querySelector(".add-produto").addEventListener("click", () => {
-    const container = document.querySelector(".form-box-produto");
-    const original = container.querySelector("select");
+    const lista = document.getElementById("lista-produtos");
+    const original = lista.querySelector("select");
     const novo = original.cloneNode(true);
 
     novo.value = "";
     novo.removeAttribute("id");
-    novo.name = "produto[]";    // garante array no POST
+    novo.name = "produto[]";
     novo.classList.add("produto-select");
 
-    container.insertBefore(novo, container.querySelector(".add-produto"));
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-box form-box-produto";
+    wrapper.appendChild(novo);
 
+    lista.appendChild(wrapper);
     carregarProdutos(); // popula o novo select
   });
 
