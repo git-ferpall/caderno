@@ -88,17 +88,25 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
+            // Mostra popup de sucesso
             showPopup(
-              "success", 
+              "success",
               "✅ Dados enviados com sucesso! Aguarde a resposta por e-mail."
             );
-            closePopup(); // fecha o popup de solicitação
+
+            // Fecha só o popup de solicitação (não o overlay inteiro)
+            const popupSolicitacao = document.getElementById("popup-solicitar-herbicida");
+            if (popupSolicitacao) {
+              popupSolicitacao.classList.add("d-none");
+            }
+
+            formSolicitar.reset();
           } else {
             showPopup("failed", res.msg || "Erro ao salvar solicitação.");
           }
         })
-        .catch(() => {
-          showPopup("failed", "Erro ao enviar a solicitação.");
+        .catch(err => {
+          showPopup("failed", "Falha na comunicação: " + err);
         });
     });
   }
