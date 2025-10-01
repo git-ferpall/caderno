@@ -34,14 +34,14 @@ $propriedade_id = $prop['id'];
 
 // Dados do formulário
 $data         = $_POST['data'] ?? null;
-$areas        = $_POST['area'] ?? [];   // vem como array
-$produto_id   = (int)($_POST['produto'] ?? 0);
+$areas        = $_POST['area'] ?? [];   // array
+$produtos     = $_POST['produto'] ?? []; // array
 $quantidade   = $_POST['quantidade'] ?? null;
 $previsaoDias = $_POST['previsao'] ?? null;
 $obs          = $_POST['obs'] ?? null;
 $incluir_colheita = $_POST['incluir_colheita'] ?? 0;
 
-if (!$data || empty($areas) || !$produto_id) {
+if (!$data || empty($areas) || empty($produtos)) {
     echo json_encode(['ok' => false, 'err' => 'Campos obrigatórios não preenchidos']);
     exit;
 }
@@ -71,28 +71,31 @@ try {
     $plantio_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Insere detalhes (área e produto)
-    if (!empty($_POST['area']) && is_array($_POST['area'])) {
-        foreach ($_POST['area'] as $area_id) {
+    // 2. Insere ÁREAS
+    if (!empty($areas) && is_array($areas)) {
+        foreach ($areas as $area_id) {
             $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
             $campo = "area_id";
-            $valor = (int)$area_id;
+            $valor = (string)(int)$area_id;
             $stmt->bind_param("iss", $plantio_id, $campo, $valor);
             $stmt->execute();
             $stmt->close();
         }
     }
 
-    // PRODUTO (sempre 1)
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-    $campo = "produto_id";
-    $valor = $produto_id;
-    $stmt->bind_param("iss", $plantio_id, $campo, $valor);
-    $stmt->execute();
-    $stmt->close();
+    // 3. Insere PRODUTOS
+    if (!empty($produtos) && is_array($produtos)) {
+        foreach ($produtos as $produto_id) {
+            $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+            $campo = "produto_id";
+            $valor = (string)(int)$produto_id;
+            $stmt->bind_param("iss", $plantio_id, $campo, $valor);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
 
-
-    // 3. Se pediu colheita, cria apontamento colheita pendente
+    // 4. Se pediu colheita, cria apontamento colheita pendente
     if ($incluir_colheita == "1") {
         $tipo   = "colheita";
         $status = "pendente";
