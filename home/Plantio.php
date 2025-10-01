@@ -37,10 +37,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
                   <option value="">Selecione a área</option>
                 </select>
               </div>
+              <button class="add-btn add-area" type="button">
+                <div class="btn-icon icon-plus cor-branco"></div>
+              </button>
             </div>
-            <button class="add-btn add-area" type="button">
-              <div class="btn-icon icon-plus cor-branco"></div>
-            </button>
+            
           </div>
 
 
