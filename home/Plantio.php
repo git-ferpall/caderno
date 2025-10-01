@@ -30,37 +30,51 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
           <!-- ÁREAS -->
-          <div class="form-campo">
-          <label for="area">Áreas cultivadas</label>
-          <div id="lista-areas">
-            <div class="form-box form-box-area">
-              <select id="area" name="area[]" class="form-select form-text area-select" required>
-                <option value="">Selecione a área</option>
-              </select>
-              <button class="add-btn add-area" type="button">
-                <div class="btn-icon icon-plus cor-branco"></div>
-              </button>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">Áreas cultivadas</label>
+            <div class="row g-2 align-items-center">
+              <!-- Lista de áreas -->
+              <div class="col" id="lista-areas">
+                <div class="form-box form-box-area mb-2">
+                  <select name="area[]" class="form-select area-select" required>
+                    <option value="">Selecione a área</option>
+                  </select>
+                </div>
+              </div>
 
+              <!-- Botão ao lado -->
+              <div class="col-auto">
+                <button type="button" class="btn btn-success add-area">
+                  <i class="bi bi-plus-lg"></i> <!-- se usar bootstrap-icons -->
+                </button>
+              </div>
+            </div>
           </div>
-          
-        </div>
+
 
 
           <!-- PRODUTOS -->
-          <div class="form-campo">
-            <label for="produto">Produto cultivado</label>
-            <div id="lista-produtos">
-              <div class="form-box form-box-produto">
-                <select id="produto" name="produto[]" class="form-select form-text produto-select" required>
-                  <option value="">Selecione o produto</option>
-                </select>
-                <button class="add-btn add-produto" type="button">
-                  <div class="btn-icon icon-plus cor-branco"></div>
+          <div class="mb-3">
+            <label class="form-label">Produtos cultivados</label>
+            <div class="row g-2 align-items-center">
+              <!-- Lista de produtos -->
+              <div class="col" id="lista-produtos">
+                <div class="form-box form-box-produto mb-2">
+                  <select name="produto[]" class="form-select produto-select" required>
+                    <option value="">Selecione o produto</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Botão ao lado -->
+              <div class="col-auto">
+                <button type="button" class="btn btn-success add-produto">
+                  <i class="bi bi-plus-lg"></i>
                 </button>
               </div>
-            </div> 
+            </div>
           </div>
+
 
 
 
