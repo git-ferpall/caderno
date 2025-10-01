@@ -111,3 +111,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// === Carregar HERBICIDAS ativos ===
+fetch("../funcoes/buscar_herbicidas.php")
+  .then(r => r.json())
+  .then(data => {
+    const sel = document.getElementById("herbicida");
+    sel.innerHTML = '<option value="">Selecione o herbicida</option>';
+    data.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = item.nome;
+      sel.appendChild(opt);
+    });
+  })
+  .catch(err => console.error("Erro ao carregar herbicidas:", err));

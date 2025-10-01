@@ -37,16 +37,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <div class="form-campo">
           <label for="herbicida">Herbicida</label>
           <select id="herbicida" name="herbicida" class="form-select form-text" required>
-            <option value="">Selecione</option>
-            <option value="Glifosato">Glifosato</option>
-            <option value="2,4-D">2,4-D</option>
-            <option value="Atrazina">Atrazina</option>
-            <option value="Paraquat">Paraquat</option>
-            <option value="Dicamba">Dicamba</option>
-            <option value="Sulfentrazona">Sulfentrazona</option>
-            <option value="Haloxifope">Haloxifope</option>
+            <option value="">Selecione o herbicida</option>
           </select>
+          <button type="button" class="add-btn add-herbicida" onclick="abrirPopup('popup-solicitar-herbicida')">
+            <div class="btn-icon icon-plus cor-branco"></div>
+          </button>
         </div>
+
         <button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-herbicida')" style="margin-top:8px">
           Solicitar cadastro de novo herbicida
         </button>
