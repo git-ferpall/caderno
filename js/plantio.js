@@ -1,34 +1,37 @@
 document.addEventListener("DOMContentLoaded", () => {
   // === Carregar ÁREAS ===
   fetch("../funcoes/buscar_areas.php")
-    .then(r => r.json())
-    .then(data => {
-      function populaSelect(select) {
-        select.innerHTML = '<option value="">Selecione a área</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = `${item.nome} (${item.tipo})`;
-          select.appendChild(opt);
-        });
-      }
-
-      // Preenche o primeiro select já presente no HTML
-      document.querySelectorAll(".area-select").forEach(populaSelect);
-
-      // Adiciona nova área
-      document.querySelector(".add-area").addEventListener("click", () => {
-        const lista = document.getElementById("lista-areas");
-
-        const sel = document.createElement("select");
-        sel.name = "area[]";
-        sel.className = "form-select form-text area-select";
-        populaSelect(sel);
-
-        lista.appendChild(sel);
+  .then(r => r.json())
+  .then(data => {
+    function populaSelect(select) {
+      select.innerHTML = '<option value="">Selecione a área</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.nome} (${item.tipo})`;
+        select.appendChild(opt);
       });
-    })
-    .catch(err => console.error("Erro ao carregar áreas:", err));
+    }
+
+    // Preenche o primeiro select já existente
+    document.querySelectorAll(".area-select").forEach(populaSelect);
+
+    // Clique no botão +
+    document.querySelector(".add-area").addEventListener("click", () => {
+      const lista = document.getElementById("lista-areas");
+
+      // cria o novo select
+      const sel = document.createElement("select");
+      sel.name = "area[]";
+      sel.className = "form-select form-text area-select";
+
+      populaSelect(sel);
+
+      // adiciona o novo select dentro da lista
+      lista.appendChild(sel);
+    });
+  })
+  .catch(err => console.error("Erro ao carregar áreas:", err));
 
   // === Carregar PRODUTOS ===
   fetch("../funcoes/buscar_produtos.php")

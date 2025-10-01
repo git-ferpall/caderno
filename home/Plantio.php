@@ -29,7 +29,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <input type="date" id="data" name="data" class="form-text" required>
           </div>
 
-          <!-- Áreas cultivadas -->
           <div class="form-campo">
             <label for="area">Áreas cultivadas</label>
             <div class="form-box form-box-area">
@@ -43,6 +42,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
               </button>
             </div>
           </div>
+
 
           <!-- Produto -->
           <div class="form-campo">
