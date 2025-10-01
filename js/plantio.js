@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("../funcoes/buscar_areas.php")
     .then(r => r.json())
     .then(data => {
-      // Função para popular um select
       function populaSelect(select) {
         select.innerHTML = '<option value="">Selecione a área</option>';
         data.forEach(item => {
@@ -14,24 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // Popula o primeiro select
+      // Preenche o primeiro select já presente no HTML
       document.querySelectorAll(".area-select").forEach(populaSelect);
 
-      // Botão adicionar nova área
+      // Adiciona nova área
       document.querySelector(".add-area").addEventListener("click", () => {
         const lista = document.getElementById("lista-areas");
-
-        const div = document.createElement("div");
-        div.className = "form-box form-box-area";
 
         const sel = document.createElement("select");
         sel.name = "area[]";
         sel.className = "form-select form-text area-select";
-
         populaSelect(sel);
 
-        div.appendChild(sel);
-        lista.appendChild(div);
+        lista.appendChild(sel);
       });
     })
     .catch(err => console.error("Erro ao carregar áreas:", err));
@@ -59,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById("popup-overlay");
     let popupConfirm = document.getElementById("popup-confirm-plantio");
 
-    // Cria o popup de confirmação se não existir ainda
     if (!popupConfirm) {
       popupConfirm = document.createElement("div");
       popupConfirm.className = "popup-box d-none";
