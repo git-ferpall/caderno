@@ -172,6 +172,29 @@ if ($user_id) {
         </div>
     </form>
     </div>
+    <!-- Popup Solicitar Fungicida -->
+    <div class="popup-box d-none" id="popup-solicitar-fungicida">
+    <h2 class="popup-title">Solicitar cadastro de fungicida</h2>
+    <form id="form-solicitar-fungicida" class="popup-form">
+        <div class="form-campo">
+        <label for="nome_fungicida">Nome do fungicida</label>
+        <input type="text" id="nome_fungicida" name="nome_fungicida" class="form-text" required>
+        </div>
+        <div class="form-campo">
+        <label for="fabricante">Fabricante</label>
+        <input type="text" id="fabricante" name="fabricante" class="form-text">
+        </div>
+        <div class="form-campo">
+        <label for="obs_fungicida">Observações</label>
+        <textarea id="obs_fungicida" name="obs_fungicida" class="form-text form-textarea"></textarea>
+        </div>
+        <div class="popup-actions">
+        <button type="button" class="popup-btn fundo-cinza-b cor-preto" onclick="this.closest('.popup-box').classList.add('d-none'); document.getElementById('popup-overlay').classList.add('d-none');">Cancelar</button>
+        <button type="submit" class="popup-btn fundo-verde">Enviar</button>
+        </div>
+    </form>
+    </div>
+
 
 
 
