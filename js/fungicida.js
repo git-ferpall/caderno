@@ -115,13 +115,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// === Função padrão de popup ===
+// Função de popup
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
   overlay.classList.remove("d-none");
 
   if (tipo === "success") {
@@ -139,7 +138,7 @@ function showPopup(tipo, mensagem) {
   }, 4000);
 }
 
-// === Função para abrir popup genérico ===
+// ⚠️ DEIXE FORA DO DOMContentLoaded
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
@@ -149,8 +148,3 @@ function abrirPopup(id) {
   }
 }
 
-// === Função para fechar popups ===
-function closePopup() {
-  document.getElementById("popup-overlay").classList.add("d-none");
-  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-}
