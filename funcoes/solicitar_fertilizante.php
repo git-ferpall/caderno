@@ -16,23 +16,23 @@ $nome = trim($_POST['nome'] ?? '');
 $obs  = trim($_POST['obs'] ?? '');
 
 if ($nome === '') {
-  echo json_encode(['ok' => false, 'msg' => 'O nome do herbicida é obrigatório.']);
+  echo json_encode(['ok' => false, 'msg' => 'O nome do fertilizante é obrigatório.']);
   exit;
 }
 
 // Verifica duplicado em solicitacoes pendentes
-$stmt = $mysqli->prepare("SELECT id FROM solicitacoes WHERE tipo = 'herbicida' AND descricao = ? AND status = 'pendente' LIMIT 1");
+$stmt = $mysqli->prepare("SELECT id FROM solicitacoes WHERE tipo = 'fertilizante' AND descricao = ? AND status = 'pendente' LIMIT 1");
 $stmt->bind_param("s", $nome);
 $stmt->execute();
 $res = $stmt->get_result();
 if ($res && $res->num_rows > 0) {
-  echo json_encode(['ok' => false, 'msg' => 'Esse herbicida já foi solicitado e aguarda aprovação.']);
+  echo json_encode(['ok' => false, 'msg' => 'Esse fertilizante já foi solicitado e aguarda aprovação.']);
   exit;
 }
 $stmt->close();
 
 // Insere solicitação
-$stmt = $mysqli->prepare("INSERT INTO solicitacoes (user_id, tipo, descricao, observacao, status) VALUES (?, 'herbicida', ?, ?, 'pendente')");
+$stmt = $mysqli->prepare("INSERT INTO solicitacoes (user_id, tipo, descricao, observacao, status) VALUES (?, 'fertilizante', ?, ?, 'pendente')");
 $stmt->bind_param("iss", $user_id, $nome, $obs);
 
 if ($stmt->execute()) {
