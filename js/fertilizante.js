@@ -19,8 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Erro ao carregar áreas:", err));
   }
 
-  carregarAreas();
-
   // === Carregar fertilizantes ===
   function carregarFertilizantes() {
     fetch("../funcoes/buscar_fertilizantes.php")
@@ -38,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Erro ao carregar fertilizantes:", err));
   }
 
+  carregarAreas();
   carregarFertilizantes();
 
   // === Botão adicionar área ===
@@ -125,12 +124,11 @@ function abrirPopup(id) {
   overlay?.classList.remove("d-none");
   popup?.classList.remove("d-none");
 }
-
 function fecharPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
-  overlay?.classList.add("d-none");
   popup?.classList.add("d-none");
+  overlay?.classList.add("d-none");
 }
 
 // === Popups padrão ===
