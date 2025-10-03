@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Carregar áreas
+  const form = document.getElementById("form-fertilizante");
+
+  // === Carregar áreas ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -19,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarAreas();
 
-  // Botão adicionar área
+  // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
   if (btnAddArea) {
     btnAddArea.addEventListener("click", () => {
@@ -41,28 +43,60 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Submit
-  const form = document.getElementById("form-fertilizante");
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const dados = new FormData(form);
+  // === Submit do formulário ===
+  if (form) {
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const dados = new FormData(form);
 
-    fetch("../funcoes/salvar_fertilizante.php", {
-      method: "POST",
-      body: dados
-    })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
-          showPopup("success", res.msg || "Fertilizante salvo com sucesso!");
-          form.reset();
-          carregarAreas();
-        } else {
-          showPopup("failed", res.err || "Erro ao salvar o fertilizante.");
-        }
+      fetch("../funcoes/salvar_fertilizante.php", {
+        method: "POST",
+        body: dados
       })
-      .catch(err => {
-        showPopup("failed", "Falha na comunicação: " + err);
-      });
-  });
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            showPopup("success", res.msg || "Fertilizante salvo com sucesso!");
+            form.reset();
+            carregarAreas();
+          } else {
+            showPopup("failed", res.err || "Erro ao salvar o fertilizante.");
+          }
+        })
+        .catch(err => {
+          showPopup("failed", "Falha na comunicação: " + err);
+        });
+    });
+  }
 });
+
+// === Função padrão de popup ===
+function showPopup(tipo, mensagem) {
+  const overlay = document.getElementById("popup-overlay");
+  const popupSuccess = document.getElementById("popup-success");
+  const popupFailed = document.getElementById("popup-failed");
+
+  // Esconde todos os popups antes
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+
+  if (overlay) overlay.classList.remove("d-none");
+
+  if (tipo === "success") {
+    if (popupSuccess) {
+      popupSuccess.classList.remove("d-none");
+      popupSuccess.querySelector(".popup-title").textContent = mensagem;
+    }
+  } else {
+    if (popupFailed) {
+      popupFailed.classList.remove("d-none");
+      popupFailed.querySelector(".popup-text").textContent = mensagem;
+    }
+  }
+
+  // Fecha popup automaticamente após 4s
+  setTimeout(() => {
+    if (overlay) overlay.classList.add("d-none");
+    popupSuccess?.classList.add("d-none");
+    popupFailed?.classList.add("d-none");
+  }, 4000);
+}
