@@ -8,6 +8,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Herbicida - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .linha {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #lista-areas {
+      flex: 1;
+    }
+    #lista-areas .form-box-area {
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
   <?php include '../include/loading.php'; ?> 
@@ -27,18 +40,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <input type="date" id="data" name="data" class="form-text" required>
         </div>
 
-        <!-- ÁREAS cultivadas -->
+        <!-- ÁREAS -->
         <div class="form-campo">
           <label>Áreas cultivadas</label>
-          <div id="areas-container">
-            <div class="form-box form-box-area">
-              <select name="area[]" class="form-select form-text area-select" required>
-                <option value="">Selecione a área</option>
-              </select>
-              <button type="button" class="add-btn add-area" onclick="addAreaSelect()">
-                <div class="btn-icon icon-plus cor-branco"></div>
-              </button>
+          <div class="linha">
+            <div id="lista-areas" class="lista-areas">
+              <div class="form-box form-box-area">
+                <select name="area[]" class="form-select form-text area-select" required>
+                  <option value="">Selecione a área</option>
+                </select>
+              </div>
             </div>
+            <button class="add-btn add-area" type="button">
+              <div class="btn-icon icon-plus cor-branco"></div>
+            </button>
           </div>
         </div>
 

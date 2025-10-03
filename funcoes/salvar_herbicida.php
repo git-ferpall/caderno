@@ -34,12 +34,12 @@ $propriedade_id = $prop['id'];
 
 // Dados do formulário
 $data        = $_POST['data'] ?? null;
-$area_id     = (int)($_POST['area'] ?? 0);
+$areas       = $_POST['area'] ?? [];   // agora array
 $herbicida   = $_POST['herbicida'] ?? null;
 $quantidade  = $_POST['quantidade'] ?? null;
 $obs         = $_POST['obs'] ?? null;
 
-if (!$data || !$area_id || !$herbicida || !$quantidade) {
+if (!$data || empty($areas) || !$herbicida || !$quantidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
     exit;
 }
@@ -50,6 +50,7 @@ try {
     $tipo = "herbicida";
     $status = "pendente";
 
+    // Inserir apontamento principal
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -59,24 +60,29 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // Detalhes
+    // Inserir ÁREAS (uma linha por área selecionada)
+    if (!empty($areas) && is_array($areas)) {
+        foreach ($areas as $area_id) {
+            $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+            $campo = "area_id";
+            $valor = (string)(int)$area_id;
+            $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    // Inserir HERBICIDA (único)
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-
-    $campo = "area_id";
-    $valor = $area_id;
-    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-    $stmt->execute();
-
     $campo = "herbicida";
     $valor = $herbicida;
     $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
     $stmt->execute();
-
     $stmt->close();
+
     $mysqli->commit();
 
     echo json_encode(['ok' => true, 'msg' => 'Herbicida salvo com sucesso!']);
-
 } catch (Exception $e) {
     $mysqli->rollback();
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
