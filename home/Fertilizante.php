@@ -60,23 +60,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
             </div>
           </div>
 
-
         <div class="form-campo">
           <label for="fertilizante">Fertilizante</label>
           <select id="fertilizante" name="fertilizante" class="form-select form-text" required>
             <option value="">Selecione o fertilizante</option>
-            <option value="ureia">Ureia</option>
-            <option value="nitrato_amônio">Nitrato de Amônio</option>
-            <option value="sulfato_amônio">Sulfato de Amônio</option>
-            <option value="superfosfato_simples">Superfosfato Simples</option>
-            <option value="superfosfato_triplo">Superfosfato Triplo</option>
-            <option value="map">Fosfato Monoamônico (MAP)</option>
-            <option value="kcl">Cloreto de Potássio (KCl)</option>
-            <option value="sulfato_potassio">Sulfato de Potássio</option>
-            <option value="npk_20_10_10">Mistura NPK 20-10-10</option>
-            <option value="esterco">Esterco / Orgânico</option>
           </select>
         </div>
+
+        <!-- Botão para solicitar novo fertilizante -->
+        <button type="button" class="main-btn fundo-laranja" 
+                onclick="abrirPopup('popup-solicitar-fertilizante')" 
+                style="margin-top:8px">
+          Solicitar cadastro de novo fertilizante
+        </button>
+
 
         <div class="form-campo">
         <label for="quantidade">Quantidade (Kg)</label>
