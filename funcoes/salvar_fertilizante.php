@@ -36,7 +36,7 @@ $propriedade_id = $prop['id'];
 $data         = $_POST['data'] ?? null;
 $areas        = $_POST['area'] ?? []; // agora é array
 $fertilizante = $_POST['fertilizante'] ?? null;
-$quantidade   = $_POST['quantidade'] ?? null; // só números (kg)
+$quantidade   = $_POST['quantidade'] ?? null;
 $obs          = $_POST['obs'] ?? null;
 
 if (!$data || empty($areas) || !$fertilizante || !$quantidade) {
@@ -48,7 +48,7 @@ $mysqli->begin_transaction();
 
 try {
     // 1. Inserir apontamento
-    $tipo   = "fertilizante";
+    $tipo = "fertilizante";
     $status = "pendente";
 
     $stmt = $mysqli->prepare("
@@ -60,17 +60,19 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Inserir múltiplas áreas
-    foreach ($areas as $area_id) {
-        $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-        $campo = "area_id";
-        $valor = (string)(int)$area_id;
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
-        $stmt->close();
+    // 2. Inserir todas as ÁREAS
+    if (!empty($areas) && is_array($areas)) {
+        foreach ($areas as $area_id) {
+            $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+            $campo = "area_id";
+            $valor = (string)(int)$area_id;
+            $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 
-    // 3. Inserir fertilizante único
+    // 3. Inserir fertilizante
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
     $campo = "fertilizante";
     $valor = $fertilizante;
