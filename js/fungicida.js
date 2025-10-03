@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // === Carregar áreas ===
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -40,12 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Carregar fungicidas já cadastrados ===
+  // === Carregar FUNGICIDAS ===
   fetch("../funcoes/buscar_fungicidas.php")
     .then(r => r.json())
     .then(data => {
       const sel = document.getElementById("fungicida");
-      if (!sel) return;
       sel.innerHTML = '<option value="">Selecione o fungicida</option>';
       data.forEach(item => {
         const opt = document.createElement("option");
@@ -74,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             form.reset();
             carregarAreas();
           } else {
-            showPopup("failed", res.msg || "Erro ao salvar fungicida.");
+            showPopup("failed", res.err || "Erro ao salvar o fungicida.");
           }
         })
         .catch(err => {
@@ -83,12 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Submit do formulário de solicitação de fungicida ===
-  const formSolicitar = document.getElementById("form-solicitar-fungicida");
-  if (formSolicitar) {
-    formSolicitar.addEventListener("submit", e => {
+  // === Envio do formulário de solicitação de FUNGICIDA ===
+  const formSolicitarFungicida = document.getElementById("form-solicitar-fungicida");
+  if (formSolicitarFungicida) {
+    formSolicitarFungicida.addEventListener("submit", e => {
       e.preventDefault();
-      const dados = new FormData(formSolicitar);
+      const dados = new FormData(formSolicitarFungicida);
 
       fetch("../funcoes/solicitar_fungicida.php", {
         method: "POST",
@@ -97,11 +96,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "✅ Solicitação enviada com sucesso!");
-            formSolicitar.reset();
-            // fecha popup
-            document.getElementById("popup-solicitar-fungicida").classList.add("d-none");
-            document.getElementById("popup-overlay").classList.add("d-none");
+            showPopup("success", res.msg || "✅ Solicitação enviada com sucesso! Aguarde retorno por e-mail.");
+            formSolicitarFungicida.reset();
+
+            // fecha popup somente depois de exibir a mensagem
+            setTimeout(() => {
+              document.getElementById("popup-solicitar-fungicida").classList.add("d-none");
+              document.getElementById("popup-overlay").classList.add("d-none");
+            }, 3000);
           } else {
             showPopup("failed", res.msg || "Erro ao salvar solicitação.");
           }
@@ -113,12 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// === Função popup padrão ===
+// === Função padrão de popup ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
   overlay.classList.remove("d-none");
 
   if (tipo === "success") {
@@ -136,7 +139,7 @@ function showPopup(tipo, mensagem) {
   }, 4000);
 }
 
-// === Abrir popup ===
+// === Função para abrir popup genérico ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
@@ -146,7 +149,7 @@ function abrirPopup(id) {
   }
 }
 
-// === Fechar popup ===
+// === Função para fechar popups ===
 function closePopup() {
   document.getElementById("popup-overlay").classList.add("d-none");
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
