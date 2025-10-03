@@ -195,6 +195,27 @@ if ($user_id) {
         </div>
     </form>
     </div>
+    <!-- Popup Solicitar Inseticida -->
+    <div class="popup-box v2 d-none" id="popup-solicitar-inseticida">
+    <h2 class="popup-title">Solicitar cadastro de inseticida</h2>
+    <form id="form-solicitar-inseticida" class="main-form">
+        <div class="form-campo">
+        <label for="inseticida-nome">Nome do inseticida</label>
+        <input type="text" id="inseticida-nome" name="nome" class="form-text" required placeholder="Ex: Lambda-cialotrina 50 EC">
+        </div>
+
+        <div class="form-campo">
+        <label for="inseticida-obs">Observações</label>
+        <textarea id="inseticida-obs" name="observacao" class="form-text form-textarea" placeholder="Ex: concentração, forma de aplicação..."></textarea>
+        </div>
+
+        <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+        <button class="popup-btn fundo-verde" type="submit">Enviar</button>
+        </div>
+    </form>
+    </div>
+
 
 
 

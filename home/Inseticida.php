@@ -8,9 +8,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inseticida - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .linha {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #lista-areas {
+      flex: 1;
+    }
+    #lista-areas .form-box-area {
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-  <?php include '../include/loading.php'; ?> 
+  <?php include '../include/loading.php'; ?>
   <?php include '../include/popups.php'; ?>
   <?php include '../include/menu.php'; ?>
 
@@ -27,38 +40,47 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <input type="date" id="data" name="data" class="form-text" required>
         </div>
 
+        <!-- ÁREAS -->
         <div class="form-campo">
-          <label for="area">Área cultivada</label>
-          <select id="area" name="area" class="form-select form-text" required>
-            <option value="">Selecione a área</option>
-          </select>
+          <label>Áreas cultivadas</label>
+          <div class="linha">
+            <div id="lista-areas" class="lista-areas">
+              <div class="form-box form-box-area">
+                <select name="area[]" class="form-select form-text area-select" required>
+                  <option value="">Selecione a área</option>
+                </select>
+              </div>
+            </div>
+            <button class="add-btn add-area" type="button">
+              <div class="btn-icon icon-plus cor-branco"></div>
+            </button>
+          </div>
         </div>
 
+        <!-- Inseticida -->
         <div class="form-campo">
           <label for="inseticida">Inseticida</label>
           <select id="inseticida" name="inseticida" class="form-select form-text" required>
             <option value="">Selecione</option>
-            <option value="Lambda-cialotrina">Lambda-cialotrina</option>
-            <option value="Imidacloprido">Imidacloprido</option>
-            <option value="Clorpirifós">Clorpirifós</option>
-            <option value="Abamectina">Abamectina</option>
-            <option value="Metomil">Metomil</option>
-            <option value="Novaluron">Novaluron</option>
-            <option value="Espinosade">Espinosade</option>
           </select>
         </div>
+        <button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-inseticida')" style="margin-top:8px">
+          Solicitar cadastro de novo inseticida
+        </button>
 
+        <!-- Quantidade -->
         <div class="form-campo">
-          <label for="quantidade">Quantidade Aplicada (L ou mL)</label>
-          <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 2.5" required>
+          <label for="quantidade">Quantidade Aplicada (L)</label>
+          <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 2" required>
         </div>
 
+        <!-- Observações -->
         <div class="form-campo">
           <label for="obs">Observações</label>
-          <textarea id="obs" name="obs" class="form-text form-textarea"
-            placeholder="Ex: 100ml/ha, aplicação em pós-emergência..."></textarea>
+          <textarea id="obs" name="obs" class="form-text form-textarea" placeholder="Ex: 200ml/ha, aplicação dirigida..."></textarea>
         </div>
 
+        <!-- Botões -->
         <div class="form-submit">
           <button type="reset" class="main-btn fundo-vermelho">
             <span class="main-btn-text">Cancelar</span>
