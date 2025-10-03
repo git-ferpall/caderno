@@ -74,13 +74,19 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Fertilizante salvo com sucesso!");
-            form.reset();
-            carregarAreas();
-            carregarFertilizantes();
-          } else {
-            showPopup("failed", res.msg || "Erro ao salvar o fertilizante.");
-          }
+          // Mostra popup de sucesso
+          showPopup("success", res.msg || "✅ Solicitação registrada! Aguarde retorno por e-mail.");
+
+          // Fecha apenas o popup de solicitação, mas mantém o feedback visível
+          const popup = document.getElementById("popup-solicitar-fertilizante");
+          popup?.classList.add("d-none");
+
+          formSolicitar.reset();
+          carregarFertilizantes();
+        } else {
+          showPopup("failed", res.msg || "❌ Não foi possível registrar a solicitação.");
+        }
+
         })
         .catch(err => {
           showPopup("failed", "Falha na comunicação: " + err);
