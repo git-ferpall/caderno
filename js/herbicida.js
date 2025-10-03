@@ -57,42 +57,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Envio do formulário de solicitação ===
-  const formSolicitar = document.getElementById("form-solicitar-herbicida");
-  if (formSolicitar) {
-    formSolicitar.addEventListener("submit", e => {
-      e.preventDefault();
-      const dados = new FormData(formSolicitar);
+ // === Envio do formulário de solicitação ===
+const formSolicitarFertilizante = document.getElementById("form-solicitar-fertilizante");
+if (formSolicitarFertilizante) {
+  formSolicitarFertilizante.addEventListener("submit", e => {
+    e.preventDefault();
+    const dados = new FormData(formSolicitarFertilizante);
 
-      fetch("../funcoes/solicitar_herbicida.php", {
-        method: "POST",
-        body: dados
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok) {
-            showPopup(
-              "success",
-              "✅ Dados enviados com sucesso! Aguarde a resposta por e-mail."
-            );
+    fetch("../funcoes/solicitar_fertilizante.php", {
+      method: "POST",
+      body: dados
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          showPopup(
+            "success",
+            "✅ Dados enviados com sucesso! Aguarde a resposta por e-mail."
+          );
 
-            // fecha apenas o popup de solicitação
-            const popupSolicitacao = document.getElementById("popup-solicitar-herbicida");
-            if (popupSolicitacao) {
-              popupSolicitacao.classList.add("d-none");
-            }
-
-            formSolicitar.reset();
-          } else {
-            showPopup("failed", res.msg || "Erro ao salvar solicitação.");
+          // fecha apenas o popup de solicitação de fertilizante
+          const popupSolicitacao = document.getElementById("popup-solicitar-fertilizante");
+          if (popupSolicitacao) {
+            popupSolicitacao.classList.add("d-none");
           }
-        })
-        .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
-        });
-    });
-  }
-});
+
+          formSolicitarFertilizante.reset();
+
+          // recarrega lista
+          carregarFertilizantes();
+        } else {
+          showPopup("failed", res.msg || "Erro ao salvar solicitação.");
+        }
+      })
+      .catch(err => {
+        showPopup("failed", "Falha na comunicação: " + err);
+      });
+  });
+}
 
 // === Função popup padrão ===
 function showPopup(tipo, mensagem) {
