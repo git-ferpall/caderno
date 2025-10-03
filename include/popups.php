@@ -152,29 +152,27 @@ if ($user_id) {
     </form>
     </div>
     <!-- Popup Solicitar Fertilizante -->
-    <div id="popup-solicitar-fertilizante" class="popup-box d-none">
-        <div class="popup-content">
-            <h3 class="popup-title">Solicitar novo fertilizante</h3>
-            <form id="form-solicitar-fertilizante">
-            <div class="form-campo">
-                <label for="nome_fertilizante">Nome do fertilizante</label>
-                <input type="text" id="nome_fertilizante" name="nome" class="form-text" required>
-            </div>
-            <div class="form-campo">
-                <label for="obs_fertilizante">Observações</label>
-                <textarea id="obs_fertilizante" name="obs" class="form-text form-textarea"></textarea>
-            </div>
-            <div class="form-submit">
-                <button type="button" class="main-btn fundo-vermelho" onclick="fecharPopup('popup-solicitar-fertilizante')">
-                <span class="main-btn-text">Cancelar</span>
-                </button>
-                <button type="submit" class="main-btn fundo-verde">
-                <span class="main-btn-text">Enviar</span>
-                </button>
-            </div>
-            </form>
+    <div class="popup-box v2 d-none" id="popup-solicitar-fertilizante">
+    <h2 class="popup-title">Solicitar Cadastro de Fertilizante</h2>
+
+    <form id="form-solicitar-fertilizante" class="main-form">
+        <div class="form-campo">
+        <label for="fertilizante-nome">Nome do Fertilizante</label>
+        <input type="text" id="fertilizante-nome" name="nome" class="form-text" required placeholder="Ex: Ureia 45%">
         </div>
+
+        <div class="form-campo">
+        <label for="fertilizante-obs">Observações</label>
+        <textarea id="fertilizante-obs" name="obs" class="form-text form-textarea" placeholder="Informe detalhes como concentração, fabricante etc."></textarea>
+        </div>
+
+        <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+        <button class="popup-btn fundo-verde" type="submit">Enviar Solicitação</button>
+        </div>
+    </form>
     </div>
+
 
 
 

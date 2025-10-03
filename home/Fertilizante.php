@@ -66,11 +66,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </div>
 
         <!-- Botão para solicitar novo fertilizante -->
-        <button type="button" class="main-btn fundo-laranja"
+        <button type="button" class="main-btn fundo-laranja" 
                 onclick="abrirPopup('popup-solicitar-fertilizante')" 
                 style="margin-top:8px">
           Solicitar cadastro de novo fertilizante
         </button>
+
 
         <div class="form-campo">
           <label for="quantidade">Quantidade (Kg)</label>
