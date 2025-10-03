@@ -17,8 +17,8 @@ if (!$user_id) {
 }
 
 // Dados do formulário
-$nome = trim($_POST['nome'] ?? '');
-$observacao = trim($_POST['observacao'] ?? '');
+$nome = trim($_POST['nome_fungicida'] ?? '');   // <-- cuidado: no seu HTML está "nome_fungicida"
+$observacao = trim($_POST['obs_fungicida'] ?? ''); // <-- e "obs_fungicida"
 
 if ($nome === '') {
     echo json_encode(['ok' => false, 'msg' => 'Informe o nome do fungicida']);

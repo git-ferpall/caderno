@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-  // === Carregar ÁREAS ===
+  // === Carregar áreas ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -32,27 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
       novo.name = "area[]";
       novo.classList.add("area-select");
 
-      // botão remover
-      const btnRemover = document.createElement("button");
-      btnRemover.type = "button";
-      btnRemover.textContent = "❌";
-      btnRemover.className = "remove-btn";
-      btnRemover.style.marginLeft = "8px";
-      btnRemover.addEventListener("click", () => {
-        wrapper.remove();
-      });
-
       const wrapper = document.createElement("div");
       wrapper.className = "form-box form-box-area";
       wrapper.appendChild(novo);
-      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
       carregarAreas();
     });
   }
 
-  // === Carregar FUNGICIDAS ===
+  // === Carregar fungicidas já cadastrados ===
   fetch("../funcoes/buscar_fungicidas.php")
     .then(r => r.json())
     .then(data => {
@@ -71,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Submit do formulário principal ===
   const form = document.getElementById("form-fungicida");
   if (form) {
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
       e.preventDefault();
       const dados = new FormData(form);
 
@@ -86,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             form.reset();
             carregarAreas();
           } else {
-            showPopup("failed", res.err || "Erro ao salvar o fungicida.");
+            showPopup("failed", res.msg || "Erro ao salvar fungicida.");
           }
         })
         .catch(err => {
@@ -95,12 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Submit do formulário de solicitação ===
-  const formSolicitarFungicida = document.getElementById("form-solicitar-fungicida");
-  if (formSolicitarFungicida) {
-    formSolicitarFungicida.addEventListener("submit", e => {
+  // === Submit do formulário de solicitação de fungicida ===
+  const formSolicitar = document.getElementById("form-solicitar-fungicida");
+  if (formSolicitar) {
+    formSolicitar.addEventListener("submit", e => {
       e.preventDefault();
-      const dados = new FormData(formSolicitarFungicida);
+      const dados = new FormData(formSolicitar);
 
       fetch("../funcoes/solicitar_fungicida.php", {
         method: "POST",
@@ -109,8 +97,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Solicitação enviada com sucesso!");
-            formSolicitarFungicida.reset();
+            showPopup("success", res.msg || "✅ Solicitação enviada com sucesso!");
+            formSolicitar.reset();
             // fecha popup
             document.getElementById("popup-solicitar-fungicida").classList.add("d-none");
             document.getElementById("popup-overlay").classList.add("d-none");
@@ -125,26 +113,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// === Popup padrão ===
+// === Função popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  if (!overlay) return;
-
   overlay.classList.remove("d-none");
 
   if (tipo === "success") {
-    if (popupSuccess) {
-      popupSuccess.classList.remove("d-none");
-      popupSuccess.querySelector(".popup-title").textContent = mensagem;
-    }
+    popupSuccess.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
-    if (popupFailed) {
-      popupFailed.classList.remove("d-none");
-      popupFailed.querySelector(".popup-text").textContent = mensagem;
-    }
+    popupFailed.classList.remove("d-none");
+    popupFailed.querySelector(".popup-text").textContent = mensagem;
   }
 
   setTimeout(() => {
@@ -154,7 +136,7 @@ function showPopup(tipo, mensagem) {
   }, 4000);
 }
 
-// === Função abrir popup (solicitação) ===
+// === Abrir popup ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
@@ -162,4 +144,10 @@ function abrirPopup(id) {
     overlay.classList.remove("d-none");
     popup.classList.remove("d-none");
   }
+}
+
+// === Fechar popup ===
+function closePopup() {
+  document.getElementById("popup-overlay").classList.add("d-none");
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
 }
