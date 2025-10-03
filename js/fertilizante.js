@@ -100,3 +100,23 @@ function showPopup(tipo, mensagem) {
     popupFailed?.classList.add("d-none");
   }, 4000);
 }
+// Carregar fertilizantes
+function carregarFertilizantes() {
+  fetch("../funcoes/buscar_fertilizantes.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("fertilizante");
+      sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Erro ao carregar fertilizantes:", err));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarFertilizantes();
+});

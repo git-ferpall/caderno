@@ -93,6 +93,7 @@ if ($user_id) {
             <button class="popup-btn fundo-vermelho" type="button" id="confirm-delete">Excluir</button>
         </div>
     </div>
+    
 
     <!-- Alterar Propriedade -->
     <div class="popup-box v2 d-none" id="popup-prop">
@@ -149,6 +150,18 @@ if ($user_id) {
         <button class="popup-btn fundo-verde" type="submit">Enviar Solicitação</button>
         </div>
     </form>
+    </div>
+    <!-- Solicitar Fertilizante -->
+    <div id="popup-solicitar-fertilizante" class="popup-box d-none">
+    <h2 class="popup-title">Solicitar novo fertilizante</h2>
+    <p class="popup-text">Informe o nome do fertilizante que deseja cadastrar.</p>
+    
+    <input type="text" id="novo-fertilizante" class="form-text" placeholder="Digite o nome do fertilizante">
+
+    <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" onclick="fecharPopup()">Cancelar</button>
+        <button class="popup-btn fundo-verde" onclick="solicitarFertilizante()">Enviar</button>
+    </div>
     </div>
 
 
