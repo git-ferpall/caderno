@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // carregar áreas
+
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -18,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   carregarAreas();
 
-  // botão adicionar área
+  // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
   if (btnAddArea) {
     btnAddArea.addEventListener("click", () => {
@@ -31,20 +32,32 @@ document.addEventListener("DOMContentLoaded", () => {
       novo.name = "area[]";
       novo.classList.add("area-select");
 
+      // botão remover
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.textContent = "❌";
+      btnRemover.className = "remove-btn";
+      btnRemover.style.marginLeft = "8px";
+      btnRemover.addEventListener("click", () => {
+        wrapper.remove();
+      });
+
       const wrapper = document.createElement("div");
       wrapper.className = "form-box form-box-area";
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
       carregarAreas();
     });
   }
 
-  // carregar fungicidas
+  // === Carregar FUNGICIDAS ===
   fetch("../funcoes/buscar_fungicidas.php")
     .then(r => r.json())
     .then(data => {
       const sel = document.getElementById("fungicida");
+      if (!sel) return;
       sel.innerHTML = '<option value="">Selecione o fungicida</option>';
       data.forEach(item => {
         const opt = document.createElement("option");
@@ -55,10 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Erro ao carregar fungicidas:", err));
 
-  // submit form
+  // === Submit do formulário principal ===
   const form = document.getElementById("form-fungicida");
   if (form) {
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const dados = new FormData(form);
 
@@ -81,22 +94,57 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
   }
+
+  // === Submit do formulário de solicitação ===
+  const formSolicitarFungicida = document.getElementById("form-solicitar-fungicida");
+  if (formSolicitarFungicida) {
+    formSolicitarFungicida.addEventListener("submit", e => {
+      e.preventDefault();
+      const dados = new FormData(formSolicitarFungicida);
+
+      fetch("../funcoes/solicitar_fungicida.php", {
+        method: "POST",
+        body: dados
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            showPopup("success", res.msg || "Solicitação enviada com sucesso!");
+            formSolicitarFungicida.reset();
+            // fecha popup
+            document.getElementById("popup-solicitar-fungicida").classList.add("d-none");
+            document.getElementById("popup-overlay").classList.add("d-none");
+          } else {
+            showPopup("failed", res.msg || "Erro ao salvar solicitação.");
+          }
+        })
+        .catch(err => {
+          showPopup("failed", "Falha na comunicação: " + err);
+        });
+    });
+  }
 });
 
-// popup padrão
+// === Popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
+  if (!overlay) return;
+
   overlay.classList.remove("d-none");
 
   if (tipo === "success") {
-    popupSuccess.classList.remove("d-none");
-    popupSuccess.querySelector(".popup-title").textContent = mensagem;
+    if (popupSuccess) {
+      popupSuccess.classList.remove("d-none");
+      popupSuccess.querySelector(".popup-title").textContent = mensagem;
+    }
   } else {
-    popupFailed.classList.remove("d-none");
-    popupFailed.querySelector(".popup-text").textContent = mensagem;
+    if (popupFailed) {
+      popupFailed.classList.remove("d-none");
+      popupFailed.querySelector(".popup-text").textContent = mensagem;
+    }
   }
 
   setTimeout(() => {
@@ -106,7 +154,7 @@ function showPopup(tipo, mensagem) {
   }, 4000);
 }
 
-// abrir popup de solicitação
+// === Função abrir popup (solicitação) ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
