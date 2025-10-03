@@ -173,24 +173,28 @@ if ($user_id) {
     </form>
     </div>
     <!-- Popup Solicitar Fungicida -->
-    <div class="popup-box d-none" id="popup-solicitar-fungicida">
-    <h2 class="popup-title">Solicitar cadastro de fungicida</h2>
-    <form id="form-solicitar-fungicida" class="popup-form">
+    <div class="popup-box v2 d-none" id="popup-solicitar-fungicida">
+    <h2 class="popup-title">Solicitar Cadastro de Fungicida</h2>
+
+    <form id="form-solicitar-fungicida" class="main-form">
         <div class="form-campo">
-        <label for="nome_fungicida">Nome do fungicida</label>
-        <input type="text" id="nome_fungicida" name="nome_fungicida" class="form-text" required>
+        <label for="fungicida-nome">Nome do Fungicida</label>
+        <input type="text" id="fungicida-nome" name="nome_fungicida" class="form-text" required placeholder="Ex: Mancozeb 80%">
         </div>
+
         <div class="form-campo">
         <label for="fabricante">Fabricante</label>
-        <input type="text" id="fabricante" name="fabricante" class="form-text">
+        <input type="text" id="fabricante" name="fabricante" class="form-text" placeholder="Ex: Bayer, Syngenta...">
         </div>
+
         <div class="form-campo">
-        <label for="obs_fungicida">Observações</label>
-        <textarea id="obs_fungicida" name="obs_fungicida" class="form-text form-textarea"></textarea>
+        <label for="obs-fungicida">Observações</label>
+        <textarea id="obs-fungicida" name="obs_fungicida" class="form-text form-textarea" placeholder="Detalhes como concentração, modo de uso, etc."></textarea>
         </div>
+
         <div class="popup-actions">
-        <button type="button" class="popup-btn fundo-cinza-b cor-preto" onclick="this.closest('.popup-box').classList.add('d-none'); document.getElementById('popup-overlay').classList.add('d-none');">Cancelar</button>
-        <button type="submit" class="popup-btn fundo-verde">Enviar</button>
+        <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+        <button class="popup-btn fundo-verde" type="submit">Enviar Solicitação</button>
         </div>
     </form>
     </div>
