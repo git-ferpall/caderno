@@ -20,7 +20,7 @@ if ($nome === '') {
   exit;
 }
 
-// Verifica duplicado em solicitacoes pendentes
+// Verifica duplicado em solicitações pendentes
 $stmt = $mysqli->prepare("SELECT id FROM solicitacoes WHERE tipo = 'fertilizante' AND descricao = ? AND status = 'pendente' LIMIT 1");
 $stmt->bind_param("s", $nome);
 $stmt->execute();
@@ -39,7 +39,7 @@ $stmt = $mysqli->prepare("
 $stmt->bind_param("iss", $user_id, $nome, $obs);
 
 if ($stmt->execute()) {
-  echo json_encode(['ok' => true, 'msg' => 'Solicitação registrada. Você receberá retorno após avaliação.']);
+  echo json_encode(['ok' => true, 'msg' => 'Solicitação de fertilizante registrada.']);
 } else {
   echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar solicitação.']);
 }
