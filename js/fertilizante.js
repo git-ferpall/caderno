@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(r => r.json())
       .then(data => {
         const sel = document.getElementById("fertilizante");
+        if (!sel) return;
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -40,9 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarFertilizantes();
 
   // === Botão adicionar área ===
-  const btnAddArea = document.querySelector(".add-area");
-  if (btnAddArea) {
-    btnAddArea.addEventListener("click", () => {
+  document.querySelectorAll(".add-area").forEach(btn => {
+    btn.addEventListener("click", () => {
       const lista = document.getElementById("lista-areas");
       const original = lista.querySelector("select");
       if (!original) return;
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lista.appendChild(wrapper);
       carregarAreas();
     });
-  }
+  });
 
   // === Submit do formulário principal ===
   if (form) {
@@ -89,11 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Solicitar novo fertilizante ===
-  const formSolicitarFertilizante = document.getElementById("form-solicitar-fertilizante");
-  if (formSolicitarFertilizante) {
-    formSolicitarFertilizante.addEventListener("submit", e => {
+  const formSolicitar = document.getElementById("form-solicitar-fertilizante");
+  if (formSolicitar) {
+    formSolicitar.addEventListener("submit", e => {
       e.preventDefault();
-      const dados = new FormData(formSolicitarFertilizante);
+      const dados = new FormData(formSolicitar);
 
       fetch("../funcoes/solicitar_fertilizante.php", {
         method: "POST",
@@ -102,13 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Solicitação registrada com sucesso!");
-            formSolicitarFertilizante.reset();
-
-            // fecha popup de solicitação
+            showPopup("success", res.msg || "Solicitação enviada com sucesso!");
+            formSolicitar.reset();
             fecharPopup("popup-solicitar-fertilizante");
-
-            // recarrega lista
             carregarFertilizantes();
           } else {
             showPopup("failed", res.msg || "Erro ao salvar solicitação.");
@@ -121,32 +117,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
-// === Funções globais de popup (independentes em cada arquivo) ===
+// === Funções auxiliares (iguais herbicida.js) ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
-  if (overlay && popup) {
-    overlay.classList.remove("d-none");
-    popup.classList.remove("d-none");
-  }
+  overlay?.classList.remove("d-none");
+  popup?.classList.remove("d-none");
 }
 
 function fecharPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
-  if (overlay && popup) {
-    overlay.classList.add("d-none");
-    popup.classList.add("d-none");
-  }
-}
-
-function closePopup() {
-  const overlay = document.getElementById("popup-overlay");
-  if (overlay) {
-    overlay.classList.add("d-none");
-    overlay.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-  }
+  overlay?.classList.add("d-none");
+  popup?.classList.add("d-none");
 }
 
 function showPopup(tipo, mensagem) {
@@ -154,19 +137,17 @@ function showPopup(tipo, mensagem) {
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  // Esconde todos antes de abrir
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
   overlay?.classList.remove("d-none");
 
   if (tipo === "success") {
     popupSuccess?.classList.remove("d-none");
-    popupSuccess?.querySelector(".popup-title").textContent = mensagem;
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
     popupFailed?.classList.remove("d-none");
-    popupFailed?.querySelector(".popup-text").textContent = mensagem;
+    popupFailed.querySelector(".popup-text").textContent = mensagem;
   }
 
-  // Fecha automático em 4s
   setTimeout(() => {
     overlay?.classList.add("d-none");
     popupSuccess?.classList.add("d-none");
