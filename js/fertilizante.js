@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-fertilizante");
 
-  // === Carregar áreas ===
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -19,13 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Erro ao carregar áreas:", err));
   }
 
-  // === Carregar fertilizantes ===
+  // === Carregar FERTILIZANTES ===
   function carregarFertilizantes() {
     fetch("../funcoes/buscar_fertilizantes.php")
       .then(r => r.json())
       .then(data => {
         const sel = document.getElementById("fertilizante");
-        if (!sel) return;
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -106,11 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", res.msg || "Solicitação registrada com sucesso!");
             formSolicitarFertilizante.reset();
 
-            // fecha apenas o popup de fertilizante
-            const popup = document.getElementById("popup-solicitar-fertilizante");
-            popup?.classList.add("d-none");
-            document.getElementById("popup-overlay")?.classList.add("d-none");
+            // fecha popup de solicitação
+            fecharPopup("popup-solicitar-fertilizante");
 
+            // recarrega lista
             carregarFertilizantes();
           } else {
             showPopup("failed", res.msg || "Erro ao salvar solicitação.");
@@ -123,7 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// === Abrir/Fechar popup ===
+
+// === Funções globais de popup (independentes em cada arquivo) ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
@@ -140,4 +139,37 @@ function fecharPopup(id) {
     overlay.classList.add("d-none");
     popup.classList.add("d-none");
   }
+}
+
+function closePopup() {
+  const overlay = document.getElementById("popup-overlay");
+  if (overlay) {
+    overlay.classList.add("d-none");
+    overlay.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  }
+}
+
+function showPopup(tipo, mensagem) {
+  const overlay = document.getElementById("popup-overlay");
+  const popupSuccess = document.getElementById("popup-success");
+  const popupFailed = document.getElementById("popup-failed");
+
+  // Esconde todos antes de abrir
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  overlay?.classList.remove("d-none");
+
+  if (tipo === "success") {
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess?.querySelector(".popup-title").textContent = mensagem;
+  } else {
+    popupFailed?.classList.remove("d-none");
+    popupFailed?.querySelector(".popup-text").textContent = mensagem;
+  }
+
+  // Fecha automático em 4s
+  setTimeout(() => {
+    overlay?.classList.add("d-none");
+    popupSuccess?.classList.add("d-none");
+    popupFailed?.classList.add("d-none");
+  }, 4000);
 }
