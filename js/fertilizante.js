@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // === Submit do formulário principal ===
+  // === Submit do formulário principal (apontamento) ===
   if (form) {
     form.addEventListener("submit", e => {
       e.preventDefault();
@@ -74,19 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-          // Mostra popup de sucesso
-          showPopup("success", res.msg || "✅ Solicitação registrada! Aguarde retorno por e-mail.");
-
-          // Fecha apenas o popup de solicitação, mas mantém o feedback visível
-          const popup = document.getElementById("popup-solicitar-fertilizante");
-          popup?.classList.add("d-none");
-
-          formSolicitar.reset();
-          carregarFertilizantes();
-        } else {
-          showPopup("failed", res.msg || "❌ Não foi possível registrar a solicitação.");
-        }
-
+            showPopup("success", res.msg || "✅ Fertilizante salvo com sucesso!");
+            form.reset();
+            carregarAreas();
+            carregarFertilizantes();
+          } else {
+            showPopup("failed", res.msg || "❌ Erro ao salvar o fertilizante.");
+          }
         })
         .catch(err => {
           showPopup("failed", "Falha na comunicação: " + err);
@@ -108,12 +102,20 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Solicitação enviada com sucesso!");
+            showPopup(
+              "success",
+              res.msg || "✅ Solicitação enviada com sucesso! Aguarde resposta por e-mail."
+            );
+
+            // fecha o popup de solicitação
+            const popup = document.getElementById("popup-solicitar-fertilizante");
+            popup?.classList.add("d-none");
+            document.getElementById("popup-overlay")?.classList.add("d-none");
+
             formSolicitar.reset();
-            fecharPopup("popup-solicitar-fertilizante");
             carregarFertilizantes();
           } else {
-            showPopup("failed", res.msg || "Erro ao salvar solicitação.");
+            showPopup("failed", res.msg || "❌ Erro ao salvar solicitação.");
           }
         })
         .catch(err => {
