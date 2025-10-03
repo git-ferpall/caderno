@@ -151,18 +151,31 @@ if ($user_id) {
         </div>
     </form>
     </div>
-    <!-- Solicitar Fertilizante -->
+    <!-- Popup Solicitar Fertilizante -->
     <div id="popup-solicitar-fertilizante" class="popup-box d-none">
-    <h2 class="popup-title">Solicitar novo fertilizante</h2>
-    <p class="popup-text">Informe o nome do fertilizante que deseja cadastrar.</p>
-    
-    <input type="text" id="novo-fertilizante" class="form-text" placeholder="Digite o nome do fertilizante">
+        <div class="popup-content">
+            <h3 class="popup-title">Solicitar novo fertilizante</h3>
+            <form id="form-solicitar-fertilizante">
+            <div class="form-campo">
+                <label for="nome_fertilizante">Nome do fertilizante</label>
+                <input type="text" id="nome_fertilizante" name="nome" class="form-text" required>
+            </div>
+            <div class="form-campo">
+                <label for="obs_fertilizante">Observações</label>
+                <textarea id="obs_fertilizante" name="obs" class="form-text form-textarea"></textarea>
+            </div>
+            <div class="form-submit">
+                <button type="button" class="main-btn fundo-vermelho" onclick="fecharPopup('popup-solicitar-fertilizante')">
+                <span class="main-btn-text">Cancelar</span>
+                </button>
+                <button type="submit" class="main-btn fundo-verde">
+                <span class="main-btn-text">Enviar</span>
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
 
-    <div class="popup-actions">
-        <button class="popup-btn fundo-cinza-b cor-preto" onclick="fecharPopup()">Cancelar</button>
-        <button class="popup-btn fundo-verde" onclick="solicitarFertilizante()">Enviar</button>
-    </div>
-    </div>
 
 
 

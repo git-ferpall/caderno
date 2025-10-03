@@ -21,6 +21,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarAreas();
 
+  // === Carregar fertilizantes ===
+  function carregarFertilizantes() {
+    fetch("../funcoes/buscar_fertilizantes.php")
+      .then(r => r.json())
+      .then(data => {
+        const sel = document.getElementById("fertilizante");
+        sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+        data.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+          sel.appendChild(opt);
+        });
+      })
+      .catch(err => console.error("Erro ao carregar fertilizantes:", err));
+  }
+
+  carregarFertilizantes();
+
   // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
   if (btnAddArea) {
@@ -31,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const novo = original.cloneNode(true);
       novo.value = "";
-      novo.name = "area[]"; // importante: array
+      novo.name = "area[]";
       novo.classList.add("area-select");
 
       const wrapper = document.createElement("div");
@@ -43,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Submit do formulário ===
+  // === Submit do formulário principal ===
   if (form) {
     form.addEventListener("submit", e => {
       e.preventDefault();
@@ -59,8 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", res.msg || "Fertilizante salvo com sucesso!");
             form.reset();
             carregarAreas();
+            carregarFertilizantes();
           } else {
-            showPopup("failed", res.err || "Erro ao salvar o fertilizante.");
+            showPopup("failed", res.msg || "Erro ao salvar o fertilizante.");
           }
         })
         .catch(err => {
@@ -68,55 +88,71 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
   }
+
+  // === Form de solicitar novo fertilizante ===
+  const formSolicitar = document.getElementById("form-solicitar-fertilizante");
+  if (formSolicitar) {
+    formSolicitar.addEventListener("submit", e => {
+      e.preventDefault();
+      const dados = new FormData(formSolicitar);
+
+      fetch("../funcoes/solicitar_fertilizante.php", {
+        method: "POST",
+        body: dados
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            showPopup("success", res.msg);
+            fecharPopup("popup-solicitar-fertilizante");
+            formSolicitar.reset();
+            carregarFertilizantes();
+          } else {
+            showPopup("failed", res.msg || "Erro ao solicitar fertilizante.");
+          }
+        })
+        .catch(err => {
+          showPopup("failed", "Falha: " + err);
+        });
+    });
+  }
 });
 
-// === Função padrão de popup ===
+// === Abrir/Fechar popup ===
+function abrirPopup(id) {
+  const overlay = document.getElementById("popup-overlay");
+  const popup = document.getElementById(id);
+  overlay?.classList.remove("d-none");
+  popup?.classList.remove("d-none");
+}
+
+function fecharPopup(id) {
+  const overlay = document.getElementById("popup-overlay");
+  const popup = document.getElementById(id);
+  overlay?.classList.add("d-none");
+  popup?.classList.add("d-none");
+}
+
+// === Popups padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  // Esconde todos os popups antes
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-
-  if (overlay) overlay.classList.remove("d-none");
+  overlay?.classList.remove("d-none");
 
   if (tipo === "success") {
-    if (popupSuccess) {
-      popupSuccess.classList.remove("d-none");
-      popupSuccess.querySelector(".popup-title").textContent = mensagem;
-    }
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess?.querySelector(".popup-title").textContent = mensagem;
   } else {
-    if (popupFailed) {
-      popupFailed.classList.remove("d-none");
-      popupFailed.querySelector(".popup-text").textContent = mensagem;
-    }
+    popupFailed?.classList.remove("d-none");
+    popupFailed?.querySelector(".popup-text").textContent = mensagem;
   }
 
-  // Fecha popup automaticamente após 4s
   setTimeout(() => {
-    if (overlay) overlay.classList.add("d-none");
+    overlay?.classList.add("d-none");
     popupSuccess?.classList.add("d-none");
     popupFailed?.classList.add("d-none");
   }, 4000);
 }
-// Carregar fertilizantes
-function carregarFertilizantes() {
-  fetch("../funcoes/buscar_fertilizantes.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("fertilizante");
-      sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar fertilizantes:", err));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  carregarFertilizantes();
-});

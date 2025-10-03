@@ -4,8 +4,6 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 header('Content-Type: application/json');
 
 session_start();
-
-// Identifica usuário
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
   $payload = verify_jwt();
@@ -20,24 +18,16 @@ if ($nome === '') {
   exit;
 }
 
-// Verifica duplicado em solicitacoes pendentes
-$stmt = $mysqli->prepare("SELECT id FROM solicitacoes WHERE tipo = 'fertilizante' AND descricao = ? AND status = 'pendente' LIMIT 1");
-$stmt->bind_param("s", $nome);
-$stmt->execute();
-$res = $stmt->get_result();
-if ($res && $res->num_rows > 0) {
-  echo json_encode(['ok' => false, 'msg' => 'Esse fertilizante já foi solicitado e aguarda aprovação.']);
-  exit;
-}
-$stmt->close();
+try {
+  $stmt = $mysqli->prepare("INSERT INTO fertilizantes (nome, status) VALUES (?, 'pendente')");
+  $stmt->bind_param("s", $nome);
+  $stmt->execute();
+  $stmt->close();
 
-// Insere solicitação
-$stmt = $mysqli->prepare("INSERT INTO solicitacoes (user_id, tipo, descricao, observacao, status) VALUES (?, 'fertilizante', ?, ?, 'pendente')");
-$stmt->bind_param("iss", $user_id, $nome, $obs);
+  // opcional: registrar observação em outra tabela ou log
+  // opcional: notificar admin por email
 
-if ($stmt->execute()) {
-  echo json_encode(['ok' => true, 'msg' => 'Solicitação registrada. Você receberá retorno após avaliação.']);
-} else {
-  echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar solicitação.']);
+  echo json_encode(['ok' => true, 'msg' => 'Solicitação enviada com sucesso.']);
+} catch (Exception $e) {
+  echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar solicitação: ' . $e->getMessage()]);
 }
-$stmt->close();
