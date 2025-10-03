@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Carregar ÁREAS
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   carregarAreas();
 
-  // Botão adicionar área
+  // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
   if (btnAddArea) {
     btnAddArea.addEventListener("click", () => {
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Carregar INSETICIDAS
+  // === Carregar inseticidas ===
   fetch("../funcoes/buscar_inseticidas.php")
     .then(r => r.json())
     .then(data => {
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Erro ao carregar inseticidas:", err));
 
-  // Submit formulário
+  // === Submit do formulário principal ===
   const form = document.getElementById("form-inseticida");
   if (form) {
     form.addEventListener("submit", e => {
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Formulário de solicitação de inseticida
+  // === Envio do formulário de solicitação de inseticida ===
   const formSolicitarInseticida = document.getElementById("form-solicitar-inseticida");
   if (formSolicitarInseticida) {
     formSolicitarInseticida.addEventListener("submit", e => {
@@ -96,10 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Solicitação enviada com sucesso!");
+            // Mostra popup de sucesso
+            showPopup("success", res.msg || "✅ Solicitação enviada com sucesso! Aguarde retorno por e-mail.");
             formSolicitarInseticida.reset();
+
+            // fecha apenas o popup de solicitação (não fecha overlay, para o sucesso aparecer)
             document.getElementById("popup-solicitar-inseticida").classList.add("d-none");
-            document.getElementById("popup-overlay").classList.add("d-none");
+
           } else {
             showPopup("failed", res.msg || "Erro ao salvar solicitação.");
           }
@@ -111,11 +114,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Função de popup
+// === Função padrão de popup ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
+
+  // esconde todos antes
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
 
   overlay.classList.remove("d-none");
 
@@ -127,6 +133,7 @@ function showPopup(tipo, mensagem) {
     popupFailed.querySelector(".popup-text").textContent = mensagem;
   }
 
+  // fecha automaticamente depois de 4s
   setTimeout(() => {
     overlay.classList.add("d-none");
     popupSuccess?.classList.add("d-none");
@@ -134,7 +141,7 @@ function showPopup(tipo, mensagem) {
   }, 4000);
 }
 
-// Abrir popup de solicitação
+// === Função para abrir popups (como o de solicitar inseticida) ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
