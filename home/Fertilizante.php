@@ -8,6 +8,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aplicação de Fertilizante - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .linha {
+      display: flex;
+      align-items: center; /* centraliza verticalmente */
+      gap: 10px;           /* espaço entre select e botão */
+    }
+
+    #lista-areas {
+      flex: 1; /* ocupa todo o espaço da linha */
+    }
+
+    #lista-areas .form-box-area {
+      margin-bottom: 5px; /* espaço entre selects empilhados */
+    }
+
+  </style>  
 </head>
 <body>
   <?php include '../include/loading.php'; ?> 
@@ -28,16 +44,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </div>
 
         <div class="form-campo">
-          <label for="area">Área cultivada</label>
-          <div class="form-box form-box-area">
-            <select id="area" name="area" class="form-select form-text" required>
-              <option value="">Selecione a área</option>
-            </select>
-            <button class="add-btn add-area" type="button">
-              <div class="btn-icon icon-plus cor-branco"></div>
-            </button>
+          <label for="area">Áreas cultivadas</label>
+          <div id="lista-areas">
+            <div class="form-box form-box-area">
+              <select name="area[]" class="form-select form-text area-select" required>
+                <option value="">Selecione a área</option>
+              </select>
+            </div>
           </div>
+          <button class="add-btn add-area" type="button">
+            <div class="btn-icon icon-plus cor-branco"></div>
+          </button>
         </div>
+
 
         <div class="form-campo">
           <label for="fertilizante">Fertilizante</label>
