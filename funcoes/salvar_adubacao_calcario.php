@@ -1,4 +1,9 @@
 <?php
+ob_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
@@ -11,8 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // Verifica sessão / JWT
-    session_start();
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
 
@@ -22,21 +25,7 @@ try {
         exit;
     }
 
-    // Busca propriedade ativa
-    $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $res  = $stmt->get_result();
-    $prop = $res->fetch_assoc();
-    $stmt->close();
-
-    if (!$prop) {
-        echo json_encode(['ok' => false, 'err' => 'Nenhuma propriedade ativa encontrada']);
-        exit;
-    }
-    $propriedade_id = $prop['id'];
-
-    // Dados do formulário
+    // Dados básicos
     $data            = $_POST['data'] ?? null;
     $areas           = $_POST['area'] ?? [];
     $produto         = $_POST['produto'] ?? null;
@@ -47,58 +36,77 @@ try {
     $n_referencia    = $_POST['n_referencia'] ?? null;
     $obs             = $_POST['obs'] ?? null;
 
-    if (!$data || empty($areas) || !$produto || !$tipo_produto || !$quantidade) {
-        echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
+    // Buscar propriedade ativa
+    $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $prop = $res->fetch_assoc();
+    $stmt->close();
+
+    if (!$prop) {
+        echo json_encode(["ok" => false, "err" => "Nenhuma propriedade ativa encontrada"]);
         exit;
     }
+    $propriedade_id = $prop['id'];
 
-    // Inicia transação
-    $mysqli->begin_transaction();
-
-    // Inserir apontamento principal
+    // Criar apontamento principal
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, 'adubacao_calcario', ?, ?, ?, 'pendente')
+        INSERT INTO apontamentos (propriedade_id, tipo, data, status)
+        VALUES (?, 'adubacao_calcario', ?, 'pendente')
     ");
-    $stmt->bind_param("isds", $propriedade_id, $data, $quantidade, $obs);
+    $stmt->bind_param("is", $propriedade_id, $data);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // Inserir detalhes
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-
-    foreach ($areas as $area_id) {
-        $campo = 'area_id';
-        $valor = (string)(int)$area_id;
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
-    }
-
-    $detalhes = [
-        'produto'         => $produto,
-        'tipo_produto'    => $tipo_produto,
-        'prnt'            => $prnt,
-        'forma_aplicacao' => $forma_aplicacao,
-        'n_referencia'    => $n_referencia,
+    // Inserir campos principais
+    $dados = [
+        ['chave' => 'produto',         'valor' => $produto],
+        ['chave' => 'tipo_produto',    'valor' => $tipo_produto],
+        ['chave' => 'quantidade',      'valor' => $quantidade],
+        ['chave' => 'prnt',            'valor' => $prnt],
+        ['chave' => 'forma_aplicacao', 'valor' => $forma_aplicacao],
+        ['chave' => 'n_referencia',    'valor' => $n_referencia],
+        ['chave' => 'obs',             'valor' => $obs],
     ];
 
-    foreach ($detalhes as $campo => $valor) {
-        if ($valor !== null && $valor !== '') {
-            $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt = $mysqli->prepare("
+        INSERT INTO apontamentos_dados (apontamento_id, user_id, chave, valor)
+        VALUES (?, ?, ?, ?)
+    ");
+    foreach ($dados as $d) {
+        if ($d['valor'] !== null && $d['valor'] !== '') {
+            $stmt->bind_param("iiss", $apontamento_id, $user_id, $d['chave'], $d['valor']);
             $stmt->execute();
         }
     }
-
     $stmt->close();
-    $mysqli->commit();
 
-    echo json_encode(['ok' => true, 'msg' => 'Adubação registrada com sucesso!']);
-
-} catch (Exception $e) {
-    if ($mysqli->errno) {
-        $mysqli->rollback();
+    // Salvar as áreas selecionadas
+    if (!empty($areas)) {
+        $stmt = $mysqli->prepare("
+            INSERT INTO apontamentos_dados (apontamento_id, user_id, chave, valor)
+            VALUES (?, ?, 'area_id', ?)
+        ");
+        foreach ($areas as $area_id) {
+            $stmt->bind_param("iis", $apontamento_id, $user_id, $area_id);
+            $stmt->execute();
+        }
+        $stmt->close();
     }
+
+    echo json_encode([
+        "ok" => true,
+        "msg" => "Adubação registrada com sucesso!",
+        "id" => $apontamento_id
+    ]);
+
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['ok' => false, 'err' => 'db_error', 'msg' => $e->getMessage()]);
+    echo json_encode([
+        'ok' => false,
+        'err' => 'exception',
+        'msg' => $e->getMessage()
+    ]);
 }
