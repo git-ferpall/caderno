@@ -70,7 +70,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <div class="form-campo">
         <label for="produto">Produto cultivado</label>
         <div class="form-box form-box-produto">
-            <select id="produto" name="produto[]" class="form-select form-text" multiple required>
+            <select id="produto" name="produto[]" class="form-select form-text select2" multiple="multiple" required style="width: 100%;">
             <option value="">Selecione o(s) produto(s)</option>
             </select>
             <button class="add-btn add-produto" type="button">
