@@ -68,7 +68,7 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // Inserir detalhes
+    // Inserir detalhes (sem duplicar quantidade e obs)
     $stmt = $mysqli->prepare("
         INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
         VALUES (?, ?, ?)
@@ -86,11 +86,9 @@ try {
     $detalhes = [
         'produto'         => $produto,
         'tipo'            => $tipo,
-        'quantidade'      => (string)$quantidade,
         'prnt'            => (string)$prnt,
         'forma_aplicacao' => $forma_aplicacao ?? '',
-        'n_referencia'    => $n_referencia ?? '',
-        'obs'             => $obs ?? ''
+        'n_referencia'    => $n_referencia ?? ''
     ];
 
     foreach ($detalhes as $campo => $valor) {
