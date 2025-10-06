@@ -42,7 +42,10 @@ try {
     // Dados do formulário
     $data             = $_POST['data'] ?? null;
     $areas            = $_POST['area'] ?? [];
-    $produto          = $_POST['produto'] ?? null;
+    $produtos         = $_POST['produto'] ?? [];
+    if (!is_array($produtos)) {
+        $produtos = [$produtos];
+    }
     $tipo             = $_POST['tipo'] ?? null;
     $quantidade       = $_POST['quantidade'] ?? null;
     $prnt             = $_POST['prnt'] ?? null;
@@ -51,7 +54,7 @@ try {
     $obs              = $_POST['obs'] ?? null;
 
     // Validação básica
-    if (!$data || !$produto || !$tipo || !$quantidade || empty($areas)) {
+    if (!$data || !$tipo || !$quantidade || empty($areas) || empty($produtos)) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
@@ -68,7 +71,7 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // Inserir detalhes (sem duplicar quantidade e obs)
+    // Inserir detalhes
     $stmt = $mysqli->prepare("
         INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
         VALUES (?, ?, ?)
@@ -82,9 +85,16 @@ try {
         $stmt->execute();
     }
 
-    // Demais campos
+    // Produtos (múltiplos)
+    foreach ($produtos as $produto_id) {
+        $campo = "produto";
+        $valor = (string)(int)$produto_id;
+        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmt->execute();
+    }
+
+    // Demais campos (não duplicar quantidade/obs)
     $detalhes = [
-        'produto'         => $produto,
         'tipo'            => $tipo,
         'prnt'            => (string)$prnt,
         'forma_aplicacao' => $forma_aplicacao ?? '',
@@ -105,7 +115,7 @@ try {
     echo json_encode(['ok' => true, 'msg' => 'Adubação registrada com sucesso!']);
 
 } catch (Exception $e) {
-    if ($mysqli && $mysqli->errno) {
+    if (isset($mysqli)) {
         $mysqli->rollback();
     }
     http_response_code(500);
