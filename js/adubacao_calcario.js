@@ -1,4 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+  // === Função para exibir popup de feedback ===
+  function showPopup(tipo, mensagem) {
+    const overlay = document.getElementById("popup-overlay");
+    const popupSuccess = document.getElementById("popup-success");
+    const popupFailed = document.getElementById("popup-failed");
+
+    document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+    overlay.classList.remove("d-none");
+
+    if (tipo === "success") {
+      popupSuccess.classList.remove("d-none");
+      popupSuccess.querySelector(".popup-title").textContent = mensagem;
+    } else {
+      popupFailed.classList.remove("d-none");
+      popupFailed.querySelector(".popup-text").textContent = mensagem;
+    }
+
+    setTimeout(() => {
+      overlay.classList.add("d-none");
+      popupSuccess?.classList.add("d-none");
+      popupFailed?.classList.add("d-none");
+    }, 4000);
+  }
+
   // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
@@ -18,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   carregarAreas();
 
-  // === Botão adicionar área ===
+  // === Botão adicionar ÁREA ===
   const btnAddArea = document.querySelector(".add-area");
   if (btnAddArea) {
     btnAddArea.addEventListener("click", () => {
@@ -40,22 +65,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Carregar PRODUTOS CULTIVADOS ===
-  fetch("../funcoes/buscar_produtos.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("produto");
-      sel.innerHTML = '<option value="">Selecione o produto</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar produtos:", err));
+  // === Carregar PRODUTOS ===
+  function carregarProdutos() {
+    fetch("../funcoes/buscar_produtos.php")
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll(".produto-select").forEach(sel => {
+          sel.innerHTML = '<option value="">Selecione o produto</option>';
+          data.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.nome;
+            sel.appendChild(opt);
+          });
+        });
+      })
+      .catch(err => console.error("Erro ao carregar produtos:", err));
+  }
+  carregarProdutos();
 
-  // === Submit do formulário principal ===
+  // === Botão adicionar PRODUTO ===
+  const btnAddProduto = document.querySelector(".add-produto");
+  if (btnAddProduto) {
+    btnAddProduto.addEventListener("click", () => {
+      const lista = document.getElementById("lista-produtos");
+      const original = lista.querySelector("select");
+      if (!original) return;
+
+      const novo = original.cloneNode(true);
+      novo.value = "";
+      novo.name = "produto[]";
+      novo.classList.add("produto-select");
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "form-box form-box-produto";
+      wrapper.appendChild(novo);
+
+      lista.appendChild(wrapper);
+      carregarProdutos();
+    });
+  }
+
+  // === Envio do formulário principal ===
   const form = document.getElementById("form-adubacao-calcario");
   if (form) {
     form.addEventListener("submit", e => {
@@ -72,44 +123,27 @@ document.addEventListener("DOMContentLoaded", () => {
           if (res.ok) {
             showPopup("success", res.msg || "Adubação registrada com sucesso!");
             form.reset();
+
+            // Recarrega selects
             carregarAreas();
+            carregarProdutos();
+
+            // Remove selects extras após salvar
+            document.querySelectorAll("#lista-areas .form-box-area:not(:first-child)").forEach(el => el.remove());
+            document.querySelectorAll("#lista-produtos .form-box-produto:not(:first-child)").forEach(el => el.remove());
           } else {
             showPopup("failed", res.err || "Erro ao salvar adubação.");
           }
         })
         .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
+          console.error(err);
+          showPopup("failed", "Falha na comunicação com o servidor.");
         });
     });
   }
 });
 
-// === Função padrão de popup ===
-function showPopup(tipo, mensagem) {
-  const overlay = document.getElementById("popup-overlay");
-  const popupSuccess = document.getElementById("popup-success");
-  const popupFailed = document.getElementById("popup-failed");
-
-  // Esconde todos
-  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-  overlay.classList.remove("d-none");
-
-  if (tipo === "success") {
-    popupSuccess.classList.remove("d-none");
-    popupSuccess.querySelector(".popup-title").textContent = mensagem;
-  } else {
-    popupFailed.classList.remove("d-none");
-    popupFailed.querySelector(".popup-text").textContent = mensagem;
-  }
-
-  setTimeout(() => {
-    overlay.classList.add("d-none");
-    popupSuccess?.classList.add("d-none");
-    popupFailed?.classList.add("d-none");
-  }, 4000);
-}
-
-// === Função para abrir popups (caso use em solicitações de novo produto) ===
+// === Função genérica para abrir popups ===
 function abrirPopup(id) {
   const overlay = document.getElementById("popup-overlay");
   const popup = document.getElementById(id);
