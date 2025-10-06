@@ -107,6 +107,7 @@ try {
     echo json_encode([
         'ok' => false,
         'err' => 'exception',
-        'msg' => $e->getMessage()
+        'msg' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
     ]);
 }
