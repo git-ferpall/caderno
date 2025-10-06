@@ -2,15 +2,18 @@
 /**
  * salvar_adubacao_calcario.php
  * Registra aplicação de calcário / gesso no banco.
- * Retorna JSON para o front-end.
+ * Cria o apontamento principal e detalhes vinculados.
  */
 
-ob_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
+
+// === LOG inicial para debug ===
+file_put_contents('/tmp/debug_adubacao.txt', "=== NOVA REQUISIÇÃO " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+file_put_contents('/tmp/debug_adubacao.txt', print_r($_POST, true) . "\n", FILE_APPEND);
 
 try {
     require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
@@ -79,15 +82,16 @@ try {
         ['chave' => 'obs',             'valor' => $obs],
     ];
 
+    // nome correto da tabela deve ser conferido: apontamento_detalhes ou apontamentos_dados
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos_dados (apontamento_id, user_id, chave, valor)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
+        VALUES (?, ?, ?)
     ");
-    if (!$stmt) throw new Exception("Erro preparando INSERT em apontamentos_dados: " . $mysqli->error);
+    if (!$stmt) throw new Exception("Erro preparando INSERT em apontamento_detalhes: " . $mysqli->error);
 
     foreach ($dados as $d) {
         if ($d['valor'] !== null && $d['valor'] !== '') {
-            $stmt->bind_param("iiss", $apontamento_id, $user_id, $d['chave'], $d['valor']);
+            $stmt->bind_param("iss", $apontamento_id, $d['chave'], $d['valor']);
             $stmt->execute();
         }
     }
@@ -96,17 +100,20 @@ try {
     // ==== Salvar múltiplas áreas ====
     if (!empty($areas)) {
         $stmt = $mysqli->prepare("
-            INSERT INTO apontamentos_dados (apontamento_id, user_id, chave, valor)
-            VALUES (?, ?, 'area_id', ?)
+            INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
+            VALUES (?, 'area_id', ?)
         ");
         if (!$stmt) throw new Exception("Erro preparando INSERT de áreas: " . $mysqli->error);
 
         foreach ($areas as $area_id) {
-            $stmt->bind_param("iis", $apontamento_id, $user_id, $area_id);
+            $stmt->bind_param("is", $apontamento_id, $area_id);
             $stmt->execute();
         }
         $stmt->close();
     }
+
+    // ==== Log de sucesso ====
+    file_put_contents('/tmp/debug_adubacao.txt', "SUCESSO apontamento_id={$apontamento_id}\n\n", FILE_APPEND);
 
     echo json_encode([
         "ok" => true,
@@ -115,11 +122,17 @@ try {
     ]);
 
 } catch (Throwable $e) {
+    // === Log detalhado do erro ===
+    file_put_contents(
+        '/tmp/debug_adubacao.txt',
+        "ERRO: " . $e->getMessage() . "\nTrace:\n" . $e->getTraceAsString() . "\n\n",
+        FILE_APPEND
+    );
+
     http_response_code(500);
     echo json_encode([
         "ok"    => false,
         "err"   => "exception",
-        "msg"   => $e->getMessage(),
-        "trace" => $e->getTraceAsString()
+        "msg"   => $e->getMessage()
     ]);
 }
