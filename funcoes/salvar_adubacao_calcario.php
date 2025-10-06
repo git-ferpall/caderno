@@ -12,8 +12,8 @@ error_reporting(E_ALL);
 header('Content-Type: application/json; charset=utf-8');
 
 // === LOG inicial para debug ===
-file_put_contents('/tmp/debug_adubacao.txt', "=== NOVA REQUISIÇÃO " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
-file_put_contents('/tmp/debug_adubacao.txt', print_r($_POST, true) . "\n", FILE_APPEND);
+file_put_contents('/var/www/html/funcoes/debug_adubacao.txt', "=== NOVA REQUISIÇÃO " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+file_put_contents('/var/www/html/funcoes/debug_adubacao.txt', print_r($_POST, true) . "\n", FILE_APPEND);
 
 try {
     require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
