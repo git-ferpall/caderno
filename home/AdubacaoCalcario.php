@@ -9,7 +9,21 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <title>Adubação (Calcário / Gesso) - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="icon" type="image/png" href="/img/logo-icon.png">
+  <style>
+    .linha {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #lista-areas {
+      flex: 1;
+    }
+    #lista-areas .form-box-area {
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
+
 <body>
   <?php include '../include/loading.php'; ?>
   <?php include '../include/popups.php'; ?>
@@ -31,20 +45,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <input type="date" id="data" name="data" class="form-text" required>
           </div>
 
-          <!-- Áreas Cultivadas -->
-          <div class="form-campo">
-            <label for="area">Áreas cultivadas</label>
-            <div class="form-box form-box-area">
-              <div id="lista-areas">
+        <!-- Áreas -->
+        <div class="form-campo">
+          <label>Áreas cultivadas</label>
+          <div class="linha">
+            <div id="lista-areas" class="lista-areas">
+              <div class="form-box form-box-area">
                 <select name="area[]" class="form-select form-text area-select" required>
                   <option value="">Selecione a área</option>
                 </select>
               </div>
-              <button class="add-btn add-area" type="button">
-                <div class="btn-icon icon-plus cor-branco"></div>
-              </button>
             </div>
+            <button class="add-btn add-area" type="button">
+              <div class="btn-icon icon-plus cor-branco"></div>
+            </button>
           </div>
+        </div>
 
           <!-- Produto Cultivado -->
           <div class="form-campo">
