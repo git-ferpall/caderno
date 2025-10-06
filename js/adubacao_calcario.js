@@ -1,34 +1,46 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   // === Carregar ÁREAS ===
-  fetch("../funcoes/buscar_areas.php")
-    .then(r => r.json())
-    .then(data => {
-      function populaSelect(select) {
-        select.innerHTML = '<option value="">Selecione a área</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = `${item.nome} (${item.tipo})`;
-          select.appendChild(opt);
+  function carregarAreas() {
+    fetch("../funcoes/buscar_areas.php")
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll(".area-select").forEach(sel => {
+          sel.innerHTML = '<option value="">Selecione a área</option>';
+          data.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = `${item.nome} (${item.tipo})`;
+            sel.appendChild(opt);
+          });
         });
-      }
+      })
+      .catch(err => console.error("Erro ao carregar áreas:", err));
+  }
+  carregarAreas();
 
-      document.querySelectorAll(".area-select").forEach(populaSelect);
+  // === Botão adicionar área ===
+  const btnAddArea = document.querySelector(".add-area");
+  if (btnAddArea) {
+    btnAddArea.addEventListener("click", () => {
+      const lista = document.getElementById("lista-areas");
+      const original = lista.querySelector("select");
+      if (!original) return;
 
-      // Botão +
-      document.querySelector(".add-area").addEventListener("click", () => {
-        const lista = document.getElementById("lista-areas");
-        const sel = document.createElement("select");
-        sel.name = "area[]";
-        sel.className = "form-select form-text area-select";
-        populaSelect(sel);
-        lista.appendChild(sel);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar áreas:", err));
+      const novo = original.cloneNode(true);
+      novo.value = "";
+      novo.name = "area[]";
+      novo.classList.add("area-select");
 
-  // === Carregar PRODUTOS ===
+      const wrapper = document.createElement("div");
+      wrapper.className = "form-box form-box-area";
+      wrapper.appendChild(novo);
+
+      lista.appendChild(wrapper);
+      carregarAreas();
+    });
+  }
+
+  // === Carregar PRODUTOS CULTIVADOS ===
   fetch("../funcoes/buscar_produtos.php")
     .then(r => r.json())
     .then(data => {
@@ -43,37 +55,42 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Erro ao carregar produtos:", err));
 
-  // === Envio do formulário ===
+  // === Submit do formulário principal ===
   const form = document.getElementById("form-adubacao-calcario");
-  form.addEventListener("submit", e => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener("submit", e => {
+      e.preventDefault();
 
-    const dados = new FormData(form);
+      const dados = new FormData(form);
 
-    fetch("../funcoes/salvar_adubacao_calcario.php", {
-      method: "POST",
-      body: dados
-    })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
-          showPopup("success", res.msg || "Apontamento de adubação salvo com sucesso!");
-          form.reset();
-        } else {
-          showPopup("failed", res.err || "Erro ao salvar o apontamento.");
-        }
+      fetch("../funcoes/salvar_adubacao_calcario.php", {
+        method: "POST",
+        body: dados
       })
-      .catch(err => {
-        showPopup("failed", "Falha na comunicação: " + err);
-      });
-  });
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            showPopup("success", res.msg || "Adubação registrada com sucesso!");
+            form.reset();
+            carregarAreas();
+          } else {
+            showPopup("failed", res.err || "Erro ao salvar adubação.");
+          }
+        })
+        .catch(err => {
+          showPopup("failed", "Falha na comunicação: " + err);
+        });
+    });
+  }
 });
 
-// Função popup padrão
+// === Função padrão de popup ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
+
+  // Esconde todos
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
   overlay.classList.remove("d-none");
 
@@ -90,4 +107,14 @@ function showPopup(tipo, mensagem) {
     popupSuccess?.classList.add("d-none");
     popupFailed?.classList.add("d-none");
   }, 4000);
+}
+
+// === Função para abrir popups (caso use em solicitações de novo produto) ===
+function abrirPopup(id) {
+  const overlay = document.getElementById("popup-overlay");
+  const popup = document.getElementById(id);
+  if (overlay && popup) {
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+  }
 }
