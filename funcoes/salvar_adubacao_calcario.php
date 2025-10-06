@@ -1,50 +1,31 @@
 <?php
-/**
- * salvar_adubacao_calcario.php
- * Registra aplicação de calcário / gesso no banco.
- * Cria o apontamento principal e detalhes vinculados.
- */
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// === LOG inicial para debug ===
-file_put_contents('/var/www/html/funcoes/debug_adubacao.txt', "=== NOVA REQUISIÇÃO " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
-file_put_contents('/var/www/html/funcoes/debug_adubacao.txt', print_r($_POST, true) . "\n", FILE_APPEND);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
+    exit;
+}
 
 try {
-    require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-    require_once __DIR__ . '/../sso/verify_jwt.php';
+    session_start();
 
-    // ==== Verificação JWT / Sessão ====
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
-
+    // Identifica usuário
+    $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
-        throw new Exception("Usuário não autenticado (user_id vazio)");
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
+    }
+    if (!$user_id) {
+        echo json_encode(['ok' => false, 'err' => 'unauthorized']);
+        exit;
     }
 
-    // ==== Dados recebidos via POST ====
-    $data            = $_POST['data'] ?? null;
-    $areas           = $_POST['area'] ?? [];
-    $produto         = $_POST['produto'] ?? null;
-    $tipo_produto    = $_POST['tipo'] ?? null;
-    $quantidade      = $_POST['quantidade'] ?? null;
-    $prnt            = $_POST['prnt'] ?? null;
-    $forma_aplicacao = $_POST['forma_aplicacao'] ?? null;
-    $n_referencia    = $_POST['n_referencia'] ?? null;
-    $obs             = $_POST['obs'] ?? null;
-
-    if (!$data || !$produto || !$tipo_produto || !$quantidade) {
-        throw new Exception("Campos obrigatórios ausentes");
-    }
-
-    // ==== Buscar propriedade ativa ====
+    // Busca propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
-    if (!$stmt) throw new Exception("Erro preparando consulta propriedades: " . $mysqli->error);
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -52,87 +33,78 @@ try {
     $stmt->close();
 
     if (!$prop) {
-        throw new Exception("Nenhuma propriedade ativa encontrada");
+        echo json_encode(['ok' => false, 'err' => 'no_active_property']);
+        exit;
     }
+
     $propriedade_id = $prop['id'];
 
-    // ==== Criar apontamento principal ====
+    // Dados do formulário
+    $data             = $_POST['data'] ?? null;
+    $areas            = $_POST['area'] ?? [];
+    $produto          = $_POST['produto'] ?? null;
+    $tipo             = $_POST['tipo'] ?? null;
+    $quantidade       = $_POST['quantidade'] ?? null;
+    $prnt             = $_POST['prnt'] ?? null;
+    $forma_aplicacao  = $_POST['forma_aplicacao'] ?? null;
+    $n_referencia     = $_POST['n_referencia'] ?? null;
+    $obs              = $_POST['obs'] ?? null;
+
+    if (!$data || !$produto || !$tipo || !$quantidade || empty($areas)) {
+        throw new Exception("Campos obrigatórios ausentes");
+    }
+
+    // Inicia transação
+    $mysqli->begin_transaction();
+
+    // Inserir apontamento principal
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, status)
-        VALUES (?, 'adubacao_calcario', ?, 'pendente')
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        VALUES (?, 'adubacao_calcario', ?, ?, ?, 'pendente')
     ");
-    if (!$stmt) throw new Exception("Erro preparando INSERT em apontamentos: " . $mysqli->error);
-    $stmt->bind_param("is", $propriedade_id, $data);
+    $stmt->bind_param("isss", $propriedade_id, $data, $quantidade, $obs);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    if (!$apontamento_id) {
-        throw new Exception("Falha ao criar registro em apontamentos");
+    // Inserir detalhes do apontamento
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+
+    // Áreas
+    foreach ($areas as $area_id) {
+        $campo = "area_id";
+        $valor = (string)(int)$area_id;
+        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmt->execute();
     }
 
-    // ==== Inserir dados detalhados ====
-    $dados = [
-        ['chave' => 'produto',         'valor' => $produto],
-        ['chave' => 'tipo_produto',    'valor' => $tipo_produto],
-        ['chave' => 'quantidade',      'valor' => $quantidade],
-        ['chave' => 'prnt',            'valor' => $prnt],
-        ['chave' => 'forma_aplicacao', 'valor' => $forma_aplicacao],
-        ['chave' => 'n_referencia',    'valor' => $n_referencia],
-        ['chave' => 'obs',             'valor' => $obs],
+    // Demais detalhes
+    $detalhes = [
+        'produto'         => $produto,
+        'tipo'            => $tipo,
+        'quantidade'      => $quantidade,
+        'prnt'            => $prnt,
+        'forma_aplicacao' => $forma_aplicacao,
+        'n_referencia'    => $n_referencia,
+        'obs'             => $obs
     ];
 
-    // nome correto da tabela deve ser conferido: apontamento_detalhes ou apontamentos_dados
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, ?, ?)
-    ");
-    if (!$stmt) throw new Exception("Erro preparando INSERT em apontamento_detalhes: " . $mysqli->error);
-
-    foreach ($dados as $d) {
-        if ($d['valor'] !== null && $d['valor'] !== '') {
-            $stmt->bind_param("iss", $apontamento_id, $d['chave'], $d['valor']);
+    foreach ($detalhes as $campo => $valor) {
+        if ($valor !== null && $valor !== '') {
+            $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
             $stmt->execute();
         }
     }
+
     $stmt->close();
+    $mysqli->commit();
 
-    // ==== Salvar múltiplas áreas ====
-    if (!empty($areas)) {
-        $stmt = $mysqli->prepare("
-            INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-            VALUES (?, 'area_id', ?)
-        ");
-        if (!$stmt) throw new Exception("Erro preparando INSERT de áreas: " . $mysqli->error);
+    echo json_encode(['ok' => true, 'msg' => 'Adubação registrada com sucesso!']);
 
-        foreach ($areas as $area_id) {
-            $stmt->bind_param("is", $apontamento_id, $area_id);
-            $stmt->execute();
-        }
-        $stmt->close();
+} catch (Exception $e) {
+    if ($mysqli->errno) {
+        $mysqli->rollback();
     }
-
-    // ==== Log de sucesso ====
-    file_put_contents('/tmp/debug_adubacao.txt', "SUCESSO apontamento_id={$apontamento_id}\n\n", FILE_APPEND);
-
-    echo json_encode([
-        "ok" => true,
-        "msg" => "Adubação registrada com sucesso!",
-        "id"  => $apontamento_id
-    ]);
-
-} catch (Throwable $e) {
-    // === Log detalhado do erro ===
-    file_put_contents(
-        '/tmp/debug_adubacao.txt',
-        "ERRO: " . $e->getMessage() . "\nTrace:\n" . $e->getTraceAsString() . "\n\n",
-        FILE_APPEND
-    );
-
     http_response_code(500);
-    echo json_encode([
-        "ok"    => false,
-        "err"   => "exception",
-        "msg"   => $e->getMessage()
-    ]);
+    echo json_encode(['ok' => false, 'err' => 'exception', 'msg' => $e->getMessage()]);
 }
