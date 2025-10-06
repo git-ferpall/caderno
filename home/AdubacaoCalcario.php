@@ -64,11 +64,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <!-- Produto Cultivado -->
           <div class="form-campo">
-            <label for="produto">Produto cultivado</label>
-            <div class="form-box form-box-produto">
-              <select id="produto" name="produto" class="form-select form-text" required>
-                <option value="">Selecione o produto</option>
-              </select>
+            <label>Produtos cultivados</label>
+            <div class="linha">
+              <div id="lista-produtos" class="lista-produtos">
+                <div class="form-box form-box-produto">
+                  <select name="produto[]" class="form-select form-text produto-select" required>
+                    <option value="">Selecione o produto</option>
+                  </select>
+                </div>
+              </div>
               <button class="add-btn add-produto" type="button">
                 <div class="btn-icon icon-plus cor-branco"></div>
               </button>
