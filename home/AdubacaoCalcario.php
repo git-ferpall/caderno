@@ -10,18 +10,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <link rel="stylesheet" href="../css/style.css">
   <link rel="icon" type="image/png" href="/img/logo-icon.png">
   <style>
-    .linha {
+      .linha {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      align-items: center; /* centraliza verticalmente */
+      gap: 10px;           /* espaço entre select e botão */
     }
-    #lista-areas {
-      flex: 1;
+
+    .lista-areas,
+    .lista-produtos {
+      flex: 1; /* ocupa todo o espaço da linha */
     }
-    #lista-areas .form-box-area {
-      margin-bottom: 5px;
+
+    .lista-areas .form-box-area,
+    .lista-produtos .form-box-produto {
+      margin-bottom: 5px; /* espaço entre selects empilhados */
     }
-  </style>
+</style>  
 </head>
 
 <body>
