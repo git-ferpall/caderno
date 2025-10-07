@@ -1,6 +1,56 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === Carregar áreas ===
+  const form = document.getElementById("form-moscas");
+  const qtdMoscas = document.getElementById("qtd_moscas");
+
+  // === Aviso e ícone de status conforme quantidade ===
+  if (qtdMoscas) {
+    // Cria contêiner flexível para input + ícone
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "center";
+
+    // Move input para dentro do wrapper
+    qtdMoscas.parentElement.insertBefore(wrapper, qtdMoscas);
+    wrapper.appendChild(qtdMoscas);
+
+    // Ícone à direita
+    const icon = document.createElement("span");
+    icon.style.position = "absolute";
+    icon.style.right = "10px";
+    icon.style.fontSize = "1.1em";
+    icon.style.pointerEvents = "none";
+    wrapper.appendChild(icon);
+
+    // Mensagem abaixo
+    const avisoQtd = document.createElement("small");
+    avisoQtd.style.display = "block";
+    avisoQtd.style.marginTop = "4px";
+    avisoQtd.style.fontSize = "0.9em";
+    qtdMoscas.parentElement.appendChild(avisoQtd);
+
+    const atualizarAviso = () => {
+      const valor = qtdMoscas.value.trim();
+
+      if (valor === "" || parseFloat(valor) === 0) {
+        avisoQtd.textContent = "⚠ Para deixar o apontamento PENDENTE, mantenha este campo vazio ou zero.";
+        avisoQtd.style.color = "orange";
+        icon.textContent = "⚠️";
+        icon.style.color = "orange";
+      } else {
+        avisoQtd.textContent = "✔ Com quantidade informada, o status será CONCLUÍDO.";
+        avisoQtd.style.color = "green";
+        icon.textContent = "✔️";
+        icon.style.color = "green";
+      }
+    };
+
+    atualizarAviso();
+    qtdMoscas.addEventListener("input", atualizarAviso);
+  }
+
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
@@ -17,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // === Carregar produtos ===
+  // === Carregar PRODUTOS ===
   function carregarProdutos() {
     fetch("../funcoes/buscar_produtos.php")
       .then(r => r.json())
@@ -37,76 +87,91 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarAreas();
   carregarProdutos();
 
-  // Adicionar área
+  // === Botão adicionar área ===
   document.querySelector(".add-area").addEventListener("click", () => {
     const lista = document.getElementById("lista-areas");
     const original = lista.querySelector("select");
     const novo = original.cloneNode(true);
     novo.value = "";
-    const wrap = document.createElement("div");
-    wrap.className = "form-box form-box-area";
-    wrap.appendChild(novo);
-    lista.appendChild(wrap);
+    novo.removeAttribute("id");
+    novo.name = "area[]";
+    novo.classList.add("area-select");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-box form-box-area";
+    wrapper.appendChild(novo);
+    lista.appendChild(wrapper);
     carregarAreas();
   });
 
-  // Adicionar produto
+  // === Botão adicionar produto ===
   document.querySelector(".add-produto").addEventListener("click", () => {
     const lista = document.getElementById("lista-produtos");
     const original = lista.querySelector("select");
     const novo = original.cloneNode(true);
     novo.value = "";
-    const wrap = document.createElement("div");
-    wrap.className = "form-box form-box-produto";
-    wrap.appendChild(novo);
-    lista.appendChild(wrap);
+    novo.removeAttribute("id");
+    novo.name = "produto[]";
+    novo.classList.add("produto-select");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-box form-box-produto";
+    wrapper.appendChild(novo);
+    lista.appendChild(wrapper);
     carregarProdutos();
   });
 
   // === Envio do formulário ===
-  const form = document.getElementById("form-moscas");
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const dados = new FormData(form);
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
 
-    fetch("../funcoes/salvar_moscas_frutas.php", {
-      method: "POST",
-      body: dados
-    })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
-          showPopup("success", res.msg || "Registro salvo com sucesso!");
+      try {
+        const resp = await fetch("../funcoes/salvar_moscas_frutas.php", {
+          method: "POST",
+          body: formData
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          showPopup("sucesso", data.msg);
           form.reset();
+          carregarAreas();
+          carregarProdutos();
         } else {
-          showPopup("failed", res.msg || "Erro ao salvar registro.");
+          showPopup("erro", data.msg);
         }
-      })
-      .catch(err => {
-        showPopup("failed", "Falha na comunicação: " + err);
-      });
-  });
+      } catch (err) {
+        showPopup("erro", "Erro inesperado ao salvar apontamento.");
+      }
+    });
+  }
 });
 
-// === Popups padrão ===
-function showPopup(tipo, msg) {
+// === Função de popup padrão ===
+function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
-  const success = document.getElementById("popup-success");
-  const failed = document.getElementById("popup-failed");
-  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-  overlay.classList.remove("d-none");
+  const popupSuccess = document.getElementById("popup-success");
+  const popupFailed = document.getElementById("popup-failed");
 
-  if (tipo === "success") {
-    success.classList.remove("d-none");
-    success.querySelector(".popup-title").textContent = msg;
+  let popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+
+  if (overlay && popup) {
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+
+    const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
+    if (msgBox) msgBox.textContent = mensagem;
+
+    const btnOk = popup.querySelector(".popup-btn");
+    if (btnOk) {
+      btnOk.onclick = () => {
+        overlay.classList.add("d-none");
+        popup.classList.add("d-none");
+      };
+    }
   } else {
-    failed.classList.remove("d-none");
-    failed.querySelector(".popup-text").textContent = msg;
+    alert(mensagem);
   }
-
-  setTimeout(() => {
-    overlay.classList.add("d-none");
-    success.classList.add("d-none");
-    failed.classList.add("d-none");
-  }, 4000);
 }

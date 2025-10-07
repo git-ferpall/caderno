@@ -49,14 +49,15 @@ try {
     $mysqli->begin_transaction();
 
     // === Inserção principal ===
+    // Se moscas foram capturadas, define status como 'concluido'
+    $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
+
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, 'moscas_frutas', ?, ?, ?, 'pendente')
+        VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $qtd_moscas, $obs);
-    $stmt->execute();
-    $apontamento_id = $stmt->insert_id;
-    $stmt->close();
+    $stmt->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+
 
     // === Detalhes ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
