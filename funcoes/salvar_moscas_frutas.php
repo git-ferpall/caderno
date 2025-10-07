@@ -21,8 +21,8 @@ try {
     }
     if (!$user_id) throw new Exception("Usuário não autenticado");
 
-    // Log inicial
-    file_put_contents("/tmp/debug_moscas.txt", "=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
+    // === Log inicial ===
+    file_put_contents("/tmp/debug_moscas.txt", "\n=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
     file_put_contents("/tmp/debug_moscas.txt", print_r($_POST, true), FILE_APPEND);
 
     // === Buscar propriedade ativa ===
@@ -78,13 +78,15 @@ try {
 
     file_put_contents("/tmp/debug_moscas.txt", "Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
 
-    // === Inserir detalhes ===
+    // === Inserir detalhes (com log detalhado) ===
     $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    if (!$stmtDet) throw new Exception("Erro ao preparar stmtDet: " . $mysqli->error);
 
     // Áreas
     foreach ($areas as $a) {
         $campo = "area_id";
         $valor = (string)$a;
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo área $valor...\n", FILE_APPEND);
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
         if (!$stmtDet->execute()) throw new Exception("Erro ao inserir área: " . $stmtDet->error);
     }
@@ -93,6 +95,7 @@ try {
     foreach ($produtos as $p) {
         $campo = "produto";
         $valor = (string)$p;
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo produto $valor...\n", FILE_APPEND);
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
         if (!$stmtDet->execute()) throw new Exception("Erro ao inserir produto: " . $stmtDet->error);
     }
@@ -105,13 +108,16 @@ try {
     ];
 
     foreach ($detalhes as $campo => $valor) {
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo detalhe $campo=$valor...\n", FILE_APPEND);
         $stmtDet->bind_param("iss", $apontamento_id, $campo, (string)$valor);
         if (!$stmtDet->execute()) throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
     }
 
     $stmtDet->close();
+
     $mysqli->commit();
 
+    file_put_contents("/tmp/debug_moscas.txt", "Todos os detalhes inseridos com sucesso.\n", FILE_APPEND);
     file_put_contents("/tmp/debug_moscas.txt", "Concluído com sucesso.\n", FILE_APPEND);
 
     echo json_encode(['ok' => true, 'msg' => 'Apontamento de Moscas das Frutas salvo com sucesso!']);
