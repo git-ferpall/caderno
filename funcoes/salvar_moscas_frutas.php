@@ -4,6 +4,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Só aceita POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
@@ -24,7 +25,7 @@ try {
     file_put_contents("/tmp/debug_moscas.txt", "=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
     file_put_contents("/tmp/debug_moscas.txt", print_r($_POST, true), FILE_APPEND);
 
-    // Propriedade ativa
+    // === Buscar propriedade ativa ===
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -35,35 +36,40 @@ try {
     if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
     $propriedade_id = $prop['id'];
 
-    // Dados recebidos
+    // === Dados recebidos ===
     $data           = $_POST['data'] ?? null;
     $areas          = $_POST['area'] ?? [];
     $produtos       = $_POST['produto'] ?? [];
     $armadilha      = $_POST['armadilha'] ?? null;
     $atrativo       = $_POST['atrativo'] ?? null;
     $qtd_armadilhas = $_POST['qtd_armadilhas'] ?? null;
-    $qtd_moscas     = $_POST['qtd_moscas'] ?? null;
+    $qtd_moscas_raw = $_POST['qtd_moscas'] ?? null;
     $obs            = $_POST['obs'] ?? null;
+
+    // Converter qtd_moscas corretamente (NULL se vazio)
+    $qtd_moscas = (is_numeric($qtd_moscas_raw) && $qtd_moscas_raw !== '') ? (float)$qtd_moscas_raw : null;
 
     if (!is_array($areas)) $areas = [$areas];
     if (!is_array($produtos)) $produtos = [$produtos];
 
-    // Validação básica
+    // === Validação básica ===
     if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo || !$qtd_armadilhas) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
+    // === Transação ===
     $mysqli->begin_transaction();
 
-    // Status automático
+    // Status: se houver moscas → concluído, senão → pendente
     $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
 
-    // === Inserção principal ===
+    // === Inserir apontamento principal ===
     $stmtMain = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-    $stmtMain->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+    $stmtMain->bind_param("isdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+
     if (!$stmtMain->execute()) {
         throw new Exception("Falha ao inserir apontamento principal: " . $stmtMain->error);
     }
@@ -72,7 +78,7 @@ try {
 
     file_put_contents("/tmp/debug_moscas.txt", "Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
 
-    // === Inserção dos detalhes ===
+    // === Inserir detalhes ===
     $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
     // Áreas
@@ -80,9 +86,7 @@ try {
         $campo = "area_id";
         $valor = (string)$a;
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
-        if (!$stmtDet->execute()) {
-            throw new Exception("Erro ao inserir área: " . $stmtDet->error);
-        }
+        if (!$stmtDet->execute()) throw new Exception("Erro ao inserir área: " . $stmtDet->error);
     }
 
     // Produtos
@@ -90,9 +94,7 @@ try {
         $campo = "produto";
         $valor = (string)$p;
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
-        if (!$stmtDet->execute()) {
-            throw new Exception("Erro ao inserir produto: " . $stmtDet->error);
-        }
+        if (!$stmtDet->execute()) throw new Exception("Erro ao inserir produto: " . $stmtDet->error);
     }
 
     // Outros detalhes
@@ -104,9 +106,7 @@ try {
 
     foreach ($detalhes as $campo => $valor) {
         $stmtDet->bind_param("iss", $apontamento_id, $campo, (string)$valor);
-        if (!$stmtDet->execute()) {
-            throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
-        }
+        if (!$stmtDet->execute()) throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
     }
 
     $stmtDet->close();
