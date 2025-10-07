@@ -68,7 +68,8 @@ try {
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-    $stmtMain->bind_param("isdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+    $stmtMain->bind_param("issdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+
 
     if (!$stmtMain->execute()) {
         throw new Exception("Falha ao inserir apontamento principal: " . $stmtMain->error);
