@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const form = document.getElementById("form-moscas");
   const qtdMoscas = document.getElementById("qtd_moscas");
+
   // === Aviso e ícone de status conforme quantidade ===
   if (qtdMoscas) {
     // Cria o container para aviso (abaixo do campo)
@@ -35,9 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-  atualizarAviso();
-  qtdMoscas.addEventListener("input", atualizarAviso);
-}
     atualizarAviso();
     qtdMoscas.addEventListener("input", atualizarAviso);
   }
