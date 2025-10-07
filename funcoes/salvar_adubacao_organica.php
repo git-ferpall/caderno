@@ -4,38 +4,28 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-try {
-    // === Debug opcional ===
-    $logFile = '/tmp/debug_adubacao_organica.txt';
-    file_put_contents($logFile, "=== NOVA REQUISIÇÃO " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
-    file_put_contents($logFile, print_r($_POST, true), FILE_APPEND);
+// Apenas POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
+    exit;
+}
 
-    // === Valida usuário (JWT ou sessão) ===
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+try {
+    session_start();
+
+    // Identifica usuário autenticado
+    $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
-        http_response_code(401);
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
+    }
+    if (!$user_id) {
         echo json_encode(['ok' => false, 'err' => 'unauthorized']);
         exit;
     }
 
-    // === Campos obrigatórios ===
-    $data = $_POST['data'] ?? null;
-    $areas = $_POST['area'] ?? [];
-    $produtos = $_POST['produto'] ?? [];
-    $tipo = trim($_POST['tipo'] ?? '');
-    $quantidade = trim($_POST['quantidade'] ?? '');
-    $forma_aplicacao = $_POST['forma_aplicacao'] ?? '';
-    $n_referencia = trim($_POST['n_referencia'] ?? '');
-    $obs = trim($_POST['obs'] ?? '');
-
-    if (!$data || empty($areas) || empty($produtos) || !$tipo || !$quantidade) {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'err' => 'missing_fields']);
-        exit;
-    }
-
-    // === Buscar propriedade ativa ===
+    // Busca propriedade ativa do usuário
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -44,61 +34,92 @@ try {
     $stmt->close();
 
     if (!$prop) {
-        echo json_encode(['ok' => false, 'err' => 'no_property']);
+        echo json_encode(['ok' => false, 'err' => 'no_active_property']);
         exit;
     }
-
     $propriedade_id = $prop['id'];
 
-    // === Inserir registro em apontamentos ===
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (user_id, propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, ?, 'adubacao_organica', ?, ?, ?, 'registro')
-    ");
-    $stmt->bind_param("iisss", $user_id, $propriedade_id, $data, $quantidade, $obs);
-
-    if (!$stmt->execute()) {
-        throw new Exception("Erro ao salvar apontamento: " . $stmt->error);
+    // Dados do formulário
+    $data             = $_POST['data'] ?? null;
+    $areas            = $_POST['area'] ?? [];
+    $produtos         = $_POST['produto'] ?? [];
+    if (!is_array($produtos)) {
+        $produtos = [$produtos];
     }
+    $tipo             = $_POST['tipo'] ?? null;
+    $quantidade       = $_POST['quantidade'] ?? null;
+    $forma_aplicacao  = $_POST['forma_aplicacao'] ?? null;
+    $n_referencia     = $_POST['n_referencia'] ?? null;
+    $obs              = $_POST['obs'] ?? null;
+
+    // Validação básica
+    if (!$data || !$tipo || !$quantidade || empty($areas) || empty($produtos)) {
+        throw new Exception("Campos obrigatórios ausentes");
+    }
+
+    // Inicia transação
+    $mysqli->begin_transaction();
+
+    // Inserir registro principal
+    $stmt = $mysqli->prepare("
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        VALUES (?, 'adubacao_organica', ?, ?, ?, 'pendente')
+    ");
+    $stmt->bind_param("isss", $propriedade_id, $data, $quantidade, $obs);
+    $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // === Função helper ===
-    function salva_detalhe($apontamento_id, $campo, $valor) {
-        global $mysqli;
-        if ($valor === '' || $valor === null) return;
-        $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    // Inserir detalhes
+    $stmt = $mysqli->prepare("
+        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
+        VALUES (?, ?, ?)
+    ");
+
+    // Áreas
+    foreach ($areas as $area_id) {
+        $campo = "area_id";
+        $valor = (string)(int)$area_id;
         $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
         $stmt->execute();
-        $stmt->close();
     }
 
-    // === Salvar múltiplas áreas ===
-    foreach ($areas as $area_id) {
-        salva_detalhe($apontamento_id, 'area_id', $area_id);
-    }
-
-    // === Salvar múltiplos produtos ===
+    // Produtos (múltiplos)
     foreach ($produtos as $produto_id) {
-        salva_detalhe($apontamento_id, 'produto', $produto_id);
+        $campo = "produto";
+        $valor = (string)(int)$produto_id;
+        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmt->execute();
     }
 
-    // === Salvar demais campos ===
-    salva_detalhe($apontamento_id, 'tipo', $tipo);
-    salva_detalhe($apontamento_id, 'forma_aplicacao', $forma_aplicacao);
-    salva_detalhe($apontamento_id, 'n_referencia', $n_referencia);
+    // Demais campos
+    $detalhes = [
+        'tipo'            => $tipo,
+        'forma_aplicacao' => $forma_aplicacao ?? '',
+        'n_referencia'    => $n_referencia ?? ''
+    ];
 
-    // === Log final ===
-    file_put_contents($logFile, "Salvo com sucesso ID $apontamento_id\n\n", FILE_APPEND);
+    foreach ($detalhes as $campo => $valor) {
+        $valor = (string)$valor;
+        if (trim($valor) !== '') {
+            $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+            $stmt->execute();
+        }
+    }
 
-    echo json_encode([
-        'ok' => true,
-        'msg' => 'Adubação orgânica registrada com sucesso!',
-        'id' => $apontamento_id
-    ]);
-}
-catch (Exception $e) {
-    file_put_contents('/tmp/debug_adubacao_organica.txt', "ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
+    $stmt->close();
+    $mysqli->commit();
+
+    echo json_encode(['ok' => true, 'msg' => 'Adubação orgânica registrada com sucesso!']);
+
+} catch (Exception $e) {
+    if (isset($mysqli)) {
+        $mysqli->rollback();
+    }
     http_response_code(500);
-    echo json_encode(['ok' => false, 'err' => 'exception', 'msg' => $e->getMessage()]);
+    echo json_encode([
+        'ok'  => false,
+        'err' => 'exception',
+        'msg' => $e->getMessage()
+    ]);
 }
