@@ -4,7 +4,6 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Apenas POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'err' => 'method_not_allowed']);
@@ -20,112 +19,109 @@ try {
         $payload = verify_jwt();
         $user_id = $payload['sub'] ?? null;
     }
-    if (!$user_id) throw new Exception("Usuário não autenticado");
+    if (!$user_id) {
+        throw new Exception("Usuário não autenticado");
+    }
 
     // Log inicial
     file_put_contents("/tmp/debug_moscas.txt", "=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
     file_put_contents("/tmp/debug_moscas.txt", print_r($_POST, true), FILE_APPEND);
 
-    // Propriedade ativa
+    // Busca propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
     $prop = $res->fetch_assoc();
     $stmt->close();
-    if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
+
+    if (!$prop) {
+        throw new Exception("Nenhuma propriedade ativa encontrada");
+    }
     $propriedade_id = $prop['id'];
 
-    // Dados recebidos
+    // Dados do formulário
     $data           = $_POST['data'] ?? null;
     $areas          = $_POST['area'] ?? [];
     $produtos       = $_POST['produto'] ?? [];
     $armadilha      = $_POST['armadilha'] ?? null;
     $atrativo       = $_POST['atrativo'] ?? null;
-    $qtd_armadilhas = $_POST['qtd_armadilhas'] ?? null;
-    $qtd_moscas     = $_POST['qtd_moscas'] ?? null;
+    $qtd_armadilhas = $_POST['qtd_armadilhas'] ?? 0;
+    $qtd_moscas     = $_POST['qtd_moscas'] ?? 0;
     $obs            = $_POST['obs'] ?? null;
 
     if (!is_array($areas)) $areas = [$areas];
     if (!is_array($produtos)) $produtos = [$produtos];
 
-    // Normaliza quantidade de moscas
-    if ($qtd_moscas === '' || $qtd_moscas === null) {
-        $qtd_moscas = 0;
-    }
-
-    // Validação básica
-    if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo || !$qtd_armadilhas) {
+    if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
-    // Define status automaticamente
-    $status = ((float)$qtd_moscas > 0) ? 'concluido' : 'pendente';
-
+    // Transação
     $mysqli->begin_transaction();
 
-    // === INSERÇÃO PRINCIPAL ===
+    // Define status automaticamente
+    $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
+
+    // === Inserção principal (apontamentos) ===
     $stmtMain = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-
-    if (!$stmtMain) {
-        throw new Exception("Erro ao preparar INSERT principal: " . $mysqli->error);
-    }
-
-    $stmtMain->bind_param("isdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
-
-    if (!$stmtMain->execute()) {
-        throw new Exception("Erro ao executar INSERT principal: " . $stmtMain->error);
-    }
-
+    $stmtMain->bind_param("isdss", $propriedade_id, $data, $qtd_armadilhas, $obs, $status);
+    $stmtMain->execute();
     $apontamento_id = $stmtMain->insert_id;
-    file_put_contents("/tmp/debug_moscas.txt", "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
     $stmtMain->close();
 
-    // === INSERÇÃO DE DETALHES ===
+    file_put_contents("/tmp/debug_moscas.txt", "✅ Inserido apontamento ID={$apontamento_id}\n", FILE_APPEND);
+
+    // === Inserção de áreas ===
+    $stmtArea = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
+    foreach ($areas as $a) {
+        $valor = (string)$a;
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo área {$valor}...\n", FILE_APPEND);
+        $stmtArea->bind_param("is", $apontamento_id, $valor);
+        if (!$stmtArea->execute()) {
+            throw new Exception("Erro ao inserir área: " . $stmtArea->error);
+        }
+    }
+    $stmtArea->close();
+
+    // === Inserção de produtos ===
+    $stmtProd = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto', ?)");
+    foreach ($produtos as $p) {
+        $valor = (string)$p;
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo produto {$valor}...\n", FILE_APPEND);
+        $stmtProd->bind_param("is", $apontamento_id, $valor);
+        if (!$stmtProd->execute()) {
+            throw new Exception("Erro ao inserir produto: " . $stmtProd->error);
+        }
+    }
+    $stmtProd->close();
+
+    // === Inserção dos detalhes adicionais ===
     $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-    if (!$stmtDet) throw new Exception("Erro ao preparar INSERT de detalhes: " . $mysqli->error);
-
-    foreach ($areas as $area_id) {
-        file_put_contents("/tmp/debug_moscas.txt", "Inserindo área $area_id...\n", FILE_APPEND);
-        $campo = "area_id";
-        $valor = (string)$area_id;
-        $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmtDet->execute();
-    }
-
-    foreach ($produtos as $produto_id) {
-        file_put_contents("/tmp/debug_moscas.txt", "Inserindo produto $produto_id...\n", FILE_APPEND);
-        $campo = "produto";
-        $valor = (string)$produto_id;
-        $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmtDet->execute();
-    }
 
     $detalhes = [
-        'armadilha' => $armadilha,
-        'atrativo' => $atrativo,
-        'qtd_armadilhas' => $qtd_armadilhas
+        'armadilha'      => $armadilha,
+        'atrativo'       => $atrativo,
+        'qtd_moscas'     => (string)$qtd_moscas
     ];
 
     foreach ($detalhes as $campo => $valor) {
-    $valorStr = (string)$valor;
-    file_put_contents("/tmp/debug_moscas.txt", "Inserindo detalhe $campo=$valorStr...\n", FILE_APPEND);
-
+        $valorStr = (string)$valor;
+        file_put_contents("/tmp/debug_moscas.txt", "Inserindo detalhe {$campo}={$valorStr}...\n", FILE_APPEND);
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valorStr);
         if (!$stmtDet->execute()) {
-            throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
+            throw new Exception("Erro ao inserir detalhe {$campo}: " . $stmtDet->error);
         }
-    }    
-
-
-
+    }
     $stmtDet->close();
-    $mysqli->commit();
 
+    // Commit final
+    $mysqli->commit();
     file_put_contents("/tmp/debug_moscas.txt", "✅ Finalizado com sucesso!\n", FILE_APPEND);
+
     echo json_encode(['ok' => true, 'msg' => 'Apontamento de Moscas das Frutas salvo com sucesso!']);
 
 } catch (Exception $e) {
