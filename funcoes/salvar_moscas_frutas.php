@@ -111,10 +111,16 @@ try {
     ];
 
     foreach ($detalhes as $campo => $valor) {
-        file_put_contents("/tmp/debug_moscas.txt", "Inserindo detalhe $campo=$valor...\n", FILE_APPEND);
-        $stmtDet->bind_param("iss", $apontamento_id, $campo, (string)$valor);
-        $stmtDet->execute();
-    }
+    $valorStr = (string)$valor;
+    file_put_contents("/tmp/debug_moscas.txt", "Inserindo detalhe $campo=$valorStr...\n", FILE_APPEND);
+
+        $stmtDet->bind_param("iss", $apontamento_id, $campo, $valorStr);
+        if (!$stmtDet->execute()) {
+            throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
+        }
+    }    
+
+
 
     $stmtDet->close();
     $mysqli->commit();
