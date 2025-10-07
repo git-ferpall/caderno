@@ -2,50 +2,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const form = document.getElementById("form-moscas");
   const qtdMoscas = document.getElementById("qtd_moscas");
-
   // === Aviso e ícone de status conforme quantidade ===
   if (qtdMoscas) {
-    // Cria contêiner flexível para input + ícone
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
+    // Cria o container para aviso (abaixo do campo)
+    const avisoContainer = document.createElement("div");
+    avisoContainer.style.display = "flex";
+    avisoContainer.style.alignItems = "center";
+    avisoContainer.style.gap = "6px";
+    avisoContainer.style.marginTop = "6px";
+    avisoContainer.style.fontSize = "0.9em";
 
-    // Move input para dentro do wrapper
-    qtdMoscas.parentElement.insertBefore(wrapper, qtdMoscas);
-    wrapper.appendChild(qtdMoscas);
-
-    // Ícone à direita
     const icon = document.createElement("span");
-    icon.style.position = "absolute";
-    icon.style.right = "10px";
-    icon.style.fontSize = "1.1em";
-    icon.style.pointerEvents = "none";
-    wrapper.appendChild(icon);
+    const avisoQtd = document.createElement("span");
 
-    // Mensagem abaixo
-    const avisoQtd = document.createElement("small");
-    avisoQtd.style.display = "block";
-    avisoQtd.style.marginTop = "4px";
-    avisoQtd.style.fontSize = "0.9em";
-    qtdMoscas.parentElement.appendChild(avisoQtd);
+    avisoContainer.appendChild(icon);
+    avisoContainer.appendChild(avisoQtd);
+
+    // adiciona abaixo do campo
+    qtdMoscas.parentElement.appendChild(avisoContainer);
 
     const atualizarAviso = () => {
       const valor = qtdMoscas.value.trim();
 
       if (valor === "" || parseFloat(valor) === 0) {
-        avisoQtd.textContent = "⚠ Para deixar o apontamento PENDENTE, mantenha este campo vazio ou zero.";
-        avisoQtd.style.color = "orange";
         icon.textContent = "⚠️";
-        icon.style.color = "orange";
+        avisoQtd.textContent = "Para deixar o apontamento PENDENTE, mantenha este campo vazio ou zero.";
+        avisoQtd.style.color = "orange";
       } else {
-        avisoQtd.textContent = "✔ Com quantidade informada, o status será CONCLUÍDO.";
-        avisoQtd.style.color = "green";
         icon.textContent = "✔️";
-        icon.style.color = "green";
+        avisoQtd.textContent = "Com quantidade informada, o status será CONCLUÍDO.";
+        avisoQtd.style.color = "green";
       }
     };
 
+  atualizarAviso();
+  qtdMoscas.addEventListener("input", atualizarAviso);
+}
     atualizarAviso();
     qtdMoscas.addEventListener("input", atualizarAviso);
   }
