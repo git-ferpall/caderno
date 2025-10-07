@@ -12,12 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 try {
     session_start();
+
     $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
         $payload = verify_jwt();
         $user_id = $payload['sub'] ?? null;
     }
     if (!$user_id) throw new Exception("Usuário não autenticado");
+
+    // Log inicial
+    file_put_contents("/tmp/debug_moscas.txt", "=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
+    file_put_contents("/tmp/debug_moscas.txt", print_r($_POST, true), FILE_APPEND);
 
     // Propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
@@ -27,6 +32,7 @@ try {
     $prop = $res->fetch_assoc();
     $stmt->close();
     if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
+
     $propriedade_id = $prop['id'];
 
     // Dados
@@ -42,14 +48,14 @@ try {
     if (!is_array($areas)) $areas = [$areas];
     if (!is_array($produtos)) $produtos = [$produtos];
 
-    if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo || !$qtd_armadilhas || !$qtd_moscas) {
+    // Campos obrigatórios básicos
+    if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo || !$qtd_armadilhas) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
     $mysqli->begin_transaction();
 
     // === Inserção principal ===
-    // Se moscas foram capturadas, define status como 'concluido'
     $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
 
     $stmt = $mysqli->prepare("
@@ -57,18 +63,24 @@ try {
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
     $stmt->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
-
+    $stmt->execute();
+    $apontamento_id = $stmt->insert_id;
+    $stmt->close();
 
     // === Detalhes ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
     foreach ($areas as $a) {
-        $stmt->bind_param("iss", $apontamento_id, $campo = "area_id", $valor = (string)$a);
+        $campo = "area_id";
+        $valor = (string)$a;
+        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
         $stmt->execute();
     }
 
     foreach ($produtos as $p) {
-        $stmt->bind_param("iss", $apontamento_id, $campo = "produto", $valor = (string)$p);
+        $campo = "produto";
+        $valor = (string)$p;
+        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
         $stmt->execute();
     }
 
@@ -90,6 +102,7 @@ try {
 
 } catch (Exception $e) {
     if (isset($mysqli)) $mysqli->rollback();
+    file_put_contents("/tmp/debug_moscas.txt", "ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
     http_response_code(500);
     echo json_encode(['ok' => false, 'err' => 'exception', 'msg' => $e->getMessage()]);
 }
