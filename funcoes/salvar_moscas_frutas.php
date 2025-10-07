@@ -31,11 +31,11 @@ try {
     $res = $stmt->get_result();
     $prop = $res->fetch_assoc();
     $stmt->close();
-    if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
 
+    if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
     $propriedade_id = $prop['id'];
 
-    // Dados
+    // Dados recebidos
     $data           = $_POST['data'] ?? null;
     $areas          = $_POST['area'] ?? [];
     $produtos       = $_POST['produto'] ?? [];
@@ -48,24 +48,29 @@ try {
     if (!is_array($areas)) $areas = [$areas];
     if (!is_array($produtos)) $produtos = [$produtos];
 
-    // Campos obrigatórios básicos
+    // Validação básica
     if (!$data || empty($areas) || empty($produtos) || !$armadilha || !$atrativo || !$qtd_armadilhas) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
     $mysqli->begin_transaction();
 
-    // === Inserção principal ===
+    // Status automático
     $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
 
+    // === Inserção principal ===
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
     $stmt->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Falha ao inserir apontamento principal: " . $stmt->error);
+    }
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
+
+    file_put_contents("/tmp/debug_moscas.txt", "Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
 
     // === Detalhes ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
@@ -97,6 +102,8 @@ try {
 
     $stmt->close();
     $mysqli->commit();
+
+    file_put_contents("/tmp/debug_moscas.txt", "Concluído com sucesso.\n", FILE_APPEND);
 
     echo json_encode(['ok' => true, 'msg' => 'Apontamento de Moscas das Frutas salvo com sucesso!']);
 
