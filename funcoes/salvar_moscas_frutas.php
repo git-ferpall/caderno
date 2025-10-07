@@ -68,7 +68,21 @@ try {
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-    $stmtMain->bind_param("issdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+
+    if (!$stmtMain) {
+        throw new Exception("Erro ao preparar INSERT principal: " . $mysqli->error);
+    }
+
+    // ⚠️ Aqui está o formato certo de tipos: i = int, s = string, d = double, s = string, s = string
+    $stmtMain->bind_param("isdss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+
+    if (!$stmtMain->execute()) {
+        throw new Exception("Erro ao executar INSERT principal: " . $stmtMain->error);
+    }
+
+    $apontamento_id = $stmtMain->insert_id;
+    file_put_contents("/tmp/debug_moscas.txt", "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
+
 
 
     if (!$stmtMain->execute()) {
