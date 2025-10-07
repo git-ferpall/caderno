@@ -59,36 +59,43 @@ try {
     $status = (!empty($qtd_moscas) && $qtd_moscas > 0) ? 'concluido' : 'pendente';
 
     // === Inserção principal ===
-    $stmt = $mysqli->prepare("
+    $stmtMain = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'moscas_frutas', ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
-    if (!$stmt->execute()) {
-        throw new Exception("Falha ao inserir apontamento principal: " . $stmt->error);
+    $stmtMain->bind_param("issss", $propriedade_id, $data, $qtd_moscas, $obs, $status);
+    if (!$stmtMain->execute()) {
+        throw new Exception("Falha ao inserir apontamento principal: " . $stmtMain->error);
     }
-    $apontamento_id = $stmt->insert_id;
-    $stmt->close();
+    $apontamento_id = $stmtMain->insert_id;
+    $stmtMain->close();
 
     file_put_contents("/tmp/debug_moscas.txt", "Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
 
-    // === Detalhes ===
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    // === Inserção dos detalhes ===
+    $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
+    // Áreas
     foreach ($areas as $a) {
         $campo = "area_id";
         $valor = (string)$a;
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
+        $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
+        if (!$stmtDet->execute()) {
+            throw new Exception("Erro ao inserir área: " . $stmtDet->error);
+        }
     }
 
+    // Produtos
     foreach ($produtos as $p) {
         $campo = "produto";
         $valor = (string)$p;
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
+        $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
+        if (!$stmtDet->execute()) {
+            throw new Exception("Erro ao inserir produto: " . $stmtDet->error);
+        }
     }
 
+    // Outros detalhes
     $detalhes = [
         'armadilha' => $armadilha,
         'atrativo' => $atrativo,
@@ -96,11 +103,13 @@ try {
     ];
 
     foreach ($detalhes as $campo => $valor) {
-        $stmt->bind_param("iss", $apontamento_id, $campo, (string)$valor);
-        $stmt->execute();
+        $stmtDet->bind_param("iss", $apontamento_id, $campo, (string)$valor);
+        if (!$stmtDet->execute()) {
+            throw new Exception("Erro ao inserir detalhe $campo: " . $stmtDet->error);
+        }
     }
 
-    $stmt->close();
+    $stmtDet->close();
     $mysqli->commit();
 
     file_put_contents("/tmp/debug_moscas.txt", "Concluído com sucesso.\n", FILE_APPEND);

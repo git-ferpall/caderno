@@ -88,7 +88,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <!-- Moscas capturadas -->
         <div class="form-campo">
           <label for="qtd_moscas">Moscas capturadas</label>
-          <input type="number" id="qtd_moscas" name="qtd_moscas" class="form-text" placeholder="Ex: 10" required>
+          <input type="number" id="qtd_moscas" name="qtd_moscas" class="form-text" placeholder="Ex: 10">
         </div>
 
         <!-- Observações -->
