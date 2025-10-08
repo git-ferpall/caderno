@@ -33,9 +33,18 @@ if ($user_id) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coleta e Análise - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
-  <style>
-    small.aviso { display:block; margin-top:4px; font-size:0.9em; }
-    .linha { display:flex; align-items:center; gap:10px; }
+   <style>
+    .linha {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #lista-areas, #lista-produtos {
+      flex: 1;
+    }
+    .form-box-area, .form-box-produto {
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 
@@ -60,25 +69,21 @@ if ($user_id) {
 
         <!-- Áreas -->
         <div class="form-campo">
-          <label>Áreas amostradas</label>
-          <div class="linha">
+        <label>Áreas amostradas</label>
+        <div class="linha">
             <div id="lista-areas" class="lista-areas">
-              <div class="form-box form-box-area">
+            <div class="form-box form-box-area">
                 <select name="area[]" class="form-select form-text area-select" required>
-                  <option value="">Selecione a área</option>
-                  <?php foreach ($areas as $a): ?>
-                    <option value="<?= $a['id'] ?>">
-                      <?= htmlspecialchars($a['nome'] . " (" . $a['tipo'] . ")") ?>
-                    </option>
-                  <?php endforeach; ?>
+                <option value="">Selecione a área</option>
                 </select>
-              </div>
             </div>
-            <button class="add-btn add-area" type="button">
-              <div class="btn-icon icon-plus cor-branco"></div>
+            </div>
+            <button class="add-btn add-area" type="button" title="Adicionar nova área">
+            <div class="btn-icon icon-plus cor-branco"></div>
             </button>
-          </div>
         </div>
+        </div>
+
 
         <!-- Tipo de análise -->
         <div class="form-campo">
