@@ -148,7 +148,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <?php include '../include/imports.php' ?>
     </div>
-    
+    <script src="../js/home_manejos.js"></script>
     <?php include '../include/footer.php' ?>
 </body>
 </html>
