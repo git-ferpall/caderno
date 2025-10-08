@@ -108,12 +108,17 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <!-- <script src="js/sha512.js"></script> -->
     <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <script>
+    document.getElementById('flogin').addEventListener('submit', function(e) {
+        e.preventDefault();
         grecaptcha.ready(function() {
             grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'login'}).then(function(token) {
                 document.getElementById('g-recaptcha-response').value = token;
+                e.target.submit(); // envia o formulário só depois de ter o token válido
             });
         });
+    });
     </script>
+
 
 </div>
 
