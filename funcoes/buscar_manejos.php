@@ -16,7 +16,7 @@ if (!$user_id) {
     exit;
 }
 
-// Busca propriedade ativa
+// === Propriedade ativa ===
 $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -31,9 +31,7 @@ if (!$prop) {
 
 $propriedade_id = $prop['id'];
 
-// ==========================
-// BUSCA APONTAMENTOS COMPLETOS
-// ==========================
+// === Consulta principal ===
 $sql = "
     SELECT 
         a.id,
@@ -45,12 +43,13 @@ $sql = "
         -- Lista de nomes das áreas relacionadas
         GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
 
-        -- Nome do produto vinculado (cultivo)
+        -- Cultivo (produto vinculado)
         (
-            SELECT p.nome 
+            SELECT p.nome
             FROM apontamento_detalhes ad2
             JOIN produtos p ON p.id = ad2.valor
-            WHERE ad2.apontamento_id = a.id AND ad2.campo = 'produto'
+            WHERE ad2.apontamento_id = a.id 
+              AND (ad2.campo = 'produto' OR ad2.campo = 'produto_id')
             LIMIT 1
         ) AS produto_nome
 
@@ -61,6 +60,7 @@ $sql = "
     GROUP BY a.id
     ORDER BY a.data DESC
 ";
+
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $propriedade_id);
 $stmt->execute();

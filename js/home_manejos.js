@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const textoPendente = document.querySelector(".apontamento-fazer .nenhum-apontamento");
   const textoConcluido = document.querySelector(".apontamento-concluido .nenhum-apontamento");
 
-  // Função principal
   function carregarManejos() {
     fetch("../funcoes/buscar_manejos.php")
       .then(r => r.json())
@@ -29,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>${item.data}</td>
               <td>${item.tipo}</td>
               <td>${item.areas}</td>
-              <td>—</td>
+              <td>${item.produto}</td>
             `;
             tabelaPendente.appendChild(tr);
           });
@@ -48,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>${item.data}</td>
               <td>${item.tipo}</td>
               <td>${item.areas}</td>
-              <td>—</td>
+              <td>${item.produto}</td>
             `;
             tabelaConcluido.appendChild(tr);
           });
