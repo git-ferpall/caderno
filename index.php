@@ -113,11 +113,12 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         grecaptcha.ready(function() {
             grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'login'}).then(function(token) {
                 document.getElementById('g-recaptcha-response').value = token;
-                e.target.submit(); // envia o formulário só depois de ter o token válido
+                e.target.submit(); // envia só depois de ter o token válido
             });
         });
     });
     </script>
+
 
 
 </div>
