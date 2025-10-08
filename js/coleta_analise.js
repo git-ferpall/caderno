@@ -1,58 +1,71 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-coleta");
-  const resultado = document.getElementById("resultado");
+  const resultadoInput = document.getElementById("resultado");
   const aviso = document.getElementById("aviso-status");
 
-  // === Atualiza aviso de status ===
-  if (resultado) {
+  // === Atualiza aviso conforme resultado ===
+  if (resultadoInput) {
     const atualizarAviso = () => {
-      const val = resultado.value.trim();
-      if (val === "") {
-        aviso.textContent = "⚠ Sem resultado informado, o status ficará PENDENTE.";
+      if (resultadoInput.value.trim() === "") {
+        aviso.textContent = "⚠ Se o resultado for informado, o status será CONCLUÍDO.";
         aviso.style.color = "orange";
       } else {
-        aviso.textContent = "✔ Resultado informado — status será CONCLUÍDO.";
+        aviso.textContent = "✔ Com resultado informado, o status será CONCLUÍDO.";
         aviso.style.color = "green";
       }
     };
     atualizarAviso();
-    resultado.addEventListener("input", atualizarAviso);
+    resultadoInput.addEventListener("input", atualizarAviso);
   }
 
   // === Botão adicionar área ===
-  const btnAdd = document.querySelector(".add-area");
-  if (btnAdd) {
-    btnAdd.addEventListener("click", () => {
+  const btnAddArea = document.querySelector(".add-area");
+  if (btnAddArea) {
+    btnAddArea.addEventListener("click", () => {
       const lista = document.getElementById("lista-areas");
       const original = lista.querySelector("select");
+      if (!original) return;
+
       const novo = original.cloneNode(true);
       novo.value = "";
       novo.name = "area[]";
+      novo.classList.add("area-select");
+
       const wrapper = document.createElement("div");
       wrapper.className = "form-box form-box-area";
       wrapper.appendChild(novo);
+
       lista.appendChild(wrapper);
     });
   }
 
-  // === Envio ===
+  // === Submit do formulário ===
   if (form) {
-    form.addEventListener("submit", async e => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const dados = new FormData(form);
 
       try {
         const resp = await fetch("../funcoes/salvar_coleta_analise.php", {
           method: "POST",
-          body: dados
+          body: dados,
         });
-        const res = await resp.json();
 
-        if (res.ok) {
-          showPopup("sucesso", res.msg);
+        // se a resposta não for JSON válida, força leitura de texto
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error("Resposta inesperada:", text);
+          throw new Error("Resposta inválida do servidor");
+        }
+
+        if (data.ok) {
+          showPopup("sucesso", data.msg);
           form.reset();
         } else {
-          showPopup("erro", res.msg || "Erro ao salvar dados.");
+          showPopup("erro", data.msg);
         }
       } catch (err) {
         showPopup("erro", "Erro inesperado ao salvar coleta.");
@@ -61,20 +74,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// === Popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
-  const popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
 
-  overlay.classList.remove("d-none");
-  popup.classList.remove("d-none");
-  const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
-  msgBox.textContent = mensagem;
+  let popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
 
-  const btnOk = popup.querySelector(".popup-btn");
-  if (btnOk) btnOk.onclick = () => {
-    overlay.classList.add("d-none");
-    popup.classList.add("d-none");
-  };
+  if (overlay && popup) {
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+
+    const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
+    if (msgBox) msgBox.textContent = mensagem;
+
+    const btnOk = popup.querySelector(".popup-btn");
+    if (btnOk) {
+      btnOk.onclick = () => {
+        overlay.classList.add("d-none");
+        popup.classList.add("d-none");
+      };
+    }
+  } else {
+    alert(mensagem);
+  }
 }
