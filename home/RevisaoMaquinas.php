@@ -95,6 +95,14 @@ if ($user_id) {
           <label for="obs">Observações adicionais</label>
           <textarea id="obs" name="obs" class="form-text form-textarea" placeholder="Anotações gerais"></textarea>
         </div>
+        <!-- Próxima revisão prevista -->
+        <div class="form-campo">
+          <label for="prox_revisao">Próxima revisão prevista</label>
+          <input type="date" id="prox_revisao" name="prox_revisao" class="form-text">
+          <small style="display:block; margin-top:4px; color:#666;">
+            Ao preencher esta data, será criada automaticamente uma nova revisão pendente.
+          </small>
+        </div>
 
         <!-- Botões -->
         <div class="form-submit">

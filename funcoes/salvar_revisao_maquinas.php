@@ -34,12 +34,13 @@ try {
   $propriedade_id = $prop['id'];
 
   // Dados
-  $data = $_POST['data'] ?? null;
-  $maquina = $_POST['maquina'] ?? null;
-  $tipo = trim($_POST['tipo'] ?? '');
-  $custo = trim($_POST['custo'] ?? '');
-  $detalhes = trim($_POST['detalhes'] ?? '');
-  $obs = trim($_POST['obs'] ?? '');
+  $data         = $_POST['data'] ?? null;
+  $maquina      = $_POST['maquina'] ?? null;
+  $tipo         = trim($_POST['tipo'] ?? '');
+  $custo        = trim($_POST['custo'] ?? '');
+  $detalhes     = trim($_POST['detalhes'] ?? '');
+  $obs          = trim($_POST['obs'] ?? '');
+  $prox_revisao = $_POST['prox_revisao'] ?? null;
 
   if (!$data || !$maquina || !$tipo)
     throw new Exception("Campos obrigatórios ausentes");
@@ -48,7 +49,7 @@ try {
 
   $mysqli->begin_transaction();
 
-  // Inserção principal
+  // Inserção principal (revisão atual)
   $stmt = $mysqli->prepare("
     INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
     VALUES (?, 'revisao_maquinas', ?, ?, ?, ?)
@@ -61,12 +62,12 @@ try {
 
   file_put_contents($log, "✅ Inserido apontamento ID={$apontamento_id}\n", FILE_APPEND);
 
-  // Inserir detalhes
+  // Inserir detalhes da revisão
   $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
   $dados = [
-    'maquina_id' => $maquina,
-    'tipo_revisao' => $tipo,
-    'detalhes' => $detalhes
+    'maquina_id'    => $maquina,
+    'tipo_revisao'  => $tipo,
+    'detalhes'      => $detalhes
   ];
 
   foreach ($dados as $campo => $valor) {
@@ -74,11 +75,35 @@ try {
     $stmtDet->bind_param("iss", $apontamento_id, $campo, $valor);
     $stmtDet->execute();
   }
+
+  // === Cria nova revisão pendente (se próxima data informada)
+  if (!empty($prox_revisao)) {
+    file_put_contents($log, "🟡 Próxima revisão agendada para {$prox_revisao}\n", FILE_APPEND);
+
+    // Cria apontamento futuro como pendente
+    $stmtPend = $mysqli->prepare("
+      INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+      VALUES (?, 'revisao_maquinas', ?, NULL, ?, 'pendente')
+    ");
+    $msg = "Revisão agendada automaticamente.";
+    $stmtPend->bind_param("iss", $propriedade_id, $prox_revisao, $msg);
+    $stmtPend->execute();
+    $novo_id = $stmtPend->insert_id;
+    $stmtPend->close();
+
+    // Relaciona os mesmos detalhes da máquina e tipo
+    foreach (['maquina_id' => $maquina, 'tipo_revisao' => $tipo] as $campo => $valor) {
+      $stmtDet->bind_param("iss", $novo_id, $campo, $valor);
+      $stmtDet->execute();
+    }
+
+    file_put_contents($log, "✅ Próxima revisão pendente criada ID={$novo_id}\n", FILE_APPEND);
+  }
+
   $stmtDet->close();
 
   $mysqli->commit();
-  echo json_encode(['ok' => true, 'msg' => 'Revisão de máquina salva com sucesso!']);
-  file_put_contents($log, "✅ Finalizado com sucesso\n", FILE_APPEND);
+  echo json_encode(['ok' => true, 'msg' => 'Revisão registrada com sucesso!']);
 
 } catch (Exception $e) {
   if (isset($mysqli)) $mysqli->rollback();
