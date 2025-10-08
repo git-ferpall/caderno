@@ -75,6 +75,11 @@ if ($user_id) {
             <div class="form-box form-box-area">
                 <select name="area[]" class="form-select form-text area-select" required>
                 <option value="">Selecione a área</option>
+                <?php foreach ($areas as $a): ?>
+                    <option value="<?= $a['id'] ?>">
+                    <?= htmlspecialchars($a['nome'] . " (" . $a['tipo'] . ")") ?>
+                    </option>
+                <?php endforeach; ?>
                 </select>
             </div>
             </div>
@@ -83,6 +88,7 @@ if ($user_id) {
             </button>
         </div>
         </div>
+
 
 
         <!-- Tipo de análise -->
