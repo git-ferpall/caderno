@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const qtdInput = document.getElementById("quantidade");
   const aviso = document.getElementById("aviso-status");
 
-  // Aviso dinâmico de status
+  // === Aviso de status conforme quantidade ===
   if (qtdInput) {
     const atualizarAviso = () => {
       const val = qtdInput.value.trim();
@@ -19,68 +19,84 @@ document.addEventListener("DOMContentLoaded", () => {
     qtdInput.addEventListener("input", atualizarAviso);
   }
 
-  // Carregar Áreas
+  // === Carregar Áreas ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
       .then(data => {
         document.querySelectorAll(".area-select").forEach(sel => {
+          const selecionado = sel.value;
           sel.innerHTML = '<option value="">Selecione a área</option>';
           data.forEach(a => {
             const opt = document.createElement("option");
             opt.value = a.id;
             opt.textContent = `${a.nome} (${a.tipo})`;
+            if (a.id == selecionado) opt.selected = true;
             sel.appendChild(opt);
           });
         });
-      });
+      })
+      .catch(err => console.error("Erro ao carregar áreas:", err));
   }
 
-  // Carregar Produtos
+  // === Carregar Produtos ===
   function carregarProdutos() {
     fetch("../funcoes/buscar_produtos.php")
       .then(r => r.json())
       .then(data => {
         document.querySelectorAll(".produto-select").forEach(sel => {
+          const selecionado = sel.value;
           sel.innerHTML = '<option value="">Selecione o produto</option>';
           data.forEach(p => {
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.textContent = p.nome;
+            if (p.id == selecionado) opt.selected = true;
             sel.appendChild(opt);
           });
         });
-      });
+      })
+      .catch(err => console.error("Erro ao carregar produtos:", err));
   }
 
   carregarAreas();
   carregarProdutos();
 
-  // Adicionar Área
-  document.querySelector(".add-area").addEventListener("click", () => {
-    const lista = document.getElementById("lista-areas");
-    const original = lista.querySelector("select");
-    const novo = original.cloneNode(true);
-    novo.value = "";
-    novo.name = "area[]";
-    lista.appendChild(novo.parentElement.cloneNode(true));
-    carregarAreas();
-  });
+  // === Botão adicionar área ===
+  const btnAddArea = document.querySelector(".add-area");
+  if (btnAddArea) {
+    btnAddArea.addEventListener("click", () => {
+      const lista = document.getElementById("lista-areas");
+      const original = lista.querySelector(".form-box-area");
+      if (!original) return;
 
-  // Adicionar Produto
-  document.querySelector(".add-produto").addEventListener("click", () => {
-    const lista = document.getElementById("lista-produtos");
-    const original = lista.querySelector("select");
-    const novo = original.cloneNode(true);
-    novo.value = "";
-    novo.name = "produto[]";
-    lista.appendChild(novo.parentElement.cloneNode(true));
-    carregarProdutos();
-  });
+      const clone = original.cloneNode(true);
+      const select = clone.querySelector("select");
+      select.value = "";
+      lista.appendChild(clone);
+      carregarAreas();
+    });
+  }
 
-  // Envio
+  // === Botão adicionar produto ===
+  const btnAddProduto = document.querySelector(".add-produto");
+  if (btnAddProduto) {
+    btnAddProduto.addEventListener("click", () => {
+      const lista = document.getElementById("lista-produtos");
+      const original = lista.querySelector(".form-box-produto");
+      if (!original) return;
+
+      const clone = original.cloneNode(true);
+      const select = clone.querySelector("select");
+      select.value = "";
+      lista.appendChild(clone);
+      carregarProdutos();
+    });
+  }
+
+  // === Submit do formulário ===
   if (form) {
-    form.addEventListener("submit", async e => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const dados = new FormData(form);
 
@@ -97,26 +113,35 @@ document.addEventListener("DOMContentLoaded", () => {
           carregarAreas();
           carregarProdutos();
         } else {
-          showPopup("erro", res.msg);
+          showPopup("erro", res.msg || "Erro ao salvar erradicação.");
         }
       } catch (err) {
+        console.error("Erro:", err);
         showPopup("erro", "Erro inesperado ao salvar apontamento.");
       }
     });
   }
 });
 
+// === Popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
+
   const popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+
   overlay.classList.remove("d-none");
   popup.classList.remove("d-none");
+
   const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
   msgBox.textContent = mensagem;
-  popup.querySelector(".popup-btn").onclick = () => {
-    overlay.classList.add("d-none");
-    popup.classList.add("d-none");
-  };
+
+  const btnOk = popup.querySelector(".popup-btn");
+  if (btnOk) {
+    btnOk.onclick = () => {
+      overlay.classList.add("d-none");
+      popup.classList.add("d-none");
+    };
+  }
 }
