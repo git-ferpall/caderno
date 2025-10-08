@@ -48,8 +48,8 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             <div class="login-content" id="login-form">
                 <h2 class="login-title">Faça seu login</h2>
                 <form id="flogin" class="main-form" action="/configuracao/login_process.php" method="POST">
-                    <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required>
-                    <input class="fcampo" id="fpass" name="senha" type="password" placeholder="Digite sua senha..." required>
+                    <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required autocomplete="username">
+                    <input class="fcampo" id="fpass" name="senha" type="password" placeholder="Digite sua senha..." required autocomplete="current-password">
                     <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '/') ?>">
                     <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
                     <div class="text-center">
@@ -60,6 +60,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                         <input class="fbotao main-btn" id="fent" type="submit" value="Entrar">
                     </div>
                 </form>
+
             </div>
 
             <!-- Formulário de Cadastro -->
