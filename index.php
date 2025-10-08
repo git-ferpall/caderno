@@ -6,7 +6,7 @@ session_start();
 #require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
 require_once __DIR__ . '/configuracao/auth.php';
-
+require_once __DIR__ . '/configuracao/recaptcha.php'; 
 if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     header('Location: /home/home.php');
     exit;
@@ -106,32 +106,15 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <script src="js/script.js"></script>
     <script src="js/jquery.js"></script>
     <!-- <script src="js/sha512.js"></script> -->
-    <script src="https://www.google.com/recaptcha/api.js?render=6LfiANwmAAAAABVkn1-V6qSE4O4kK45eKu72qqu7"></script>
-    <!-- <script>
-        function formhash(form, password) {
-            var p = document.createElement("input");
-            form.appendChild(p);
-            p.name = "p";
-            p.type = "hidden";
-            p.value = hex_sha512(password.value);
-            password.value = "";
-            form.submit();
-        }
-
-        $(document).ready(function () {
-            $("#flogin").on("submit", function (e) {
-                e.preventDefault();
-                formhash(this, document.getElementById("fpass"));
-            });
-        });
-    </script> -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <script>
         grecaptcha.ready(function() {
-            grecaptcha.execute('6LfiANwmAAAAABVkn1-V6qSE4O4kK45eKu72qqu7', {action: 'submit'}).then(function(token) {
+            grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'login'}).then(function(token) {
                 document.getElementById('g-recaptcha-response').value = token;
             });
         });
     </script>
+
 </div>
 
 <?php include 'include/footer.php'; ?>
