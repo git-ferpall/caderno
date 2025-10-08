@@ -4,7 +4,6 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// --- Aceita apenas POST ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'msg' => 'method_not_allowed']);
@@ -12,102 +11,112 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // --- Sessão / Autenticação ---
     session_start();
     $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
         $payload = verify_jwt();
         $user_id = $payload['sub'] ?? null;
     }
-    if (!$user_id) throw new Exception("Usuário não autenticado");
 
-    // --- LOG de debug ---
-    $debugFile = "/tmp/debug_coleta.txt";
-    file_put_contents($debugFile, "=== NOVA COLETA " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
-    file_put_contents($debugFile, print_r($_POST, true), FILE_APPEND);
+    if (!$user_id) {
+        throw new Exception("Usuário não autenticado.");
+    }
 
-    // --- Buscar propriedade ativa ---
+    // Log inicial
+    file_put_contents("/tmp/debug_coleta.txt", "=== NOVA COLETA " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
+    file_put_contents("/tmp/debug_coleta.txt", print_r($_POST, true), FILE_APPEND);
+
+    // Buscar propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
-    $prop = $stmt->get_result()->fetch_assoc();
+    $res = $stmt->get_result();
+    $prop = $res->fetch_assoc();
     $stmt->close();
 
-    if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
+    if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada.");
     $propriedade_id = $prop['id'];
 
-    // --- Dados recebidos ---
+    // Capturar dados
     $data         = $_POST['data'] ?? null;
     $areas        = $_POST['area'] ?? [];
     $tipo         = $_POST['tipo'] ?? null;
-    $laboratorio  = trim($_POST['laboratorio'] ?? '');
-    $responsavel  = trim($_POST['responsavel'] ?? '');
-    $resultado    = trim($_POST['resultado'] ?? '');
-    $obs          = trim($_POST['obs'] ?? '');
+    $laboratorio  = $_POST['laboratorio'] ?? null;
+    $responsavel  = $_POST['responsavel'] ?? null;
+    $resultado    = $_POST['resultado'] ?? null;
+    $obs          = $_POST['obs'] ?? null;
 
     if (!is_array($areas)) $areas = [$areas];
-
-    // --- Validação mínima ---
-    if (!$data || !$tipo || empty($areas)) {
-        throw new Exception("Campos obrigatórios ausentes");
+    if (!$data || empty($areas) || !$tipo) {
+        throw new Exception("Campos obrigatórios ausentes.");
     }
-
-    // --- Status depende do resultado ---
-    $status = ($resultado !== '') ? 'concluido' : 'pendente';
 
     $mysqli->begin_transaction();
 
-    // --- Inserir apontamento principal ---
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, observacoes, status)
-        VALUES (?, 'coleta_analise', ?, ?, ?)
+    // === Status automático ===
+    $status = (!empty($resultado)) ? 'concluido' : 'pendente';
+
+    // === Inserção principal ===
+    $stmtApont = $mysqli->prepare("
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        VALUES (?, 'coleta_analise', ?, NULL, ?, ?)
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $obs, $status);
-    $stmt->execute();
-    $apontamento_id = $stmt->insert_id;
-    $stmt->close();
+    $stmtApont->bind_param("isss", $propriedade_id, $data, $obs, $status);
+    $stmtApont->execute();
+    $apontamento_id = $stmtApont->insert_id;
+    $stmtApont->close();
 
-    file_put_contents($debugFile, "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
+    file_put_contents("/tmp/debug_coleta.txt", "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
 
-    // --- Inserir detalhes ---
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    // === Inserir detalhes ===
+    $stmtDetalhe = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
     // Áreas
     foreach ($areas as $a) {
-        $campo = 'area_id';
+        $campo = "area_id";
         $valor = (string)$a;
-        file_put_contents($debugFile, "Inserindo área $valor...\n", FILE_APPEND);
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
+        $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmtDetalhe->execute();
+        file_put_contents("/tmp/debug_coleta.txt", "Inserindo área $valor...\n", FILE_APPEND);
     }
 
-    // Outros campos (tipo, laboratório, responsável, resultado)
-    $detalhes = [
-        'tipo_analise' => $tipo,
-        'laboratorio'  => $laboratorio,
-        'responsavel'  => $responsavel,
-    ];
+    // Tipo de análise
+    $campo = "tipo_analise";
+    $valor = (string)$tipo;
+    $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmtDetalhe->execute();
+    file_put_contents("/tmp/debug_coleta.txt", "Inserindo detalhe tipo_analise=$valor...\n", FILE_APPEND);
 
-    if ($resultado !== '') {
-        $detalhes['resultado'] = $resultado;
+    // Laboratório
+    if (!empty($laboratorio)) {
+        $campo = "laboratorio";
+        $valor = (string)$laboratorio;
+        $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmtDetalhe->execute();
     }
 
-    foreach ($detalhes as $campo => $valor) {
-        if (trim($valor) !== '') {
-            file_put_contents($debugFile, "Inserindo detalhe $campo=$valor...\n", FILE_APPEND);
-            $stmt->bind_param("iss", $apontamento_id, $campo, (string)$valor);
-            $stmt->execute();
-        }
+    // Responsável
+    if (!empty($responsavel)) {
+        $campo = "responsavel";
+        $valor = (string)$responsavel;
+        $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmtDetalhe->execute();
     }
 
-    $stmt->close();
+    // Resultado (só se informado)
+    if (!empty($resultado)) {
+        $campo = "resultado";
+        $valor = (string)$resultado;
+        $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
+        $stmtDetalhe->execute();
+    }
+
+    $stmtDetalhe->close();
     $mysqli->commit();
 
-    file_put_contents($debugFile, "✅ Coleta salva com sucesso!\n\n", FILE_APPEND);
-
     echo json_encode(['ok' => true, 'msg' => 'Apontamento de Coleta e Análise salvo com sucesso!']);
-
-} catch (Exception $e) {
+}
+catch (Exception $e) {
     if (isset($mysqli)) $mysqli->rollback();
     file_put_contents("/tmp/debug_coleta.txt", "ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
     http_response_code(500);
