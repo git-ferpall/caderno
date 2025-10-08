@@ -23,7 +23,7 @@ try {
   file_put_contents($log, "=== NOVA REVISÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
   file_put_contents($log, print_r($_POST, true), FILE_APPEND);
 
-  // Propriedade ativa
+  // === Propriedade ativa ===
   $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
@@ -33,7 +33,7 @@ try {
   if (!$prop) throw new Exception("Nenhuma propriedade ativa encontrada");
   $propriedade_id = $prop['id'];
 
-  // Dados
+  // === Dados recebidos ===
   $data         = $_POST['data'] ?? null;
   $maquina      = $_POST['maquina'] ?? null;
   $tipo         = trim($_POST['tipo'] ?? '');
@@ -45,16 +45,17 @@ try {
   if (!$data || !$maquina || !$tipo)
     throw new Exception("Campos obrigatórios ausentes");
 
+  // === Define status ===
   $status = (!empty($custo) && floatval($custo) > 0) ? 'concluido' : 'pendente';
+  $valorCusto = ($custo === '' || floatval($custo) == 0) ? null : floatval($custo);
 
   $mysqli->begin_transaction();
 
-  // Inserção principal (revisão atual)
+  // === Inserção principal (revisão atual) ===
   $stmt = $mysqli->prepare("
     INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
     VALUES (?, 'revisao_maquinas', ?, ?, ?, ?)
   ");
-  $valorCusto = ($custo === '') ? null : floatval($custo);
   $stmt->bind_param("isdss", $propriedade_id, $data, $valorCusto, $obs, $status);
   $stmt->execute();
   $apontamento_id = $stmt->insert_id;
@@ -62,7 +63,7 @@ try {
 
   file_put_contents($log, "✅ Inserido apontamento ID={$apontamento_id}\n", FILE_APPEND);
 
-  // Inserir detalhes da revisão
+  // === Inserir detalhes principais ===
   $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
   $dados = [
     'maquina_id'    => $maquina,
@@ -76,34 +77,35 @@ try {
     $stmtDet->execute();
   }
 
-  // === Cria nova revisão pendente (se próxima data informada)
+  // === Se houver próxima revisão, cria pendente sem custo ===
   if (!empty($prox_revisao)) {
-    file_put_contents($log, "🟡 Próxima revisão agendada para {$prox_revisao}\n", FILE_APPEND);
+    file_put_contents($log, "🟡 Próxima revisão prevista: {$prox_revisao}\n", FILE_APPEND);
 
-    // Cria apontamento futuro como pendente
+    // Inserir revisão futura como pendente, SEM valor
+    $msg = "Revisão agendada automaticamente.";
     $stmtPend = $mysqli->prepare("
       INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
       VALUES (?, 'revisao_maquinas', ?, NULL, ?, 'pendente')
     ");
-    $msg = "Revisão agendada automaticamente.";
     $stmtPend->bind_param("iss", $propriedade_id, $prox_revisao, $msg);
     $stmtPend->execute();
     $novo_id = $stmtPend->insert_id;
     $stmtPend->close();
 
-    // Relaciona os mesmos detalhes da máquina e tipo
+    // Inserir detalhes herdados: apenas máquina e tipo
     foreach (['maquina_id' => $maquina, 'tipo_revisao' => $tipo] as $campo => $valor) {
       $stmtDet->bind_param("iss", $novo_id, $campo, $valor);
       $stmtDet->execute();
     }
 
-    file_put_contents($log, "✅ Próxima revisão pendente criada ID={$novo_id}\n", FILE_APPEND);
+    file_put_contents($log, "✅ Próxima revisão pendente criada (ID={$novo_id})\n", FILE_APPEND);
   }
 
   $stmtDet->close();
-
   $mysqli->commit();
+
   echo json_encode(['ok' => true, 'msg' => 'Revisão registrada com sucesso!']);
+  file_put_contents($log, "✅ Finalizado com sucesso\n", FILE_APPEND);
 
 } catch (Exception $e) {
   if (isset($mysqli)) $mysqli->rollback();
