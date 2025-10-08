@@ -67,9 +67,9 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                 <h2 class="login-title">Faça seu cadastro</h2>
                 <form id="fcadastro" class="main-form" action="index.php" method="POST">
                     <input class="fcampo" name="user" type="text" placeholder="Digite seu usuário..." required>
-                    <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required>
-                    <input class="fcampo" name="pass" type="password" placeholder="Digite sua senha..." required>
-                    <input class="fcampo" name="cpass" type="password" placeholder="Confirme sua senha..." required>
+                    <input class="fcampo" id="fuser_cad" name="login" type="text" placeholder="Digite seu usuário ou email..." required autocomplete="username">
+                    <input class="fcampo" id="fpass_cad" name="pass" type="password" placeholder="Digite sua senha..." required autocomplete="new-password">
+                    <input class="fcampo" id="fcpass_cad" name="cpass" type="password" placeholder="Confirme sua senha..." required autocomplete="new-password">
                     <div class="fbuttons">
                         <button class="fbotao main-btn" type="submit" onclick="return validarSenha()">Cadastrar</button>
                     </div>
