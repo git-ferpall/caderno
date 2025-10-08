@@ -31,15 +31,35 @@ if (!$prop) {
 
 $propriedade_id = $prop['id'];
 
-// Busca todos os apontamentos da propriedade
+// ==========================
+// BUSCA APONTAMENTOS COMPLETOS
+// ==========================
 $sql = "
-    SELECT a.id, a.tipo, a.data, a.status, a.observacoes,
-           GROUP_CONCAT(DISTINCT ad.valor SEPARATOR ', ') AS areas
-      FROM apontamentos a
- LEFT JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
-     WHERE a.propriedade_id = ?
-  GROUP BY a.id
-  ORDER BY a.data DESC
+    SELECT 
+        a.id,
+        a.tipo,
+        a.data,
+        a.status,
+        a.observacoes,
+
+        -- Lista de nomes das áreas relacionadas
+        GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
+
+        -- Nome do produto vinculado (cultivo)
+        (
+            SELECT p.nome 
+            FROM apontamento_detalhes ad2
+            JOIN produtos p ON p.id = ad2.valor
+            WHERE ad2.apontamento_id = a.id AND ad2.campo = 'produto'
+            LIMIT 1
+        ) AS produto_nome
+
+    FROM apontamentos a
+    LEFT JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
+    LEFT JOIN areas ar ON ar.id = ad.valor
+    WHERE a.propriedade_id = ?
+    GROUP BY a.id
+    ORDER BY a.data DESC
 ";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $propriedade_id);
@@ -51,11 +71,12 @@ $concluidos = [];
 
 while ($row = $res->fetch_assoc()) {
     $item = [
-        'id'     => $row['id'],
-        'tipo'   => ucfirst(str_replace('_', ' ', $row['tipo'])),
-        'data'   => date('d/m/Y', strtotime($row['data'])),
-        'areas'  => $row['areas'] ?: '—',
-        'status' => $row['status']
+        'id'      => $row['id'],
+        'tipo'    => ucfirst(str_replace('_', ' ', $row['tipo'])),
+        'data'    => date('d/m/Y', strtotime($row['data'])),
+        'areas'   => $row['areas'] ?: '—',
+        'produto' => $row['produto_nome'] ?: '—',
+        'status'  => $row['status']
     ];
 
     if ($row['status'] === 'pendente') {
