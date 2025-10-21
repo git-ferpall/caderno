@@ -18,24 +18,30 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch(err => console.error("Erro ao carregar áreas:", err));
   }
+// === Carregar FERTILIZANTES ===
+function carregarFertilizantes() {
+  fetch("../funcoes/buscar_fertilizantes.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("fertilizante");
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
 
-  // === Carregar FERTILIZANTES ===
-  function carregarFertilizantes() {
-    fetch("../funcoes/buscar_fertilizantes.php")
-      .then(r => r.json())
-      .then(data => {
-        const sel = document.getElementById("fertilizante");
-        if (!sel) return;
-        sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = item.nome;
-          sel.appendChild(opt);
-        });
-      })
-      .catch(err => console.error("Erro ao carregar fertilizantes:", err));
-  }
+      // 🔹 Adiciona a opção "Outro" no final da lista
+      const outro = document.createElement("option");
+      outro.value = "outro";
+      outro.textContent = "Outro (digitar manualmente)";
+      sel.appendChild(outro);
+    })
+    .catch(err => console.error("Erro ao carregar fertilizantes:", err));
+}
+
 
   carregarAreas();
   carregarFertilizantes();
