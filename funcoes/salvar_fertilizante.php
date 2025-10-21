@@ -36,13 +36,20 @@ $propriedade_id = $prop['id'];
 $data         = $_POST['data'] ?? null;
 $areas        = $_POST['area'] ?? []; // agora é array
 $fertilizante = $_POST['fertilizante'] ?? null;
+$fertilizante_outro = trim($_POST['fertilizante_outro'] ?? '');
 $quantidade   = $_POST['quantidade'] ?? null;
 $obs          = $_POST['obs'] ?? null;
+
+// Se o usuário escolheu "Outro", substitui
+if ($fertilizante === 'outro' && $fertilizante_outro !== '') {
+    $fertilizante = $fertilizante_outro;
+}
 
 if (!$data || empty($areas) || !$fertilizante || !$quantidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
     exit;
 }
+
 
 $mysqli->begin_transaction();
 
