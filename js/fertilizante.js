@@ -164,3 +164,42 @@ function showPopup(tipo, mensagem) {
     popupFailed?.classList.add("d-none");
   }, 4000);
 }
+  document.addEventListener('DOMContentLoaded', () => {
+    const fertilizanteSelect = document.getElementById('fertilizante');
+    const fertilizanteOutro = document.getElementById('fertilizante_outro');
+
+    fertilizanteSelect.addEventListener('change', () => {
+      if (fertilizanteSelect.value === 'outro') {
+        fertilizanteOutro.style.display = 'block';
+        fertilizanteOutro.required = true;
+      } else {
+        fertilizanteOutro.style.display = 'none';
+        fertilizanteOutro.required = false;
+        fertilizanteOutro.value = ''; // limpa campo manual
+      }
+    });
+
+    // Exemplo de envio: priorizar o campo digitado
+    document.getElementById('form-fertilizante').addEventListener('submit', e => {
+      const formData = new FormData(e.target);
+      let nomeFertilizante = '';
+
+      if (formData.get('fertilizante') === 'outro') {
+        nomeFertilizante = formData.get('fertilizante_outro');
+      } else {
+        nomeFertilizante = fertilizanteSelect.options[fertilizanteSelect.selectedIndex].text;
+      }
+
+      // substitui o valor antes de enviar ao backend
+      formData.set('fertilizante', nomeFertilizante);
+      formData.delete('fertilizante_outro');
+
+      // exemplo: enviar via fetch
+      fetch('salvar_fertilizante.php', {
+        method: 'POST',
+        body: formData
+      }).then(r => r.json()).then(console.log);
+
+      e.preventDefault();
+    });
+  });

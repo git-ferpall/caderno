@@ -62,7 +62,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <label for="fertilizante">Fertilizante</label>
           <select id="fertilizante" name="fertilizante" class="form-select form-text" required>
             <option value="">Selecione o fertilizante</option>
+            <option value="outro">Outro (digitar manualmente)</option>
           </select>
+          <input type="text" id="fertilizante_outro" name="fertilizante_outro"
+            class="form-text" placeholder="Digite o nome do fertilizante"
+            style="display:none; margin-top:8px;">
         </div>
 
         <!-- Botão para solicitar novo fertilizante -->
