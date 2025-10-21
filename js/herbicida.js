@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(r => r.json())
       .then(data => {
         const sel = document.getElementById("herbicida");
+        if (!sel) return;
         sel.innerHTML = '<option value="">Selecione o herbicida</option>';
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -68,6 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
           opt.textContent = item.nome;
           sel.appendChild(opt);
         });
+
+        // 🔹 Adiciona a opção "Outro" no final da lista
+        const outro = document.createElement("option");
+        outro.value = "outro";
+        outro.textContent = "Outro (digitar manualmente)";
+        sel.appendChild(outro);
       })
       .catch(err => console.error("Erro ao carregar herbicidas:", err));
   }
