@@ -35,10 +35,15 @@ $propriedade_id = $prop['id'];
 // Dados do formulário
 $data        = $_POST['data'] ?? null;
 $areas       = $_POST['area'] ?? [];   // agora array
-$herbicida   = $_POST['herbicida'] ?? null;
-$quantidade  = $_POST['quantidade'] ?? null;
-$obs         = $_POST['obs'] ?? null;
+$herbicida       = $_POST['herbicida'] ?? null;
+$herbicida_outro = $_POST['herbicida_outro'] ?? null;
+$quantidade      = $_POST['quantidade'] ?? null;
+$obs             = $_POST['obs'] ?? null;
 
+// Se o usuário escolheu "Outro", usa o nome digitado
+if ($herbicida === 'outro' && !empty($herbicida_outro)) {
+    $herbicida = trim($herbicida_outro);
+}
 if (!$data || empty($areas) || !$herbicida || !$quantidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
     exit;
