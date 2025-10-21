@@ -58,13 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
           sel.appendChild(opt);
         });
 
-        // adiciona a opção "Outro"
+        // adiciona a opção "Outro (digitar manualmente)"
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
         sel.appendChild(outro);
 
-        // adiciona o evento DEPOIS que as opções foram criadas
+        // mostra/oculta o campo manual
         sel.addEventListener("change", () => {
           if (sel.value === "outro") {
             outroInput.style.display = "block";
@@ -79,6 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch(err => console.error("Erro ao carregar inseticidas:", err));
   }
+
+carregarInseticidas();
+
 
   // === Submit do formulário principal ===
   const form = document.getElementById("form-inseticida");
