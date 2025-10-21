@@ -56,7 +56,7 @@ try {
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
         VALUES (?, 'inseticida', ?, ?, ?, 'pendente')
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $quantidade, $obs);
+    $stmt->bind_param("isds", $propriedade_id, $data, $quantidade, $obs);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
@@ -76,7 +76,7 @@ try {
     $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
     $stmt->execute();
 
-    $stmt->close();
+    if ($stmt) $stmt->close();
     $mysqli->commit();
 
     echo json_encode(['ok' => true, 'msg' => 'Inseticida salvo com sucesso!']);

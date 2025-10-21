@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  
   // === Carregar inseticidas ===
   function carregarInseticidas() {
     fetch("../funcoes/buscar_inseticidas.php")
@@ -90,6 +91,13 @@ carregarInseticidas();
       e.preventDefault();
       const dados = new FormData(form);
 
+      // ✅ Se o usuário escolheu "outro", envia o texto digitado no lugar
+      const inseticidaSelect = document.getElementById("inseticida");
+      const inseticidaOutro = document.getElementById("inseticida_outro");
+      if (inseticidaSelect && inseticidaOutro && inseticidaSelect.value === "outro") {
+        dados.set("inseticida", inseticidaOutro.value.trim());
+      }
+
       fetch("../funcoes/salvar_inseticida.php", {
         method: "POST",
         body: dados
@@ -100,6 +108,7 @@ carregarInseticidas();
             showPopup("success", res.msg || "Inseticida salvo com sucesso!");
             form.reset();
             carregarAreas();
+            carregarInseticidas();
           } else {
             showPopup("failed", res.err || "Erro ao salvar inseticida.");
           }
@@ -109,6 +118,7 @@ carregarInseticidas();
         });
     });
   }
+
 
   // === Envio do formulário de solicitação de inseticida ===
   const formSolicitarInseticida = document.getElementById("form-solicitar-inseticida");
