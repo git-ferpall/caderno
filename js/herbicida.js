@@ -108,6 +108,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // === Mostrar/ocultar campo "Outro" ===
+  const herbicidaSelect = document.getElementById("herbicida");
+  const herbicidaOutro = document.getElementById("herbicida_outro");
+
+  if (herbicidaSelect && herbicidaOutro) {
+    herbicidaSelect.addEventListener("change", () => {
+      if (herbicidaSelect.value === "outro") {
+        herbicidaOutro.style.display = "block";
+        herbicidaOutro.required = true;
+        herbicidaOutro.focus();
+      } else {
+        herbicidaOutro.style.display = "none";
+        herbicidaOutro.required = false;
+        herbicidaOutro.value = "";
+      }
+    });
+  }
+
   // === Envio do formulário de solicitação ===
   const formSolicitar = document.getElementById("form-solicitar-herbicida");
   if (formSolicitar) {
