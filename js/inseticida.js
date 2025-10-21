@@ -40,20 +40,50 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Carregar inseticidas ===
-  fetch("../funcoes/buscar_inseticidas.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("inseticida");
-      sel.innerHTML = '<option value="">Selecione o inseticida</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar inseticidas:", err));
+    // === Carregar inseticidas ===
+  function carregarInseticidas() {
+    fetch("../funcoes/buscar_inseticidas.php")
+      .then(r => r.json())
+      .then(data => {
+        const sel = document.getElementById("inseticida");
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Selecione o inseticida</option>';
+        data.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+          sel.appendChild(opt);
+        });
+
+        // 🔹 Adiciona a opção "Outro (digitar manualmente)" no final
+        const outro = document.createElement("option");
+        outro.value = "outro";
+        outro.textContent = "Outro (digitar manualmente)";
+        sel.appendChild(outro);
+      })
+      .catch(err => console.error("Erro ao carregar inseticidas:", err));
+  }
+
+  carregarInseticidas();
+
+  // === Mostrar/ocultar campo manual ===
+  const inseticidaSelect = document.getElementById("inseticida");
+  const inseticidaOutro = document.getElementById("inseticida_outro");
+
+  if (inseticidaSelect && inseticidaOutro) {
+    inseticidaSelect.addEventListener("change", () => {
+      if (inseticidaSelect.value === "outro") {
+        inseticidaOutro.style.display = "block";
+        inseticidaOutro.required = true;
+        inseticidaOutro.focus();
+      } else {
+        inseticidaOutro.style.display = "none";
+        inseticidaOutro.required = false;
+        inseticidaOutro.value = "";
+      }
+    });
+  }
+
 
   // === Submit do formulário principal ===
   const form = document.getElementById("form-inseticida");

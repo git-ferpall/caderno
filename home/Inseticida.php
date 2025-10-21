@@ -63,11 +63,17 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <label for="inseticida">Inseticida</label>
           <select id="inseticida" name="inseticida" class="form-select form-text" required>
             <option value="">Selecione o inseticida</option>
+            <option value="outro">Outro (digitar manualmente)</option>
           </select>
+
+          <input type="text" id="inseticida_outro" name="inseticida_outro"
+            class="form-text" placeholder="Digite o nome do inseticida"
+            style="display:none; margin-top:8px;">
         </div>
-        <button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-inseticida')" style="margin-top:8px">
+
+        <!--<button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-inseticida')" style="margin-top:8px">
           Solicitar cadastro de novo inseticida
-        </button>
+        </button> -->
 
         <!-- Quantidade -->
         <div class="form-campo">

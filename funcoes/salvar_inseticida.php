@@ -31,11 +31,17 @@ if (!$prop) {
 $propriedade_id = $prop['id'];
 
 // Dados do formulário
-$data        = $_POST['data'] ?? null;
-$areas       = $_POST['area'] ?? [];
-$inseticida  = $_POST['inseticida'] ?? null;
-$quantidade  = $_POST['quantidade'] ?? null;
-$obs         = $_POST['obs'] ?? null;
+$data             = $_POST['data'] ?? null;
+$areas            = $_POST['area'] ?? [];
+$inseticida       = $_POST['inseticida'] ?? null;
+$inseticida_outro = $_POST['inseticida_outro'] ?? null;
+$quantidade       = $_POST['quantidade'] ?? null;
+$obs              = $_POST['obs'] ?? null;
+
+// Se o usuário escolheu "Outro", usa o nome digitado
+if ($inseticida === 'outro' && !empty($inseticida_outro)) {
+    $inseticida = trim($inseticida_outro);
+}
 
 if (!$data || empty($areas) || !$inseticida || !$quantidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
