@@ -123,6 +123,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     });
   </script>
 
-  <script src="../js/fertilizante.js"></script>
+  
 </body>
+<script src="../js/fertilizante.js"></script>
 </html>
