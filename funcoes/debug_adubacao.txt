@@ -1,0 +1,18 @@
+=== NOVA REQUISIÇÃO 2025-10-06 20:06:35 ===
+Array
+(
+    [data] => 2025-10-09
+    [area] => Array
+        (
+            [0] => 5
+        )
+
+    [produto] => 15
+    [tipo] => Calcario
+    [quantidade] => 1
+    [prnt] => 85
+    [forma_aplicacao] => Cobertura
+    [n_referencia] => 20
+    [obs] => dasdas
+)
+
