@@ -102,6 +102,25 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
   <?php include '../include/imports.php'; ?>
   <?php include '../include/footer.php'; ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const select = document.getElementById('fertilizante');
+      const inputOutro = document.getElementById('fertilizante_outro');
+
+      // Quando o usuário muda o select
+      select.addEventListener('change', function() {
+        if (this.value === 'outro') {
+          inputOutro.style.display = 'block';
+          inputOutro.required = true; // torna obrigatório
+        } else {
+          inputOutro.style.display = 'none';
+          inputOutro.required = false;
+          inputOutro.value = ''; // limpa se não for usado
+        }
+      });
+    });
+</script>
+
   <script src="../js/fertilizante.js"></script>
 </body>
 </html>
