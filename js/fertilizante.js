@@ -164,42 +164,26 @@ function showPopup(tipo, mensagem) {
     popupFailed?.classList.add("d-none");
   }, 4000);
 }
-  document.addEventListener('DOMContentLoaded', () => {
-    const fertilizanteSelect = document.getElementById('fertilizante');
-    const fertilizanteOutro = document.getElementById('fertilizante_outro');
+// === Carregar FERTILIZANTES ===
+function carregarFertilizantes() {
+  fetch("../funcoes/buscar_fertilizantes.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("fertilizante");
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
 
-    fertilizanteSelect.addEventListener('change', () => {
-      if (fertilizanteSelect.value === 'outro') {
-        fertilizanteOutro.style.display = 'block';
-        fertilizanteOutro.required = true;
-      } else {
-        fertilizanteOutro.style.display = 'none';
-        fertilizanteOutro.required = false;
-        fertilizanteOutro.value = ''; // limpa campo manual
-      }
-    });
-
-    // Exemplo de envio: priorizar o campo digitado
-    document.getElementById('form-fertilizante').addEventListener('submit', e => {
-      const formData = new FormData(e.target);
-      let nomeFertilizante = '';
-
-      if (formData.get('fertilizante') === 'outro') {
-        nomeFertilizante = formData.get('fertilizante_outro');
-      } else {
-        nomeFertilizante = fertilizanteSelect.options[fertilizanteSelect.selectedIndex].text;
-      }
-
-      // substitui o valor antes de enviar ao backend
-      formData.set('fertilizante', nomeFertilizante);
-      formData.delete('fertilizante_outro');
-
-      // exemplo: enviar via fetch
-      fetch('salvar_fertilizante.php', {
-        method: 'POST',
-        body: formData
-      }).then(r => r.json()).then(console.log);
-
-      e.preventDefault();
-    });
-  });
+      // 🔹 Adiciona a opção "Outro" no final
+      const outro = document.createElement("option");
+      outro.value = "outro";
+      outro.textContent = "Outro (digitar manualmente)";
+      sel.appendChild(outro);
+    })
+    .catch(err => console.error("Erro ao carregar fertilizantes:", err));
+}
