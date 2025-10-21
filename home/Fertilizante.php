@@ -69,12 +69,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
             style="display:none; margin-top:8px;">
         </div>
 
-        <!-- Botão para solicitar novo fertilizante -->
+        <!-- Botão para solicitar novo fertilizante 
         <button type="button" class="main-btn fundo-laranja" 
                 onclick="abrirPopup('popup-solicitar-fertilizante')" 
                 style="margin-top:8px">
           Solicitar cadastro de novo fertilizante
-        </button>
+        </button>-->
 
 
         <div class="form-campo">
