@@ -95,7 +95,7 @@ function carregarFertilizantes() {
   }
 
   // === Solicitar novo fertilizante ===
-  const formSolicitar = document.getElementById("form-solicitar-fertilizante");
+  /*const formSolicitar = document.getElementById("form-solicitar-fertilizante");
   if (formSolicitar) {
     formSolicitar.addEventListener("submit", e => {
       e.preventDefault();
@@ -127,8 +127,8 @@ function carregarFertilizantes() {
           showPopup("failed", "Falha na comunicação: " + err);
         });
     });
-  }
-});
+  } */
+}); 
 
 
 // === Funções auxiliares (iguais herbicida.js) ===
