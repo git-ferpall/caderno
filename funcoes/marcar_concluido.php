@@ -11,15 +11,20 @@ if (!$id || !is_numeric($id)) {
 }
 
 try {
-    // Atualiza o status para "concluido"
-    $stmt = $mysqli->prepare("UPDATE apontamentos SET status = 'concluido', data_conclusao = NOW() WHERE id = ?");
+    // Atualiza o status e grava a data de conclusão
+    $stmt = $mysqli->prepare("
+        UPDATE apontamentos
+        SET status = 'concluido',
+            data_conclusao = NOW()
+        WHERE id = ?
+    ");
     $stmt->bind_param("i", $id);
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode(['ok' => true, 'msg' => 'Manejo marcado como concluído']);
+        echo json_encode(['ok' => true, 'msg' => 'Manejo marcado como concluído com sucesso']);
     } else {
-        echo json_encode(['ok' => false, 'msg' => 'Nenhum registro atualizado (ID pode estar incorreto)']);
+        echo json_encode(['ok' => false, 'msg' => 'Nenhum registro atualizado — ID incorreto ou já concluído']);
     }
 
     $stmt->close();
