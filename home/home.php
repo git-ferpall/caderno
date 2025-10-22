@@ -23,7 +23,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="home" class="sistema fundo-img">
             <div class="container-fluid principais-abas">
-                <h3 class="main-title cor-branco">Principais abas</h3>
+                <h3 class="main-title cor-branco"></h3>
 
                <div class="item-box prop-box">
                     <?php
