@@ -29,12 +29,17 @@ if (!$prop) {
 }
 $propriedade_id = $prop['id'];
 
-// dados do form
-$data       = $_POST['data'] ?? null;
-$areas      = $_POST['area'] ?? [];
-$fungicida  = $_POST['fungicida'] ?? null;
-$quantidade = $_POST['quantidade'] ?? null;
-$obs        = $_POST['obs'] ?? null;
+$data             = $_POST['data'] ?? null;
+$areas            = $_POST['area'] ?? [];
+$fungicida        = $_POST['fungicida'] ?? null;
+$fungicida_outro  = $_POST['fungicida_outro'] ?? null;
+$quantidade       = $_POST['quantidade'] ?? null;
+$obs              = $_POST['obs'] ?? null;
+
+// Se o usuário escolheu "Outro", usa o nome digitado
+if ($fungicida === 'outro' && !empty($fungicida_outro)) {
+    $fungicida = trim($fungicida_outro);
+}
 
 if (!$data || empty($areas) || !$fungicida || !$quantidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);

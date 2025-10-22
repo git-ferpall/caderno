@@ -41,19 +41,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Carregar FUNGICIDAS ===
-  fetch("../funcoes/buscar_fungicidas.php")
-    .then(r => r.json())
-    .then(data => {
-      const sel = document.getElementById("fungicida");
-      sel.innerHTML = '<option value="">Selecione o fungicida</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Erro ao carregar fungicidas:", err));
+  function carregarFungicidas() {
+    fetch("../funcoes/buscar_fungicidas.php")
+      .then(r => r.json())
+      .then(data => {
+        const sel = document.getElementById("fungicida");
+        const outroInput = document.getElementById("fungicida_outro");
+        if (!sel) return;
+
+        sel.innerHTML = '<option value="">Selecione o fungicida</option>';
+        data.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+          sel.appendChild(opt);
+        });
+
+        // Adiciona a opção “Outro”
+        const outro = document.createElement("option");
+        outro.value = "outro";
+        outro.textContent = "Outro (digitar manualmente)";
+        sel.appendChild(outro);
+
+        // Mostrar/ocultar campo manual
+        sel.addEventListener("change", () => {
+          if (sel.value === "outro") {
+            outroInput.style.display = "block";
+            outroInput.required = true;
+            outroInput.focus();
+          } else {
+            outroInput.style.display = "none";
+            outroInput.required = false;
+            outroInput.value = "";
+          }
+        });
+      })
+      .catch(err => console.error("Erro ao carregar fungicidas:", err));
+  }
+
+carregarFungicidas();
 
   // === Submit do formulário principal ===
   const form = document.getElementById("form-fungicida");
