@@ -62,13 +62,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <div class="form-campo">
           <label for="fungicida">Fungicida</label>
           <select id="fungicida" name="fungicida" class="form-select form-text" required>
-            <option value="">Selecione</option>
+            <option value="">Selecione o fungicida</option>
             <option value="outro">Outro (digitar manualmente)</option>
           </select>
-          <input type="text" id="herbicida_outro" name="herbicida_outro"
-            class="form-text" placeholder="Digite o nome do herbicida"
+
+          <input type="text" id="fungicida_outro" name="fungicida_outro"
+            class="form-text" placeholder="Digite o nome do fungicida"
             style="display:none; margin-top:8px;">
         </div>
+
         <!--<button type="button" class="main-btn fundo-laranja" onclick="abrirPopup('popup-solicitar-fungicida')" style="margin-top:8px">
           Solicitar cadastro de novo fungicida
         </button> -->
