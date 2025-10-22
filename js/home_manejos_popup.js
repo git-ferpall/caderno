@@ -3,42 +3,61 @@ document.addEventListener("DOMContentLoaded", () => {
   const popupDetalhe = document.getElementById("popup-detalhe-manejo");
   const btnConcluir = document.getElementById("btn-marcar-concluido");
 
-  // Função global (pode ser chamada do outro JS)
+  // Tornamos a função acessível globalmente
   window.inicializarPopupLinhas = function () {
     const linhas = document.querySelectorAll(".apontamento-fazer tbody tr");
 
     linhas.forEach((tr) => {
       tr.addEventListener("click", () => {
-        const item = {
-          id: tr.dataset.id,
-          data: tr.children[0].textContent,
-          tipo: tr.children[1].textContent,
-          areas: tr.children[2].textContent,
-          produto: tr.children[3].textContent,
-        };
-
-        abrirPopupManejo(item);
+        const id = tr.dataset.id;
+        abrirPopupManejo(id);
       });
     });
   };
 
-  // Exibe o popup com os dados do manejo
-  function abrirPopupManejo(item) {
-    document.getElementById("manejo-data").value = item.data;
-    document.getElementById("manejo-tipo").value = item.tipo;
-    document.getElementById("manejo-area").value = item.areas;
-    document.getElementById("manejo-produto").value = item.produto;
+  // Busca os detalhes via PHP e preenche popup
+  function abrirPopupManejo(id) {
+    fetch("../funcoes/buscar_apontamento.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "id=" + encodeURIComponent(id),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.ok) {
+          alert(data.msg || "Erro ao buscar detalhes do manejo.");
+          return;
+        }
 
-    overlay.classList.remove("d-none");
-    popupDetalhe.classList.remove("d-none");
+        const a = data.apontamento;
 
-    btnConcluir.onclick = () => marcarComoConcluido(item.id);
+        document.getElementById("manejo-data").value = formatarData(a.data);
+        document.getElementById("manejo-tipo").value = a.tipo;
+        document.getElementById("manejo-status").value = a.status.toUpperCase();
+
+        // listas
+        document.getElementById("manejo-areas").innerHTML =
+          a.areas.map((n) => `• ${n}`).join("<br>");
+        document.getElementById("manejo-produtos").innerHTML =
+          a.produtos.map((n) => `• ${n}`).join("<br>");
+
+        // Detalhes extras
+        const extras = Object.entries(a.detalhes)
+          .map(([k, v]) => `<div><b>${k}:</b> ${v}</div>`)
+          .join("");
+        document.getElementById("manejo-detalhes-extra").innerHTML =
+          extras || "<em>Sem detalhes adicionais.</em>";
+
+        overlay.classList.remove("d-none");
+        popupDetalhe.classList.remove("d-none");
+
+        btnConcluir.onclick = () => marcarComoConcluido(a.id);
+      })
+      .catch((err) => alert("Erro: " + err));
   }
 
-  // Envia para o backend o pedido de marcação como concluído
   function marcarComoConcluido(id) {
     if (!id) return;
-
     fetch("../funcoes/marcar_concluido.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -61,5 +80,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
       .catch((err) => alert("Erro: " + err));
+  }
+
+  function formatarData(str) {
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
   }
 });

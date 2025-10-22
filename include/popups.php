@@ -215,7 +215,45 @@ if ($user_id) {
         </div>
     </form>
     </div>
+    <!-- Popup Detalhes do Manejo -->
+    <div class="popup-box v2 d-none" id="popup-detalhe-manejo">
+    <h2 class="popup-title">Detalhes do Manejo</h2>
 
+    <div class="main-form" id="manejo-detalhes">
+        <div class="form-campo">
+        <label>Data:</label>
+        <input type="text" id="manejo-data" class="form-text" readonly>
+        </div>
+        <div class="form-campo">
+        <label>Tipo:</label>
+        <input type="text" id="manejo-tipo" class="form-text" readonly>
+        </div>
+        <div class="form-campo">
+        <label>Status:</label>
+        <input type="text" id="manejo-status" class="form-text" readonly>
+        </div>
+        <div class="form-campo">
+        <label>Áreas:</label>
+        <div id="manejo-areas" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;"></div>
+        </div>
+        <div class="form-campo">
+        <label>Produtos:</label>
+        <div id="manejo-produtos" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;"></div>
+        </div>
+        <div class="form-campo">
+        <label>Detalhes:</label>
+        <div id="manejo-detalhes-extra" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;font-size:0.9rem;"></div>
+        </div>
+    </div>
+
+    <div class="popup-actions">
+        <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Fechar</button>
+        <button class="popup-btn fundo-verde" id="btn-marcar-concluido" type="button">Marcar como concluído</button>
+    </div>
+    </div>
+
+    </div>
+   
 
 
 
