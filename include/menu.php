@@ -97,10 +97,10 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>
-                <a href="./silo.php"><li class="menu-link fundo-azul">
+                <!--<a href="./silo.php"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>
                     <span class="link-title cor-branco">Silo de Dados</span>
-                </li></a>
+                </li></a>-->
                 <a href="./perfil.php"><li class="menu-link">
                     <div class="btn-icon icon-user"></div>
                     <span class="link-title">Dados Pessoais</span>
