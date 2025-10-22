@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const popupDetalhe = document.getElementById("popup-detalhe-manejo");
   const btnConcluir = document.getElementById("btn-marcar-concluido");
 
-  // === 1️⃣ Função global para associar clique às linhas da tabela ===
+  // === 1️⃣ Função global para associar cliques nas linhas da tabela ===
   window.inicializarPopupLinhas = function () {
     const linhas = document.querySelectorAll(".apontamento-fazer tbody tr");
 
@@ -46,11 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("manejo-detalhes-extra").innerHTML =
           extras || "<em>Sem detalhes adicionais.</em>";
 
-        // Mostra popup
+        // Exibe popup de detalhes
         overlay.classList.remove("d-none");
         popupDetalhe.classList.remove("d-none");
 
-        // Guarda o ID do manejo no botão de concluir
+        // Guarda o ID no botão de conclusão
         btnConcluir.dataset.id = a.id;
       })
       .catch((err) => alert("Erro: " + err));
@@ -73,26 +73,26 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((r) => r.json())
         .then((res) => {
           if (res.ok) {
-            // Fecha o popup atual
-            closePopup();
+            // 🔸 Fecha o popup de detalhes antes de abrir o verde
+            popupDetalhe.classList.add("d-none");
 
-            // Usa o popup verde padrão (popup-ativar)
+            // 🔸 Exibe o popup verde padrão (popup-ativar)
             const popupSucesso = document.getElementById("popup-ativar");
             overlay.classList.remove("d-none");
             popupSucesso.classList.remove("d-none");
 
-            // Atualiza o texto para o contexto do manejo
+            // Texto customizado
             popupSucesso.querySelector(".popup-title").textContent =
               "Manejo concluído com sucesso!";
 
-            // Botão OK fecha e recarrega
+            // Botão OK → fecha e recarrega a página
             const btnOk = popupSucesso.querySelector("#btn-ok");
             btnOk.onclick = function () {
               closePopup();
               location.reload();
             };
           } else {
-            // Exibe popup de erro
+            // 🔸 Exibe popup de erro
             const popupFail = document.getElementById("popup-failed");
             overlay.classList.remove("d-none");
             popupFail.classList.remove("d-none");
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === 4️⃣ Função utilitária de formatação de data ===
+  // === 4️⃣ Função utilitária: formata data para padrão brasileiro ===
   function formatarData(str) {
     const d = new Date(str);
     if (isNaN(d)) return str;
