@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
           textoPendente.style.display = "none";
           data.pendentes.forEach(item => {
             const tr = document.createElement("tr");
+            tr.dataset.id = item.id; // ⚠️ necessário pro popup
             tr.innerHTML = `
               <td>${item.data}</td>
               <td>${item.tipo}</td>
@@ -43,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
           textoConcluido.style.display = "none";
           data.concluidos.forEach(item => {
             const tr = document.createElement("tr");
+            tr.dataset.id = item.id;
             tr.innerHTML = `
               <td>${item.data}</td>
               <td>${item.tipo}</td>
@@ -57,8 +59,15 @@ document.addEventListener("DOMContentLoaded", () => {
           countConcluido.textContent = "0";
         }
 
-        // Aplica ordenação nas duas tabelas após carregar
+        // 🟢 Aplica ordenação nas duas tabelas
         inicializarOrdenacao();
+
+        // 🟢 Inicializa popup (função do outro JS)
+        if (typeof inicializarPopupLinhas === "function") {
+          inicializarPopupLinhas();
+        } else {
+          console.warn("⚠️ Função inicializarPopupLinhas não encontrada — verifique o arquivo home_manejos_popup.js");
+        }
       })
       .catch(err => console.error("Erro ao carregar manejos:", err));
   }
@@ -106,7 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
           };
 
           linhas.sort(comparar);
-
           corpo.innerHTML = "";
           linhas.forEach(tr => corpo.appendChild(tr));
         });
