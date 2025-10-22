@@ -56,8 +56,62 @@ document.addEventListener("DOMContentLoaded", () => {
           textoConcluido.style.display = "block";
           countConcluido.textContent = "0";
         }
+
+        // Aplica ordenação nas duas tabelas após carregar
+        inicializarOrdenacao();
       })
       .catch(err => console.error("Erro ao carregar manejos:", err));
+  }
+
+  // === Função de ordenação ===
+  function inicializarOrdenacao() {
+    const tabelas = document.querySelectorAll(".apontamento-tabela");
+
+    tabelas.forEach(tabela => {
+      const cabecalhos = tabela.querySelectorAll("th");
+      cabecalhos.forEach((th, indice) => {
+        th.style.cursor = "pointer";
+        th.dataset.ordem = "none";
+
+        th.addEventListener("click", () => {
+          const corpo = tabela.querySelector("tbody");
+          const linhas = Array.from(corpo.querySelectorAll("tr"));
+          const ordemAtual = th.dataset.ordem;
+
+          let novaOrdem = "asc";
+          if (ordemAtual === "asc") novaOrdem = "desc";
+          th.dataset.ordem = novaOrdem;
+
+          cabecalhos.forEach(h => {
+            if (h !== th) h.dataset.ordem = "none";
+          });
+
+          const ehData = th.id === "apt-data";
+
+          const comparar = (a, b) => {
+            const valorA = a.children[indice].innerText.trim();
+            const valorB = b.children[indice].innerText.trim();
+
+            if (ehData) {
+              const [diaA, mesA, anoA] = valorA.split("/").map(Number);
+              const [diaB, mesB, anoB] = valorB.split("/").map(Number);
+              const dataA = new Date(anoA, mesA - 1, diaA);
+              const dataB = new Date(anoB, mesB - 1, diaB);
+              return novaOrdem === "asc" ? dataA - dataB : dataB - dataA;
+            } else {
+              return novaOrdem === "asc"
+                ? valorA.localeCompare(valorB)
+                : valorB.localeCompare(valorA);
+            }
+          };
+
+          linhas.sort(comparar);
+
+          corpo.innerHTML = "";
+          linhas.forEach(tr => corpo.appendChild(tr));
+        });
+      });
+    });
   }
 
   carregarManejos();
