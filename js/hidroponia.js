@@ -1,7 +1,7 @@
 /**
- * HIDROPONIA.JS v2.3
+ * HIDROPONIA.JS v2.4
  * Sistema Caderno de Campo - Frutag
- * Controle de cadastro e exibição de Estufas e Bancadas
+ * Controle de cadastro, exibição e interação de Estufas e Bancadas
  * Atualizado em 2025-10-24
  */
 
@@ -115,10 +115,27 @@ function selectEstufa(idEstufa) {
 }
 
 /**
+ * Marca visualmente a bancada selecionada
+ */
+function destacarBancadaSelecionada(nomeBancada, idEstufa) {
+    // Remove destaque de todas
+    document.querySelectorAll(".item-bancada").forEach(btn => {
+        btn.classList.remove("bancada-selecionada");
+    });
+
+    // Adiciona destaque apenas à bancada atual
+    const btnAtual = document.getElementById(`item-bancada-${nomeBancada}-estufa-${idEstufa}`);
+    if (btnAtual) {
+        btnAtual.classList.add("bancada-selecionada");
+    }
+}
+
+/**
  * Mostra o conteúdo da bancada selecionada
  * - Fecha todas as bancadas abertas
  * - Fecha outras estufas, mas mantém aberta a da bancada
  * - Esconde "+ Nova Estufa" e "+ Nova Bancada"
+ * - Destaca visualmente a bancada ativa
  */
 function selectBancada(nomeBancada, idEstufa) {
     const nomeNormalizado = nomeBancada
@@ -134,9 +151,7 @@ function selectBancada(nomeBancada, idEstufa) {
 
     // Oculta todas as estufas, EXCETO a da bancada clicada
     document.querySelectorAll(".item-estufa-box").forEach(div => {
-        if (!div.id.includes(`estufa-${idEstufa}-box`)) {
-            div.classList.add("d-none");
-        }
+        if (!div.id.includes(`estufa-${idEstufa}-box`)) div.classList.add("d-none");
     });
 
     // Esconde "+ Nova Estufa"
@@ -150,19 +165,17 @@ function selectBancada(nomeBancada, idEstufa) {
     // Mostra apenas a bancada clicada
     const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`)
         || document.getElementById(`item-bancada-${nomeNormalizado}-content-estufa-${idEstufa}`);
+    if (box) box.classList.remove("d-none");
 
-    if (box) {
-        box.classList.remove("d-none");
-    } else {
-        console.warn("⚠️ Bancada não encontrada:", nomeBancada, idEstufa);
-    }
-
-    // Mantém o botão "Fechar" ativo na estufa atual
+    // Mantém o botão "Fechar" ativo
     const btn = document.getElementById(`edit-estufa-${idEstufa}`);
     if (btn) {
         btn.textContent = "Fechar";
         btn.classList.add("fechar");
     }
+
+    // 🟢 Destaque visual
+    destacarBancadaSelecionada(nomeBancada, idEstufa);
 }
 
 /**
@@ -171,16 +184,20 @@ function selectBancada(nomeBancada, idEstufa) {
  * - Reabre a estufa correspondente
  * - Mantém o botão "Fechar" ativo
  * - Restaura "+ Nova Bancada"
+ * - Remove o destaque visual
  */
 function voltarEstufa(idEstufa) {
     // Fecha todas as bancadas
     document.querySelectorAll(".item-bancada-content").forEach(div => div.classList.add("d-none"));
 
+    // Remove destaque visual
+    document.querySelectorAll(".item-bancada").forEach(btn => btn.classList.remove("bancada-selecionada"));
+
     // Mostra a estufa de origem
     const box = document.getElementById(`estufa-${idEstufa}-box`);
     if (box) box.classList.remove("d-none");
 
-    // Restaura o botão "Fechar"
+    // Mantém o botão "Fechar"
     const btn = document.getElementById(`edit-estufa-${idEstufa}`);
     if (btn) {
         btn.textContent = "Fechar";

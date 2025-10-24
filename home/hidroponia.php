@@ -11,6 +11,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <style>
+        .item-bancada.bancada-selecionada {
+        background-color: #4caf50 !important;
+        color: white !important;
+        border: 2px solid #2e7d32;
+        transform: scale(1.02);
+        transition: all 0.2s ease-in-out;
+}
+    </style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
