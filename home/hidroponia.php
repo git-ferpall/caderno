@@ -1,34 +1,5 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
-
-session_start();
-
-// Identifica o usuário logado
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
-// Busca todas as estufas desse usuário
-$estufas = [];
-if ($user_id) {
-    $stmt = $mysqli->prepare("SELECT id, nome, area_m2, observacoes FROM estufas WHERE user_id = ? ORDER BY id DESC");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-
-    while ($row = $res->fetch_assoc()) {
-        $estufas[] = [
-            'id' => $row['id'],
-            'nome' => $row['nome'],
-            'area' => $row['area_m2'] ?: '',
-            'obs' => $row['observacoes'] ?: '',
-            'bancadas' => [] // futuras áreas vinculadas
-        ];
-    }
-    $stmt->close();
-}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
