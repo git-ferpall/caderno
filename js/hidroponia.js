@@ -1,5 +1,5 @@
 /**
- * HIDROPONIA.JS
+ * HIDROPONIA.JS v2.1
  * Controle de cadastro e exibição de estufas e bancadas
  * Sistema Caderno de Campo - Frutag
  */
@@ -70,12 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
  * Alterna abertura/fechamento de uma estufa
  * - Apenas uma aberta por vez
  * - Alterna "Selecionar" ↔ "Fechar"
- * - Esconde o bloco "+ Nova Estufa" se alguma estiver aberta
+ * - Esconde o bloco "+ Nova Estufa" se qualquer estufa estiver aberta
  */
 function selectEstufa(idEstufa) {
     const box = document.getElementById(`estufa-${idEstufa}-box`);
     const btn = document.getElementById(`edit-estufa-${idEstufa}`);
-    const novaEstufa = document.getElementById("item-add-estufa");
+    const formNovaEstufa = document.getElementById("add-estufa");
 
     if (!box || !btn) return;
 
@@ -106,12 +106,12 @@ function selectEstufa(idEstufa) {
     const algumaAberta = Array.from(document.querySelectorAll(".item-estufa-box"))
         .some(div => !div.classList.contains("d-none"));
 
-    // 🔹 Mostra ou esconde o bloco de nova estufa
-    if (novaEstufa) {
+    // 🔹 Mostra ou esconde o bloco de nova estufa (formulário inteiro)
+    if (formNovaEstufa) {
         if (algumaAberta) {
-            novaEstufa.classList.add("d-none"); // esconde
+            formNovaEstufa.classList.add("d-none"); // esconde
         } else {
-            novaEstufa.classList.remove("d-none"); // mostra
+            formNovaEstufa.classList.remove("d-none"); // mostra
         }
     }
 }
@@ -137,8 +137,8 @@ function selectBancada(nomeBancada, idEstufa) {
 
     // Oculta todas as estufas e o bloco de nova estufa
     document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
-    const novaEstufa = document.getElementById("item-add-estufa");
-    if (novaEstufa) novaEstufa.classList.add("d-none");
+    const formNovaEstufa = document.getElementById("add-estufa");
+    if (formNovaEstufa) formNovaEstufa.classList.add("d-none");
 
     // Mostra apenas a bancada clicada
     const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`)
@@ -173,6 +173,6 @@ function voltarEstufa(idEstufa) {
     }
 
     // Garante que o "+ Nova Estufa" continue oculto
-    const novaEstufa = document.getElementById("item-add-estufa");
-    if (novaEstufa) novaEstufa.classList.add("d-none");
+    const formNovaEstufa = document.getElementById("add-estufa");
+    if (formNovaEstufa) formNovaEstufa.classList.add("d-none");
 }
