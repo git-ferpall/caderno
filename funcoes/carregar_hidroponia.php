@@ -2,84 +2,117 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
-header('Content-Type: application/json');
-session_start();
+/**
+ * Função principal que retorna TODAS as áreas, estufas e bancadas
+ * do usuário autenticado e da propriedade ativa.
+ */
+function carregarHidroponia(): array {
+    global $mysqli;
 
-// --- 1. Identifica usuário autenticado ---
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-if (!$user_id) {
-    echo json_encode(['ok' => false, 'err' => 'Usuário não autenticado']);
-    exit;
-}
+    session_start();
 
-// --- 2. Descobre a propriedade ativa ---
-$stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$res = $stmt->get_result();
-$prop = $res->fetch_assoc();
-$stmt->close();
-
-if (!$prop) {
-    echo json_encode(['ok' => false, 'err' => 'Nenhuma propriedade ativa encontrada']);
-    exit;
-}
-$propriedade_id = $prop['id'];
-
-// --- 3. Busca as áreas do tipo 'estufa' ---
-$sqlAreas = "SELECT id, nome, tipo, created_at FROM areas 
-             WHERE propriedade_id = ? AND tipo = 'estufa'
-             ORDER BY nome ASC";
-$stmt = $mysqli->prepare($sqlAreas);
-$stmt->bind_param("i", $propriedade_id);
-$stmt->execute();
-$resAreas = $stmt->get_result();
-
-$areas = [];
-
-while ($area = $resAreas->fetch_assoc()) {
-    $area_id = $area['id'];
-
-    // --- 4. Busca estufas ligadas à área ---
-    $stmt2 = $mysqli->prepare("SELECT id, nome, area_m2, obs, created_at 
-                               FROM estufas 
-                               WHERE area_id = ?
-                               ORDER BY nome ASC");
-    $stmt2->bind_param("i", $area_id);
-    $stmt2->execute();
-    $resEstufas = $stmt2->get_result();
-
-    $estufas = [];
-    while ($estufa = $resEstufas->fetch_assoc()) {
-        $estufa_id = $estufa['id'];
-
-        // --- 5. Busca bancadas da estufa ---
-        $stmt3 = $mysqli->prepare("SELECT id, nome, cultura, obs, created_at 
-                                   FROM bancadas 
-                                   WHERE estufa_id = ?
-                                   ORDER BY nome ASC");
-        $stmt3->bind_param("i", $estufa_id);
-        $stmt3->execute();
-        $resBancadas = $stmt3->get_result();
-        $bancadas = $resBancadas->fetch_all(MYSQLI_ASSOC);
-        $stmt3->close();
-
-        $estufa['bancadas'] = $bancadas;
-        $estufas[] = $estufa;
+    // 🔐 1️⃣ Identifica usuário (sessão ou JWT)
+    $user_id = $_SESSION['user_id'] ?? null;
+    if (!$user_id) {
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
     }
-    $stmt2->close();
+    if (!$user_id) {
+        return ['ok' => false, 'err' => 'Usuário não autenticado'];
+    }
 
-    $area['estufas'] = $estufas;
-    $areas[] = $area;
+    // 🏠 2️⃣ Identifica propriedade ativa
+    $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $prop = $res->fetch_assoc();
+    $stmt->close();
+
+    if (!$prop) {
+        return ['ok' => false, 'err' => 'Nenhuma propriedade ativa encontrada'];
+    }
+
+    $propriedade_id = $prop['id'];
+
+    // 🌱 3️⃣ Busca as áreas associadas à propriedade
+    $areas = [];
+    $q_areas = $mysqli->prepare("
+        SELECT id, nome, tipo, created_at 
+        FROM areas 
+        WHERE propriedade_id = ? 
+        ORDER BY nome ASC
+    ");
+    $q_areas->bind_param("i", $propriedade_id);
+    $q_areas->execute();
+    $r_areas = $q_areas->get_result();
+
+    while ($area = $r_areas->fetch_assoc()) {
+
+        // 🧱 4️⃣ Busca estufas da área
+        $estufas = [];
+        $q_estufas = $mysqli->prepare("
+            SELECT id, nome, area_m2, obs 
+            FROM estufas 
+            WHERE area_id = ?
+            ORDER BY nome ASC
+        ");
+        $q_estufas->bind_param("i", $area['id']);
+        $q_estufas->execute();
+        $r_estufas = $q_estufas->get_result();
+
+        while ($estufa = $r_estufas->fetch_assoc()) {
+
+            // 🪴 5️⃣ Busca bancadas da estufa
+            $bancadas = [];
+            $q_banc = $mysqli->prepare("
+                SELECT id, nome, cultura, obs 
+                FROM bancadas 
+                WHERE estufa_id = ?
+                ORDER BY nome ASC
+            ");
+            $q_banc->bind_param("i", $estufa['id']);
+            $q_banc->execute();
+            $r_banc = $q_banc->get_result();
+
+            while ($bancada = $r_banc->fetch_assoc()) {
+                $bancadas[] = [
+                    'id'      => (int)$bancada['id'],
+                    'nome'    => $bancada['nome'],
+                    'cultura' => $bancada['cultura'],
+                    'obs'     => $bancada['obs']
+                ];
+            }
+
+            $estufas[] = [
+                'id'       => (int)$estufa['id'],
+                'nome'     => $estufa['nome'],
+                'area_m2'  => $estufa['area_m2'],
+                'obs'      => $estufa['obs'],
+                'bancadas' => $bancadas
+            ];
+
+            $q_banc->close();
+        }
+
+        $areas[] = [
+            'id'      => (int)$area['id'],
+            'nome'    => $area['nome'],
+            'tipo'    => $area['tipo'],
+            'estufas' => $estufas
+        ];
+
+        $q_estufas->close();
+    }
+
+    $q_areas->close();
+
+    return ['ok' => true, 'areas' => $areas];
 }
-$stmt->close();
 
-// --- 6. Retorna tudo em JSON ---
-echo json_encode([
-    'ok' => true,
-    'areas' => $areas
-], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+// 🔄 Se for acessado diretamente (ex: via fetch()), retorna JSON
+if (basename(__FILE__) == basename($_SERVER['SCRIPT_FILENAME'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(carregarHidroponia());
+    exit;
+}
