@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const res = await fetch("../funcoes/hidroponia/salvar_estufa.php", {
+        const res = await fetch("../funcoes/salvar_estufa.php", {
             method: "POST",
             body: new URLSearchParams({ nome, area_m2: area, obs })
         });
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const res = await fetch("../funcoes/hidroponia/salvar_bancada.php", {
+            const res = await fetch("../funcoes/salvar_bancada.php", {
                 method: "POST",
                 body: new URLSearchParams({ estufa_id: id, nome, cultura, obs })
             });
