@@ -1,5 +1,5 @@
 /**
- * HIDROPONIA.JS v2.1
+ * HIDROPONIA.JS v2.2
  * Controle de cadastro e exibição de estufas e bancadas
  * Sistema Caderno de Campo - Frutag
  */
@@ -119,7 +119,7 @@ function selectEstufa(idEstufa) {
 /**
  * Mostra o conteúdo da bancada selecionada
  * - Fecha todas as bancadas abertas
- * - Fecha todas as estufas
+ * - Fecha outras estufas, mas mantém aberta a da bancada
  * - Esconde "+ Nova Estufa"
  * - Mostra apenas a bancada clicada
  */
@@ -135,8 +135,14 @@ function selectBancada(nomeBancada, idEstufa) {
     // Fecha todas as bancadas abertas
     document.querySelectorAll(".item-bancada-content").forEach(div => div.classList.add("d-none"));
 
-    // Oculta todas as estufas e o bloco de nova estufa
-    document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
+    // Oculta todas as estufas, EXCETO a da bancada clicada
+    document.querySelectorAll(".item-estufa-box").forEach(div => {
+        if (!div.id.includes(`estufa-${idEstufa}-box`)) {
+            div.classList.add("d-none");
+        }
+    });
+
+    // Esconde "+ Nova Estufa"
     const formNovaEstufa = document.getElementById("add-estufa");
     if (formNovaEstufa) formNovaEstufa.classList.add("d-none");
 
@@ -148,6 +154,13 @@ function selectBancada(nomeBancada, idEstufa) {
         box.classList.remove("d-none");
     } else {
         console.warn("⚠️ Bancada não encontrada:", nomeBancada, idEstufa);
+    }
+
+    // Mantém o botão "Fechar" ativo na estufa atual
+    const btn = document.getElementById(`edit-estufa-${idEstufa}`);
+    if (btn) {
+        btn.textContent = "Fechar";
+        btn.classList.add("fechar");
     }
 }
 
