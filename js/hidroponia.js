@@ -67,10 +67,10 @@ document.addEventListener("DOMContentLoaded", () => {
    ============================================================ */
 
 /**
- * Abre ou fecha a estufa selecionada
- * - Fecha todas as outras
+ * Alterna abertura/fechamento de uma estufa
+ * - Apenas uma aberta por vez
  * - Alterna "Selecionar" ↔ "Fechar"
- * - Esconde o bloco "+ Nova Estufa"
+ * - Esconde o bloco "+ Nova Estufa" se alguma estiver aberta
  */
 function selectEstufa(idEstufa) {
     const box = document.getElementById(`estufa-${idEstufa}-box`);
@@ -95,13 +95,24 @@ function selectEstufa(idEstufa) {
         box.classList.add("d-none");
         btn.textContent = "Selecionar";
         btn.classList.remove("fechar");
-        if (novaEstufa) novaEstufa.classList.remove("d-none");
     } else {
         // Se estava fechada → abre
         box.classList.remove("d-none");
         btn.textContent = "Fechar";
         btn.classList.add("fechar");
-        if (novaEstufa) novaEstufa.classList.add("d-none");
+    }
+
+    // 🔹 Verifica se ainda há alguma estufa aberta
+    const algumaAberta = Array.from(document.querySelectorAll(".item-estufa-box"))
+        .some(div => !div.classList.contains("d-none"));
+
+    // 🔹 Mostra ou esconde o bloco de nova estufa
+    if (novaEstufa) {
+        if (algumaAberta) {
+            novaEstufa.classList.add("d-none"); // esconde
+        } else {
+            novaEstufa.classList.remove("d-none"); // mostra
+        }
     }
 }
 
