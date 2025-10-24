@@ -1,7 +1,8 @@
 /**
- * HIDROPONIA.JS v2.2
- * Controle de cadastro e exibição de estufas e bancadas
+ * HIDROPONIA.JS v2.3
  * Sistema Caderno de Campo - Frutag
+ * Controle de cadastro e exibição de Estufas e Bancadas
+ * Atualizado em 2025-10-24
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
  * Alterna abertura/fechamento de uma estufa
  * - Apenas uma aberta por vez
  * - Alterna "Selecionar" ↔ "Fechar"
- * - Esconde o bloco "+ Nova Estufa" se qualquer estufa estiver aberta
+ * - Esconde "+ Nova Estufa" se qualquer estufa estiver aberta
  */
 function selectEstufa(idEstufa) {
     const box = document.getElementById(`estufa-${idEstufa}-box`);
@@ -79,7 +80,7 @@ function selectEstufa(idEstufa) {
 
     if (!box || !btn) return;
 
-    const isOpen = !box.classList.contains("d-none"); // já está aberta?
+    const isOpen = !box.classList.contains("d-none");
 
     // Fecha todas as estufas abertas
     document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
@@ -102,17 +103,14 @@ function selectEstufa(idEstufa) {
         btn.classList.add("fechar");
     }
 
-    // 🔹 Verifica se ainda há alguma estufa aberta
+    // Verifica se há alguma estufa aberta
     const algumaAberta = Array.from(document.querySelectorAll(".item-estufa-box"))
         .some(div => !div.classList.contains("d-none"));
 
-    // 🔹 Mostra ou esconde o bloco de nova estufa (formulário inteiro)
+    // Mostra/esconde "+ Nova Estufa"
     if (formNovaEstufa) {
-        if (algumaAberta) {
-            formNovaEstufa.classList.add("d-none"); // esconde
-        } else {
-            formNovaEstufa.classList.remove("d-none"); // mostra
-        }
+        if (algumaAberta) formNovaEstufa.classList.add("d-none");
+        else formNovaEstufa.classList.remove("d-none");
     }
 }
 
@@ -120,8 +118,7 @@ function selectEstufa(idEstufa) {
  * Mostra o conteúdo da bancada selecionada
  * - Fecha todas as bancadas abertas
  * - Fecha outras estufas, mas mantém aberta a da bancada
- * - Esconde "+ Nova Estufa"
- * - Mostra apenas a bancada clicada
+ * - Esconde "+ Nova Estufa" e "+ Nova Bancada"
  */
 function selectBancada(nomeBancada, idEstufa) {
     const nomeNormalizado = nomeBancada
@@ -146,9 +143,13 @@ function selectBancada(nomeBancada, idEstufa) {
     const formNovaEstufa = document.getElementById("add-estufa");
     if (formNovaEstufa) formNovaEstufa.classList.add("d-none");
 
+    // Esconde "+ Nova Bancada" da estufa atual
+    const formNovaBancada = document.getElementById(`add-bancada-estufa-${idEstufa}`);
+    if (formNovaBancada) formNovaBancada.classList.add("d-none");
+
     // Mostra apenas a bancada clicada
     const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`)
-            || document.getElementById(`item-bancada-${nomeNormalizado}-content-estufa-${idEstufa}`);
+        || document.getElementById(`item-bancada-${nomeNormalizado}-content-estufa-${idEstufa}`);
 
     if (box) {
         box.classList.remove("d-none");
@@ -169,6 +170,7 @@ function selectBancada(nomeBancada, idEstufa) {
  * - Fecha todas as bancadas
  * - Reabre a estufa correspondente
  * - Mantém o botão "Fechar" ativo
+ * - Restaura "+ Nova Bancada"
  */
 function voltarEstufa(idEstufa) {
     // Fecha todas as bancadas
@@ -178,14 +180,18 @@ function voltarEstufa(idEstufa) {
     const box = document.getElementById(`estufa-${idEstufa}-box`);
     if (box) box.classList.remove("d-none");
 
-    // Restaura o botão
+    // Restaura o botão "Fechar"
     const btn = document.getElementById(`edit-estufa-${idEstufa}`);
     if (btn) {
         btn.textContent = "Fechar";
         btn.classList.add("fechar");
     }
 
-    // Garante que o "+ Nova Estufa" continue oculto
+    // Mantém o "+ Estufa" oculto
     const formNovaEstufa = document.getElementById("add-estufa");
     if (formNovaEstufa) formNovaEstufa.classList.add("d-none");
+
+    // 🔹 Restaura "+ Nova Bancada"
+    const formNovaBancada = document.getElementById(`add-bancada-estufa-${idEstufa}`);
+    if (formNovaBancada) formNovaBancada.classList.remove("d-none");
 }
