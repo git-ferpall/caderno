@@ -253,6 +253,12 @@ if ($user_id) {
     </div>
 
     </div>
+    <div id="popup-bancada" class="popup d-none">
+        <div class="popup-inner">
+            <button class="popup-close" onclick="fecharPopupBancada()">×</button>
+            <div id="popup-bancada-conteudo"></div>
+        </div>
+    </div>
    
 
 
