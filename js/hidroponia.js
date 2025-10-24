@@ -70,29 +70,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 function selectBancada(nomeBancada, idEstufa) {
-    // Normaliza o nome da bancada (remove espaços, caracteres especiais)
-    const nomeLimpo = nomeBancada.toString().trim().replace(/\s+/g, '');
+    // Normaliza o nome (remove espaços, acentos e caracteres especiais)
+    const nomeNormalizado = nomeBancada
+        .toString()
+        .trim()
+        .normalize("NFD") // remove acentos
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "-") // substitui espaços por "-"
+        .replace(/[^a-zA-Z0-9-_]/g, ""); // remove caracteres fora de padrão
 
     // Fecha todas as bancadas abertas
-    document.querySelectorAll(".item-bancada-content").forEach(div => {
-        div.classList.add("d-none");
-    });
+    document.querySelectorAll(".item-bancada-content").forEach(div => div.classList.add("d-none"));
 
     // Oculta o bloco principal de estufas
-    document.querySelectorAll(".item-estufa-box").forEach(div => {
-        div.classList.add("d-none");
-    });
+    document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
 
-    // Mostra o conteúdo da bancada clicada
-    const idBox = `item-bancada-${nomeLimpo}-content-estufa-${idEstufa}`;
-    const box = document.getElementById(idBox);
+    // Tenta localizar a div correspondente
+    const idBox = `item-bancada-${nomeBancada}-content-estufa-${idEstufa}`;
+    const idBoxAlternativo = `item-bancada-${nomeNormalizado}-content-estufa-${idEstufa}`;
+
+    let box = document.getElementById(idBox);
+    if (!box) box = document.getElementById(idBoxAlternativo);
 
     if (box) {
         box.classList.remove("d-none");
     } else {
-        console.warn("⚠️ Bancada não encontrada:", idBox);
+        console.warn("⚠️ Bancada não encontrada. IDs testados:", idBox, idBoxAlternativo);
     }
 }
+
 
 
 // 🧩 Voltar da bancada para a estufa
