@@ -1,117 +1,67 @@
-/**
- * Funções de controle do módulo HIDROPONIA
- * - Salvar estufas e bancadas
- * - Remover estufas e bancadas
- * - Recarregar dados após ações
- * Autor: Ferpall Tecnologia / Frutag
- */
+document.addEventListener("DOMContentLoaded", () => {
+    carregarHidroponia();
 
-console.log("hidroponia.js carregado ✅");
+    async function carregarHidroponia() {
+        const container = document.getElementById("hidroponia-container");
+        container.innerHTML = '<div class="loading">Carregando...</div>';
 
-// 🔹 Salvar nova estufa
-function salvarEstufa(area_id) {
-  const formData = new FormData();
-  formData.append('area_id', area_id);
-  formData.append('nome', document.getElementById('e-nome').value);
-  formData.append('area_m2', document.getElementById('e-area').value);
-  formData.append('obs', document.getElementById('e-obs').value);
+        const res = await fetch("../funcoes/hidroponia/carregar_hidroponia.php");
+        const data = await res.json();
 
-  fetch('../funcoes/salvar_estufa.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(d => {
-    if (d.ok) {
-      alert(d.msg);
-      location.reload();
-    } else {
-      alert("Erro: " + d.err);
+        if (!data.ok) {
+            container.innerHTML = `<div class="erro">${data.err}</div>`;
+            return;
+        }
+
+        let html = `
+            <button class="btn-add" onclick="abrirFormEstufa()">+ Nova Estufa</button>
+        `;
+
+        data.areas.forEach(area => {
+            area.estufas.forEach(estufa => {
+                html += `
+                <div class="item item-estufa">
+                    <h4>${estufa.nome}</h4>
+                    <p><strong>Área:</strong> ${estufa.area_m2} m²</p>
+                    <p>${estufa.obs || ''}</p>
+
+                    <button onclick="abrirFormBancada(${estufa.id})">+ Adicionar Bancada</button>
+                    <div class="bancadas">
+                        ${estufa.bancadas.map(b => `
+                            <div class="bancada">
+                                <span>${b.nome}</span>
+                                <small>${b.cultura || ''}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            });
+        });
+
+        container.innerHTML = html;
     }
-  })
-  .catch(err => console.error("Erro ao salvar estufa:", err));
-}
 
-// 🔹 Salvar nova bancada
-function salvarBancada(estufa_id) {
-  const formData = new FormData();
-  formData.append('estufa_id', estufa_id);
-  formData.append('nome', document.getElementById('b-nome').value);
-  formData.append('cultura', document.getElementById('b-area').value);
-  formData.append('obs', document.getElementById('b-obs').value);
+    window.abrirFormEstufa = function() {
+        const nome = prompt("Nome da Estufa:");
+        if (!nome) return;
+        fetch("../funcoes/hidroponia/salvar_estufa.php", {
+            method: "POST",
+            body: new URLSearchParams({ nome })
+        }).then(r => r.json()).then(d => {
+            if (d.ok) carregarHidroponia();
+            else alert(d.err);
+        });
+    };
 
-  fetch('../funcoes/salvar_bancada.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(d => {
-    if (d.ok) {
-      alert(d.msg);
-      location.reload();
-    } else {
-      alert("Erro: " + d.err);
-    }
-  })
-  .catch(err => console.error("Erro ao salvar bancada:", err));
-}
-
-// 🔹 Remover estufa (e bancadas)
-function removerEstufa(estufa_id) {
-  if (!confirm("Tem certeza que deseja excluir esta estufa e todas as bancadas?")) return;
-
-  const formData = new FormData();
-  formData.append('estufa_id', estufa_id);
-
-  fetch('../funcoes/remover_estufa.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(d => {
-    if (d.ok) {
-      alert(d.msg);
-      location.reload();
-    } else {
-      alert("Erro: " + d.err);
-    }
-  })
-  .catch(err => console.error("Erro ao remover estufa:", err));
-}
-
-// 🔹 Remover bancada isolada
-function removerBancada(bancada_id) {
-  if (!confirm("Tem certeza que deseja excluir esta bancada?")) return;
-
-  const formData = new FormData();
-  formData.append('bancada_id', bancada_id);
-
-  fetch('../funcoes/remover_bancada.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(d => {
-    if (d.ok) {
-      alert(d.msg);
-      location.reload();
-    } else {
-      alert("Erro: " + d.err);
-    }
-  })
-  .catch(err => console.error("Erro ao remover bancada:", err));
-}
-
-// 🔹 (Opcional) Recarregar dados dinamicamente sem reload
-function recarregarHidroponia() {
-  fetch('../funcoes/carregar_hidroponia.php')
-    .then(res => res.json())
-    .then(data => {
-      if (data.ok) {
-        console.log("Áreas carregadas:", data.areas);
-        // Aqui futuramente podemos montar o HTML dinâmico
-      } else {
-        alert(data.err);
-      }
-    });
-}
+    window.abrirFormBancada = function(estufa_id) {
+        const nome = prompt("Nome da Bancada:");
+        if (!nome) return;
+        fetch("../funcoes/hidroponia/salvar_bancada.php", {
+            method: "POST",
+            body: new URLSearchParams({ estufa_id, nome })
+        }).then(r => r.json()).then(d => {
+            if (d.ok) carregarHidroponia();
+            else alert(d.err);
+        });
+    };
+});

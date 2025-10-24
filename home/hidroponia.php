@@ -30,25 +30,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <?php
 
                 // Aqui vai uma função pra pegar as estufas cadastradas, ou importar de um arquivo json
-                $estufas = [
-                    ['id' => 1, 'nome' => 'Estufa 01', 'area' => '', 'obs' => 'Exemplo de observação',
-                        'bancadas' => []
-                    ],
-                    ['id' => 2, 'nome' => 'Estufa 02', 'area' => '', 'obs' => '',
-                        'bancadas' => [
-                            ['nome' => '01', 'cultura' => '', 'obs' => ''],
-                            ['nome' => '02', 'cultura' => '', 'obs' => ''],
-                            ['nome' => '03', 'cultura' => '', 'obs' => ''],
-                            ['nome' => '04', 'cultura' => '', 'obs' => '']
-                        ]
-                    ],
-                    ['id' => 3, 'nome' => 'Estufa 03', 'area' => '', 'obs' => '',
-                        'bancadas' => [
-                            ['nome' => '01', 'cultura' => '', 'obs' => ''],
-                            ['nome' => '02', 'cultura' => '', 'obs' => 'Exemplo de observação']
-                        ],
-                    ]
-                ];
+                require_once __DIR__ . '/../funcoes/hidroponia/carregar_hidroponia.php';
+                $data = carregarHidroponia();
+
+                $estufas = [];
+                if ($data['ok'] && isset($data['areas'][0]['estufas'])) {
+                    // Como as estufas vêm agrupadas por área, agrupamos tudo em um único array
+                    foreach ($data['areas'] as $area) {
+                        foreach ($area['estufas'] as $estufa) {
+                            $estufas[] = $estufa;
+                        }
+                    }
+                }
+
 
                 if(!empty($estufas)){
                     foreach($estufas as $estufa) {
