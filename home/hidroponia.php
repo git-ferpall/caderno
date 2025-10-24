@@ -28,9 +28,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <div class="item-box container">
 
                 <?php
-
-                // Aqui vai uma função pra pegar as estufas cadastradas, ou importar de um arquivo json
-                $estufas = [
+                ?>
+                <div id="lista-estufas"></div>
+                <!-- Aqui vai uma função pra pegar as estufas cadastradas, ou importar de um arquivo json
+                 $estufas = [
                     ['id' => 1, 'nome' => 'Estufa 01', 'area' => '', 'obs' => 'Exemplo de observação',
                         'bancadas' => []
                     ],
@@ -48,7 +49,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             ['nome' => '02', 'cultura' => '', 'obs' => 'Exemplo de observação']
                         ],
                     ]
-                ];
+                ]; -->
+                <?php
 
                 if(!empty($estufas)){
                     foreach($estufas as $estufa) {
