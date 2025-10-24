@@ -73,27 +73,35 @@ document.addEventListener("DOMContentLoaded", () => {
  * - Esconde o bloco "+ Nova Estufa"
  */
 function selectEstufa(idEstufa) {
+    const box = document.getElementById(`estufa-${idEstufa}-box`);
+    const btn = document.getElementById(`edit-estufa-${idEstufa}`);
+    const novaEstufa = document.getElementById("item-add-estufa");
+
+    if (!box || !btn) return;
+
+    const isOpen = !box.classList.contains("d-none"); // já está aberta?
+
     // Fecha todas as estufas abertas
     document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
 
-    // Reseta todos os botões
-    document.querySelectorAll(".edit-btn").forEach(btn => btn.textContent = "Selecionar");
+    // Reseta todos os botões para "Selecionar"
+    document.querySelectorAll(".edit-btn").forEach(b => {
+        b.textContent = "Selecionar";
+        b.classList.remove("fechar");
+    });
 
-    // Oculta o bloco "+ Nova Estufa"
-    const novaEstufa = document.getElementById("item-add-estufa");
-    if (novaEstufa) novaEstufa.classList.add("d-none");
-
-    // Alterna o estado da estufa clicada
-    const box = document.getElementById(`estufa-${idEstufa}-box`);
-    const btn = document.getElementById(`edit-estufa-${idEstufa}`);
-
-    if (box && box.classList.contains("d-none")) {
-        box.classList.remove("d-none");
-        if (btn) btn.textContent = "Fechar";
-    } else if (box) {
+    if (isOpen) {
+        // Se já estava aberta → fecha
         box.classList.add("d-none");
-        if (btn) btn.textContent = "Selecionar";
+        btn.textContent = "Selecionar";
+        btn.classList.remove("fechar");
         if (novaEstufa) novaEstufa.classList.remove("d-none");
+    } else {
+        // Se estava fechada → abre
+        box.classList.remove("d-none");
+        btn.textContent = "Fechar";
+        btn.classList.add("fechar");
+        if (novaEstufa) novaEstufa.classList.add("d-none");
     }
 }
 
@@ -148,7 +156,10 @@ function voltarEstufa(idEstufa) {
 
     // Restaura o botão
     const btn = document.getElementById(`edit-estufa-${idEstufa}`);
-    if (btn) btn.textContent = "Fechar";
+    if (btn) {
+        btn.textContent = "Fechar";
+        btn.classList.add("fechar");
+    }
 
     // Garante que o "+ Nova Estufa" continue oculto
     const novaEstufa = document.getElementById("item-add-estufa");
