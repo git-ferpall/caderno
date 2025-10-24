@@ -28,8 +28,8 @@ try {
         exit;
     }
 
-    // 🔎 Busca o tipo e nome da área antes de excluir
-    $stmtCheck = $mysqli->prepare("SELECT nome, tipo FROM areas WHERE id = ? AND user_id = ?");
+    // 🔎 Verifica se a área pertence ao usuário antes de excluir
+    $stmtCheck = $mysqli->prepare("SELECT id FROM areas WHERE id = ? AND user_id = ?");
     $stmtCheck->bind_param("ii", $id, $user_id);
     $stmtCheck->execute();
     $res = $stmtCheck->get_result();
@@ -41,30 +41,19 @@ try {
         exit;
     }
 
-    $tipo = $area['tipo'];
-    $nome = $area['nome'];
-
     // 🔄 Inicia transação
     $mysqli->begin_transaction();
 
-    // 🧱 1️⃣ Se for bancada, apaga também da tabela "bancadas"
-    if ($tipo === 'bancada') {
-        $stmtB = $mysqli->prepare("DELETE FROM bancadas WHERE nome = ?");
-        $stmtB->bind_param("s", $nome);
-        $stmtB->execute();
-        $stmtB->close();
-    }
-
-    // 🧱 2️⃣ Apaga a área da tabela "areas"
-    $stmtA = $mysqli->prepare("DELETE FROM areas WHERE id = ? AND user_id = ?");
-    $stmtA->bind_param("ii", $id, $user_id);
-    $stmtA->execute();
-    $linhas = $stmtA->affected_rows;
-    $stmtA->close();
+    // 💣 1️⃣ Exclui a área (bancadas vinculadas serão excluídas automaticamente via ON DELETE CASCADE)
+    $stmt = $mysqli->prepare("DELETE FROM areas WHERE id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $id, $user_id);
+    $stmt->execute();
+    $linhas = $stmt->affected_rows;
+    $stmt->close();
 
     if ($linhas > 0) {
         $mysqli->commit();
-        echo json_encode(['ok' => true, 'msg' => 'Área (e bancada, se aplicável) excluída com sucesso']);
+        echo json_encode(['ok' => true, 'msg' => 'Área e bancadas associadas excluídas com sucesso']);
     } else {
         $mysqli->rollback();
         echo json_encode(['ok' => false, 'err' => 'not_found_or_not_owner']);
