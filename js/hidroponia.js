@@ -1,67 +1,54 @@
 document.addEventListener("DOMContentLoaded", () => {
-    carregarHidroponia();
 
-    async function carregarHidroponia() {
-        const container = document.getElementById("hidroponia-container");
-        container.innerHTML = '<div class="loading">Carregando...</div>';
+    // 🟢 Adicionar nova estufa
+    document.getElementById("form-save-estufa").addEventListener("click", async () => {
+        const nome = document.getElementById("e-nome").value.trim();
+        const area = document.getElementById("e-area").value.trim();
+        const obs  = document.getElementById("e-obs").value.trim();
 
-        const res = await fetch("../funcoes/hidroponia/carregar_hidroponia.php");
-        const data = await res.json();
-
-        if (!data.ok) {
-            container.innerHTML = `<div class="erro">${data.err}</div>`;
+        if (!nome) {
+            alert("Informe o nome da estufa");
             return;
         }
 
-        let html = `
-            <button class="btn-add" onclick="abrirFormEstufa()">+ Nova Estufa</button>
-        `;
+        const res = await fetch("../funcoes/hidroponia/salvar_estufa.php", {
+            method: "POST",
+            body: new URLSearchParams({ nome, area_m2: area, obs })
+        });
+        const data = await res.json();
 
-        data.areas.forEach(area => {
-            area.estufas.forEach(estufa => {
-                html += `
-                <div class="item item-estufa">
-                    <h4>${estufa.nome}</h4>
-                    <p><strong>Área:</strong> ${estufa.area_m2} m²</p>
-                    <p>${estufa.obs || ''}</p>
+        if (data.ok) {
+            location.reload(); // atualiza a listagem
+        } else {
+            alert("Erro: " + data.err);
+        }
+    });
 
-                    <button onclick="abrirFormBancada(${estufa.id})">+ Adicionar Bancada</button>
-                    <div class="bancadas">
-                        ${estufa.bancadas.map(b => `
-                            <div class="bancada">
-                                <span>${b.nome}</span>
-                                <small>${b.cultura || ''}</small>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`;
+    // 🟢 Adicionar nova bancada
+    document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
+        btn.addEventListener("click", async e => {
+            const id = e.target.id.split("-").pop();
+            const nome = document.querySelector(`#item-add-bancada-estufa-${id} #b-nome`).value.trim();
+            const cultura = document.querySelector(`#item-add-bancada-estufa-${id} #b-area`).value.trim();
+            const obs = document.querySelector(`#item-add-bancada-estufa-${id} #b-obs`).value.trim();
+
+            if (!nome) {
+                alert("Informe o nome/número da bancada");
+                return;
+            }
+
+            const res = await fetch("../funcoes/hidroponia/salvar_bancada.php", {
+                method: "POST",
+                body: new URLSearchParams({ estufa_id: id, nome, cultura, obs })
             });
-        });
+            const data = await res.json();
 
-        container.innerHTML = html;
-    }
-
-    window.abrirFormEstufa = function() {
-        const nome = prompt("Nome da Estufa:");
-        if (!nome) return;
-        fetch("../funcoes/hidroponia/salvar_estufa.php", {
-            method: "POST",
-            body: new URLSearchParams({ nome })
-        }).then(r => r.json()).then(d => {
-            if (d.ok) carregarHidroponia();
-            else alert(d.err);
+            if (data.ok) {
+                location.reload();
+            } else {
+                alert("Erro: " + data.err);
+            }
         });
-    };
+    });
 
-    window.abrirFormBancada = function(estufa_id) {
-        const nome = prompt("Nome da Bancada:");
-        if (!nome) return;
-        fetch("../funcoes/hidroponia/salvar_bancada.php", {
-            method: "POST",
-            body: new URLSearchParams({ estufa_id, nome })
-        }).then(r => r.json()).then(d => {
-            if (d.ok) carregarHidroponia();
-            else alert(d.err);
-        });
-    };
 });

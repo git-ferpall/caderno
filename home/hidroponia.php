@@ -30,7 +30,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <?php
 
                 // Aqui vai uma função pra pegar as estufas cadastradas, ou importar de um arquivo json
-                require_once __DIR__ . '/../funcoes/hidroponia/carregar_hidroponia.php';
+                require_once __DIR__ . '/../funcoes/carregar_hidroponia.php';
                 $data = carregarHidroponia();
 
                 $estufas = [];
