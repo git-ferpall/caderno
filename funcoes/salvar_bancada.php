@@ -50,21 +50,7 @@ if ($nome === '') {
 $mysqli->begin_transaction();
 
 try {
-    // 🏗️ 1️⃣ Salva bancada
-    $stmt = $mysqli->prepare("
-        INSERT INTO bancadas (estufa_id, nome, cultura, obs)
-        VALUES (?, ?, ?, ?)
-    ");
-    $stmt->bind_param("isss", $estufa_id, $nome, $cultura, $obs);
-    $stmt->execute();
-    $bancada_id = $stmt->insert_id;
-    $stmt->close();
-
-    if ($bancada_id <= 0) {
-        throw new Exception('Erro ao salvar na tabela bancadas.');
-    }
-
-    // 🔍 2️⃣ Busca nome da estufa
+    // 🔍 1️⃣ Busca nome da estufa (para compor o nome da área)
     $stmt2 = $mysqli->prepare("SELECT nome FROM estufas WHERE id = ?");
     $stmt2->bind_param("i", $estufa_id);
     $stmt2->execute();
@@ -73,12 +59,10 @@ try {
     $stmt2->close();
 
     $nome_estufa = $estufa ? $estufa['nome'] : 'Estufa sem nome';
-
-    // 🌱 3️⃣ Cria também em áreas
-    // Verifica se enum já possui 'bancada'
-    $tipo = 'bancada'; // se enum ainda não tiver, use 'estufa'
-
     $nome_area = "{$nome_estufa} - Bancada {$nome}";
+    $tipo = 'bancada';
+
+    // 🌱 2️⃣ Cria primeiro a área
     $stmt3 = $mysqli->prepare("
         INSERT INTO areas (user_id, propriedade_id, nome, tipo)
         VALUES (?, ?, ?, ?)
@@ -90,6 +74,20 @@ try {
 
     if ($area_id <= 0) {
         throw new Exception('Erro ao salvar na tabela areas.');
+    }
+
+    // 🧱 3️⃣ Cria a bancada vinculada à área (agora com FK)
+    $stmt = $mysqli->prepare("
+        INSERT INTO bancadas (area_id, estufa_id, nome, cultura, obs)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("iisss", $area_id, $estufa_id, $nome, $cultura, $obs);
+    $stmt->execute();
+    $bancada_id = $stmt->insert_id;
+    $stmt->close();
+
+    if ($bancada_id <= 0) {
+        throw new Exception('Erro ao salvar na tabela bancadas.');
     }
 
     // ✅ Confirma tudo
