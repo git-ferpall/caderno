@@ -34,19 +34,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 $data = carregarHidroponia();
 
                 $estufas = [];
-                if ($data['ok'] && isset($data['areas'][0]['estufas'])) {
-                    // Como as estufas vêm agrupadas por área, agrupamos tudo em um único array
-                    foreach ($data['areas'] as $area) {
-                        foreach ($area['estufas'] as $estufa) {
-                            $estufas[] = $estufa;
-                        }
-                    }
+                if ($data['ok'] && isset($data['estufas'])) {
+                    $estufas = $data['estufas'];
                 }
+
 
 
                 if(!empty($estufas)){
                     foreach($estufas as $estufa) {
-                        $area = ($estufa['area'] == '') ? 'Não informado' : $estufa['area'];
+                        $area = ($estufa['area_m2'] == '') ? 'Não informado' : $estufa['area_m2'];
                         $obs = ($estufa['obs'] == '') ? 'Nenhuma observação' : $estufa['obs'];
                         $has_obs = ($estufa['obs'] == '') ? '' : 'v2';
 
