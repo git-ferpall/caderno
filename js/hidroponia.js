@@ -69,22 +69,31 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// 🧩 Selecionar bancada
 function selectBancada(nomeBancada, idEstufa) {
+    // Normaliza o nome da bancada (remove espaços, caracteres especiais)
+    const nomeLimpo = nomeBancada.toString().trim().replace(/\s+/g, '');
+
     // Fecha todas as bancadas abertas
     document.querySelectorAll(".item-bancada-content").forEach(div => {
         div.classList.add("d-none");
     });
 
-    // Oculta o bloco de estufas
+    // Oculta o bloco principal de estufas
     document.querySelectorAll(".item-estufa-box").forEach(div => {
         div.classList.add("d-none");
     });
 
-    // Mostra a bancada selecionada
-    const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`);
-    if (box) box.classList.remove("d-none");
+    // Mostra o conteúdo da bancada clicada
+    const idBox = `item-bancada-${nomeLimpo}-content-estufa-${idEstufa}`;
+    const box = document.getElementById(idBox);
+
+    if (box) {
+        box.classList.remove("d-none");
+    } else {
+        console.warn("⚠️ Bancada não encontrada:", idBox);
+    }
 }
+
 
 // 🧩 Voltar da bancada para a estufa
 function voltarEstufa(idEstufa) {
