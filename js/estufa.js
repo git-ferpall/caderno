@@ -1,87 +1,70 @@
-// js/hidroponia/estufa.js
-import { mostrarMensagem } from './utils.js';
+// js/estufa.js
+export async function carregarEstufas() {
+  const lista = document.getElementById("lista-estufas");
+  if (!lista) return;
 
-export function carregarEstufas() {
-  const box = document.getElementById("lista-estufas");
-  if (!box) return;
+  lista.innerHTML = "<div class='item-none'>Carregando estufas...</div>";
 
-  box.innerHTML = '<div class="item-none">Carregando estufas...</div>';
+  try {
+    const resp = await fetch("../funcoes/get_estufas.php");
+    const data = await resp.json();
 
-  fetch("../funcoes/get_estufas.php")
-    .then(r => r.json())
-    .then(j => {
-      if (!j.ok || !j.estufas || j.estufas.length === 0) {
-        box.innerHTML = '<div class="item-none">Nenhuma estufa cadastrada.</div>';
-        return;
-      }
+    if (!data.ok || !data.estufas || data.estufas.length === 0) {
+      lista.innerHTML = "<div class='item-none'>Nenhuma estufa cadastrada.</div>";
+      return;
+    }
 
-      let html = "";
-      j.estufas.forEach(e => {
-        const area = e.area ? e.area + " m²" : "Não informada";
-        const obs = e.obs ? e.obs : "Nenhuma observação";
+    lista.innerHTML = "";
 
-        html += `
-          <div class="item item-propriedade item-estufa v2" id="estufa-${e.id}">
-              <h4 class="item-title">${e.nome}</h4>
-              <div class="item-edit">
-                  <button class="edit-btn" type="button" onclick="selectEstufa(${e.id})">Selecionar</button>
-              </div>
+    data.estufas.forEach(estufa => {
+      const area = estufa.area || "Não informada";
+      const obs = estufa.obs || "Nenhuma observação";
+
+      const div = document.createElement("div");
+      div.className = "item item-propriedade item-estufa v2";
+      div.id = `estufa-${estufa.id}`;
+      div.innerHTML = `
+        <h4 class="item-title">${estufa.nome}</h4>
+        <div class="item-edit">
+          <button class="edit-btn" type="button" onclick="selectEstufa(${estufa.id})">Selecionar</button>
+        </div>
+      `;
+
+      const detalhes = document.createElement("div");
+      detalhes.className = "item-estufa-box d-none";
+      detalhes.id = `estufa-${estufa.id}-box`;
+      detalhes.innerHTML = `
+        <div class="item-estufa-header">
+          <div class="item-estufa-header-box">
+            <div class="item-estufa-title">Área (m²)</div>
+            <div class="item-estufa-text">${area}</div>
           </div>
+          <div class="item-estufa-header-box">
+            <div class="item-estufa-title">Observações</div>
+            <div class="item-estufa-text">${obs}</div>
+          </div>
+        </div>
+        <div class="item-bancadas">
+          <h4 class="item-bancadas-title">Bancadas</h4>
+          <div class="item-bancadas-box">
+            ${
+              estufa.bancadas && estufa.bancadas.length
+                ? estufa.bancadas
+                    .map(
+                      b => `<button type="button" class="item-bancada">${b.nome}</button>`
+                    )
+                    .join("")
+                : `<div class="item-none">Nenhuma bancada cadastrada.</div>`
+            }
+          </div>
+        </div>
+      `;
 
-          <div class="item-estufa-box d-none" id="estufa-${e.id}-box">
-              <div class="item-estufa-header">
-                  <div class="item-estufa-header-box">
-                      <div class="item-estufa-title">Área (m²)</div>
-                      <div class="item-estufa-text">${area}</div>
-                  </div>
-                  <div class="item-estufa-header-box">
-                      <div class="item-estufa-title">Observações</div>
-                      <div class="item-estufa-text">${obs}</div>
-                  </div>
-              </div>
-
-              <div class="item-bancadas">
-                  <h4 class="item-bancadas-title">Bancadas</h4>
-                  <div class="item-bancadas-box">
-                      ${
-                        e.bancadas && e.bancadas.length > 0
-                          ? e.bancadas.map(b => `
-                              <button type="button" class="item-bancada"
-                                  onclick="selectBancada('${b.nome}', ${e.id})">
-                                  <div class="item-bancada-title">${b.nome}</div>
-                              </button>
-                            `).join("")
-                          : '<div class="item-none">Nenhuma bancada cadastrada.</div>'
-                      }
-                  </div>
-
-                  <form class="main-form form-bancada" id="add-bancada-estufa-${e.id}">
-                      <div class="item-add">
-                          <button class="main-btn btn-alter btn-alter-item fundo-verde"
-                              id="bancada-add-estufa-${e.id}" type="button">
-                              <div class="btn-icon icon-plus cor-verde"></div>
-                              <span class="main-btn-text">Nova Bancada</span>
-                          </button>
-                      </div>
-                      <div class="item-add-box d-none" id="item-add-bancada-estufa-${e.id}"></div>
-                  </form>
-              </div>
-          </div>`;
-      });
-
-      box.innerHTML = html;
-    })
-    .catch(() => {
-      box.innerHTML = '<div class="item-none">Erro ao carregar estufas.</div>';
+      lista.appendChild(div);
+      lista.appendChild(detalhes);
     });
+  } catch (e) {
+    console.error("Erro ao carregar estufas:", e);
+    lista.innerHTML = "<div class='item-none'>Erro ao carregar estufas.</div>";
+  }
 }
-
-// Abre/fecha estufa (toggle)
-window.selectEstufa = function (id) {
-  const box = document.getElementById(`estufa-${id}-box`);
-  if (!box) return;
-
-  const aberta = !box.classList.contains("d-none");
-  document.querySelectorAll(".item-estufa-box").forEach(el => el.classList.add("d-none"));
-  if (!aberta) box.classList.remove("d-none");
-};
