@@ -33,13 +33,12 @@
             </div>
 
             <div class="sistema-main silo">
-                <div class="silo-info container">
-                    <div class="silo-info-header">
-                        <h4 class="silo-info-title"><?php echo $utilizacao; ?>% utilizado</h4>
-                        <h4 class="silo-info-title"><?php echo $cap_ocupada; ?>GB de <?php echo $cap_max; ?>GB</h4>
-                    </div>
-                    <div class="silo-info-bar" style="background: linear-gradient(to right, var(--branco) <?php echo $cap_ocupada; ?>%, transparent <?php echo $cap_ocupada; ?>%);"></div>
+                <div class="silo-info-header">
+                    <h4 class="silo-info-title" id="silo-uso-txt">Carregando...</h4>
                 </div>
+                <div class="silo-info-bar" id="silo-uso-bar" style="background: linear-gradient(to right, var(--verde) 0%, transparent 0%);"></div>
+
+            </div>
 
                 <div class="silo-dados">
 
@@ -150,6 +149,7 @@
         </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/silo.js"></script>
     </div>
         
     <?php include '../include/footer.php' ?>
