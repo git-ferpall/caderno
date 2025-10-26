@@ -186,9 +186,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         </button>
                     </div>
                 </div>
-                <button class="silo-dados-btn v2" id="dado-remove">
+                <!--<button class="silo-dados-btn v2" id="dado-remove">
                     <div class="btn-icon icon-trash cor-branco"></div>
-                </button>
+                </button> -->
                 <button class="silo-dados-btn v1" id="dado-add">
                     <div class="btn-icon icon-plus cor-branco"></div>
                 </button>
