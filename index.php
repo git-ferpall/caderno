@@ -18,27 +18,42 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-            /* ALERTA POPUP */
-        .alert-login {
+           /* POPUP CENTRAL */
+        .alert-overlay {
         position: fixed;
-        top: 25px;
-        right: 25px;
-        z-index: 9999;
-        background: #ffecec;
-        border: 1px solid #ffb3b3;
-        color: #a70000;
-        padding: 14px 18px;
-        border-radius: 8px;
-        font-size: 15px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(2px);
         display: flex;
+        justify-content: center;
         align-items: center;
-        gap: 10px;
-        animation: slideDown 0.4s ease, fadeOut 0.5s ease 6.5s forwards;
+        z-index: 9999;
+        animation: fadeIn 0.4s ease;
+        }
+
+        .alert-login {
+        background: #fff;
+        border: 2px solid #ffb3b3;
+        color: #a70000;
+        padding: 25px 30px;
+        border-radius: 12px;
+        font-size: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        animation: popIn 0.3s ease;
+        position: relative;
         }
 
         .alert-login .alert-icon {
-        font-size: 22px;
+        font-size: 40px;
+        margin-bottom: 10px;
+        }
+
+        .alert-login .alert-text {
+        margin-bottom: 10px;
+        line-height: 1.5;
         }
 
         .alert-login .alert-text strong {
@@ -46,22 +61,24 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         }
 
         .alert-login .alert-close {
-        margin-left: 10px;
-        cursor: pointer;
+        position: absolute;
+        top: 8px;
+        right: 12px;
         background: transparent;
         border: none;
-        font-size: 20px;
+        font-size: 22px;
         color: #a70000;
-        line-height: 1;
+        cursor: pointer;
         }
 
-        @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
         }
 
-        @keyframes fadeOut {
-        to { opacity: 0; transform: translateY(-10px); }
+        @keyframes popIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
         }
 
 </style>
@@ -94,30 +111,20 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         <?php endif; ?>
 
         <?php 
-        // 🔹 Exibe mensagens de erro via GET (?err=...)
-        if (isset($_GET['err'])): 
-            $msg = '';
-            switch ($_GET['err']) {
-                case 'access_denied':
-                    $msg = 'Você não tem permissão para acessar o <b>Caderno de Campo</b>.';
-                    break;
-                case 'session_expired':
-                    $msg = 'Sua sessão expirou. Faça login novamente.';
-                    break;
-                case 'invalid':
-                    $msg = 'Usuário ou senha incorretos.';
-                    break;
-                default:
-                    $msg = 'Ocorreu um erro ao tentar acessar o sistema.';
-            }
+        // 🔹 Exibe mensagens de erro vindas da sessão
+        if (isset($_SESSION['retorno'])): 
+            $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
         ?>
-            <div class="alert-login">
-                <div class="alert-icon">⚠️</div>
-                <div class="alert-text">
-                    <strong>Aviso:</strong> <?= $msg ?>
-                    <br><small>Entre em contato com o administrador, se o problema persistir.</small>
-                </div>
+        <div class="alert-overlay" id="alert-overlay">
+        <div class="alert-login" id="alert-login">
+            <button class="alert-close" onclick="closeAlert()">×</button>
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-text">
+                <strong>Erro ao entrar:</strong><br><?= $msg ?>
             </div>
+        </div>
+        </div>
+        <?php unset($_SESSION['retorno']); ?>
         <?php endif; ?>
     </header>
 
