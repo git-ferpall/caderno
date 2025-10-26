@@ -23,20 +23,32 @@ try {
     $ext = strtolower(pathinfo($nome_original, PATHINFO_EXTENSION));
     if (!in_array($ext, $permitidos)) throw new Exception('tipo_invalido');
 
-    // 📂 Caminho base
-    $base = realpath(__DIR__ . '/../../../uploads');
-    if (!$base) throw new Exception('uploads_nao_existe');
+    // 📂 Caminho absoluto e fixo
+    $base = '/var/www/html/uploads';
+    $pasta_silo = "$base/silo";
+    $pasta_user = "$pasta_silo/$user_id";
 
-    $pasta_user = "$base/silo/$user_id";
+    // 📁 Cria estrutura completa se não existir
     if (!is_dir($pasta_user)) {
-        if (!mkdir($pasta_user, 0775, true)) {
-            throw new Exception('mkdir_falhou');
-        }
+        @mkdir($pasta_user, 0775, true);
     }
 
-    // 🧱 Garante permissão correta
+    // 🧱 Garante que o Apache tenha acesso
+    @chown($base, 'www-data');
+    @chgrp($base, 'www-data');
+    @chmod($base, 0775);
+    @chown($pasta_silo, 'www-data');
+    @chgrp($pasta_silo, 'www-data');
+    @chmod($pasta_silo, 0775);
+    @chown($pasta_user, 'www-data');
+    @chgrp($pasta_user, 'www-data');
     @chmod($pasta_user, 0775);
 
+    if (!is_writable($pasta_user)) {
+        throw new Exception("sem_permissao_em_$pasta_user");
+    }
+
+    // 🧩 Gera nome único
     $nome_final = uniqid('', true) . '-' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $nome_original);
     $destino = "$pasta_user/$nome_final";
 
@@ -46,8 +58,10 @@ try {
     }
 
     // 💾 Registra no banco
-    $stmt = $mysqli->prepare("INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, origem, caminho, criado_em)
-                              VALUES (?, ?, ?, ?, ?, ?, NOW())");
+    $stmt = $mysqli->prepare("
+        INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, origem, caminho, criado_em)
+        VALUES (?, ?, ?, ?, ?, ?, NOW())
+    ");
     $stmt->bind_param('ississ', $user_id, $nome_final, $tipo, $tamanho, $origem, $destino);
     $stmt->execute();
     $stmt->close();
