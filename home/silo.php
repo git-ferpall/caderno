@@ -28,128 +28,61 @@
         ?>
 
         <main id="silo" class="sistema">
-            <div class="page-title">
-                <h2 class="main-title cor-branco">Silo de Dados</h2>
-            </div>
+  <div class="page-title">
+      <h2 class="main-title cor-branco">Silo de Dados</h2>
+  </div>
 
-            <div class="sistema-main silo">
-                <div class="silo-info-header">
-                    <h4 class="silo-info-title" id="silo-uso-txt">Carregando...</h4>
+    <div class="sistema-main silo">
+        <div class="silo-info container">
+            <div class="silo-info-header">
+                <h4 class="silo-info-title" id="silo-uso-txt">Carregando...</h4>
+            </div>
+            <div class="silo-info-bar" id="silo-uso-bar"></div>
+        </div>
+
+        <div class="silo-dados">
+            <div class="silo-arquivos">
+                <div class="silo-arquivos-sort">
+                    <button class="silo-sort-btn" type="button">
+                        <span class="silo-sort-btn-text">Data</span>
+                        <div class="btn-icon icon-angle"></div>
+                    </button>
+                    <button class="silo-sort-type" type="button">
+                        <div class="btn-icon icon-silo"></div>
+                    </button>
                 </div>
-                <div class="silo-info-bar" id="silo-uso-bar" style="background: linear-gradient(to right, var(--verde) 0%, transparent 0%);"></div>
-
+                <!-- JS vai injetar aqui -->
             </div>
 
-                <div class="silo-dados">
-
-                    <div class="silo-arquivos">
-
-                        <div class="silo-arquivos-sort">
-                            <button class="silo-sort-btn" type="button">
-                                <span class="silo-sort-btn-text">Data</span>
-                                <div class="btn-icon icon-angle"></div>
-                            </button>
-                            <button class="silo-sort-type" type="button">
-                                <div class="btn-icon icon-silo"></div>
-                            </button>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-pasta">
-                                <div class="btn-icon icon-pasta"></div>
-                                <span class="silo-item-title">Pasta de exemplo</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-pasta">
-                                <div class="btn-icon icon-pasta"></div>
-                                <span class="silo-item-title">Pasta de exemplo</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-pasta">
-                                <div class="btn-icon icon-pasta"></div>
-                                <span class="silo-item-title">Pasta de exemplo</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-arquivo">
-                                <div class="btn-icon icon-file"></div>
-                                <span class="silo-item-title">Arquivo de exemplo.file</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-arquivo">
-                                <div class="btn-icon icon-zip"></div>
-                                <span class="silo-item-title">ZIP de exemplo.zip</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-arquivo">
-                                <div class="btn-icon icon-txt"></div>
-                                <span class="silo-item-title">Texto de exemplo.txt</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-arquivo">
-                                <div class="btn-icon icon-pdf"></div>
-                                <span class="silo-item-title">PDF de exemplo.pdf</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-
-                        <div class="silo-item-box">
-                            <div class="silo-item silo-arquivo">
-                                <div class="btn-icon icon-img"></div>
-                                <span class="silo-item-title">Imagem de exemplo.img</span>
-                            </div>
-                            <div class="silo-item-edit icon-trash d-none"></div>
-                        </div>
-                        
-                    </div>
-                
-                    <div class="silo-dados-add">
-                        <div class="silo-dados-content">
-                            <div class="silo-dados-content-space">
-                                <button class="silo-dados-add-btn fundo-verde cor-branco" type="button" id="btn-silo-arquivo">
-                                    <div class="btn-icon icon-upload cor-branco"></div>
-                                    <span class="link-title">Enviar arquivo</span>
-                                </button>
-                                <button class="silo-dados-add-btn fundo-laranja cor-branco" type="button" id="btn-silo-pasta">
-                                    <div class="btn-icon icon-pasta cor-branco"></div>
-                                    <span class="link-title">Criar nova pasta</span>
-                                </button>
-                                <button class="silo-dados-add-btn" type="button" id="btn-silo-scan">
-                                    <div class="btn-icon icon-camera cor-preto"></div>
-                                    <span class="link-title">Escanear documento</span>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="silo-dados-btn v2" type="button" id="dado-remove">
-                            <div class="btn-icon icon-trash cor-branco"></div>
+            <div class="silo-dados-add">
+                <div class="silo-dados-content">
+                    <div class="silo-dados-content-space">
+                        <button class="silo-dados-add-btn fundo-verde cor-branco" id="btn-silo-arquivo">
+                            <div class="btn-icon icon-upload cor-branco"></div>
+                            <span class="link-title">Enviar arquivo</span>
                         </button>
-                        <button class="silo-dados-btn v1" type="button" id="dado-add">
-                            <div class="btn-icon icon-plus cor-branco"></div>
+                        <button class="silo-dados-add-btn fundo-laranja cor-branco" id="btn-silo-pasta">
+                            <div class="btn-icon icon-pasta cor-branco"></div>
+                            <span class="link-title">Criar nova pasta</span>
+                        </button>
+                        <button class="silo-dados-add-btn" id="btn-silo-scan">
+                            <div class="btn-icon icon-camera cor-preto"></div>
+                            <span class="link-title">Escanear documento</span>
                         </button>
                     </div>
                 </div>
+                <button class="silo-dados-btn v2" id="dado-remove">
+                    <div class="btn-icon icon-trash cor-branco"></div>
+                </button>
+                <button class="silo-dados-btn v1" id="dado-add">
+                    <div class="btn-icon icon-plus cor-branco"></div>
+                </button>
             </div>
-        </main>
+        </div>
+    </div>
+    </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/silo.js"></script>
     </div>
         
     <?php include '../include/footer.php' ?>
