@@ -56,6 +56,26 @@ require_once __DIR__ . '/../configuracao/protect.php';
     font-weight: 600;
     color: var(--preto);
     }
+    .silo-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .silo-item-actions .icon-download,
+    .silo-item-actions .icon-trash {
+    cursor: pointer;
+    font-size: 18px;
+    background: none;
+    border: none;
+    color: var(--cor-preto);
+    transition: transform 0.2s ease;
+    }
+
+    .silo-item-actions .icon-download:hover,
+    .silo-item-actions .icon-trash:hover {
+    transform: scale(1.2);
+    }
 </style>    
 </head>
 <body>
