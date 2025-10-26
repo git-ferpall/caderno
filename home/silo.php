@@ -116,6 +116,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
     border-radius: 10px;
     transition: background 0.2s;
     }
+    .silo-item-box.active {
+    background: rgba(0, 128, 0, 0.1);
+    border-radius: 8px;
+    }
+
 
 </style>    
 </head>

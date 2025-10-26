@@ -294,3 +294,10 @@ function getIconClass(tipo) {
     return 'icon-img';
   return 'icon-file';
 }
+// ===================================
+// ❌ Fecha qualquer menu de arquivo aberto
+// ===================================
+function fecharMenuArquivo() {
+  const menu = document.querySelector('.silo-menu-arquivo');
+  if (menu) menu.remove();
+}
