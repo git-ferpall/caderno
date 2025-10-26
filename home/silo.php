@@ -1,3 +1,8 @@
+<?php
+
+require_once __DIR__ . '/../configuracao/protect.php';
+
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
