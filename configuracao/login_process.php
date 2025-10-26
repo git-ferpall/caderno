@@ -5,13 +5,26 @@ require_once __DIR__ . '/recaptcha.php'; // 🔒 chaves do Google
 
 session_start();
 
+/**
+ * ==================================================
+ * Função auxiliar: salva mensagem de erro na sessão
+ * ==================================================
+ */
+function setLoginError($mensagem) {
+    $_SESSION['retorno'] = [
+        'mensagem' => $mensagem,
+        'hora' => date('H:i:s')
+    ];
+}
+
 $login   = trim($_POST['login'] ?? '');
 $senha   = trim($_POST['senha'] ?? '');
 $next    = $_POST['next'] ?? '/';
 $captcha = trim($_POST['g-recaptcha-response'] ?? ''); // token reCAPTCHA
 
 if ($login === '' || $senha === '') {
-    header('Location: /index.php?e=1');
+    setLoginError('Por favor, preencha usuário e senha.');
+    header('Location: /index.php');
     exit;
 }
 
@@ -22,7 +35,8 @@ if ($login === '' || $senha === '') {
  */
 if (empty($captcha)) {
     error_log("reCAPTCHA token vazio");
-    header('Location: /index.php?e=captcha_empty');
+    setLoginError('Validação de segurança falhou. Recarregue a página e tente novamente.');
+    header('Location: /index.php');
     exit;
 }
 
@@ -53,7 +67,8 @@ file_put_contents('/tmp/debug_recaptcha.log', date('[Y-m-d H:i:s] ') . "RAW_RESP
 
 if (!$response) {
     error_log("reCAPTCHA erro cURL: $error");
-    header('Location: /index.php?e=captcha');
+    setLoginError('Erro ao validar o reCAPTCHA. Tente novamente.');
+    header('Location: /index.php');
     exit;
 }
 
@@ -64,7 +79,8 @@ file_put_contents('/tmp/debug_recaptcha.log', date('[Y-m-d H:i:s] ') . "JSON_DEC
 $score = $captcha_data['score'] ?? 0;
 if (empty($captcha_data['success']) || $score < 0.2) {
     error_log("reCAPTCHA falhou: score=" . ($score ?: 'null'));
-    header('Location: /index.php?e=captcha');
+    setLoginError('Falha na validação de segurança. Tente novamente.');
+    header('Location: /index.php');
     exit;
 }
 
@@ -88,26 +104,41 @@ $r = http_post_form(AUTH_API_LOGIN, $payload);
 
 if (!$r || ($r['status'] ?? 0) === 0 || ($r['body'] ?? '') === '' || ($r['status'] ?? 0) >= 500) {
     error_log("AUTH_API erro rede/5xx status=" . ($r['status'] ?? 'null'));
-    header('Location: /index.php?e=api');
+    setLoginError('Erro de comunicação com o servidor. Tente novamente mais tarde.');
+    header('Location: /index.php');
     exit;
 }
 
-if (($r['status'] ?? 0) === 401 || ($r['status'] ?? 0) === 403) {
-    error_log("AUTH_API 401/403 body=" . substr($r['body'], 0, 400));
-    header('Location: /index.php?e=cred');
+/**
+ * ==================================================
+ * 5️⃣  Trata erros de autenticação
+ * ==================================================
+ */
+if (($r['status'] ?? 0) === 401) {
+    error_log("AUTH_API 401 body=" . substr($r['body'], 0, 400));
+    setLoginError('Usuário ou senha incorretos.');
+    header('Location: /index.php');
+    exit;
+}
+
+if (($r['status'] ?? 0) === 403) {
+    error_log("AUTH_API 403 body=" . substr($r['body'], 0, 400));
+    setLoginError('Usuário sem permissão para acessar o Caderno de Campo.');
+    header('Location: /index.php');
     exit;
 }
 
 $j = json_decode($r['body'], true);
 if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
     error_log("AUTH_API sem ok/token body=" . substr($r['body'], 0, 400));
-    header('Location: /index.php?e=cred');
+    setLoginError('Falha na autenticação. Verifique suas credenciais.');
+    header('Location: /index.php');
     exit;
 }
 
 /**
  * ==================================================
- * 5️⃣  Define o cookie JWT (AUTH_COOKIE)
+ * 6️⃣  Define o cookie JWT (AUTH_COOKIE)
  * ==================================================
  */
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
@@ -124,7 +155,7 @@ error_log("AUTH_COOKIE setado (secure=" . ($cookieOptions['secure'] ? '1' : '0')
 
 /**
  * ==================================================
- * 6️⃣  Redireciona para a próxima página
+ * 7️⃣  Redireciona para a próxima página
  * ==================================================
  */
 header('Location: ' . ($next ?: '/'));
