@@ -8,6 +8,50 @@
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
+<style>
+    .upload-popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    }
+
+    .upload-box {
+    background: var(--branco);
+    border-radius: 10px;
+    padding: 25px 40px;
+    text-align: center;
+    width: 350px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background: #e1e1e1;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 15px;
+    }
+
+    .progress-bar-fill {
+    height: 10px;
+    width: 0%;
+    background: var(--verde);
+    transition: width 0.2s ease;
+    }
+
+    .progress-text {
+    display: block;
+    margin-top: 10px;
+    font-weight: 600;
+    color: var(--preto);
+    }
+</style>    
 </head>
 <body>
     <?php require '../include/loading.php' ?> 
