@@ -30,27 +30,31 @@ try {
     $permitidos = ['image/jpeg','image/png','image/jpg','application/pdf','text/plain'];
     if (!in_array($arquivo['type'], $permitidos)) throw new Exception('tipo_invalido');
 
-    // Gera nome único e destino final
-    $ext = pathinfo($arquivo['name'], PATHINFO_EXTENSION);
-    $nome_final = uniqid('', true) . '-' . basename($arquivo['name']);
-    $destino = "$pasta_user/$nome_final";
+    // Gera nome único e caminho relativo
+    $nome_unico = uniqid('', true) . '-' . basename($arquivo['name']);
+    $destino = "$pasta_user/$nome_unico";
+    $caminho_relativo = "uploads/silo/$user_id/$nome_unico";
 
+    // Move o arquivo
     if (!move_uploaded_file($arquivo['tmp_name'], $destino)) {
         throw new Exception('falha_upload');
     }
 
+    // Calcula tamanho
+    $tamanho = filesize($destino);
+
     // Salva registro no banco
     $stmt = $mysqli->prepare("
-        INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, origem, criado_em)
-        VALUES (?, ?, ?, ?, ?, NOW())
+        INSERT INTO silo_arquivos 
+            (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, origem, criado_em) 
+        VALUES (?, ?, ?, ?, ?, ?, NOW())
     ");
-    $tamanho = filesize($destino);
-    $stmt->bind_param('issis', $user_id, $nome_final, $arquivo['type'], $tamanho, $origem);
+    $stmt->bind_param('ississ', $user_id, $nome_unico, $arquivo['type'], $tamanho, $caminho_relativo, $origem);
     $stmt->execute();
     $stmt->close();
 
     echo json_encode(['ok' => true, 'msg' => 'upload_ok']);
-}
+} 
 catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
