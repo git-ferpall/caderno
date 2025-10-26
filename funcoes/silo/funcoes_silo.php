@@ -8,8 +8,9 @@ require_once __DIR__ . '/../../sso/verify_jwt.php';
  */
 function getSiloUso($mysqli, $user_id)
 {
-    // 🔹 Limite padrão (em GB) — pode vir futuramente da tabela cliente
-    $limite_gb = 5.00;
+    // 🔹 Recupera payload JWT para pegar armazenamento direto
+    $payload = verify_jwt();
+    $limite_gb = (float)($payload['armazenamento'] ?? 5.00);
 
     // 🔹 Soma total dos arquivos do usuário
     $stmt = $mysqli->prepare("SELECT SUM(tamanho_bytes) AS total_bytes FROM silo_arquivos WHERE user_id = ?");
@@ -30,6 +31,7 @@ function getSiloUso($mysqli, $user_id)
         'percent' => round($percent, 1)
     ];
 }
+
 
 /**
  * 📋 Retorna todos os arquivos do usuário logado
