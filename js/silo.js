@@ -8,18 +8,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // 📤 Upload manual (compatível com mobile)
   const btnUpload = document.getElementById('btn-silo-arquivo');
   btnUpload.addEventListener('click', () => {
+    // Cria input de arquivo
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,application/pdf,text/plain';
 
+    // Quando o usuário escolhe um arquivo
     input.onchange = async () => {
       const file = input.files[0];
       if (!file) return;
+
+      // Checa limite só DEPOIS de o usuário escolher
       const ok = await checarLimiteAntesUpload();
       if (ok) enviarArquivo(file);
-      else abrirPopup('❌ Limite atingido', 'Exclua arquivos antes de enviar novos.');
+      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
     };
 
+    // Abre seletor de arquivo
     input.click();
   });
 
@@ -36,12 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!file) return;
       const ok = await checarLimiteAntesUpload();
       if (ok) enviarArquivo(file, 'scan');
-      else abrirPopup('❌ Limite atingido', 'Exclua arquivos antes de enviar novos.');
+      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
     };
 
     input.click();
   });
 });
+
 
 // ===================================
 // 🚀 Upload com barra de progresso
@@ -84,7 +90,7 @@ async function enviarArquivo(file, origem = 'upload') {
   cancelBtn.onclick = () => {
     xhr.abort();
     popup.remove();
-    abrirPopup('⚠️ Upload cancelado', 'O envio foi interrompido pelo usuário.');
+    alert('Upload cancelado.');
   };
 
   xhr.onload = () => {
@@ -92,28 +98,28 @@ async function enviarArquivo(file, origem = 'upload') {
     try {
       const j = JSON.parse(xhr.responseText);
       if (j.ok) {
-        abrirPopup('✅ Arquivo enviado', 'O arquivo foi armazenado com sucesso.');
+        alert('✅ Arquivo enviado com sucesso!');
         atualizarLista();
         atualizarUso();
       } else {
-        abrirPopup('❌ Erro ao enviar', j.msg || j.err || 'Falha desconhecida.');
+        alert('❌ ' + (j.msg || j.err || 'Falha desconhecida.'));
       }
     } catch {
       console.error(xhr.responseText);
-      abrirPopup('❌ Retorno inválido', 'O servidor retornou um formato inesperado.');
+      alert('❌ Retorno inválido do servidor.');
     }
   };
 
   xhr.onerror = () => {
     popup.remove();
-    abrirPopup('❌ Erro de conexão', 'Não foi possível enviar o arquivo.');
+    alert('❌ Erro de conexão.');
   };
 
   xhr.send(fd);
 }
 
 // ===================================
-// 📜 Atualiza lista (com ícones)
+// 📜 Atualiza lista (com ícones por tipo)
 // ===================================
 async function atualizarLista() {
   try {
@@ -150,6 +156,7 @@ async function atualizarLista() {
         </div>
       `;
 
+      // abre menu ao clicar
       div.addEventListener('click', (e) => {
         e.stopPropagation();
         abrirMenuArquivo(e, a);
@@ -165,20 +172,27 @@ async function atualizarLista() {
 }
 
 // ===================================
-// 🧩 Define ícone (usando SVGs locais)
+// 🧩 Define ícone conforme tipo de arquivo (usando seus SVGs)
 // ===================================
 function getIconClass(tipo) {
   tipo = tipo.toLowerCase();
 
-  if (tipo.includes('pdf')) return 'icon-pdf';
+  if (tipo.includes('pdf')) return 'icon-pdf'; // 📄 PDF
   if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif'))
-    return 'icon-img';
-  if (tipo.includes('txt')) return 'icon-txt';
-  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip';
-  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx')) return 'icon-x';
-  if (tipo.includes('doc') || tipo.includes('docx') || tipo.includes('ppt')) return 'icon-file';
-  return 'icon-file';
+    return 'icon-img'; // 🖼️ Imagem
+  if (tipo.includes('txt')) return 'icon-txt'; // 📜 Texto
+  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip'; // 📦 Compactado
+  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx'))
+    return 'icon-x'; // 📗 Planilhas
+  if (tipo.includes('doc') || tipo.includes('docx'))
+    return 'icon-file'; // 📘 Word
+  if (tipo.includes('ppt') || tipo.includes('pptx'))
+    return 'icon-file'; // 🧾 PowerPoint
+
+  return 'icon-file'; // Padrão
 }
+
+
 
 // ===================================
 // 📂 Menu de ações (Baixar / Renomear / Excluir)
@@ -213,30 +227,23 @@ function abrirMenuArquivo(e, arquivo) {
       const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
       const j = await res.json();
       if (j.ok) {
-        abrirPopup('✅ Arquivo renomeado', j.msg);
+        alert('✅ ' + j.msg);
         atualizarLista();
       } else {
-        abrirPopup('❌ Falha ao renomear', j.err || 'Erro desconhecido.');
+        alert('❌ ' + (j.err || 'Erro ao renomear.'));
       }
     }
     fecharMenuArquivo();
   };
 
-  menu.querySelector('.delete').onclick = async () => {
-    const confirm = await abrirPopupConfirm('Excluir arquivo?', 'Essa ação não poderá ser desfeita.');
-    if (confirm) {
-      excluirArquivo(arquivo.id);
-    }
+  menu.querySelector('.delete').onclick = () => {
+    excluirArquivo(arquivo.id);
     fecharMenuArquivo();
   };
 
   document.addEventListener('click', fecharMenuArquivo, { once: true });
 }
 
-function fecharMenuArquivo() {
-  const menus = document.querySelectorAll('.silo-menu-arquivo');
-  menus.forEach(menu => menu.remove());
-}
 
 // ===================================
 // ⬇️ Baixar arquivo
@@ -255,16 +262,17 @@ function baixarArquivo(url) {
 // 🗑️ Excluir arquivo
 // ===================================
 async function excluirArquivo(id) {
+  if (!confirm('Excluir este arquivo?')) return;
   const fd = new FormData();
   fd.append('id', id);
   const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
   const j = await res.json();
   if (j.ok) {
-    abrirPopup('🗑️ Arquivo excluído', 'O arquivo foi removido com sucesso.');
+    alert('🗑️ Arquivo removido!');
     atualizarLista();
     atualizarUso();
   } else {
-    abrirPopup('❌ Falha ao excluir', j.err);
+    alert('❌ ' + j.err);
   }
 }
 
@@ -291,58 +299,27 @@ async function checarLimiteAntesUpload() {
   const res = await fetch('../funcoes/silo/get_uso.php');
   const j = await res.json();
   if (j.ok && j.usado >= j.limite) {
-    abrirPopup('❌ Limite atingido', `Seu limite de ${j.limite} GB foi alcançado.`);
+    alert(`❌ Limite de ${j.limite} GB atingido. Exclua arquivos antes de enviar novos.`);
     return false;
   }
   return true;
 }
 
 // ===================================
-// 🪟 Popups padronizados
+// 🧩 Define ícone
 // ===================================
-function abrirPopup(titulo, mensagem) {
-  fecharPopup();
-  const popup = document.createElement('div');
-  popup.className = 'popup-overlay';
-  popup.innerHTML = `
-    <div class="popup-container">
-      <div class="popup-header">
-        <h2 class="popup-title">${titulo}</h2>
-        <button class="popup-close" onclick="fecharPopup()">×</button>
-      </div>
-      <div class="popup-body"><p class="popup-text">${mensagem}</p></div>
-      <div class="popup-actions">
-        <button class="popup-btn fundo-verde" onclick="fecharPopup()">Ok</button>
-      </div>
-    </div>`;
-  document.body.appendChild(popup);
+function getIconClass(tipo) {
+  tipo = tipo.toLowerCase();
+  if (tipo.includes('pdf')) return 'icon-pdf';
+  if (tipo.includes('txt')) return 'icon-txt';
+  if (tipo.includes('image') || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'png')
+    return 'icon-img';
+  return 'icon-file';
 }
-
-function fecharPopup() {
-  const popup = document.querySelector('.popup-overlay');
-  if (popup) popup.remove();
-}
-
-// 🔄 Popup com confirmação (resolve como Promise)
-function abrirPopupConfirm(titulo, mensagem) {
-  return new Promise(resolve => {
-    fecharPopup();
-    const popup = document.createElement('div');
-    popup.className = 'popup-overlay';
-    popup.innerHTML = `
-      <div class="popup-container">
-        <div class="popup-header">
-          <h2 class="popup-title">${titulo}</h2>
-          <button class="popup-close" onclick="fecharPopup();resolve(false)">×</button>
-        </div>
-        <div class="popup-body"><p class="popup-text">${mensagem}</p></div>
-        <div class="popup-actions">
-          <button class="popup-btn fundo-cinza-b" id="popup-cancel">Cancelar</button>
-          <button class="popup-btn fundo-vermelho" id="popup-ok">Excluir</button>
-        </div>
-      </div>`;
-    document.body.appendChild(popup);
-    popup.querySelector('#popup-ok').onclick = () => { fecharPopup(); resolve(true); };
-    popup.querySelector('#popup-cancel').onclick = () => { fecharPopup(); resolve(false); };
-  });
+// ===================================
+// ❌ Fecha qualquer menu de arquivo aberto
+// ===================================
+function fecharMenuArquivo() {
+  const menu = document.querySelector('.silo-menu-arquivo');
+  if (menu) menu.remove();
 }

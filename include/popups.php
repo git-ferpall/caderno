@@ -259,24 +259,7 @@ if ($user_id) {
             <div id="popup-bancada-conteudo"></div>
         </div>
     </div>
-   <!-- 🌙 Overlay do popup -->
-    <div class="popup-overlay d-none" id="popup-overlay-global">
-    <div class="popup-container">
-        <div class="popup-header">
-        <h2 class="popup-title">Título do Popup</h2>
-        <button class="popup-close" onclick="fecharPopup()">×</button>
-        </div>
-
-        <div class="popup-body">
-        <p class="popup-text">Conteúdo da mensagem aqui...</p>
-        </div>
-
-        <div class="popup-actions">
-        <button class="popup-btn fundo-cinza-b cor-preto" onclick="fecharPopup()">Cancelar</button>
-        <button class="popup-btn fundo-verde" id="popup-ok-btn">Confirmar</button>
-        </div>
-    </div>
-    </div>
+   
 
 
 
