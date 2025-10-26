@@ -119,7 +119,7 @@ async function enviarArquivo(file, origem = 'upload') {
 }
 
 // ===================================
-// 📜 Atualiza lista (com menu ao clicar)
+// 📜 Atualiza lista (com ícones por tipo)
 // ===================================
 async function atualizarLista() {
   try {
@@ -140,7 +140,7 @@ async function atualizarLista() {
     }
 
     j.arquivos.forEach(a => {
-      const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop() : 'file';
+      const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop().toLowerCase() : 'file';
       const icon = getIconClass(tipo);
 
       const div = document.createElement('div');
@@ -156,7 +156,7 @@ async function atualizarLista() {
         </div>
       `;
 
-      // 👇 Evento corrigido — agora funciona em qualquer parte do item
+      // abre menu ao clicar
       div.addEventListener('click', (e) => {
         e.stopPropagation();
         abrirMenuArquivo(e, a);
@@ -169,6 +169,26 @@ async function atualizarLista() {
     document.querySelector('.silo-arquivos').innerHTML =
       '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
+}
+
+// ===================================
+// 🧩 Define ícone conforme tipo de arquivo
+// ===================================
+function getIconClass(tipo) {
+  tipo = tipo.toLowerCase();
+
+  // Tipos mais comuns
+  if (tipo.includes('pdf')) return 'icon-pdf';         // PDF
+  if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif')) 
+    return 'icon-img';                                // Imagens
+  if (tipo.includes('txt')) return 'icon-txt';        // Texto simples
+  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip';   // Compactados
+  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx')) 
+    return 'icon-xls';                                // Planilhas
+  if (tipo.includes('doc') || tipo.includes('docx')) return 'icon-doc';  // Documentos Word
+  if (tipo.includes('ppt') || tipo.includes('pptx')) return 'icon-ppt';  // Apresentações
+
+  return 'icon-file'; // Padrão genérico
 }
 
 
