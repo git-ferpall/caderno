@@ -18,35 +18,52 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-    .alert-login {
-        background: #ffe5e5;
-        border: 1px solid #ff9b9b;
-        color: #b10000;
-        padding: 12px 16px;
-        border-radius: 10px;
+            /* ALERTA POPUP */
+        .alert-login {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        z-index: 9999;
+        background: #ffecec;
+        border: 1px solid #ffb3b3;
+        color: #a70000;
+        padding: 14px 18px;
+        border-radius: 8px;
         font-size: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 10px;
-        margin: 10px auto 25px auto;
-        max-width: 480px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        animation: fadeIn 0.6s ease-in-out;
-    }
+        animation: slideDown 0.4s ease, fadeOut 0.5s ease 6.5s forwards;
+        }
 
-    .alert-login .alert-icon {
+        .alert-login .alert-icon {
         font-size: 22px;
-        line-height: 1;
-    }
+        }
 
-    .alert-login .alert-text strong {
+        .alert-login .alert-text strong {
         font-weight: 700;
-    }
+        }
 
-    @keyframes fadeIn {
+        .alert-login .alert-close {
+        margin-left: 10px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        color: #a70000;
+        line-height: 1;
+        }
+
+        @keyframes slideDown {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
-    }
+        }
+
+        @keyframes fadeOut {
+        to { opacity: 0; transform: translateY(-10px); }
+        }
+
 </style>
 </head>
 <body>
@@ -65,12 +82,14 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         if (isset($_SESSION['retorno'])): 
             $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
         ?>
-            <div class="alert-login">
+            <div class="alert-login" id="alert-login">
                 <div class="alert-icon">⚠️</div>
                 <div class="alert-text">
                     <strong>Erro ao entrar:</strong> <?= $msg ?>
                 </div>
+                <button class="alert-close" onclick="closeAlert()">×</button>
             </div>
+
             <?php unset($_SESSION['retorno']); ?>
         <?php endif; ?>
 
@@ -189,6 +208,21 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
       }
     }, 7000);
     </script>
+    <script>
+    // Função para fechar manualmente o alerta
+    function closeAlert() {
+    const alert = document.getElementById('alert-login');
+    if (alert) {
+        alert.style.transition = 'opacity 0.3s ease';
+        alert.style.opacity = '0';
+        setTimeout(() => alert.remove(), 300);
+    }
+    }
+
+    // Remove automaticamente após 7 segundos
+    setTimeout(closeAlert, 7000);
+    </script>
+
 
 </div>
 
