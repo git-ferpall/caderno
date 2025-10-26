@@ -5,27 +5,49 @@ document.addEventListener('DOMContentLoaded', () => {
   atualizarLista();
   atualizarUso();
 
-  // 📤 Upload manual
-  document.getElementById('btn-silo-arquivo').addEventListener('click', async () => {
-    if (!(await checarLimiteAntesUpload())) return;
+  // 📤 Upload manual (compatível com mobile)
+  const btnUpload = document.getElementById('btn-silo-arquivo');
+  btnUpload.addEventListener('click', () => {
+    // Cria input de arquivo
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,application/pdf,text/plain';
-    input.onchange = () => enviarArquivo(input.files[0]);
+
+    // Quando o usuário escolhe um arquivo
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      // Checa limite só DEPOIS de o usuário escolher
+      const ok = await checarLimiteAntesUpload();
+      if (ok) enviarArquivo(file);
+      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
+    };
+
+    // Abre seletor de arquivo
     input.click();
   });
 
-  // 📸 Escanear documento (usar câmera)
-  document.getElementById('btn-silo-scan').addEventListener('click', async () => {
-    if (!(await checarLimiteAntesUpload())) return;
+  // 📸 Escanear documento (abrir câmera)
+  const btnScan = document.getElementById('btn-silo-scan');
+  btnScan.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
-    input.onchange = () => enviarArquivo(input.files[0], 'scan');
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const ok = await checarLimiteAntesUpload();
+      if (ok) enviarArquivo(file, 'scan');
+      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
+    };
+
     input.click();
   });
 });
+
 
 // ===================================
 // 🚀 Upload com barra de progresso
