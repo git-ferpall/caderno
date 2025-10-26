@@ -23,6 +23,38 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <title>Caderno de Campo - Frutag</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
+<style>
+        .alert-login {
+        background: #ffe5e5;
+        border: 1px solid #ff9b9b;
+        color: #b10000;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 10px auto 25px auto;
+        max-width: 480px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .alert-login .alert-icon {
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .alert-login .alert-text strong {
+        font-weight: 700;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+}
+
+</style>    
 </head>
 <body>
 
@@ -41,6 +73,16 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             <?php unset($_SESSION['retorno']); ?>
         <?php endif; ?>
     </header>
+    <?php if (isset($_GET['err']) && $_GET['err'] === 'access_denied'): ?>
+    <div class="alert-login">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text">
+            <strong>Acesso negado:</strong> Você não tem permissão para acessar o <b>Caderno de Campo</b>.
+            <br>
+            <small>Entre em contato com o administrador do sistema.</small>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <main id="login" class="login">
         <div class="login-box" id="login-box-id">
