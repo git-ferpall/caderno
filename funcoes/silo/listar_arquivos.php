@@ -1,25 +1,14 @@
 <?php
-require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../../sso/verify_jwt.php';
+require_once __DIR__ . '/funcoes_silo.php';
+header('Content-Type: application/json; charset=utf-8');
 
-header('Content-Type: application/json');
+try {
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+    if (!$user_id) throw new Exception('unauthorized');
 
-$payload = verify_jwt();
-$user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
-
-if (!$user_id) { echo json_encode([]); exit; }
-
-$stmt = $mysqli->prepare("
-    SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, criado_em, origem 
-    FROM silo_arquivos 
-    WHERE user_id = ? 
-    ORDER BY criado_em DESC
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$res = $stmt->get_result();
-
-$dados = [];
-while ($row = $res->fetch_assoc()) $dados[] = $row;
-
-echo json_encode($dados);
+    $arquivos = listarArquivosSilo($mysqli, $user_id);
+    echo json_encode(['ok' => true, 'arquivos' => $arquivos]);
+} catch (Exception $e) {
+    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+}
