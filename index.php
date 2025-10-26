@@ -1,20 +1,14 @@
 <?php
 session_start();
-#define('ROOT_PATH', __DIR__ . '/../../login/');
-
-#require_once "/var/www/html/login/configuracao/configuracao_conexao.php";
-#require_once "/var/www/html/login/configuracao/configuracao_funcoes.php";
 
 require_once __DIR__ . '/configuracao/auth.php';
 require_once __DIR__ . '/configuracao/recaptcha.php'; 
+
 if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     header('Location: /home/home.php');
     exit;
 }
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -24,7 +18,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-        .alert-login {
+    .alert-login {
         background: #ffe5e5;
         border: 1px solid #ff9b9b;
         color: #b10000;
@@ -52,9 +46,8 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
-}
-
-</style>    
+    }
+</style>
 </head>
 <body>
 
@@ -66,23 +59,48 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             <a href="index.php"><img src="img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
             <a href="https://www.frutag.com.br" target="_blank"><img src="img/logo-frutag.png" alt="Logo Frutag"></a>
         </div>
-        <?php if (isset($_SESSION['retorno'])): ?>
-            <div class="erro-login" style="color: red; text-align: center; margin-top: 10px;">
-                <?= htmlspecialchars($_SESSION['retorno']['mensagem']) ?>
+
+        <?php 
+        // 🔹 Exibe mensagens de erro vindas da sessão
+        if (isset($_SESSION['retorno'])): 
+            $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
+        ?>
+            <div class="alert-login">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-text">
+                    <strong>Erro ao entrar:</strong> <?= $msg ?>
+                </div>
             </div>
             <?php unset($_SESSION['retorno']); ?>
         <?php endif; ?>
+
+        <?php 
+        // 🔹 Exibe mensagens de erro via GET (?err=...)
+        if (isset($_GET['err'])): 
+            $msg = '';
+            switch ($_GET['err']) {
+                case 'access_denied':
+                    $msg = 'Você não tem permissão para acessar o <b>Caderno de Campo</b>.';
+                    break;
+                case 'session_expired':
+                    $msg = 'Sua sessão expirou. Faça login novamente.';
+                    break;
+                case 'invalid':
+                    $msg = 'Usuário ou senha incorretos.';
+                    break;
+                default:
+                    $msg = 'Ocorreu um erro ao tentar acessar o sistema.';
+            }
+        ?>
+            <div class="alert-login">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-text">
+                    <strong>Aviso:</strong> <?= $msg ?>
+                    <br><small>Entre em contato com o administrador, se o problema persistir.</small>
+                </div>
+            </div>
+        <?php endif; ?>
     </header>
-    <?php if (isset($_GET['err']) && $_GET['err'] === 'access_denied'): ?>
-    <div class="alert-login">
-        <div class="alert-icon">⚠️</div>
-        <div class="alert-text">
-            <strong>Acesso negado:</strong> Você não tem permissão para acessar o <b>Caderno de Campo</b>.
-            <br>
-            <small>Entre em contato com o administrador do sistema.</small>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <main id="login" class="login">
         <div class="login-box" id="login-box-id">
@@ -102,7 +120,6 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                         <input class="fbotao main-btn" id="fent" type="submit" value="Entrar">
                     </div>
                 </form>
-
             </div>
 
             <!-- Formulário de Cadastro -->
@@ -148,9 +165,10 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
 
     <script src="js/script.js"></script>
     <script src="js/jquery.js"></script>
-    <!-- <script src="js/sha512.js"></script> -->
     <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
+
     <script>
+    // ReCAPTCHA handler
     document.getElementById('flogin').addEventListener('submit', function(e) {
         e.preventDefault();
         grecaptcha.ready(function() {
@@ -160,9 +178,17 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             });
         });
     });
+
+    // 🕒 Oculta automaticamente a mensagem de alerta após 7 segundos
+    setTimeout(() => {
+      const alertBox = document.querySelector('.alert-login');
+      if (alertBox) {
+        alertBox.style.transition = 'opacity 0.5s ease';
+        alertBox.style.opacity = '0';
+        setTimeout(() => alertBox.remove(), 500);
+      }
+    }, 7000);
     </script>
-
-
 
 </div>
 
