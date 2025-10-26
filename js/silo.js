@@ -172,24 +172,26 @@ async function atualizarLista() {
 }
 
 // ===================================
-// 🧩 Define ícone conforme tipo de arquivo
+// 🧩 Define ícone conforme tipo de arquivo (usando seus SVGs)
 // ===================================
 function getIconClass(tipo) {
   tipo = tipo.toLowerCase();
 
-  // Tipos mais comuns
-  if (tipo.includes('pdf')) return 'icon-pdf';         // PDF
-  if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif')) 
-    return 'icon-img';                                // Imagens
-  if (tipo.includes('txt')) return 'icon-txt';        // Texto simples
-  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip';   // Compactados
-  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx')) 
-    return 'icon-xls';                                // Planilhas
-  if (tipo.includes('doc') || tipo.includes('docx')) return 'icon-doc';  // Documentos Word
-  if (tipo.includes('ppt') || tipo.includes('pptx')) return 'icon-ppt';  // Apresentações
+  if (tipo.includes('pdf')) return 'icon-pdf'; // 📄 PDF
+  if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif'))
+    return 'icon-img'; // 🖼️ Imagem
+  if (tipo.includes('txt')) return 'icon-txt'; // 📜 Texto
+  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip'; // 📦 Compactado
+  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx'))
+    return 'icon-x'; // 📗 Planilhas
+  if (tipo.includes('doc') || tipo.includes('docx'))
+    return 'icon-file'; // 📘 Word
+  if (tipo.includes('ppt') || tipo.includes('pptx'))
+    return 'icon-file'; // 🧾 PowerPoint
 
-  return 'icon-file'; // Padrão genérico
+  return 'icon-file'; // Padrão
 }
+
 
 
 // ===================================

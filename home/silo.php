@@ -120,23 +120,42 @@ require_once __DIR__ . '/../configuracao/protect.php';
     background: rgba(0, 128, 0, 0.1);
     border-radius: 8px;
     }
-    .icon-pdf { background-image: url('../img/icons/pdf.svg'); }
-    .icon-img { background-image: url('../img/icons/image.svg'); }
-    .icon-txt { background-image: url('../img/icons/txt.svg'); }
-    .icon-zip { background-image: url('../img/icons/zip.svg'); }
-    .icon-xls { background-image: url('../img/icons/xls.svg'); }
-    .icon-doc { background-image: url('../img/icons/doc.svg'); }
-    .icon-ppt { background-image: url('../img/icons/ppt.svg'); }
-    .icon-file { background-image: url('../img/icons/file.svg'); }
-
     .btn-icon {
     width: 24px;
     height: 24px;
+    display: inline-block;
     background-size: contain;
     background-repeat: no-repeat;
-    display: inline-block;
+    background-position: center;
     margin-right: 8px;
+    vertical-align: middle;
     }
+
+    /* 🗂️ Ícones individuais */
+    .icon-pdf {
+    background-image: url('../img/icon/icon-pdf.svg');
+    }
+
+    .icon-img {
+    background-image: url('../img/icon/icon-img.svg');
+    }
+
+    .icon-txt {
+    background-image: url('../img/icon/icon-txt.svg');
+    }
+
+    .icon-zip {
+    background-image: url('../img/icon/icon-zip.svg');
+    }
+
+    .icon-x {
+    background-image: url('../img/icon/icon-x.svg');
+    }
+
+    .icon-file {
+    background-image: url('../img/icon/icon-file.svg');
+    }
+
 
 
 
