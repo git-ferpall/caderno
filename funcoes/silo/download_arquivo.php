@@ -2,11 +2,7 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 
-// ⚙️ Configura cabeçalhos básicos
-header('Content-Type: application/json; charset=utf-8');
-
 try {
-    // 🔐 Valida token e obtém usuário
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) {
@@ -15,7 +11,6 @@ try {
         exit;
     }
 
-    // 🆔 Recebe ID
     $id = intval($_GET['id'] ?? 0);
     if ($id <= 0) {
         http_response_code(400);
@@ -23,48 +18,33 @@ try {
         exit;
     }
 
-    // 🔎 Busca no banco
-    $stmt = $mysqli->prepare("
-        SELECT nome_arquivo, tipo_arquivo, caminho_arquivo 
-        FROM silo_arquivos 
-        WHERE id = ? AND user_id = ? 
-        LIMIT 1
-    ");
+    $stmt = $mysqli->prepare("SELECT nome_arquivo, tipo_arquivo, caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ?");
     $stmt->bind_param('ii', $id, $user_id);
     $stmt->execute();
-    $res = $stmt->get_result();
-    $arquivo = $res->fetch_assoc();
+    $res = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    if (!$arquivo) {
+    if (!$res) {
         http_response_code(404);
         echo json_encode(['ok' => false, 'err' => 'arquivo_nao_encontrado']);
         exit;
     }
 
-    // 📂 Caminho físico do arquivo
-    $caminho = "/var/www/html/" . $arquivo['caminho_arquivo'];
-
-    if (!file_exists($caminho)) {
+    $path = "/var/www/html/" . ltrim($res['caminho_arquivo'], '/');
+    if (!file_exists($path)) {
         http_response_code(404);
-        echo json_encode(['ok' => false, 'err' => 'arquivo_fisico_nao_encontrado']);
+        echo json_encode(['ok' => false, 'err' => 'arquivo_fisico_nao_encontrado', 'path' => $path]);
         exit;
     }
 
-    // ✅ Força download com cabeçalhos corretos
+    if (ob_get_level()) ob_end_clean();
     header('Content-Description: File Transfer');
-    header('Content-Type: ' . $arquivo['tipo_arquivo']);
-    header('Content-Disposition: attachment; filename="' . basename($arquivo['nome_arquivo']) . '"');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-    header('Content-Length: ' . filesize($caminho));
-
-    // Envia o arquivo
-    readfile($caminho);
+    header('Content-Type: ' . $res['tipo_arquivo']);
+    header('Content-Disposition: attachment; filename="' . basename($res['nome_arquivo']) . '"');
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
     exit;
-
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }

@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
 require_once __DIR__ . '/funcoes_silo.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -9,6 +12,6 @@ try {
 
     $uso = getSiloUso($mysqli, $user_id);
     echo json_encode($uso);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
