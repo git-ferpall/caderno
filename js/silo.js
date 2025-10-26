@@ -156,7 +156,12 @@ async function atualizarLista() {
         </div>
       `;
 
-      div.addEventListener('click', (e) => abrirMenuArquivo(e, a));
+      // 👇 Evento corrigido — agora funciona em qualquer parte do item
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirMenuArquivo(e, a);
+      });
+
       box.appendChild(div);
     });
   } catch (err) {
@@ -165,6 +170,7 @@ async function atualizarLista() {
       '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
 }
+
 
 // ===================================
 // 📂 Menu de ações (Baixar / Renomear / Excluir)
