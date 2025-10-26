@@ -8,7 +8,7 @@ try {
     if (!$user_id) throw new Exception('unauthorized');
 
     $uso = getSiloUso($mysqli, $user_id);
-    echo json_encode(['ok' => true] + $uso);
+    echo json_encode($uso);
 } catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
