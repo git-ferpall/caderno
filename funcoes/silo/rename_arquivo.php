@@ -18,29 +18,34 @@ try {
     $res = $stmt->get_result()->fetch_assoc();
     if (!$res) throw new Exception('arquivo_nao_encontrado');
 
-    $caminho_antigo = realpath(__DIR__ . '/../../' . $res['caminho_arquivo']);
-    $novo_caminho = dirname($caminho_antigo) . '/' . $novo_nome;
+    $nome_antigo = $res['nome_arquivo'];
+    $caminho_relativo = $res['caminho_arquivo'];
+    $caminho_antigo = realpath(__DIR__ . '/../../' . $caminho_relativo);
+
+    if (!$caminho_antigo || !file_exists($caminho_antigo)) {
+        throw new Exception('arquivo_fisico_nao_encontrado');
+    }
 
     $extensao = pathinfo($nome_antigo, PATHINFO_EXTENSION);
-
-    // 🔧 Mantém extensão original, caso o usuário não digite
     if (!str_ends_with(strtolower($novo_nome), '.' . strtolower($extensao))) {
         $novo_nome .= '.' . $extensao;
     }
 
-    $novo_caminho = dirname($caminho_antigo) . '/' . $novo_nome;
+    $novo_caminho_rel = dirname($caminho_relativo) . '/' . $novo_nome;
+    $novo_caminho_abs = dirname($caminho_antigo) . '/' . $novo_nome;
 
-    // 🚚 Renomeia fisicamente o arquivo
-    if (!@rename($caminho_antigo, $novo_caminho)) {
+    // 🚚 Tenta renomear fisicamente o arquivo
+    if (!@rename($caminho_antigo, $novo_caminho_abs)) {
         throw new Exception('falha_ao_renomear_arquivo');
     }
 
     // 💾 Atualiza no banco
     $stmtUp = $mysqli->prepare("UPDATE silo_arquivos SET nome_arquivo = ?, caminho_arquivo = ? WHERE id = ? AND user_id = ?");
-    $stmtUp->bind_param('ssii', $novo_nome, $novo_caminho, $id, $user_id);
+    $stmtUp->bind_param('ssii', $novo_nome, $novo_caminho_rel, $id, $user_id);
     $stmtUp->execute();
 
     echo json_encode(['ok' => true, 'msg' => 'Arquivo renomeado com sucesso!']);
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    http_response_code(500);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
