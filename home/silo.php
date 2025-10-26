@@ -83,6 +83,7 @@
     </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/silo.js"></script>
     </div>
         
     <?php include '../include/footer.php' ?>
