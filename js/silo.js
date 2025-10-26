@@ -6,8 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   atualizarUso();
 
   // 📤 Upload de arquivo manual
-  document.getElementById('btn-silo-arquivo').addEventListener('click', async () => {
-    if (!(await checarLimiteAntesUpload())) return;
+  document.getElementById('btn-silo-arquivo').addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,application/pdf,text/plain';
@@ -16,8 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 📸 Escanear documento (abrir câmera)
-  document.getElementById('btn-silo-scan').addEventListener('click', async () => {
-    if (!(await checarLimiteAntesUpload())) return;
+  document.getElementById('btn-silo-scan').addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -33,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function enviarArquivo(file, origem = 'upload') {
   if (!file) return;
 
-  // 🧱 Popup de progresso
+  // 🧱 Cria popup de progresso
   let popup = document.createElement('div');
   popup.className = 'upload-popup';
   popup.innerHTML = `
@@ -44,7 +42,8 @@ async function enviarArquivo(file, origem = 'upload') {
       </div>
       <span class="progress-text">0%</span>
       <button class="cancel-upload">Cancelar</button>
-    </div>`;
+    </div>
+  `;
   document.body.appendChild(popup);
 
   const bar = popup.querySelector('.progress-bar-fill');
@@ -58,8 +57,8 @@ async function enviarArquivo(file, origem = 'upload') {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '../funcoes/silo/upload_arquivo.php', true);
 
-  // Progresso em tempo real
-  xhr.upload.onprogress = e => {
+  // 🔄 Progresso em tempo real
+  xhr.upload.onprogress = function (e) {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
       bar.style.width = percent + '%';
@@ -67,14 +66,15 @@ async function enviarArquivo(file, origem = 'upload') {
     }
   };
 
-  // Cancelar upload
-  cancelBtn.onclick = () => {
+  // ❌ Cancelar upload
+  cancelBtn.addEventListener('click', () => {
     xhr.abort();
     popup.remove();
-    alert('Upload cancelado.');
-  };
+    alert('Upload cancelado pelo usuário.');
+  });
 
-  xhr.onload = () => {
+  // ✅ Conclusão
+  xhr.onload = function () {
     popup.remove();
     try {
       const j = JSON.parse(xhr.responseText);
@@ -83,17 +83,18 @@ async function enviarArquivo(file, origem = 'upload') {
         atualizarLista();
         atualizarUso();
       } else {
-        alert('❌ ' + (j.msg || j.err || 'Falha desconhecida.'));
+        alert('❌ Erro: ' + (j.err || 'Falha desconhecida.'));
       }
-    } catch {
-      console.error(xhr.responseText);
-      alert('❌ Retorno inválido do servidor.');
+    } catch (e) {
+      console.error('Erro JSON:', xhr.responseText);
+      alert('❌ Falha: retorno inválido do servidor.');
     }
   };
 
-  xhr.onerror = () => {
+  // ⚠️ Erro de conexão
+  xhr.onerror = function () {
     popup.remove();
-    alert('❌ Erro de conexão.');
+    alert('❌ Erro na conexão durante o upload.');
   };
 
   xhr.send(fd);
@@ -106,72 +107,72 @@ async function atualizarLista() {
   try {
     const res = await fetch('../funcoes/silo/listar_arquivos.php');
     const j = await res.json();
+
     const box = document.querySelector('.silo-arquivos');
     box.innerHTML = '';
 
+    // ✅ Validação de resposta
     if (!j.ok || !Array.isArray(j.arquivos)) {
       console.error('Resposta inválida:', j);
       box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
       return;
     }
 
-    if (j.arquivos.length === 0) {
+    const arquivos = j.arquivos;
+
+    if (arquivos.length === 0) {
       box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum arquivo enviado ainda.</p>';
       return;
     }
 
-    j.arquivos.forEach(a => {
-      const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop() : 'file';
-      const icon = getIconClass(tipo);
-      const url = `../funcoes/silo/download_arquivo.php?id=${a.id}`;
-
+    arquivos.forEach(a => {
       const div = document.createElement('div');
       div.className = 'silo-item-box';
+
+      // Extrai tipo de arquivo (ex: "application/pdf" → "pdf")
+      const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop() : 'file';
+      const icon = getIconClass(tipo);
+
+      // Caminho do arquivo (ajuste conforme estrutura de uploads)
+      const urlArquivo = `/uploads/silo/${a.nome_arquivo}`;
+
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <span class="silo-item-title">${a.nome_arquivo}</span>
         </div>
         <div class="silo-item-actions">
-          <button class="icon-download" title="Baixar" onclick="baixarArquivo('${url}')"></button>
+          <button class="icon-download" title="Baixar" onclick="baixarArquivo('${urlArquivo}')"></button>
           <button class="icon-trash" title="Excluir" onclick="excluirArquivo(${a.id})"></button>
-        </div>`;
+        </div>
+      `;
       box.appendChild(div);
     });
   } catch (err) {
     console.error('Erro ao atualizar lista:', err);
-    document.querySelector('.silo-arquivos').innerHTML = '<p>❌ Falha ao comunicar com o servidor.</p>';
+    const box = document.querySelector('.silo-arquivos');
+    box.innerHTML = '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
-}
-
-// ===================================
-// ⬇️ Baixar Arquivo
-// ===================================
-function baixarArquivo(url) {
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.download = '';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 // ===================================
 // 🗑️ Excluir arquivo
 // ===================================
 async function excluirArquivo(id) {
-  if (!confirm('Excluir este arquivo?')) return;
+  if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
+
   const fd = new FormData();
   fd.append('id', id);
+
   const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
   const j = await res.json();
+
   if (j.ok) {
-    alert('🗑️ Arquivo removido!');
+    alert('🗑️ Arquivo removido com sucesso!');
     atualizarLista();
     atualizarUso();
   } else {
-    alert('❌ ' + j.err);
+    alert('❌ Erro: ' + j.err);
   }
 }
 
@@ -181,37 +182,39 @@ async function excluirArquivo(id) {
 async function atualizarUso() {
   const res = await fetch('../funcoes/silo/get_uso.php');
   const j = await res.json();
+
   if (j.ok) {
-    const usado = parseFloat(j.usado).toFixed(3);
-    const limite = parseFloat(j.limite).toFixed(2);
     document.querySelector('.silo-info-title').innerText =
-      `${j.percent}% utilizado (${usado} GB de ${limite} GB)`;
+      `${j.percent}% utilizado (${j.usado} GB de ${j.limite} GB)`;
     document.querySelector('.silo-info-bar').style.background =
       `linear-gradient(to right, var(--verde) ${j.percent}%, transparent ${j.percent}%)`;
   }
 }
 
 // ===================================
-// 🚫 Checa limite antes de enviar
+// ⬇️ Baixar arquivo
 // ===================================
-async function checarLimiteAntesUpload() {
-  const res = await fetch('../funcoes/silo/get_uso.php');
-  const j = await res.json();
-  if (j.ok && j.usado >= j.limite) {
-    alert(`❌ Limite de ${j.limite} GB atingido. Exclua arquivos antes de enviar novos.`);
-    return false;
-  }
-  return true;
+function baixarArquivo(url) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '';
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // ===================================
 // 🧩 Define ícone conforme tipo
 // ===================================
 function getIconClass(tipo) {
-  tipo = tipo.toLowerCase();
-  if (tipo.includes('pdf')) return 'icon-pdf';
-  if (tipo.includes('txt')) return 'icon-txt';
-  if (tipo.includes('image') || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'png')
-    return 'icon-img';
-  return 'icon-file';
+  switch (tipo.toLowerCase()) {
+    case 'pdf': return 'icon-pdf';
+    case 'txt': return 'icon-txt';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif': return 'icon-img';
+    default: return 'icon-file';
+  }
 }
