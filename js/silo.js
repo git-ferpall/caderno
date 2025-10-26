@@ -167,7 +167,7 @@ async function atualizarLista() {
 }
 
 // ===================================
-// 📂 Menu de ações (Baixar / Excluir)
+// 📂 Menu de ações (Baixar / Renomear / Excluir)
 // ===================================
 function abrirMenuArquivo(e, arquivo) {
   e.stopPropagation();
@@ -177,6 +177,7 @@ function abrirMenuArquivo(e, arquivo) {
   menu.className = 'silo-menu-arquivo';
   menu.innerHTML = `
     <button class="menu-btn download">📥 Baixar</button>
+    <button class="menu-btn rename">✏️ Renomear</button>
     <button class="menu-btn delete">🗑️ Excluir</button>
   `;
 
@@ -188,6 +189,25 @@ function abrirMenuArquivo(e, arquivo) {
     baixarArquivo(`../funcoes/silo/download_arquivo.php?id=${arquivo.id}`);
     fecharMenuArquivo();
   };
+
+  menu.querySelector('.rename').onclick = async () => {
+    const novoNome = prompt('Digite o novo nome do arquivo:', arquivo.nome_arquivo);
+    if (novoNome && novoNome.trim() !== '' && novoNome !== arquivo.nome_arquivo) {
+      const fd = new FormData();
+      fd.append('id', arquivo.id);
+      fd.append('novo_nome', novoNome.trim());
+      const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
+      const j = await res.json();
+      if (j.ok) {
+        alert('✅ ' + j.msg);
+        atualizarLista();
+      } else {
+        alert('❌ ' + (j.err || 'Erro ao renomear.'));
+      }
+    }
+    fecharMenuArquivo();
+  };
+
   menu.querySelector('.delete').onclick = () => {
     excluirArquivo(arquivo.id);
     fecharMenuArquivo();
@@ -196,10 +216,6 @@ function abrirMenuArquivo(e, arquivo) {
   document.addEventListener('click', fecharMenuArquivo, { once: true });
 }
 
-function fecharMenuArquivo() {
-  const m = document.querySelector('.silo-menu-arquivo');
-  if (m) m.remove();
-}
 
 // ===================================
 // ⬇️ Baixar arquivo

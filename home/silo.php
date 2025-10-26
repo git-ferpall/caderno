@@ -111,6 +111,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
     }
+    .silo-item-box.active {
+    background: rgba(0, 128, 0, 0.1);
+    border-radius: 10px;
+    transition: background 0.2s;
+    }
 
 </style>    
 </head>
