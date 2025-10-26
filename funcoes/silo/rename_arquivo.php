@@ -9,20 +9,37 @@ try {
 
     $id = intval($_POST['id'] ?? 0);
     $novo_nome = trim($_POST['novo_nome'] ?? '');
+    if ($id <= 0 || $novo_nome === '') throw new Exception('param_invalid');
 
-    if ($id <= 0 || $novo_nome === '') throw new Exception('invalid_params');
+    // 🔎 Busca o arquivo atual
+    $stmt = $mysqli->prepare("SELECT nome_arquivo, caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ?");
+    $stmt->bind_param('ii', $id, $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    if (!$res) throw new Exception('arquivo_nao_encontrado');
 
-    // Sanitiza o nome: remove caracteres perigosos
-    $novo_nome = preg_replace('/[^A-Za-z0-9_\-\. ]/', '', $novo_nome);
+    $caminho_antigo = $res['caminho_arquivo'];
+    $nome_antigo = $res['nome_arquivo'];
+    $extensao = pathinfo($nome_antigo, PATHINFO_EXTENSION);
 
-    $stmt = $mysqli->prepare("UPDATE silo_arquivos SET nome_arquivo = ? WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('sii', $novo_nome, $id, $user_id);
-    $ok = $stmt->execute();
-    $stmt->close();
+    // 🔧 Mantém extensão original, caso o usuário não digite
+    if (!str_ends_with(strtolower($novo_nome), '.' . strtolower($extensao))) {
+        $novo_nome .= '.' . $extensao;
+    }
 
-    if (!$ok) throw new Exception('db_update_failed');
+    $novo_caminho = dirname($caminho_antigo) . '/' . $novo_nome;
 
-    echo json_encode(['ok' => true, 'msg' => 'Arquivo renomeado com sucesso.']);
+    // 🚚 Renomeia fisicamente o arquivo
+    if (!@rename($caminho_antigo, $novo_caminho)) {
+        throw new Exception('falha_ao_renomear_arquivo');
+    }
+
+    // 💾 Atualiza no banco
+    $stmtUp = $mysqli->prepare("UPDATE silo_arquivos SET nome_arquivo = ?, caminho_arquivo = ? WHERE id = ? AND user_id = ?");
+    $stmtUp->bind_param('ssii', $novo_nome, $novo_caminho, $id, $user_id);
+    $stmtUp->execute();
+
+    echo json_encode(['ok' => true, 'msg' => 'Arquivo renomeado com sucesso!']);
 } catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
