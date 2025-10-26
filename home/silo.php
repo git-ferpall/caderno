@@ -76,6 +76,42 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .silo-item-actions .icon-trash:hover {
     transform: scale(1.2);
     }
+    /* ====== MENU DE AÇÃO DO SILO ====== */
+    .silo-menu-arquivo {
+    position: absolute;
+    background: var(--branco);
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 130px;
+    animation: fadeIn 0.15s ease-out;
+    }
+
+    .silo-menu-arquivo .menu-btn {
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+    }
+
+    .silo-menu-arquivo .menu-btn:hover {
+    background: var(--cinza-claro);
+    }
+
+    @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+    }
+
 </style>    
 </head>
 <body>

@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
 async function enviarArquivo(file, origem = 'upload') {
   if (!file) return;
 
-  // Popup de progresso
   let popup = document.createElement('div');
   popup.className = 'upload-popup';
   popup.innerHTML = `
@@ -58,7 +57,6 @@ async function enviarArquivo(file, origem = 'upload') {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '../funcoes/silo/upload_arquivo.php', true);
 
-  // Progresso
   xhr.upload.onprogress = e => {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -67,7 +65,6 @@ async function enviarArquivo(file, origem = 'upload') {
     }
   };
 
-  // Cancelar
   cancelBtn.onclick = () => {
     xhr.abort();
     popup.remove();
@@ -100,7 +97,7 @@ async function enviarArquivo(file, origem = 'upload') {
 }
 
 // ===================================
-// 📜 Atualiza lista
+// 📜 Atualiza lista (com menu ao clicar)
 // ===================================
 async function atualizarLista() {
   try {
@@ -123,19 +120,21 @@ async function atualizarLista() {
     j.arquivos.forEach(a => {
       const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop() : 'file';
       const icon = getIconClass(tipo);
-      const url = `../funcoes/silo/download_arquivo.php?id=${a.id}`;
 
       const div = document.createElement('div');
       div.className = 'silo-item-box';
+      div.dataset.id = a.id;
+      div.dataset.nome = a.nome_arquivo;
+      div.dataset.tipo = a.tipo_arquivo;
+
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <span class="silo-item-title">${a.nome_arquivo}</span>
         </div>
-        <div class="silo-item-actions">
-          <button class="icon-download" title="Baixar" onclick="baixarArquivo('${url}')"></button>
-          <button class="icon-trash" title="Excluir" onclick="excluirArquivo(${a.id})"></button>
-        </div>`;
+      `;
+
+      div.addEventListener('click', (e) => abrirMenuArquivo(e, a));
       box.appendChild(div);
     });
   } catch (err) {
@@ -143,6 +142,41 @@ async function atualizarLista() {
     document.querySelector('.silo-arquivos').innerHTML =
       '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
+}
+
+// ===================================
+// 📂 Menu de ações (Baixar / Excluir)
+// ===================================
+function abrirMenuArquivo(e, arquivo) {
+  e.stopPropagation();
+  fecharMenuArquivo();
+
+  const menu = document.createElement('div');
+  menu.className = 'silo-menu-arquivo';
+  menu.innerHTML = `
+    <button class="menu-btn download">📥 Baixar</button>
+    <button class="menu-btn delete">🗑️ Excluir</button>
+  `;
+
+  document.body.appendChild(menu);
+  menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
+  menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
+
+  menu.querySelector('.download').onclick = () => {
+    baixarArquivo(`../funcoes/silo/download_arquivo.php?id=${arquivo.id}`);
+    fecharMenuArquivo();
+  };
+  menu.querySelector('.delete').onclick = () => {
+    excluirArquivo(arquivo.id);
+    fecharMenuArquivo();
+  };
+
+  document.addEventListener('click', fecharMenuArquivo, { once: true });
+}
+
+function fecharMenuArquivo() {
+  const m = document.querySelector('.silo-menu-arquivo');
+  if (m) m.remove();
 }
 
 // ===================================
