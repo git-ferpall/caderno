@@ -18,8 +18,9 @@ try {
     $res = $stmt->get_result()->fetch_assoc();
     if (!$res) throw new Exception('arquivo_nao_encontrado');
 
-    $caminho_antigo = $res['caminho_arquivo'];
-    $nome_antigo = $res['nome_arquivo'];
+    $caminho_antigo = realpath(__DIR__ . '/../../' . $res['caminho_arquivo']);
+    $novo_caminho = dirname($caminho_antigo) . '/' . $novo_nome;
+
     $extensao = pathinfo($nome_antigo, PATHINFO_EXTENSION);
 
     // 🔧 Mantém extensão original, caso o usuário não digite
