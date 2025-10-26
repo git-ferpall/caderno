@@ -1,5 +1,7 @@
 <?php
-require_once __DIR__ . '/funcoes_silo.php';
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -7,51 +9,48 @@ try {
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) throw new Exception('unauthorized');
 
-    // ⚙️ 1️⃣ Verifica limite de armazenamento
-    $limite_gb = (float)($payload['armazenamento'] ?? 5.00);
-    $uso = getSiloUso($mysqli, $user_id);
-    $usado_gb = (float)$uso['usado'];
+    if (empty($_FILES['arquivo']['tmp_name'])) throw new Exception('nenhum_arquivo');
 
-    // 🚫 Se ultrapassar o limite, bloqueia o upload
-    if ($usado_gb >= $limite_gb) {
-        echo json_encode([
-            'ok' => false,
-            'err' => 'limite_atingido',
-            'msg' => "Limite de armazenamento de {$limite_gb} GB atingido. Exclua arquivos para liberar espaço."
-        ]);
-        exit;
+    $arquivo = $_FILES['arquivo'];
+    $origem  = $_POST['origem'] ?? 'upload';
+
+    // Caminho base ABSOLUTO
+    $base = '/var/www/html/uploads';
+    $pasta_silo = "$base/silo";
+    $pasta_user = "$pasta_silo/$user_id";
+
+    // Cria diretórios (recursivo e seguro)
+    if (!is_dir($pasta_user)) {
+        if (!mkdir($pasta_user, 0775, true) && !is_dir($pasta_user)) {
+            throw new Exception('mkdir_falhou: ' . $pasta_user);
+        }
     }
 
-    // ⚙️ 2️⃣ Processamento do upload normal
-    if (empty($_FILES['arquivo'])) throw new Exception('no_file');
-    $file = $_FILES['arquivo'];
+    // Verifica tipo permitido
+    $permitidos = ['image/jpeg','image/png','image/jpg','application/pdf','text/plain'];
+    if (!in_array($arquivo['type'], $permitidos)) throw new Exception('tipo_invalido');
 
-    $permitidos = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
-    if (!in_array($file['type'], $permitidos)) throw new Exception('tipo_invalido');
+    // Gera nome único e destino final
+    $ext = pathinfo($arquivo['name'], PATHINFO_EXTENSION);
+    $nome_final = uniqid('', true) . '-' . basename($arquivo['name']);
+    $destino = "$pasta_user/$nome_final";
 
-    $nome = basename($file['name']);
-    $tamanho = (int)$file['size'];
-    $origem = $_POST['origem'] ?? 'upload';
-
-    // 📂 pasta de destino por usuário
-    $pasta = __DIR__ . "/../../../uploads/silo/{$user_id}";
-    if (!is_dir($pasta)) mkdir($pasta, 0775, true);
-
-    $destino = $pasta . "/" . uniqid('', true) . "-" . $nome;
-    if (!move_uploaded_file($file['tmp_name'], $destino)) {
+    if (!move_uploaded_file($arquivo['tmp_name'], $destino)) {
         throw new Exception('falha_upload');
     }
 
-    // 🧮 Atualiza tabela
+    // Salva registro no banco
     $stmt = $mysqli->prepare("
-        INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, origem, caminho)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, origem, criado_em)
+        VALUES (?, ?, ?, ?, ?, NOW())
     ");
-    $stmt->bind_param("ississ", $user_id, $nome, $file['type'], $tamanho, $origem, $destino);
+    $tamanho = filesize($destino);
+    $stmt->bind_param('issis', $user_id, $nome_final, $arquivo['type'], $tamanho, $origem);
     $stmt->execute();
     $stmt->close();
 
-    echo json_encode(['ok' => true]);
-} catch (Exception $e) {
+    echo json_encode(['ok' => true, 'msg' => 'upload_ok']);
+}
+catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
