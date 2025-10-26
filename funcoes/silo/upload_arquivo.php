@@ -5,37 +5,43 @@ header('Content-Type: application/json; charset=utf-8');
 try {
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+
     if (!$user_id) throw new Exception('unauthorized');
-    if (empty($_FILES['arquivo']['name'])) throw new Exception('no_file');
 
-    $permitidos = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
-    $tipo = mime_content_type($_FILES['arquivo']['tmp_name']);
-    if (!in_array($tipo, $permitidos)) throw new Exception('invalid_type');
+    if (!isset($_FILES['arquivo'])) {
+        echo json_encode(['ok' => false, 'err' => 'no_file']);
+        exit;
+    }
 
-    $nome = basename($_FILES['arquivo']['name']);
-    $tamanho = $_FILES['arquivo']['size'];
+    $file = $_FILES['arquivo'];
     $origem = $_POST['origem'] ?? 'upload';
-    $user_dir = getUserSiloDir($user_id);
 
-    // Verifica espaço
-    $uso = getSiloUso($mysqli, $user_id);
-    $limite_bytes = $uso['limite_gb'] * 1024 * 1024 * 1024;
-    if ($uso['usado_bytes'] + $tamanho > $limite_bytes)
-        throw new Exception('limite_excedido');
+    // Diretório de upload
+    $uploadDir = __DIR__ . '/../../../uploads/silo/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
 
-    $destino = "$user_dir/$nome";
-    if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $destino))
-        throw new Exception('upload_fail');
+    // Gera nome único
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $nome_final = uniqid('', true) . '.' . strtolower($ext);
+    $destino = $uploadDir . $nome_final;
 
-    $stmt = $mysqli->prepare("
-        INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, origem)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->bind_param("ississ", $user_id, $nome, $tipo, $tamanho, $destino, $origem);
-    $stmt->execute();
+    // Verifica tipos permitidos
+    $permitidos = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'];
+    if (!in_array($file['type'], $permitidos)) {
+        echo json_encode(['ok' => false, 'err' => 'tipo_não_permitido']);
+        exit;
+    }
 
-    echo json_encode(['ok' => true, 'arquivo' => $nome]);
+    // Move arquivo
+    if (!move_uploaded_file($file['tmp_name'], $destino)) {
+        echo json_encode(['ok' => false, 'err' => 'erro_upload']);
+        exit;
+    }
 
+    // Grava no banco
+    $ok = salvarArquivo($mysqli, $user_id, $nome_final, $file['type'], $file['size'], $origem);
+
+    echo json_encode(['ok' => $ok]);
 } catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
