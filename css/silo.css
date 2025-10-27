@@ -109,13 +109,10 @@
    🗂️ ITENS DO SILO
    ================================ */
 .silo-item-box {
-  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  width: 220px;
   padding: 10px;
-  margin: 8px;
   background: #fff;
   border-radius: 8px;
   border: 1px solid #e4e4e4;
