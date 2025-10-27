@@ -265,50 +265,55 @@
   to { opacity: 1; transform: translateY(0); }
 }
 /* ================================
-   🧱 GRID DE ARQUIVOS E PASTAS
+   🧱 GRID DE ARQUIVOS E PASTAS (2 colunas fixas)
    ================================ */
 .silo-arquivos {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-  padding: 10px;
+  grid-template-columns: repeat(2, 1fr); /* sempre 2 colunas */
+  gap: 14px 20px; /* espaçamento entre os blocos */
+  padding: 20px 40px;
+  width: 100%;
+  box-sizing: border-box;
+  justify-items: stretch;
   align-items: start;
 }
 
-/* Cada item do grid */
+/* Cada item ocupa metade da largura do container */
 .silo-item-box {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
+  width: 100%; /* preenche a coluna inteira */
   background: #f6f6f6;
   border: 1px solid #e4e4e4;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 14px 18px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-/* Hover suave */
+/* Hover */
 .silo-item-box:hover {
-  background: #f0faff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  background: #e8f8f4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Ícone do item */
+/* Ícone */
 .silo-item-box .btn-icon {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
 
-/* Nome do item */
+/* Nome */
 .silo-item-title {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--preto);
   white-space: nowrap;
   overflow: hidden;
