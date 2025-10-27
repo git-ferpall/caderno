@@ -118,49 +118,110 @@ async function enviarArquivo(file, origem = 'upload') {
   xhr.send(fd);
 }
 
+let pastaAtual = null; // null = raiz
+const pilhaPastas = []; // histórico de navegação
+
+// ================================
+// 📁 Criar nova pasta
+// ================================
+async function criarPasta() {
+  const nome = prompt("Nome da nova pasta:");
+  if (!nome || nome.trim() === "") return;
+
+  const fd = new FormData();
+  fd.append("nome", nome.trim());
+  fd.append("parent_id", pastaAtual || "");
+  const res = await fetch("../funcoes/silo/criar_pasta.php", { method: "POST", body: fd });
+  const j = await res.json();
+
+  if (j.ok) {
+    abrirPopup("📁 Pasta criada", j.msg);
+    atualizarLista();
+  } else {
+    abrirPopup("❌ Erro", j.err);
+  }
+}
+
+// ================================
+// ⬅️ Voltar uma pasta
+// ================================
+function voltarPasta() {
+  if (pilhaPastas.length > 0) {
+    pastaAtual = pilhaPastas.pop();
+    atualizarLista();
+  }
+}
+
+// ================================
+// 📂 Entrar em uma pasta
+// ================================
+function abrirPasta(pasta) {
+  pilhaPastas.push(pastaAtual);
+  pastaAtual = pasta.id;
+  atualizarLista();
+}
+
+
+
 // ===================================
 // 📜 Atualiza lista (com ícones por tipo)
 // ===================================
 async function atualizarLista() {
   try {
-    const res = await fetch('../funcoes/silo/listar_arquivos.php');
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || ''}`);
     const j = await res.json();
     const box = document.querySelector('.silo-arquivos');
     box.innerHTML = '';
 
+    // Botão voltar (se não está na raiz)
+    if (pastaAtual) {
+      const voltarDiv = document.createElement('div');
+      voltarDiv.className = 'silo-item-box fundo-preto';
+      voltarDiv.innerHTML = `
+        <div class="silo-item">
+          <div class="btn-icon icon-angle"></div>
+          <span class="silo-item-title">Voltar</span>
+        </div>`;
+      voltarDiv.onclick = voltarPasta;
+      box.appendChild(voltarDiv);
+    }
+
     if (!j.ok || !Array.isArray(j.arquivos)) {
       console.error('Resposta inválida:', j);
-      box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
+      box.innerHTML += '<p>❌ Erro ao carregar arquivos.</p>';
       return;
     }
 
     if (j.arquivos.length === 0) {
-      box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum arquivo enviado ainda.</p>';
+      box.innerHTML += '<p style="text-align:center; opacity:0.6;">Pasta vazia.</p>';
       return;
     }
 
     j.arquivos.forEach(a => {
-      const tipo = a.tipo_arquivo ? a.tipo_arquivo.split('/').pop().toLowerCase() : 'file';
-      const icon = getIconClass(tipo);
+      const tipo = a.tipo;
+      const icon = tipo === 'pasta' ? 'icon-pasta' : getIconClass(a.tipo_arquivo);
 
       const div = document.createElement('div');
       div.className = 'silo-item-box';
       div.dataset.id = a.id;
       div.dataset.nome = a.nome_arquivo;
-      div.dataset.tipo = a.tipo_arquivo;
+      div.dataset.tipo = tipo;
 
       div.innerHTML = `
-        <div class="silo-item silo-arquivo">
+        <div class="silo-item">
           <div class="btn-icon ${icon}"></div>
           <span class="silo-item-title">${a.nome_arquivo}</span>
         </div>
       `;
 
-      // abre menu ao clicar
-      div.addEventListener('click', (e) => {
-        e.stopPropagation();
-        abrirMenuArquivo(e, a);
-      });
+      if (tipo === 'pasta') {
+        div.onclick = () => abrirPasta(a);
+      } else {
+        div.onclick = (e) => {
+          e.stopPropagation();
+          abrirMenuArquivo(e, a);
+        };
+      }
 
       box.appendChild(div);
     });
@@ -170,6 +231,7 @@ async function atualizarLista() {
       '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
 }
+
 
 // ===================================
 // 🧩 Define ícone conforme tipo de arquivo (usando seus SVGs)
