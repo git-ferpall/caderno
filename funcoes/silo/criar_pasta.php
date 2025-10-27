@@ -8,37 +8,82 @@ error_reporting(E_ALL);
 header('Content-Type: application/json; charset=utf-8');
 
 try {
+    // 🔐 Identifica o usuário
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
-    if (!$user_id) throw new Exception('Usuário não autenticado.');
-
-    $nome = trim($_POST['nome'] ?? '');
-    $parent_id = trim($_POST['parent_id'] ?? '');
-
-    if ($nome === '') throw new Exception('Nome da pasta inválido.');
-
-    // Remove apenas caracteres perigosos (mantém acentos e espaços)
-    $nome = preg_replace('/[<>:"\/\\\\|?*\x00-\x1F]/u', '', $nome);
-
-    $base_dir = __DIR__ . "/../../../uploads/silo/{$user_id}";
-    if (!is_dir($base_dir)) mkdir($base_dir, 0775, true);
-
-    $pasta_destino = $base_dir;
-    if ($parent_id !== '') {
-        $pasta_destino .= '/' . basename($parent_id);
-        if (!is_dir($pasta_destino)) throw new Exception('Pasta de destino não encontrada.');
+    if (!$user_id) {
+        throw new Exception('Usuário não autenticado');
     }
 
-    $nova_pasta = $pasta_destino . '/' . $nome;
-    if (is_dir($nova_pasta)) throw new Exception('Já existe uma pasta com esse nome.');
+    // 🧾 Nome da pasta
+    $nome = trim($_POST['nome'] ?? '');
+    if ($nome === '' || preg_match('/[\/\\\\:*?"<>|]/', $nome)) {
+        throw new Exception('Nome da pasta inválido');
+    }
 
-    if (!mkdir($nova_pasta, 0775, true)) throw new Exception('Falha ao criar pasta.');
+    // Pasta pai (para subpastas)
+    $parent_id = $_POST['parent_id'] ?? '';
+    $pastaBase = realpath(__DIR__ . '/../../uploads/silo');
+    if (!$pastaBase) {
+        throw new Exception('Caminho base inválido');
+    }
+
+    // Caminho do usuário
+    $pastaUsuario = $pastaBase . '/' . $user_id;
+    if (!is_dir($pastaUsuario)) {
+        if (!mkdir($pastaUsuario, 0775, true)) {
+            throw new Exception('Falha ao criar pasta do usuário');
+        }
+    }
+
+    // Determina caminho final (pasta raiz ou subpasta)
+    if ($parent_id !== '') {
+        // Busca no banco o caminho da pasta pai
+        $stmt = $mysqli->prepare("SELECT caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'");
+        $stmt->bind_param('ii', $parent_id, $user_id);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$res) {
+            throw new Exception('Pasta pai não encontrada');
+        }
+
+        $pastaFinal = $pastaBase . '/' . $res['caminho_arquivo'] . '/' . $nome;
+    } else {
+        $pastaFinal = $pastaUsuario . '/' . $nome;
+    }
+
+    // Cria a nova pasta
+    if (!mkdir($pastaFinal, 0775, true)) {
+        throw new Exception('Falha ao criar pasta.');
+    }
+
+    // Caminho relativo para salvar no banco
+    $caminhoRelativo = str_replace($pastaBase . '/', '', $pastaFinal);
+
+    // 🔢 Registra no banco como "folder"
+    $stmt = $mysqli->prepare("INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, pasta, origem) 
+                              VALUES (?, ?, 'folder', 0, ?, ?, 'upload')");
+    $stmt->bind_param('isss', $user_id, $nome, $caminhoRelativo, $parent_id);
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    if (!$ok) {
+        throw new Exception('Erro ao registrar no banco');
+    }
 
     echo json_encode([
         'ok' => true,
-        'msg' => "A pasta <b>{$nome}</b> foi criada com sucesso.",
-        'path' => str_replace($base_dir, '', $nova_pasta)
-    ]);
+        'msg' => 'Pasta criada com sucesso!',
+        'path' => $caminhoRelativo
+    ], JSON_UNESCAPED_UNICODE);
+
 } catch (Exception $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    // ❌ Tratamento de erro
+    http_response_code(400);
+    echo json_encode([
+        'ok' => false,
+        'err' => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
