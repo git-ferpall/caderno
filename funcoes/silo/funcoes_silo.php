@@ -90,3 +90,24 @@ function excluirArquivo($mysqli, $user_id, $arquivo_id)
 
     return ['ok' => true];
 }
+function listarArquivosEPastas($mysqli, $user_id, $parent_id = null) {
+    $parent_sql = is_null($parent_id) ? "IS NULL" : "= $parent_id";
+
+    // PASTAS primeiro
+    $pastas = $mysqli->query("
+        SELECT id, nome AS nome_arquivo, 'pasta' AS tipo, NULL AS tipo_arquivo
+        FROM silo_pastas
+        WHERE user_id = $user_id AND parent_id $parent_sql
+        ORDER BY nome ASC
+    ")->fetch_all(MYSQLI_ASSOC);
+
+    // ARQUIVOS
+    $arquivos = $mysqli->query("
+        SELECT id, nome_arquivo, 'arquivo' AS tipo, tipo_arquivo
+        FROM silo_arquivos
+        WHERE user_id = $user_id AND pasta_id $parent_sql
+        ORDER BY nome_arquivo ASC
+    ")->fetch_all(MYSQLI_ASSOC);
+
+    return array_merge($pastas, $arquivos);
+}

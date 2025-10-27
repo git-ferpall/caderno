@@ -5,7 +5,6 @@ header('Content-Type: application/json; charset=utf-8');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-header('Content-Type: application/json; charset=utf-8');
 
 try {
     // 🔐 Identifica o usuário
@@ -23,9 +22,11 @@ try {
 
     // Pasta pai (para subpastas)
     $parent_id = $_POST['parent_id'] ?? '';
-    $pastaBase = realpath(__DIR__ . '/../../uploads/silo');
-    if (!$pastaBase) {
-        throw new Exception('Caminho base inválido');
+    $pastaBase = '/var/www/html/uploads/silo';
+    if (!is_dir($pastaBase)) {
+        if (!mkdir($pastaBase, 0775, true)) {
+            throw new Exception('Falha ao criar diretório base.');
+        }
     }
 
     // Caminho do usuário
@@ -36,10 +37,10 @@ try {
         }
     }
 
-    // Determina caminho final (pasta raiz ou subpasta)
+    // 📂 Caminho final (raiz ou subpasta)
     if ($parent_id !== '') {
-        // Busca no banco o caminho da pasta pai
-        $stmt = $mysqli->prepare("SELECT caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'");
+        // Busca caminho da pasta pai
+        $stmt = $mysqli->prepare("SELECT caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? AND tipo = 'pasta'");
         $stmt->bind_param('ii', $parent_id, $user_id);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
@@ -54,18 +55,21 @@ try {
         $pastaFinal = $pastaUsuario . '/' . $nome;
     }
 
-    // Cria a nova pasta
+    // Cria pasta física
     if (!mkdir($pastaFinal, 0775, true)) {
-        throw new Exception('Falha ao criar pasta.');
+        throw new Exception('Falha ao criar pasta física');
     }
 
-    // Caminho relativo para salvar no banco
+    // Caminho relativo
     $caminhoRelativo = str_replace($pastaBase . '/', '', $pastaFinal);
 
-    // 🔢 Registra no banco como "folder"
-    $stmt = $mysqli->prepare("INSERT INTO silo_arquivos (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, pasta, origem) 
-                              VALUES (?, ?, 'folder', 0, ?, ?, 'upload')");
-    $stmt->bind_param('isss', $user_id, $nome, $caminhoRelativo, $parent_id);
+    // 🔢 Registra no banco
+    $stmt = $mysqli->prepare("
+        INSERT INTO silo_arquivos 
+        (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem)
+        VALUES (?, ?, 'folder', 0, ?, ?, 'pasta', 'upload')
+    ");
+    $stmt->bind_param('issi', $user_id, $nome, $caminhoRelativo, $parent_id);
     $ok = $stmt->execute();
     $stmt->close();
 
@@ -75,12 +79,11 @@ try {
 
     echo json_encode([
         'ok' => true,
-        'msg' => 'Pasta criada com sucesso!',
+        'msg' => '📁 Pasta criada com sucesso!',
         'path' => $caminhoRelativo
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
-    // ❌ Tratamento de erro
     http_response_code(400);
     echo json_encode([
         'ok' => false,

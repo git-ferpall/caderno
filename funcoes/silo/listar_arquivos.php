@@ -3,53 +3,74 @@ require_once __DIR__ . '/funcoes_silo.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    // 🔒 Autenticação via JWT ou sessão
+    session_start();
+
+    // 🔐 Autenticação via JWT ou sessão
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) {
         throw new Exception('unauthorized');
     }
 
-    // 📁 Pasta atual (raiz se vazio)
-    $pasta_id = isset($_GET['pasta']) && $_GET['pasta'] !== '' ? intval($_GET['pasta']) : null;
+    // 📂 Pasta atual (null = raiz)
+    $parent_id = isset($_GET['parent_id']) && $_GET['parent_id'] !== '' ? intval($_GET['parent_id']) : null;
 
-    // 🗂️ Busca arquivos e pastas da pasta atual
-    if ($pasta_id) {
+    // ===============================
+    // 📁 LISTAR PASTAS PRIMEIRO
+    // ===============================
+    if ($parent_id) {
         $stmt = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, pasta, origem 
-            FROM silo_arquivos 
-            WHERE user_id = ? AND (pasta = ?)
-            ORDER BY tipo_arquivo = 'folder' DESC, nome_arquivo ASC
+            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
+            FROM silo_arquivos
+            WHERE user_id = ? AND tipo = 'pasta' AND parent_id = ?
+            ORDER BY nome_arquivo ASC
         ");
-        $stmt->bind_param('ii', $user_id, $pasta_id);
+        $stmt->bind_param('ii', $user_id, $parent_id);
     } else {
-        // raiz = arquivos sem pasta
         $stmt = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, pasta, origem 
-            FROM silo_arquivos 
-            WHERE user_id = ? AND (pasta IS NULL OR pasta = '')
-            ORDER BY tipo_arquivo = 'folder' DESC, nome_arquivo ASC
+            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
+            FROM silo_arquivos
+            WHERE user_id = ? AND tipo = 'pasta' AND (parent_id IS NULL OR parent_id = 0)
+            ORDER BY nome_arquivo ASC
         ");
         $stmt->bind_param('i', $user_id);
     }
 
     $stmt->execute();
-    $result = $stmt->get_result();
+    $pastas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 
-    $arquivos = [];
-    while ($row = $result->fetch_assoc()) {
-        // Garante consistência
-        $arquivos[] = [
-            'id'            => (int)$row['id'],
-            'nome_arquivo'  => $row['nome_arquivo'],
-            'tipo_arquivo'  => $row['tipo_arquivo'] ?: 'file',
-            'tamanho_bytes' => (int)$row['tamanho_bytes'],
-            'pasta'         => $row['pasta'],
-            'origem'        => $row['origem'],
-        ];
+    // ===============================
+    // 📄 LISTAR ARQUIVOS DA PASTA
+    // ===============================
+    if ($parent_id) {
+        $stmt2 = $mysqli->prepare("
+            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
+            FROM silo_arquivos
+            WHERE user_id = ? AND tipo = 'arquivo' AND parent_id = ?
+            ORDER BY nome_arquivo ASC
+        ");
+        $stmt2->bind_param('ii', $user_id, $parent_id);
+    } else {
+        $stmt2 = $mysqli->prepare("
+            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
+            FROM silo_arquivos
+            WHERE user_id = ? AND tipo = 'arquivo' AND (parent_id IS NULL OR parent_id = 0)
+            ORDER BY nome_arquivo ASC
+        ");
+        $stmt2->bind_param('i', $user_id);
     }
 
-    echo json_encode(['ok' => true, 'arquivos' => $arquivos], JSON_UNESCAPED_UNICODE);
+    $stmt2->execute();
+    $arquivos = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt2->close();
+
+    // ===============================
+    // 🔗 COMBINA (pastas primeiro)
+    // ===============================
+    $itens = array_merge($pastas, $arquivos);
+
+    echo json_encode(['ok' => true, 'arquivos' => $itens], JSON_UNESCAPED_UNICODE);
     exit;
 
 } catch (Exception $e) {

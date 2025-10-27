@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.warn('⚠️ Botão #btn-silo-pasta não encontrado.');
   }
+
+  // atualiza breadcrumb na inicialização
+  atualizarBreadcrumb();
 });
 
 // ================================
@@ -37,18 +40,17 @@ async function criarPasta() {
     const j = JSON.parse(text);
 
     if (j.ok) {
-      abrirPopupSistema("📁 Sucesso", j.msg || "Pasta criada com sucesso!");
+      abrirPopup("📁 Sucesso", j.msg || "Pasta criada com sucesso!");
       atualizarLista();
     } else {
-      abrirPopupSistema("❌ Erro", j.err || "Falha ao criar pasta.");
+      abrirPopup("❌ Erro", j.err || "Falha ao criar pasta.");
     }
   } catch (err) {
     console.error("Erro ao criar pasta:", err);
-    abrirPopupSistema("❌ Erro", "Falha ao comunicar com o servidor.");
+    abrirPopup("❌ Erro", "Falha ao comunicar com o servidor.");
   }
 }
-window.criarPasta = criarPasta; // garante visibilidade global
-
+window.criarPasta = criarPasta;
 
 // ================================
 // 📂 Abrir pasta (entrar)
@@ -90,7 +92,7 @@ function atualizarBreadcrumb(nomeAtual = null) {
 // 🧩 Ícone conforme tipo de item
 // ================================
 function getIconClass(tipo, isFolder = false) {
-  if (isFolder) return 'icon-folder';
+  if (isFolder || tipo === 'pasta' || tipo === 'folder') return 'icon-pasta';
   tipo = tipo.toLowerCase();
   if (tipo.includes('pdf')) return 'icon-pdf';
   if (tipo.includes('txt')) return 'icon-txt';
@@ -100,9 +102,9 @@ function getIconClass(tipo, isFolder = false) {
 }
 
 // ================================
-// 📢 Popup genérico do sistema
+// 📢 Popup padrão do sistema
 // ================================
-function abrirPopupSistema(titulo, mensagem) {
+function abrirPopup(titulo, mensagem) {
   const popup = document.createElement('div');
   popup.className = 'popup-sistema';
   popup.innerHTML = `
@@ -114,4 +116,63 @@ function abrirPopupSistema(titulo, mensagem) {
   `;
   document.body.appendChild(popup);
   popup.querySelector('.popup-fechar').onclick = () => popup.remove();
+}
+window.abrirPopup = abrirPopup;
+
+// ================================
+// 🧭 Adapta listar_arquivos() para suportar navegação
+// ================================
+async function atualizarLista() {
+  try {
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || ''}`);
+    const j = await res.json();
+    const box = document.querySelector('.silo-arquivos');
+    box.innerHTML = '';
+
+    if (!j.ok || !Array.isArray(j.arquivos)) {
+      console.error('Resposta inválida:', j);
+      box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
+      return;
+    }
+
+    if (j.arquivos.length === 0) {
+      box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum item encontrado.</p>';
+      return;
+    }
+
+    j.arquivos.forEach(a => {
+      const isFolder = a.tipo === 'pasta' || a.tipo_arquivo === 'folder';
+      const icon = getIconClass(a.tipo_arquivo || '', isFolder);
+
+      const div = document.createElement('div');
+      div.className = 'silo-item-box';
+      div.dataset.id = a.id;
+      div.dataset.nome = a.nome_arquivo;
+      div.dataset.tipo = a.tipo_arquivo;
+
+      div.innerHTML = `
+        <div class="silo-item silo-arquivo">
+          <div class="btn-icon ${icon}"></div>
+          <span class="silo-item-title">${a.nome_arquivo}</span>
+        </div>
+      `;
+
+      if (isFolder) {
+        // abre a pasta
+        div.addEventListener('click', () => abrirPasta(a.id, a.nome_arquivo));
+      } else {
+        // abre menu (download, renomear, excluir)
+        div.addEventListener('click', (e) => {
+          e.stopPropagation();
+          abrirMenuArquivo(e, a);
+        });
+      }
+
+      box.appendChild(div);
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar lista:', err);
+    document.querySelector('.silo-arquivos').innerHTML =
+      '<p>❌ Falha ao comunicar com o servidor.</p>';
+  }
 }
