@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('⚠️ Botão #btn-silo-pasta não encontrado.');
   }
 
-  // atualiza breadcrumb na inicialização
+  // Atualiza breadcrumb ao iniciar
   atualizarBreadcrumb();
 });
 
@@ -59,6 +59,80 @@ function abrirPasta(id, nome) {
   pastaAtual = id;
   atualizarLista();
   atualizarBreadcrumb(nome);
+}
+
+// ================================
+// 📂 Menu de ações da pasta
+// ================================
+function abrirMenuPasta(e, pasta) {
+  e.stopPropagation();
+  fecharMenuArquivo(); // fecha menus antigos
+
+  const menu = document.createElement('div');
+  menu.className = 'silo-menu-arquivo';
+  menu.innerHTML = `
+    <button class="menu-btn acessar">📂 Acessar</button>
+    <button class="menu-btn rename">✏️ Renomear</button>
+    <button class="menu-btn delete">🗑️ Excluir</button>
+  `;
+
+  document.body.appendChild(menu);
+  menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
+  menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
+
+  // 📂 Acessar pasta
+  menu.querySelector('.acessar').onclick = () => {
+    abrirPasta(pasta.id, pasta.nome_arquivo);
+    fecharMenuArquivo();
+  };
+
+  // ✏️ Renomear pasta
+  menu.querySelector('.rename').onclick = async () => {
+    const novoNome = prompt('Digite o novo nome da pasta:', pasta.nome_arquivo);
+    if (!novoNome || novoNome.trim() === '' || novoNome === pasta.nome_arquivo) {
+      fecharMenuArquivo();
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('id', pasta.id);
+    fd.append('novo_nome', novoNome.trim());
+    const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
+    const j = await res.json();
+
+    if (j.ok) {
+      abrirPopup('✅ Sucesso', j.msg);
+      atualizarLista();
+    } else {
+      abrirPopup('❌ Erro', j.err || 'Falha ao renomear pasta.');
+    }
+
+    fecharMenuArquivo();
+  };
+
+  // 🗑️ Excluir pasta
+  menu.querySelector('.delete').onclick = async () => {
+    if (!confirm('🗑️ Deseja realmente excluir esta pasta e todo o conteúdo dentro dela?')) {
+      fecharMenuArquivo();
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('id', pasta.id);
+    const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
+    const j = await res.json();
+
+    if (j.ok) {
+      abrirPopup('🗑️ Removido', j.msg || 'Pasta excluída com sucesso.');
+      atualizarLista();
+    } else {
+      abrirPopup('❌ Erro', j.err || 'Falha ao excluir pasta.');
+    }
+
+    fecharMenuArquivo();
+  };
+
+  document.addEventListener('click', fecharMenuArquivo, { once: true });
 }
 
 // ================================
@@ -120,7 +194,7 @@ function abrirPopup(titulo, mensagem) {
 window.abrirPopup = abrirPopup;
 
 // ================================
-// 🧭 Adapta listar_arquivos() para suportar navegação
+// 🧭 Adapta listar_arquivos() para suportar navegação e menus
 // ================================
 async function atualizarLista() {
   try {
@@ -158,10 +232,13 @@ async function atualizarLista() {
       `;
 
       if (isFolder) {
-        // abre a pasta
-        div.addEventListener('click', () => abrirPasta(a.id, a.nome_arquivo));
+        // 📂 Abre menu de pasta
+        div.addEventListener('click', (e) => {
+          e.stopPropagation();
+          abrirMenuPasta(e, a);
+        });
       } else {
-        // abre menu (download, renomear, excluir)
+        // 📄 Abre menu de arquivo
         div.addEventListener('click', (e) => {
           e.stopPropagation();
           abrirMenuArquivo(e, a);

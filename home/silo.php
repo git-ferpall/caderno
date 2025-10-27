@@ -240,6 +240,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
     border-radius: 6px;
     cursor: pointer;
     }
+    .icon-pasta {
+    background: url('../img/icon/icon-pasta.svg') no-repeat center/contain;
+    }
 
 
 </style>    
