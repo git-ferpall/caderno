@@ -259,6 +259,18 @@ if ($user_id) {
             <div id="popup-bancada-conteudo"></div>
         </div>
     </div>
+    <!-- 📦 Popup de mover arquivo/pasta -->
+    <div id="popup-mover" class="popup-sistema" style="display:none;">
+    <div class="popup-box">
+        <h3>Mover para outra pasta</h3>
+        <p>Selecione a pasta de destino:</p>
+        <select id="mover-destino" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">
+        <option value="">Carregando...</option>
+        </select>
+        <button id="btn-confirmar-mover">Mover</button>
+    </div>
+    </div>
+
    
 
 

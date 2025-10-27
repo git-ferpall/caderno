@@ -174,7 +174,7 @@ function getIconClass(tipo) {
 
 
 // ===================================
-// 📂 Menu de ações (Baixar / Renomear / Excluir)
+// 📂 Menu de ações (Baixar / Renomear / Mover / Excluir)
 // ===================================
 function abrirMenuArquivo(e, arquivo) {
   e.stopPropagation();
@@ -185,6 +185,7 @@ function abrirMenuArquivo(e, arquivo) {
   menu.innerHTML = `
     <button class="menu-btn download">📥 Baixar</button>
     <button class="menu-btn rename">✏️ Renomear</button>
+    <button class="menu-btn mover">📂 Mover</button>
     <button class="menu-btn delete">🗑️ Excluir</button>
   `;
 
@@ -192,11 +193,13 @@ function abrirMenuArquivo(e, arquivo) {
   menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
   menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
 
+  // 📥 Baixar arquivo
   menu.querySelector('.download').onclick = () => {
     baixarArquivo(`../funcoes/silo/download_arquivo.php?id=${arquivo.id}`);
     fecharMenuArquivo();
   };
 
+  // ✏️ Renomear arquivo
   menu.querySelector('.rename').onclick = async () => {
     const novoNome = prompt('Digite o novo nome do arquivo:', arquivo.nome_arquivo);
     if (novoNome && novoNome.trim() !== '' && novoNome !== arquivo.nome_arquivo) {
@@ -206,15 +209,22 @@ function abrirMenuArquivo(e, arquivo) {
       const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
       const j = await res.json();
       if (j.ok) {
-        alert('✅ ' + j.msg);
+        abrirPopup('✅ Sucesso', j.msg);
         atualizarLista();
       } else {
-        alert('❌ ' + (j.err || 'Erro ao renomear.'));
+        abrirPopup('❌ Erro', j.err || 'Erro ao renomear.');
       }
     }
     fecharMenuArquivo();
   };
 
+  // 📂 Mover arquivo/pasta
+  menu.querySelector('.mover').onclick = () => {
+    moverItem(arquivo.id); // função vinda do silo_mover.js
+    fecharMenuArquivo();
+  };
+
+  // 🗑️ Excluir
   menu.querySelector('.delete').onclick = () => {
     excluirArquivo(arquivo.id);
     fecharMenuArquivo();
@@ -222,6 +232,7 @@ function abrirMenuArquivo(e, arquivo) {
 
   document.addEventListener('click', fecharMenuArquivo, { once: true });
 }
+
 
 
 // ===================================
