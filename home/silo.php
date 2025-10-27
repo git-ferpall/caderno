@@ -183,6 +183,63 @@ require_once __DIR__ . '/../configuracao/protect.php';
     text-decoration: underline;
     }
 
+    .icon-folder {
+    background-image: url('../style/img/folder.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+    }
+
+    /* Breadcrumb */
+    .silo-breadcrumb {
+    color: var(--cinza-claro);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    }
+
+    .link-voltar {
+    color: var(--verde);
+    cursor: pointer;
+    font-weight: bold;
+    }
+
+    .link-voltar:hover {
+    text-decoration: underline;
+    }
+
+    /* Popup */
+    .popup-sistema {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    }
+
+    .popup-sistema .popup-box {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 280px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .popup-sistema button {
+    margin-top: 10px;
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    }
 
 
 </style>    
