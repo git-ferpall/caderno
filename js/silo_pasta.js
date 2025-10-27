@@ -168,24 +168,45 @@ async function voltarPasta() {
 }
 
 
-
 // ================================
-// 🧭 Atualiza breadcrumb de navegação
+// 🧭 Atualiza breadcrumb hierárquico completo
 // ================================
-function atualizarBreadcrumb(nomeAtual = null) {
+async function atualizarBreadcrumb() {
   const breadcrumb = document.querySelector('.silo-breadcrumb');
   if (!breadcrumb) return;
 
+  // Raiz padrão
   if (!pastaAtual || pastaAtual === '') {
     breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
-  } else {
-    breadcrumb.innerHTML = `
-      <span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>
-      <span style="opacity:0.6;"> / </span>
-      <span>📂 ${nomeAtual || 'Pasta atual'}</span>
-    `;
+    return;
+  }
+
+  try {
+    const res = await fetch(`../funcoes/silo/get_caminho.php?id=${pastaAtual}`);
+    const j = await res.json();
+
+    if (!j.ok) {
+      breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
+      return;
+    }
+
+    // Monta caminho completo
+    let html = `<span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>`;
+    html += `<span style="opacity:0.6;"> / </span>`;
+    html += `<span class="breadcrumb-item link" onclick="abrirPasta('', 'Raiz')">📁 Raiz</span>`;
+
+    j.caminho.forEach((p, idx) => {
+      html += ` <span style="opacity:0.6;">/</span> `;
+      html += `<span class="breadcrumb-item link" onclick="abrirPasta(${p.id}, '${p.nome.replace(/'/g, "\\'")}')">${p.nome}</span>`;
+    });
+
+    breadcrumb.innerHTML = html;
+  } catch (err) {
+    console.error('Erro ao atualizar breadcrumb:', err);
+    breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
   }
 }
+
 
 // ================================
 // 🧩 Ícone conforme tipo de item
