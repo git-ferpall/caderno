@@ -1,226 +1,266 @@
+/* ================================
+   🌿 Silo de Dados - Caderno de Campo
+   ================================ */
+
+/* ================================
+   📤 POPUP DE UPLOAD
+   ================================ */
 .upload-popup {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    }
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
 
-    .upload-box {
-    background: var(--branco);
-    border-radius: 10px;
-    padding: 25px 40px;
-    text-align: center;
-    width: 350px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-    }
+.upload-box {
+  background: var(--branco);
+  border-radius: 10px;
+  padding: 25px 40px;
+  text-align: center;
+  width: 350px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
 
-    .progress-bar-bg {
-    width: 100%;
-    height: 10px;
-    background: #e1e1e1;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-top: 15px;
-    }
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: #e1e1e1;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 15px;
+}
 
-    .progress-bar-fill {
-    height: 10px;
-    width: 0%;
-    background: var(--verde);
-    transition: width 0.2s ease;
-    }
+.progress-bar-fill {
+  height: 10px;
+  width: 0%;
+  background: var(--verde);
+  transition: width 0.2s ease;
+}
 
-    .progress-text {
-    display: block;
-    margin-top: 10px;
-    font-weight: 600;
-    color: var(--preto);
-    }
-    .silo-item-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    }
+.progress-text {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
+  color: var(--preto);
+}
 
-    .silo-item-actions .icon-download,
-    .silo-item-actions .icon-trash {
-    cursor: pointer;
-    font-size: 18px;
-    background: none;
-    border: none;
-    color: var(--cor-preto);
-    transition: transform 0.2s ease;
-    }
+/* ================================
+   ⚙️ ÍCONES E AÇÕES DE ITENS
+   ================================ */
+.silo-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .silo-item-actions .icon-download:hover,
-    .silo-item-actions .icon-trash:hover {
-    transform: scale(1.2);
-    }
-    /* ====== MENU DE AÇÃO DO SILO ====== */
-    .silo-menu-arquivo {
-    position: absolute;
-    background: var(--branco);
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-    padding: 8px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 130px;
-    animation: fadeIn 0.15s ease-out;
-    }
+.silo-item-actions .icon-download,
+.silo-item-actions .icon-trash {
+  cursor: pointer;
+  font-size: 18px;
+  background: none;
+  border: none;
+  color: var(--cor-preto);
+  transition: transform 0.2s ease;
+}
 
-    .silo-menu-arquivo .menu-btn {
-    border: none;
-    background: none;
-    text-align: left;
-    font-size: 14px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-    }
+.silo-item-actions .icon-download:hover,
+.silo-item-actions .icon-trash:hover {
+  transform: scale(1.2);
+}
 
-    .silo-menu-arquivo .menu-btn:hover {
-    background: var(--cinza-claro);
-    }
+/* ================================
+   📜 MENU DE AÇÕES DO SILO
+   ================================ */
+.silo-menu-arquivo {
+  position: absolute;
+  background: var(--branco);
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+  animation: fadeIn 0.15s ease-out;
+}
 
-    @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-    }
-    .silo-item-box.active {
-    background: rgba(0, 128, 0, 0.1);
-    border-radius: 10px;
-    transition: background 0.2s;
-    }
-    .silo-item-box.active {
-    background: rgba(0, 128, 0, 0.1);
-    border-radius: 8px;
-    }
-    .btn-icon {
-    width: 24px;
-    height: 24px;
-    display: inline-block;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    margin-right: 8px;
-    vertical-align: middle;
-    }
+.silo-menu-arquivo .menu-btn {
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-    /* 🗂️ Ícones individuais */
-    .icon-pdf {
-    background-image: url('../img/icon/icon-pdf.svg');
-    }
+.silo-menu-arquivo .menu-btn:hover {
+  background: var(--cinza-claro);
+}
 
-    .icon-img {
-    background-image: url('../img/icon/icon-img.svg');
-    }
+/* ================================
+   🗂️ ITENS DO SILO
+   ================================ */
+.silo-item-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 220px;
+  padding: 10px;
+  margin: 8px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-    .icon-txt {
-    background-image: url('../img/icon/icon-txt.svg');
-    }
+.silo-item-box:hover {
+  background: #f8faff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
 
-    .icon-zip {
-    background-image: url('../img/icon/icon-zip.svg');
-    }
+.silo-item-box.active {
+  background: rgba(0, 128, 0, 0.1);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
 
-    .icon-x {
-    background-image: url('../img/icon/icon-x.svg');
-    }
+/* ================================
+   🖼️ ÍCONES DE ARQUIVOS / PASTAS
+   ================================ */
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 8px;
+  vertical-align: middle;
+}
 
-    .icon-file {
-    background-image: url('../img/icon/icon-file.svg');
-    }
-    .icon-mover::before {
-    content: '\f0ec'; /* exemplo: código unicode do ícone de mover (Font Awesome) */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 16px;
-    }
-    .icon-folder {
-    background-image: url('../img/icons/folder.svg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    }
-    .silo-breadcrumb {
-    color: var(--cinza-claro);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    }
+.icon-pdf  { background-image: url('../img/icon/icon-pdf.svg'); }
+.icon-img  { background-image: url('../img/icon/icon-img.svg'); }
+.icon-txt  { background-image: url('../img/icon/icon-txt.svg'); }
+.icon-zip  { background-image: url('../img/icon/icon-zip.svg'); }
+.icon-x    { background-image: url('../img/icon/icon-x.svg'); }
+.icon-file { background-image: url('../img/icon/icon-file.svg'); }
+.icon-pasta, .icon-folder {
+  background-image: url('../img/icon/icon-pasta.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
 
-    .link-voltar {
-    color: var(--verde);
-    cursor: pointer;
-    font-weight: bold;
-    }
+/* ================================
+   🧭 BREADCRUMB HIERÁRQUICO
+   ================================ */
+.silo-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--cinza-claro);
+  margin-bottom: 10px;
+}
 
-    .link-voltar:hover {
-    text-decoration: underline;
-    }
+.silo-breadcrumb span {
+  display: inline-block;
+}
 
-    .icon-folder {
-    background-image: url('../style/img/folder.svg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    width: 32px;
-    height: 32px;
-    }
+.silo-breadcrumb .breadcrumb-item.link {
+  cursor: pointer;
+  color: var(--verde);
+  font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
 
-    /* Breadcrumb */
-    .silo-breadcrumb {
-    color: var(--cinza-claro);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 10px;
-    }
+.silo-breadcrumb .breadcrumb-item.link:hover {
+  color: #008f50;
+  transform: translateY(-1px);
+  text-decoration: underline;
+}
 
-    .link-voltar {
-    color: var(--verde);
-    cursor: pointer;
-    font-weight: bold;
-    }
+.link-voltar {
+  background: var(--verde);
+  color: #fff;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
 
-    .link-voltar:hover {
-    text-decoration: underline;
-    }
+.link-voltar:hover {
+  background: #008f50;
+}
 
-    /* Popup */
-    .popup-sistema {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    }
+/* ================================
+   💬 POPUP DO SISTEMA
+   ================================ */
+.popup-sistema {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
 
-    .popup-sistema .popup-box {
-    background: #fff;
-    padding: 20px 30px;
-    border-radius: 10px;
-    text-align: center;
-    min-width: 280px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
+.popup-sistema .popup-box {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  min-width: 280px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
 
-    .popup-sistema button {
-    margin-top: 10px;
-    background: var(--verde);
-    color: #fff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    }
+.popup-sistema h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.popup-sistema p {
+  font-size: 14px;
+  color: #555;
+  margin: 10px 0 15px;
+}
+
+.popup-sistema button {
+  margin-top: 10px;
+  background: var(--verde);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.popup-sistema button:hover {
+  background: #008f50;
+}
+
+/* ================================
+   ✨ ANIMAÇÕES
+   ================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
