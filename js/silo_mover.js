@@ -4,9 +4,9 @@
 
 async function moverItem(id) {
   try {
-    // Cria o overlay (popup)
-    const overlay = document.createElement('div');
-    overlay.className = 'upload-popup';
+    // 🔳 Cria o overlay (popup)
+    const overlay = document.createElement("div");
+    overlay.className = "upload-popup";
     overlay.innerHTML = `
       <div class="upload-box">
         <h3>📂 Mover item</h3>
@@ -32,11 +32,13 @@ async function moverItem(id) {
       const select = overlay.querySelector("#moverDestino");
 
       j.arquivos
-        .filter(a => a.is_folder)
+        .filter(a => a.tipo === "pasta" || a.tipo_arquivo === "folder" || a.is_folder)
         .forEach(pasta => {
           const opt = document.createElement("option");
           opt.value = pasta.caminho_arquivo || pasta.nome_arquivo;
-          opt.textContent = "📁 " + pasta.nome_arquivo;
+          // Remove "silo/USER_ID/" do nome mostrado
+          const nomeVisivel = (pasta.nome_arquivo || "").replace(/^silo\/\d+\//, "").trim();
+          opt.textContent = "📁 " + (nomeVisivel || pasta.nome_arquivo);
           select.appendChild(opt);
         });
     }
@@ -79,24 +81,28 @@ async function moverItem(id) {
           overlay.remove();
 
           // ===========================
-          // 🔄 Atualiza visual após mover
+          // 🔄 Atualiza a visualização
           // ===========================
           setTimeout(async () => {
+            // Limpa cache, se houver
+            if (window.siloCache) window.siloCache = {};
+
+            // Pasta atual e destino
             const pastaAtual = window.siloPastaAtual || "0";
             const pastaDestino = (j.destino || "0")
               .replace(/^silo\/\d+\//, "")
               .trim();
 
-            console.log("🌿 Atualização → atual:", pastaAtual, "| destino:", pastaDestino);
+            console.log("🌿 Atualizando lista → atual:", pastaAtual, "| destino:", pastaDestino);
 
-            // Atualiza a pasta atual
+            // Recarrega lista principal
             if (typeof atualizarLista === "function") {
               await atualizarLista();
             }
 
-            // Se o destino for a pasta aberta, atualiza também
+            // Se o destino for a mesma pasta aberta, força atualização extra
             if (pastaAtual === pastaDestino && typeof atualizarLista === "function") {
-              console.log("🔄 Atualizando pasta destino...");
+              console.log("🔄 Atualizando pasta destino também...");
               await atualizarLista();
             }
           }, 300);

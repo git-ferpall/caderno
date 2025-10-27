@@ -16,9 +16,7 @@ try {
     $id = intval($_POST['id'] ?? 0);
     $destino = trim($_POST['destino'] ?? '');
 
-    if ($id <= 0) {
-        throw new Exception('Parâmetro ID inválido.');
-    }
+    if ($id <= 0) throw new Exception('Parâmetro ID inválido.');
 
     // Caminho base físico e raiz do usuário
     $base = "/var/www/html/uploads/silo/$user_id";
@@ -28,10 +26,9 @@ try {
         $destino_abs = $base;
         $destino_rel = "silo/$user_id";
     } else {
-        // Remove prefixos redundantes e barras
+        // Normaliza destino
         $destino = preg_replace('#^silo/' . $user_id . '/?#', '', $destino);
         $destino = trim($destino, '/');
-
         $destino_rel = "silo/$user_id/$destino";
         $destino_abs = "/var/www/html/uploads/$destino_rel";
     }
@@ -41,7 +38,7 @@ try {
         throw new Exception("Destino inválido ou inexistente: $destino_rel");
     }
 
-    // 🔎 Busca o item a mover
+    // 🔎 Busca o item
     $stmt = $mysqli->prepare("SELECT id, nome_arquivo, caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? LIMIT 1");
     $stmt->bind_param("ii", $id, $user_id);
     $stmt->execute();
@@ -53,14 +50,24 @@ try {
     $origem_abs = "/var/www/html/uploads/" . $item['caminho_arquivo'];
     if (!file_exists($origem_abs)) throw new Exception('Arquivo/pasta física não encontrada.');
 
-    // Monta novo caminho
+    // 🧭 Monta novo caminho
     $novo_nome = basename($item['caminho_arquivo']);
     $novo_caminho_rel = rtrim($destino_rel, '/') . '/' . $novo_nome;
     $novo_abs = "/var/www/html/uploads/" . $novo_caminho_rel;
 
-    // 🚫 Evita mover para o mesmo local
-    if (realpath($origem_abs) === realpath($novo_abs)) {
-        throw new Exception('O item já está nesse local.');
+    // 🚫 Evita mover para o mesmo local (comparação sem realpath)
+    $origem_norm = str_replace('//', '/', $origem_abs);
+    $novo_norm   = str_replace('//', '/', $novo_abs);
+
+    if ($origem_norm === $novo_norm) {
+        // ✅ Já está no local → retorna sucesso, não erro
+        echo json_encode([
+            'ok' => true,
+            'msg' => '📦 O item já está nesse local.',
+            'novo_caminho' => $novo_caminho_rel,
+            'destino' => $destino_rel
+        ]);
+        exit;
     }
 
     // 🚚 Move fisicamente
