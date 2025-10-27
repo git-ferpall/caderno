@@ -30,27 +30,21 @@ async function moverItem(id) {
 
     if (j.ok && Array.isArray(j.arquivos)) {
       const select = overlay.querySelector("#moverDestino");
-
       j.arquivos
         .filter(a => a.tipo === "pasta" || a.tipo_arquivo === "folder" || a.is_folder)
         .forEach(pasta => {
           const opt = document.createElement("option");
           opt.value = pasta.caminho_arquivo || pasta.nome_arquivo;
-          // Remove "silo/USER_ID/" do nome mostrado
           const nomeVisivel = (pasta.nome_arquivo || "").replace(/^silo\/\d+\//, "").trim();
           opt.textContent = "📁 " + (nomeVisivel || pasta.nome_arquivo);
           select.appendChild(opt);
         });
     }
 
-    // ===========================
     // ❌ Cancelar
-    // ===========================
     overlay.querySelector("#btnMoverCancelar").onclick = () => overlay.remove();
 
-    // ===========================
     // ✅ Confirmar
-    // ===========================
     overlay.querySelector("#btnMoverConfirmar").onclick = async () => {
       const destino = overlay.querySelector("#moverDestino").value;
 
@@ -81,29 +75,22 @@ async function moverItem(id) {
           overlay.remove();
 
           // ===========================
-          // 🔄 Atualiza a visualização
+          // 🔄 Atualiza a visualização corretamente
           // ===========================
           setTimeout(async () => {
-            // Limpa cache, se houver
-            if (window.siloCache) window.siloCache = {};
-
-            // Pasta atual e destino
             const pastaAtual = window.siloPastaAtual || "0";
-            const pastaDestino = (j.destino || "0")
-              .replace(/^silo\/\d+\//, "")
-              .trim();
+            const pastaDestino = (j.destino || "0").replace(/^silo\/\d+\//, "").trim();
 
-            console.log("🌿 Atualizando lista → atual:", pastaAtual, "| destino:", pastaDestino);
+            console.log("📂 Atualização pós-movimento → atual:", pastaAtual, "| destino:", pastaDestino);
 
-            // Recarrega lista principal
-            if (typeof atualizarLista === "function") {
-              await atualizarLista();
-            }
-
-            // Se o destino for a mesma pasta aberta, força atualização extra
-            if (pastaAtual === pastaDestino && typeof atualizarLista === "function") {
-              console.log("🔄 Atualizando pasta destino também...");
-              await atualizarLista();
+            // Se o destino for diferente, apenas recarrega a pasta atual (para remover o item)
+            if (pastaAtual !== pastaDestino) {
+              console.log("🗂️ Item movido para outra pasta. Atualizando pasta atual...");
+              if (typeof atualizarLista === "function") await atualizarLista();
+            } else {
+              // Se for a mesma pasta (renomeio interno), atualiza totalmente
+              console.log("🗂️ Atualizando pasta destino (mesma aberta)...");
+              if (typeof atualizarLista === "function") await atualizarLista();
             }
           }, 300);
         } else {
