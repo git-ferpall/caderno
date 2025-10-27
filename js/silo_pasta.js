@@ -136,13 +136,40 @@ function abrirMenuPasta(e, pasta) {
 }
 
 // ================================
-// ⬅️ Voltar para pasta anterior
+// ⬅️ Voltar para a pasta anterior (1 nível)
 // ================================
-function voltarPasta() {
-  pastaAtual = ''; // volta para raiz
-  atualizarLista();
-  atualizarBreadcrumb();
+async function voltarPasta() {
+  if (!pastaAtual || pastaAtual === '') {
+    // já está na raiz
+    pastaAtual = '';
+    atualizarLista();
+    atualizarBreadcrumb();
+    return;
+  }
+
+  try {
+    // consulta o parent_id no backend
+    const res = await fetch(`../funcoes/silo/get_parent.php?id=${pastaAtual}`);
+    const j = await res.json();
+
+    if (j.ok) {
+      pastaAtual = j.parent_id || ''; // define nova pasta atual
+      atualizarLista();
+      atualizarBreadcrumb(j.nome_parent);
+    } else {
+      console.warn('⚠️ Erro ao buscar pasta pai:', j.err);
+      pastaAtual = '';
+      atualizarLista();
+      atualizarBreadcrumb();
+    }
+  } catch (err) {
+    console.error('Erro ao voltar pasta:', err);
+    pastaAtual = '';
+    atualizarLista();
+    atualizarBreadcrumb();
+  }
 }
+
 
 // ================================
 // 🧭 Atualiza breadcrumb de navegação
