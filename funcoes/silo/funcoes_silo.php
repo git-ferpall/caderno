@@ -111,3 +111,22 @@ function listarArquivosEPastas($mysqli, $user_id, $parent_id = null) {
 
     return array_merge($pastas, $arquivos);
 }
+/**
+ * 🧹 Remove diretório e todo o conteúdo dentro (recursivamente)
+ */
+function removerDiretorio($dir) {
+    if (!file_exists($dir)) return true;
+    if (!is_dir($dir)) return unlink($dir);
+
+    foreach (scandir($dir) as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = "$dir/$item";
+        if (is_dir($path)) {
+            removerDiretorio($path);
+        } else {
+            @unlink($path);
+        }
+    }
+
+    return @rmdir($dir);
+}
