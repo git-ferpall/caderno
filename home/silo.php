@@ -161,6 +161,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
     font-weight: 900;
     font-size: 16px;
     }
+    .icon-folder {
+    background-image: url('../img/icons/folder.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    }
 
 
 
@@ -247,6 +252,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <?php include '../include/imports.php' ?>
         <script src="../js/silo.js"></script>
+        <script src="../js/silo_pasta.js"></script>
     </div>
         
     <?php include '../include/footer.php' ?>

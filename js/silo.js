@@ -8,19 +8,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // 📤 Upload manual (compatível com mobile)
   const btnUpload = document.getElementById('btn-silo-arquivo');
   btnUpload.addEventListener('click', () => {
+    // Cria input de arquivo
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,application/pdf,text/plain';
 
+    // Quando o usuário escolhe um arquivo
     input.onchange = async () => {
       const file = input.files[0];
       if (!file) return;
 
+      // Checa limite só DEPOIS de o usuário escolher
       const ok = await checarLimiteAntesUpload();
       if (ok) enviarArquivo(file);
       else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
     };
 
+    // Abre seletor de arquivo
     input.click();
   });
 
@@ -42,16 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     input.click();
   });
-
-  // 📁 Criar nova pasta
-  const btnPasta = document.getElementById('btn-silo-pasta');
-  if (btnPasta) btnPasta.addEventListener('click', criarPasta);
-
-  // 📦 Mover arquivo
-  const btnMover = document.getElementById('btn-silo-mover');
-  if (btnMover) btnMover.addEventListener('click', abrirMoverArquivo);
 });
-
 
 
 // ===================================
@@ -123,113 +118,72 @@ async function enviarArquivo(file, origem = 'upload') {
   xhr.send(fd);
 }
 
-let pastaAtual = null; // null = raiz
-const pilhaPastas = []; // histórico de navegação
-
-// ================================
-// 📁 Criar nova pasta
-// ================================
-async function criarPasta() {
-  const nome = prompt("Nome da nova pasta:");
-  if (!nome || nome.trim() === "") return;
-
-  const fd = new FormData();
-  fd.append("nome", nome.trim());
-  fd.append("parent_id", pastaAtual || "");
-  const res = await fetch("../funcoes/silo/criar_pasta.php", { method: "POST", body: fd });
-  const j = await res.json();
-
-  if (j.ok) {
-    abrirPopup("📁 Pasta criada", j.msg);
-    atualizarLista();
-  } else {
-    abrirPopup("❌ Erro", j.err);
-  }
-}
-
-// ================================
-// ⬅️ Voltar uma pasta
-// ================================
-function voltarPasta() {
-  if (pilhaPastas.length > 0) {
-    pastaAtual = pilhaPastas.pop();
-    atualizarLista();
-  }
-}
-
-// ================================
-// 📂 Entrar em uma pasta
-// ================================
-function abrirPasta(pasta) {
-  pilhaPastas.push(pastaAtual);
-  pastaAtual = pasta.id;
-  atualizarLista();
-}
-
-
-
 // ===================================
-// 📜 Atualiza lista (com ícones por tipo)
+// 📜 Atualiza lista (com ícones por tipo e suporte a pastas)
 // ===================================
 async function atualizarLista() {
   try {
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || ''}`);
+    // 🔹 Busca arquivos da pasta atual (ou raiz)
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?pasta=${pastaAtual || ''}`);
     const j = await res.json();
     const box = document.querySelector('.silo-arquivos');
     box.innerHTML = '';
 
-    // Botão voltar (se não está na raiz)
-    if (pastaAtual) {
-      const voltarDiv = document.createElement('div');
-      voltarDiv.className = 'silo-item-box fundo-preto';
-      voltarDiv.innerHTML = `
-        <div class="silo-item">
-          <div class="btn-icon icon-angle"></div>
-          <span class="silo-item-title">Voltar</span>
-        </div>`;
-      voltarDiv.onclick = voltarPasta;
-      box.appendChild(voltarDiv);
-    }
-
     if (!j.ok || !Array.isArray(j.arquivos)) {
       console.error('Resposta inválida:', j);
-      box.innerHTML += '<p>❌ Erro ao carregar arquivos.</p>';
+      box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
       return;
     }
 
     if (j.arquivos.length === 0) {
-      box.innerHTML += '<p style="text-align:center; opacity:0.6;">Pasta vazia.</p>';
+      box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum item nesta pasta.</p>';
       return;
     }
 
-    j.arquivos.forEach(a => {
-      const tipo = a.tipo;
-      const icon = tipo === 'pasta' ? 'icon-pasta' : getIconClass(a.tipo_arquivo);
+    // 🔹 Separa pastas e arquivos
+    const pastas = j.arquivos.filter(a => a.tipo_arquivo === 'folder');
+    const arquivos = j.arquivos.filter(a => a.tipo_arquivo !== 'folder');
+
+    // 🔹 Exibe pastas primeiro
+    [...pastas, ...arquivos].forEach(a => {
+      const isFolder = a.tipo_arquivo === 'folder';
+      const icon = isFolder
+        ? 'icon-folder'
+        : getIconClass(a.tipo_arquivo || 'file');
 
       const div = document.createElement('div');
       div.className = 'silo-item-box';
       div.dataset.id = a.id;
       div.dataset.nome = a.nome_arquivo;
-      div.dataset.tipo = tipo;
+      div.dataset.tipo = a.tipo_arquivo;
 
       div.innerHTML = `
-        <div class="silo-item">
+        <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <span class="silo-item-title">${a.nome_arquivo}</span>
         </div>
       `;
 
-      if (tipo === 'pasta') {
-        div.onclick = () => abrirPasta(a);
-      } else {
-        div.onclick = (e) => {
+      // 🔹 Clique normal → menu de ações
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirMenuArquivo(e, a);
+      });
+
+      // 🔹 Duplo clique → entra na pasta
+      if (isFolder && typeof acessarPasta === 'function') {
+        div.addEventListener('dblclick', (e) => {
           e.stopPropagation();
-          abrirMenuArquivo(e, a);
-        };
+          acessarPasta(a.id);
+        });
       }
 
       box.appendChild(div);
     });
+
+    // 🔹 Atualiza cabeçalho de navegação (breadcrumb)
+    atualizarBreadcrumb();
+
   } catch (err) {
     console.error('Erro ao atualizar lista:', err);
     document.querySelector('.silo-arquivos').innerHTML =
@@ -389,14 +343,4 @@ function getIconClass(tipo) {
 function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
-}
-// ===================================
-// 📦 Mover Arquivo - abrir popup
-// ===================================
-function abrirMoverArquivo() {
-  abrirPopupSistema({
-    titulo: "Mover Arquivo",
-    texto: "Função em desenvolvimento. Aqui o usuário poderá escolher a nova pasta de destino para o arquivo.",
-    tipo: "info",
-  });
 }
