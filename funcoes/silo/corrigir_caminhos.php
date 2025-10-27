@@ -14,7 +14,7 @@ $base = realpath(__DIR__ . '/../../uploads');
 if (!$base) die('<p style="color:red;">❌ Base de uploads não encontrada.</p>');
 
 // Backup prévio
-$backupFile = __DIR__ . '/backup_silo_' . date('Ymd_His') . '.json';
+$backupFile = sys_get_temp_dir() . '/backup_silo_' . date('Ymd_His') . '.json';
 $dados = $mysqli->query("SELECT * FROM silo_arquivos")->fetch_all(MYSQLI_ASSOC);
 file_put_contents($backupFile, json_encode($dados, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
 echo "<p>📦 Backup salvo em <code>$backupFile</code></p>";
