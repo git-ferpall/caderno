@@ -4,8 +4,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 /**
  * 🧩 rename_arquivo.php
- * Versão final — suporta subpastas em qualquer nível.
- * Corrige prefixos inconsistentes e usa fallback seguro.
+ * Renomeia arquivos e pastas no Silo de Dados.
+ * Compatível com subpastas e estrutura /uploads/silo/{user_id}/
  */
 
 $logFile = __DIR__ . '/rename_error.log';
@@ -15,109 +15,101 @@ function elog($msg) {
 }
 
 try {
-    // 🔐 Autenticação
+    // 🔒 Autenticação via JWT ou sessão
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) throw new Exception('unauthorized');
 
-    // 📩 Parâmetros
+    // 🧾 Parâmetros recebidos
     $id = intval($_POST['id'] ?? 0);
     $novo_nome = trim($_POST['novo_nome'] ?? '');
     if ($id <= 0 || $novo_nome === '') throw new Exception('param_invalid');
 
-    // 🔍 Busca registro
+    // 🔎 Busca o registro atual no banco
     $stmt = $mysqli->prepare("SELECT nome_arquivo, caminho_arquivo, tipo FROM silo_arquivos WHERE id = ? AND user_id = ?");
     $stmt->bind_param('ii', $id, $user_id);
     $stmt->execute();
-    $item = $stmt->get_result()->fetch_assoc();
+    $res = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    if (!$item) throw new Exception('arquivo_nao_encontrado');
+    if (!$res) throw new Exception('registro_nao_encontrado');
 
-    $nome_antigo = $item['nome_arquivo'];
-    $caminho_relativo = trim($item['caminho_arquivo'], '/');
-    $tipo_item = $item['tipo']; // 'arquivo' ou 'pasta'
+    $nome_antigo = $res['nome_arquivo'];
+    $caminho_relativo = $res['caminho_arquivo'];
+    $tipo = $res['tipo']; // 'arquivo' ou 'pasta'
 
-    // 🧭 Base de uploads
-    $base_path = realpath(__DIR__ . '/../../uploads');
-    if (!$base_path) throw new Exception('base_invalida');
+    // 🧭 Caminho absoluto base
+    $base_path = realpath(__DIR__ . '/../../uploads/silo');
+    $caminho_antigo = $base_path . '/' . str_replace(['silo/', './'], '', $caminho_relativo);
 
-    // 🔍 Normaliza o caminho relativo
-    $possiveis_caminhos = [
-        $base_path . '/' . $caminho_relativo,
-        $base_path . '/uploads/' . $caminho_relativo,
-        $base_path . '/' . preg_replace('#^uploads/#', '', $caminho_relativo)
-    ];
-
-    $caminho_antigo = null;
-    foreach ($possiveis_caminhos as $c) {
-        if (file_exists($c)) {
-            $caminho_antigo = $c;
-            break;
+    // Caso o arquivo esteja no nível mais antigo (sem "silo/")
+    if (!file_exists($caminho_antigo)) {
+        $base_path_alt = realpath(__DIR__ . '/../../uploads');
+        $caminho_alt = $base_path_alt . '/' . $caminho_relativo;
+        if (file_exists($caminho_alt)) {
+            $caminho_antigo = $caminho_alt;
+        } else {
+            elog("Arquivo ou pasta não encontrado: $caminho_antigo");
+            throw new Exception('arquivo_fisico_nao_encontrado');
         }
     }
 
-    if (!$caminho_antigo) {
-        elog("❌ Nenhum caminho válido encontrado. Tentativas:\n" . implode("\n", $possiveis_caminhos));
-        throw new Exception('arquivo_fisico_nao_encontrado');
-    }
-
-    // 📁 Mantém extensão se for arquivo
-    if ($tipo_item === 'arquivo') {
+    // 🧩 Mantém a mesma extensão caso o usuário não digite
+    if ($tipo === 'arquivo') {
         $extensao = pathinfo($nome_antigo, PATHINFO_EXTENSION);
         if ($extensao && !str_ends_with(strtolower($novo_nome), '.' . strtolower($extensao))) {
             $novo_nome .= '.' . $extensao;
         }
     }
 
-    // 🔄 Novo caminho
+    // 🧱 Define novos caminhos (relativo e absoluto)
     $novo_caminho_abs = dirname($caminho_antigo) . '/' . $novo_nome;
-    $novo_caminho_rel = str_replace($base_path . '/', '', $novo_caminho_abs);
+    $novo_caminho_rel = dirname($caminho_relativo) . '/' . $novo_nome;
 
-    // 🚫 Checa duplicidade
+    // 🚫 Verifica se já existe algo com esse nome
     if (file_exists($novo_caminho_abs)) {
-        elog("🚫 Já existe um item com o mesmo nome: $novo_caminho_abs");
+        elog("Nome duplicado: $novo_caminho_abs");
         throw new Exception('arquivo_duplicado');
     }
 
-    // 🧱 Tenta renomear fisicamente
+    // 🚚 Renomeia fisicamente
     if (!@rename($caminho_antigo, $novo_caminho_abs)) {
-        elog("💥 Falha física ao renomear: $caminho_antigo → $novo_caminho_abs");
-        throw new Exception('falha_ao_renomear_arquivo');
+        elog("Falha ao renomear $caminho_antigo → $novo_caminho_abs");
+        throw new Exception('falha_ao_renomear');
     }
 
-    // 💾 Atualiza registro principal
-    $stmt = $mysqli->prepare("UPDATE silo_arquivos SET nome_arquivo = ?, caminho_arquivo = ? WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('ssii', $novo_nome, $novo_caminho_rel, $id, $user_id);
-    $stmt->execute();
-    $stmt->close();
+    // 💾 Atualiza o registro principal
+    $stmtUp = $mysqli->prepare("UPDATE silo_arquivos SET nome_arquivo = ?, caminho_arquivo = ? WHERE id = ? AND user_id = ?");
+    $stmtUp->bind_param('ssii', $novo_nome, $novo_caminho_rel, $id, $user_id);
+    $stmtUp->execute();
+    $stmtUp->close();
 
-    // 📂 Se for pasta, atualiza caminhos dos filhos
-    if ($tipo_item === 'pasta') {
-        $stmt = $mysqli->prepare("
+    // 🪄 Se for pasta, atualiza todos os filhos
+    if ($tipo === 'pasta') {
+        $antigo_rel_esc = $mysqli->real_escape_string($caminho_relativo . '/');
+        $novo_rel_esc = $mysqli->real_escape_string($novo_caminho_rel . '/');
+        $mysqli->query("
             UPDATE silo_arquivos 
-            SET caminho_arquivo = REPLACE(caminho_arquivo, ?, ?) 
-            WHERE user_id = ? AND caminho_arquivo LIKE CONCAT(?, '/%')
+            SET caminho_arquivo = REPLACE(caminho_arquivo, '$antigo_rel_esc', '$novo_rel_esc')
+            WHERE user_id = $user_id AND caminho_arquivo LIKE '$antigo_rel_esc%'
         ");
-        $stmt->bind_param('ssis', $caminho_relativo, $novo_caminho_rel, $user_id, $caminho_relativo);
-        $stmt->execute();
-        $stmt->close();
     }
 
-    echo json_encode(['ok' => true, 'msg' => '✅ Renomeado com sucesso!']);
+    echo json_encode(['ok' => true, 'msg' => 'Nome alterado com sucesso!']);
 
 } catch (Throwable $e) {
     elog('Erro: ' . $e->getMessage());
     http_response_code(500);
+
     $msg = match($e->getMessage()) {
         'arquivo_duplicado' => 'Já existe um item com esse nome.',
-        'arquivo_nao_encontrado' => 'Registro não encontrado no banco.',
+        'falha_ao_renomear' => 'Falha ao renomear arquivo ou pasta.',
         'arquivo_fisico_nao_encontrado' => 'Arquivo ou pasta física não encontrada no servidor.',
-        'falha_ao_renomear_arquivo' => 'Falha ao renomear. Verifique permissões.',
         'param_invalid' => 'Parâmetros inválidos.',
+        'registro_nao_encontrado' => 'Item não encontrado no banco de dados.',
         'unauthorized' => 'Usuário não autenticado.',
-        'base_invalida' => 'Diretório base de uploads não encontrado.',
         default => $e->getMessage(),
     };
+
     echo json_encode(['ok' => false, 'err' => $msg]);
 }
