@@ -184,7 +184,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     }
 
     .icon-folder {
-    background-image: url('../style/img/folder.svg');
+    background-image: url('../img/icon/icon-pasta.svg');
     background-size: cover;
     background-repeat: no-repeat;
     width: 32px;
