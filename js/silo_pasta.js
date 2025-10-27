@@ -1,25 +1,14 @@
-// ================================
-// 📁 Gerenciamento de Pastas - Silo de Dados
-// ================================
+// ===================================
+// 📂 Funções de Pastas - Silo de Dados
+// ===================================
 
-let pastaAtual = '';      // ID ou referência da pasta atual (vazia = raiz)
-let caminhoStack = [];    // Histórico de navegação
-
-document.addEventListener('DOMContentLoaded', () => {
-  const btnCriar = document.getElementById('btn-silo-pasta');
-  const btnMover = document.getElementById('btn-silo-mover');
-  const btnVoltar = document.getElementById('btn-silo-voltar');
-
-  if (btnCriar) btnCriar.addEventListener('click', criarPasta);
-  if (btnMover) btnMover.addEventListener('click', abrirMoverArquivo);
-  if (btnVoltar) btnVoltar.addEventListener('click', voltarPasta);
-});
+let pastaAtual = ''; // raiz padrão
 
 // ================================
-// 📂 Criar nova pasta
+// 📁 Criar nova pasta
 // ================================
 async function criarPasta() {
-  const nome = prompt("Digite o nome da nova pasta:");
+  const nome = prompt("📁 Nome da nova pasta:");
   if (!nome || nome.trim() === "") return;
 
   const fd = new FormData();
@@ -27,96 +16,88 @@ async function criarPasta() {
   fd.append("parent_id", pastaAtual || "");
 
   try {
-    const res = await fetch("../funcoes/silo/criar_pasta.php", { method: "POST", body: fd });
+    const res = await fetch("../funcoes/silo/criar_pasta.php", {
+      method: "POST",
+      body: fd,
+      credentials: "include" // importante para sessão PHP
+    });
+
     const j = await res.json();
 
     if (j.ok) {
-      abrirPopup("📁 Pasta criada", j.msg);
-      atualizarLista(); // Função existente no silo.js
+      abrirPopupSistema("📁 Sucesso", j.msg || "Pasta criada com sucesso!");
+      atualizarLista();
     } else {
-      abrirPopup("❌ Erro", j.err);
+      abrirPopupSistema("❌ Erro", j.err || "Falha ao criar pasta.");
     }
   } catch (err) {
     console.error("Erro ao criar pasta:", err);
-    abrirPopup("❌ Falha", "Não foi possível criar a pasta.");
+    abrirPopupSistema("❌ Erro", "Falha ao comunicar com o servidor.");
   }
 }
 
 // ================================
-// 🚪 Acessar pasta (ao dar duplo clique)
+// 📂 Abrir pasta (entrar)
 // ================================
-function acessarPasta(id) {
+function abrirPasta(id, nome) {
   pastaAtual = id;
-  caminhoStack.push(id);
   atualizarLista();
+  atualizarBreadcrumb(nome);
 }
 
 // ================================
-// 🔙 Voltar para pasta anterior
+// ⬅️ Voltar para pasta anterior
 // ================================
 function voltarPasta() {
-  if (caminhoStack.length > 0) caminhoStack.pop();
-  pastaAtual = caminhoStack[caminhoStack.length - 1] || '';
+  pastaAtual = ''; // volta para raiz
   atualizarLista();
+  atualizarBreadcrumb();
 }
 
 // ================================
-// 🔄 Mover arquivo (básico)
-// ================================
-async function abrirMoverArquivo() {
-  const id = prompt("Informe o ID do arquivo que deseja mover:");
-  if (!id) return;
-
-  const destino = prompt("Informe o ID da pasta destino:");
-  if (!destino) return;
-
-  const fd = new FormData();
-  fd.append("id", id);
-  fd.append("destino_id", destino);
-
-  try {
-    const res = await fetch("../funcoes/silo/mover_arquivo.php", { method: "POST", body: fd });
-    const j = await res.json();
-
-    if (j.ok) {
-      abrirPopup("✅ Arquivo movido", j.msg);
-      atualizarLista();
-    } else {
-      abrirPopup("❌ Erro", j.err);
-    }
-  } catch (err) {
-    console.error("Erro ao mover arquivo:", err);
-    abrirPopup("❌ Falha", "Não foi possível mover o arquivo.");
-  }
-}
-
-// ================================
-// 📁 Duplicar função de clique da pasta
-// ================================
-function configurarAcessoPastas() {
-  document.querySelectorAll('.silo-item-box[data-tipo="folder"]').forEach(el => {
-    el.addEventListener('dblclick', () => acessarPasta(el.dataset.id));
-  });
-}
-// ===================================
 // 🧭 Atualiza breadcrumb de navegação
-// ===================================
-function atualizarBreadcrumb() {
+// ================================
+function atualizarBreadcrumb(nomeAtual = null) {
   const breadcrumb = document.querySelector('.silo-breadcrumb');
   if (!breadcrumb) return;
 
-  // Raiz (nenhuma pasta selecionada)
   if (!pastaAtual || pastaAtual === '') {
+    breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
+  } else {
     breadcrumb.innerHTML = `
-      <span>📁 Raiz</span>
+      <span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>
+      <span style="opacity:0.6;"> / </span>
+      <span>📂 ${nomeAtual || 'Pasta atual'}</span>
     `;
-    return;
   }
+}
 
-  // Quando estiver dentro de uma pasta
-  breadcrumb.innerHTML = `
-    <span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>
-    <span style="opacity: 0.6;"> / </span>
-    <span>📂 Pasta atual: ${pastaAtual}</span>
+// ================================
+// 🧩 Ícone conforme tipo de item
+// ================================
+function getIconClass(tipo, isFolder = false) {
+  if (isFolder) return 'icon-folder';
+  tipo = tipo.toLowerCase();
+  if (tipo.includes('pdf')) return 'icon-pdf';
+  if (tipo.includes('txt')) return 'icon-txt';
+  if (tipo.includes('image') || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'png')
+    return 'icon-img';
+  return 'icon-file';
+}
+
+// ================================
+// 📢 Popup genérico do sistema
+// ================================
+function abrirPopupSistema(titulo, mensagem) {
+  const popup = document.createElement('div');
+  popup.className = 'popup-sistema';
+  popup.innerHTML = `
+    <div class="popup-box">
+      <h3>${titulo}</h3>
+      <p>${mensagem}</p>
+      <button class="popup-fechar">Fechar</button>
+    </div>
   `;
+  document.body.appendChild(popup);
+  popup.querySelector('.popup-fechar').onclick = () => popup.remove();
 }
