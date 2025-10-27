@@ -22,25 +22,29 @@ try {
 
     // Pasta pai (para subpastas)
     $parent_id = $_POST['parent_id'] ?? '';
-    $pastaBase = '/var/www/html/uploads/silo';
-    if (!is_dir($pastaBase)) {
-        if (!mkdir($pastaBase, 0775, true)) {
-            throw new Exception('Falha ao criar diretório base.');
-        }
+
+    // Caminho base
+    $pastaBase = realpath(__DIR__ . '/../../uploads');
+    if (!$pastaBase) {
+        throw new Exception('Caminho base inválido');
     }
 
-    // Caminho do usuário
-    $pastaUsuario = $pastaBase . '/' . $user_id;
+    $pastaSilo = $pastaBase . '/silo';
+    $pastaUsuario = $pastaSilo . '/' . $user_id;
+
+    // Garante que as pastas básicas existam
     if (!is_dir($pastaUsuario)) {
-        if (!mkdir($pastaUsuario, 0775, true)) {
-            throw new Exception('Falha ao criar pasta do usuário');
-        }
+        mkdir($pastaUsuario, 0775, true);
     }
 
-    // 📂 Caminho final (raiz ou subpasta)
+    // Caminho final
     if ($parent_id !== '') {
         // Busca caminho da pasta pai
-        $stmt = $mysqli->prepare("SELECT caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? AND tipo = 'pasta'");
+        $stmt = $mysqli->prepare("
+            SELECT caminho_arquivo 
+            FROM silo_arquivos 
+            WHERE id = ? AND user_id = ? AND tipo = 'pasta'
+        ");
         $stmt->bind_param('ii', $parent_id, $user_id);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
@@ -50,18 +54,20 @@ try {
             throw new Exception('Pasta pai não encontrada');
         }
 
-        $pastaFinal = $pastaBase . '/' . $res['caminho_arquivo'] . '/' . $nome;
+        // ⚙️ Corrige caminho duplicado ("silo/silo")
+        $rel = str_replace(['uploads/', 'silo/'], '', $res['caminho_arquivo']);
+
+        $pastaFinal = "$pastaSilo/$rel/$nome";
+        $caminhoRelativo = "silo/$rel/$nome";
     } else {
-        $pastaFinal = $pastaUsuario . '/' . $nome;
+        $pastaFinal = "$pastaUsuario/$nome";
+        $caminhoRelativo = "silo/$user_id/$nome";
     }
 
     // Cria pasta física
-    if (!mkdir($pastaFinal, 0775, true)) {
+    if (!mkdir($pastaFinal, 0775, true) && !is_dir($pastaFinal)) {
         throw new Exception('Falha ao criar pasta física');
     }
-
-    // Caminho relativo
-    $caminhoRelativo = str_replace($pastaBase . '/', '', $pastaFinal);
 
     // 🔢 Registra no banco
     $stmt = $mysqli->prepare("
