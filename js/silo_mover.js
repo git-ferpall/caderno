@@ -9,7 +9,7 @@ async function moverItem(id) {
     overlay.className = 'upload-popup';
     overlay.innerHTML = `
       <div class="upload-box">
-        <h3>📂 Mover arquivo</h3>
+        <h3>📂 Mover item</h3>
         <p>Selecione a pasta de destino:</p>
         <select id="moverDestino" style="width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; margin-top:10px;">
           <option value="0">📁 Raiz</option>
@@ -22,14 +22,13 @@ async function moverItem(id) {
     `;
     document.body.appendChild(overlay);
 
-    // Preenche o select com pastas do usuário
+    // Busca lista de pastas
     const res = await fetch("../funcoes/silo/listar_arquivos.php");
     const j = await res.json();
 
     if (j.ok && Array.isArray(j.arquivos)) {
       const select = overlay.querySelector("#moverDestino");
 
-      // apenas pastas
       j.arquivos
         .filter(a => a.tipo === 'pasta' || a.tipo_arquivo === 'folder')
         .forEach(pasta => {
@@ -40,10 +39,10 @@ async function moverItem(id) {
         });
     }
 
-    // Evento de cancelar
+    // Cancelar
     overlay.querySelector("#btnMoverCancelar").onclick = () => overlay.remove();
 
-    // Evento de confirmar
+    // Confirmar
     overlay.querySelector("#btnMoverConfirmar").onclick = async () => {
       const destino = overlay.querySelector("#moverDestino").value;
 
@@ -51,34 +50,55 @@ async function moverItem(id) {
       fd.append("id", id);
       fd.append("destino", destino);
 
-      const res = await fetch("../funcoes/silo/mover_arquivo.php", {
-        method: "POST",
-        body: fd,
-      });
-
-      const text = await res.text();
-      console.log("📦 Retorno mover_arquivo.php:", text);
-
-      let j;
       try {
-        j = JSON.parse(text);
-      } catch (err) {
-        abrirPopup("❌ Erro", "Resposta inválida do servidor.");
-        overlay.remove();
-        return;
-      }
+        const res = await fetch("../funcoes/silo/mover_arquivo.php", {
+          method: "POST",
+          body: fd,
+        });
 
-      if (j.ok) {
-        abrirPopup("📦 Sucesso", j.msg || "Item movido com sucesso!");
-        overlay.remove();
-        await atualizarLista(); // 🔁 atualiza automaticamente
-      } else {
-        abrirPopup("❌ Erro", j.err || "Falha ao mover o item.");
+        const text = await res.text();
+        console.log("📦 Retorno mover_arquivo.php:", text);
+
+        let j;
+        try {
+          j = JSON.parse(text);
+        } catch {
+          abrirPopup("❌ Erro", "Resposta inválida do servidor.");
+          overlay.remove();
+          return;
+        }
+
+        if (j.ok) {
+          abrirPopup("📦 Sucesso", j.msg || "Item movido com sucesso!");
+          overlay.remove();
+
+          // Atualiza a pasta atual
+          setTimeout(async () => {
+            if (typeof atualizarLista === "function") {
+              await atualizarLista();
+            }
+
+            // 🧭 Atualiza também a pasta de destino se for a mesma aberta
+            const pastaAtual = window.siloPastaAtual || "0";
+            const pastaDestino = destino === "0" ? "0" : destino.replace(/^silo\/\d+\//, "").trim();
+
+            if (pastaAtual === pastaDestino && typeof atualizarLista === "function") {
+              console.log("🔄 Atualizando pasta destino também...");
+              await atualizarLista();
+            }
+          }, 400);
+        } else {
+          abrirPopup("❌ Erro", j.err || "Falha ao mover o item.");
+        }
+      } catch (err) {
+        console.error("Erro ao mover item:", err);
+        abrirPopup("❌ Erro", "Falha inesperada ao tentar mover o item.");
       }
     };
   } catch (err) {
     console.error("Erro ao mover item:", err);
-    abrirPopup("❌ Erro", "Falha inesperada ao tentar mover o item.");
+    abrirPopup("❌ Erro", "Erro inesperado ao abrir a janela de mover.");
   }
 }
+
 window.moverItem = moverItem;
