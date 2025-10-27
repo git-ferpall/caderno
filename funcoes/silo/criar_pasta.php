@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/funcoes_silo.php';
+header('Content-Type: application/json; charset=utf-8');
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
