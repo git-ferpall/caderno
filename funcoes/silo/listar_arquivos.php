@@ -2,79 +2,77 @@
 require_once __DIR__ . '/funcoes_silo.php';
 header('Content-Type: application/json; charset=utf-8');
 
-try {
-    session_start();
+/**
+ * 📁 listar_arquivos.php
+ * Lista arquivos e pastas do silo de dados do usuário
+ */
 
-    // 🔐 Autenticação via JWT ou sessão
+try {
+    // 🔒 Autenticação
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
-    if (!$user_id) {
-        throw new Exception('unauthorized');
-    }
+    if (!$user_id) throw new Exception('unauthorized');
 
-    // 📂 Pasta atual (null = raiz)
-    $parent_id = isset($_GET['parent_id']) && $_GET['parent_id'] !== '' ? intval($_GET['parent_id']) : null;
+    // Pasta atual (por ID ou caminho)
+    $parent_id = $_GET['parent_id'] ?? '';
 
-    // ===============================
-    // 📁 LISTAR PASTAS PRIMEIRO
-    // ===============================
-    if ($parent_id) {
+    // Consulta principal
+    if ($parent_id === '' || $parent_id === '0') {
+        // Raiz do usuário
         $stmt = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
+            SELECT id, nome_arquivo, tipo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, criado_em, atualizado_em
             FROM silo_arquivos
-            WHERE user_id = ? AND tipo = 'pasta' AND parent_id = ?
-            ORDER BY nome_arquivo ASC
-        ");
-        $stmt->bind_param('ii', $user_id, $parent_id);
-    } else {
-        $stmt = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
-            FROM silo_arquivos
-            WHERE user_id = ? AND tipo = 'pasta' AND (parent_id IS NULL OR parent_id = 0)
-            ORDER BY nome_arquivo ASC
+            WHERE user_id = ? AND (parent_id IS NULL OR parent_id = 0)
+            ORDER BY tipo ASC, nome_arquivo ASC
         ");
         $stmt->bind_param('i', $user_id);
+    } else {
+        // Subpasta
+        $stmt = $mysqli->prepare("
+            SELECT id, nome_arquivo, tipo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, criado_em, atualizado_em
+            FROM silo_arquivos
+            WHERE user_id = ? AND parent_id = ?
+            ORDER BY tipo ASC, nome_arquivo ASC
+        ");
+        $stmt->bind_param('ii', $user_id, $parent_id);
     }
 
     $stmt->execute();
-    $pastas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $res = $stmt->get_result();
+
+    $arquivos = [];
+    while ($row = $res->fetch_assoc()) {
+        // 🔧 Normaliza o caminho removendo 'silo/{user_id}/'
+        $row['caminho_arquivo'] = preg_replace('#^silo/' . $user_id . '/?#', '', $row['caminho_arquivo']);
+
+        // Formata tamanho legível
+        $row['tamanho_legivel'] = formatarTamanho($row['tamanho_bytes']);
+
+        // Adiciona tipo genérico
+        $row['is_folder'] = ($row['tipo'] === 'pasta' || $row['tipo_arquivo'] === 'folder');
+
+        $arquivos[] = $row;
+    }
     $stmt->close();
 
-    // ===============================
-    // 📄 LISTAR ARQUIVOS DA PASTA
-    // ===============================
-    if ($parent_id) {
-        $stmt2 = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
-            FROM silo_arquivos
-            WHERE user_id = ? AND tipo = 'arquivo' AND parent_id = ?
-            ORDER BY nome_arquivo ASC
-        ");
-        $stmt2->bind_param('ii', $user_id, $parent_id);
-    } else {
-        $stmt2 = $mysqli->prepare("
-            SELECT id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem
-            FROM silo_arquivos
-            WHERE user_id = ? AND tipo = 'arquivo' AND (parent_id IS NULL OR parent_id = 0)
-            ORDER BY nome_arquivo ASC
-        ");
-        $stmt2->bind_param('i', $user_id);
-    }
-
-    $stmt2->execute();
-    $arquivos = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt2->close();
-
-    // ===============================
-    // 🔗 COMBINA (pastas primeiro)
-    // ===============================
-    $itens = array_merge($pastas, $arquivos);
-
-    echo json_encode(['ok' => true, 'arquivos' => $itens], JSON_UNESCAPED_UNICODE);
-    exit;
-
-} catch (Exception $e) {
-    http_response_code(500);
+    echo json_encode([
+        'ok' => true,
+        'arquivos' => $arquivos,
+        'msg' => 'Listagem concluída com sucesso',
+        'path' => ($parent_id === '' || $parent_id === '0') ? 'raiz' : $parent_id
+    ], JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
+    http_response_code(400);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
-    exit;
+}
+
+/**
+ * 🧮 Formata tamanho em bytes para KB/MB/GB
+ */
+function formatarTamanho($bytes)
+{
+    if ($bytes < 1024) return $bytes . ' B';
+    $units = ['KB', 'MB', 'GB', 'TB'];
+    $i = floor(log($bytes, 1024));
+    return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i - 1];
 }

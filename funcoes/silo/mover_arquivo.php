@@ -58,7 +58,7 @@ try {
     $novo_caminho_rel = rtrim($destino_rel, '/') . '/' . $novo_nome;
     $novo_abs = "/var/www/html/uploads/" . $novo_caminho_rel;
 
-    // Evita mover para o mesmo local
+    // 🚫 Evita mover para o mesmo local
     if (realpath($origem_abs) === realpath($novo_abs)) {
         throw new Exception('O item já está nesse local.');
     }
@@ -69,16 +69,23 @@ try {
     }
 
     // 💾 Atualiza caminho no banco
-    $stmt = $mysqli->prepare("UPDATE silo_arquivos SET caminho_arquivo = ? WHERE id = ?");
-    $stmt->bind_param("si", $novo_caminho_rel, $id);
+    $stmt = $mysqli->prepare("
+        UPDATE silo_arquivos 
+        SET caminho_arquivo = ?, pasta = ?, atualizado_em = NOW()
+        WHERE id = ? AND user_id = ?
+    ");
+    $stmt->bind_param("ssii", $novo_caminho_rel, $destino_rel, $id, $user_id);
     $stmt->execute();
     $stmt->close();
 
+    // 🧩 Retorno completo para o front sincronizar
     echo json_encode([
         'ok' => true,
         'msg' => '📦 Item movido com sucesso!',
-        'novo_caminho' => $novo_caminho_rel
-    ]);
+        'novo_caminho' => $novo_caminho_rel,
+        'destino' => $destino_rel
+    ], JSON_UNESCAPED_UNICODE);
+
 } catch (Exception $e) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);

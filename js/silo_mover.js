@@ -22,15 +22,17 @@ async function moverItem(id) {
     `;
     document.body.appendChild(overlay);
 
-    // Busca lista de pastas
-    const res = await fetch("../funcoes/silo/listar_arquivos.php");
+    // ===========================
+    // 📂 Busca lista de pastas disponíveis
+    // ===========================
+    const res = await fetch("../funcoes/silo/listar_arquivos.php?parent_id=0");
     const j = await res.json();
 
     if (j.ok && Array.isArray(j.arquivos)) {
       const select = overlay.querySelector("#moverDestino");
 
       j.arquivos
-        .filter(a => a.tipo === 'pasta' || a.tipo_arquivo === 'folder')
+        .filter(a => a.is_folder)
         .forEach(pasta => {
           const opt = document.createElement("option");
           opt.value = pasta.caminho_arquivo || pasta.nome_arquivo;
@@ -39,10 +41,14 @@ async function moverItem(id) {
         });
     }
 
-    // Cancelar
+    // ===========================
+    // ❌ Cancelar
+    // ===========================
     overlay.querySelector("#btnMoverCancelar").onclick = () => overlay.remove();
 
-    // Confirmar
+    // ===========================
+    // ✅ Confirmar
+    // ===========================
     overlay.querySelector("#btnMoverConfirmar").onclick = async () => {
       const destino = overlay.querySelector("#moverDestino").value;
 
@@ -72,21 +78,28 @@ async function moverItem(id) {
           abrirPopup("📦 Sucesso", j.msg || "Item movido com sucesso!");
           overlay.remove();
 
-          // Atualiza a pasta atual
+          // ===========================
+          // 🔄 Atualiza visual após mover
+          // ===========================
           setTimeout(async () => {
+            const pastaAtual = window.siloPastaAtual || "0";
+            const pastaDestino = (j.destino || "0")
+              .replace(/^silo\/\d+\//, "")
+              .trim();
+
+            console.log("🌿 Atualização → atual:", pastaAtual, "| destino:", pastaDestino);
+
+            // Atualiza a pasta atual
             if (typeof atualizarLista === "function") {
               await atualizarLista();
             }
 
-            // 🧭 Atualiza também a pasta de destino se for a mesma aberta
-            const pastaAtual = window.siloPastaAtual || "0";
-            const pastaDestino = destino === "0" ? "0" : destino.replace(/^silo\/\d+\//, "").trim();
-
+            // Se o destino for a pasta aberta, atualiza também
             if (pastaAtual === pastaDestino && typeof atualizarLista === "function") {
-              console.log("🔄 Atualizando pasta destino também...");
+              console.log("🔄 Atualizando pasta destino...");
               await atualizarLista();
             }
-          }, 400);
+          }, 300);
         } else {
           abrirPopup("❌ Erro", j.err || "Falha ao mover o item.");
         }
