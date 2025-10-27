@@ -166,6 +166,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
     background-size: contain;
     background-repeat: no-repeat;
     }
+    .silo-breadcrumb {
+    color: var(--cinza-claro);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    }
+
+    .link-voltar {
+    color: var(--verde);
+    cursor: pointer;
+    font-weight: bold;
+    }
+
+    .link-voltar:hover {
+    text-decoration: underline;
+    }
 
 
 
@@ -203,6 +219,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </div>
 
         <div class="silo-dados">
+            <!-- Cabeçalho de navegação (breadcrumb) -->
+            <div class="silo-breadcrumb" style="margin:10px 0; font-size:14px;"></div>
             <div class="silo-arquivos">
                 <div class="silo-arquivos-sort">
                     <button class="silo-sort-btn" type="button">

@@ -98,3 +98,25 @@ function configurarAcessoPastas() {
     el.addEventListener('dblclick', () => acessarPasta(el.dataset.id));
   });
 }
+// ===================================
+// 🧭 Atualiza breadcrumb de navegação
+// ===================================
+function atualizarBreadcrumb() {
+  const breadcrumb = document.querySelector('.silo-breadcrumb');
+  if (!breadcrumb) return;
+
+  // Raiz (nenhuma pasta selecionada)
+  if (!pastaAtual || pastaAtual === '') {
+    breadcrumb.innerHTML = `
+      <span>📁 Raiz</span>
+    `;
+    return;
+  }
+
+  // Quando estiver dentro de uma pasta
+  breadcrumb.innerHTML = `
+    <span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>
+    <span style="opacity: 0.6;"> / </span>
+    <span>📂 Pasta atual: ${pastaAtual}</span>
+  `;
+}
