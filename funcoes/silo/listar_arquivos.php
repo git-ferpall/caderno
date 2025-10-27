@@ -15,6 +15,7 @@ try {
 
     // Pasta atual (por ID ou caminho)
     $parent_id = $_GET['parent_id'] ?? '';
+    $parent_id = trim($parent_id);
 
     // Consulta principal
     if ($parent_id === '' || $parent_id === '0') {
@@ -23,7 +24,7 @@ try {
             SELECT id, nome_arquivo, tipo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, criado_em, atualizado_em
             FROM silo_arquivos
             WHERE user_id = ? AND (parent_id IS NULL OR parent_id = 0)
-            ORDER BY tipo ASC, nome_arquivo ASC
+            ORDER BY tipo_arquivo DESC, nome_arquivo ASC
         ");
         $stmt->bind_param('i', $user_id);
     } else {
@@ -32,7 +33,7 @@ try {
             SELECT id, nome_arquivo, tipo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, criado_em, atualizado_em
             FROM silo_arquivos
             WHERE user_id = ? AND parent_id = ?
-            ORDER BY tipo ASC, nome_arquivo ASC
+            ORDER BY tipo_arquivo DESC, nome_arquivo ASC
         ");
         $stmt->bind_param('ii', $user_id, $parent_id);
     }
@@ -42,14 +43,24 @@ try {
 
     $arquivos = [];
     while ($row = $res->fetch_assoc()) {
-        // 🔧 Normaliza o caminho removendo 'silo/{user_id}/'
-        $row['caminho_arquivo'] = preg_replace('#^silo/' . $user_id . '/?#', '', $row['caminho_arquivo']);
+        // 🔧 Normaliza o caminho removendo prefixos redundantes
+        $row['caminho_arquivo'] = preg_replace('#^/?(uploads/)?silo/' . $user_id . '/?#', '', $row['caminho_arquivo']);
 
-        // Formata tamanho legível
+        // 🧮 Formata tamanho legível
         $row['tamanho_legivel'] = formatarTamanho($row['tamanho_bytes']);
 
-        // Adiciona tipo genérico
-        $row['is_folder'] = ($row['tipo'] === 'pasta' || $row['tipo_arquivo'] === 'folder');
+        // 🗂️ Define flag de pasta
+        $row['is_folder'] = (
+            strtolower($row['tipo']) === 'pasta' ||
+            strtolower($row['tipo_arquivo']) === 'folder'
+        );
+
+        // 🔖 Normaliza nomes
+        $row['nome_exibicao'] = htmlspecialchars($row['nome_arquivo']);
+
+        // ⏱️ Formata datas
+        $row['criado_em'] = date('d/m/Y H:i', strtotime($row['criado_em']));
+        $row['atualizado_em'] = date('d/m/Y H:i', strtotime($row['atualizado_em']));
 
         $arquivos[] = $row;
     }
@@ -61,6 +72,7 @@ try {
         'msg' => 'Listagem concluída com sucesso',
         'path' => ($parent_id === '' || $parent_id === '0') ? 'raiz' : $parent_id
     ], JSON_UNESCAPED_UNICODE);
+
 } catch (Throwable $e) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
@@ -71,8 +83,8 @@ try {
  */
 function formatarTamanho($bytes)
 {
-    if ($bytes < 1024) return $bytes . ' B';
-    $units = ['KB', 'MB', 'GB', 'TB'];
+    if (!is_numeric($bytes) || $bytes <= 0) return '0 B';
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
     $i = floor(log($bytes, 1024));
-    return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i - 1];
+    return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
 }
