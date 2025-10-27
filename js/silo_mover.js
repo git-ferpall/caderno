@@ -1,93 +1,84 @@
-/**
- * ============================================
- * 📦 Silo Mover - Caderno de Campo / Frutag
- * ============================================
- * Responsável por gerenciar a movimentação de arquivos/pastas
- * entre diretórios do silo de dados.
- */
+// ===================================
+// 📦 Funções de Mover Arquivos - Silo de Dados
+// ===================================
 
-console.log("✅ silo_mover.js carregado");
+async function moverItem(id) {
+  try {
+    // Cria o overlay (popup)
+    const overlay = document.createElement('div');
+    overlay.className = 'upload-popup';
+    overlay.innerHTML = `
+      <div class="upload-box">
+        <h3>📂 Mover arquivo</h3>
+        <p>Selecione a pasta de destino:</p>
+        <select id="moverDestino" style="width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; margin-top:10px;">
+          <option value="0">📁 Raiz</option>
+        </select>
+        <div style="margin-top:15px;">
+          <button id="btnMoverConfirmar" style="background:var(--verde);color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;">Mover</button>
+          <button id="btnMoverCancelar" style="background:#ccc;color:#333;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;">Cancelar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
 
-let moverItemID = null;
+    // Preenche o select com pastas do usuário
+    const res = await fetch("../funcoes/silo/listar_arquivos.php");
+    const j = await res.json();
 
-// 🧭 Abre o popup e carrega pastas disponíveis
-function moverItem(id) {
-  moverItemID = id;
+    if (j.ok && Array.isArray(j.arquivos)) {
+      const select = overlay.querySelector("#moverDestino");
 
-  const popup = document.getElementById("popup-mover");
-  const select = document.getElementById("mover-destino");
+      // apenas pastas
+      j.arquivos
+        .filter(a => a.tipo === 'pasta' || a.tipo_arquivo === 'folder')
+        .forEach(pasta => {
+          const opt = document.createElement("option");
+          opt.value = pasta.caminho_arquivo || pasta.nome_arquivo;
+          opt.textContent = "📁 " + pasta.nome_arquivo;
+          select.appendChild(opt);
+        });
+    }
 
-  popup.style.display = "flex";
-  select.innerHTML = `<option value="">Carregando pastas...</option>`;
+    // Evento de cancelar
+    overlay.querySelector("#btnMoverCancelar").onclick = () => overlay.remove();
 
-  fetch("../funcoes/silo/listar_pastas.php")
-    .then(res => res.json())
-    .then(data => {
-      select.innerHTML = `<option value="">Selecione uma pasta</option>`;
-      if (!data.ok || !Array.isArray(data.pastas)) {
-        select.innerHTML = `<option value="">Nenhuma pasta disponível</option>`;
+    // Evento de confirmar
+    overlay.querySelector("#btnMoverConfirmar").onclick = async () => {
+      const destino = overlay.querySelector("#moverDestino").value;
+
+      const fd = new FormData();
+      fd.append("id", id);
+      fd.append("destino", destino);
+
+      const res = await fetch("../funcoes/silo/mover_arquivo.php", {
+        method: "POST",
+        body: fd,
+      });
+
+      const text = await res.text();
+      console.log("📦 Retorno mover_arquivo.php:", text);
+
+      let j;
+      try {
+        j = JSON.parse(text);
+      } catch (err) {
+        abrirPopup("❌ Erro", "Resposta inválida do servidor.");
+        overlay.remove();
         return;
       }
 
-      data.pastas.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.caminho;
-        select.appendChild(opt);
-      });
-    })
-    .catch(err => {
-      console.error("Erro ao listar pastas:", err);
-      select.innerHTML = `<option value="">Erro ao carregar pastas</option>`;
-    });
-}
-
-// 🚚 Confirma a movimentação
-document.getElementById("btn-confirmar-mover")?.addEventListener("click", () => {
-  const destino = document.getElementById("mover-destino").value;
-  if (!destino) {
-    abrirPopup("⚠️ Aviso", "Selecione uma pasta de destino antes de mover.");
-    return;
-  }
-
-  const formData = new URLSearchParams();
-  formData.append("id", moverItemID);
-  formData.append("destino", destino);
-
-  fetch("../funcoes/silo/mover_arquivo.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData.toString(),
-  })
-    .then(res => res.json())
-    .then(r => {
-      if (r.ok) {
-        fecharPopupMover();
-        abrirPopup("✅ Sucesso", r.msg || "Item movido com sucesso!");
-        if (typeof atualizarLista === "function") atualizarLista();
+      if (j.ok) {
+        abrirPopup("📦 Sucesso", j.msg || "Item movido com sucesso!");
+        overlay.remove();
+        await atualizarLista(); // 🔁 atualiza automaticamente
       } else {
-        abrirPopup("❌ Erro", r.err || "Falha ao mover item.");
+        abrirPopup("❌ Erro", j.err || "Falha ao mover o item.");
       }
-    })
-    .catch(err => {
-      console.error("Erro ao mover item:", err);
-      abrirPopup("❌ Erro", "Falha na comunicação com o servidor.");
-    });
-});
-
-// ❌ Fecha popup
-function fecharPopupMover() {
-  const popup = document.getElementById("popup-mover");
-  popup.style.display = "none";
-  moverItemID = null;
-}
-
-// Fecha ao clicar fora
-document.addEventListener("click", (e) => {
-  const popup = document.getElementById("popup-mover");
-  if (!popup || popup.style.display === "none") return;
-
-  if (e.target === popup) {
-    fecharPopupMover();
+    };
+  } catch (err) {
+    console.error("Erro ao mover item:", err);
+    abrirPopup("❌ Erro", "Falha inesperada ao tentar mover o item.");
   }
-});
+}
+window.moverItem = moverItem;

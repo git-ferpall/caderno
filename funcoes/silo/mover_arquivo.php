@@ -56,14 +56,18 @@ try {
         throw new Exception('Erro ao mover o item no sistema de arquivos.');
     }
 
-    // 🗃️ Atualiza o banco
+    /    // 🗃️ Atualiza o banco
     $stmt = $mysqli->prepare("UPDATE silo_arquivos SET caminho_arquivo = ? WHERE id = ?");
     $stmt->bind_param("si", $novo_caminho_rel, $id);
     $stmt->execute();
     $stmt->close();
 
-    echo json_encode(['ok' => true, 'msg' => '📦 Item movido com sucesso!']);
-}
+    echo json_encode([
+        'ok' => true,
+        'msg' => '📦 Item movido com sucesso!',
+        'novo_caminho' => $novo_caminho_rel
+    ]);
+
 catch (Exception $e) {
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
