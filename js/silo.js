@@ -390,3 +390,13 @@ function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
+// ===================================
+// 📦 Mover Arquivo - abrir popup
+// ===================================
+function abrirMoverArquivo() {
+  abrirPopupSistema({
+    titulo: "Mover Arquivo",
+    texto: "Função em desenvolvimento. Aqui o usuário poderá escolher a nova pasta de destino para o arquivo.",
+    tipo: "info",
+  });
+}
