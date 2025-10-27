@@ -8,23 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 📤 Upload manual (compatível com mobile)
   const btnUpload = document.getElementById('btn-silo-arquivo');
   btnUpload.addEventListener('click', () => {
-    // Cria input de arquivo
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,application/pdf,text/plain';
 
-    // Quando o usuário escolhe um arquivo
     input.onchange = async () => {
       const file = input.files[0];
       if (!file) return;
 
-      // Checa limite só DEPOIS de o usuário escolher
       const ok = await checarLimiteAntesUpload();
       if (ok) enviarArquivo(file);
       else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
     };
 
-    // Abre seletor de arquivo
     input.click();
   });
 
@@ -46,7 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     input.click();
   });
+
+  // 📁 Criar nova pasta
+  const btnPasta = document.getElementById('btn-silo-pasta');
+  if (btnPasta) btnPasta.addEventListener('click', criarPasta);
+
+  // 📦 Mover arquivo
+  const btnMover = document.getElementById('btn-silo-mover');
+  if (btnMover) btnMover.addEventListener('click', abrirMoverArquivo);
 });
+
 
 
 // ===================================
