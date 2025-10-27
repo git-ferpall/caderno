@@ -2,7 +2,13 @@
 require_once __DIR__ . '/funcoes_silo.php';
 header('Content-Type: application/json; charset=utf-8');
 
+/**
+ * 📦 mover_arquivo.php
+ * Move arquivos ou pastas entre diretórios dentro do silo do usuário.
+ */
+
 try {
+    // 🔒 Autenticação
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) throw new Exception('unauthorized');
@@ -14,25 +20,29 @@ try {
         throw new Exception('Parâmetro ID inválido.');
     }
 
-    // Caminho base físico
+    // Caminho base físico e raiz do usuário
     $base = "/var/www/html/uploads/silo/$user_id";
 
-    // 🏠 Se destino for "Raiz", "0" ou vazio → primeira camada do usuário
+    // 🏠 Se destino for vazio, 0 ou "raiz" → volta para a raiz do usuário
     if ($destino === '' || $destino === '0' || $destino === 0 || strtolower($destino) === 'raiz') {
         $destino_abs = $base;
         $destino_rel = "silo/$user_id";
     } else {
-        // Caminho normal de pasta
-        $destino_rel = "silo/$user_id/" . ltrim($destino, '/');
-        $destino_abs = "/var/www/html/uploads/" . $destino_rel;
+        // Remove prefixos redundantes e barras
+        $destino = preg_replace('#^silo/' . $user_id . '/?#', '', $destino);
+        $destino = trim($destino, '/');
+
+        $destino_rel = "silo/$user_id/$destino";
+        $destino_abs = "/var/www/html/uploads/$destino_rel";
     }
 
+    // 🔍 Valida destino físico
     if (!is_dir($destino_abs)) {
         throw new Exception("Destino inválido ou inexistente: $destino_rel");
     }
 
-    // 🔍 Busca o item
-    $stmt = $mysqli->prepare("SELECT * FROM silo_arquivos WHERE id = ? AND user_id = ? LIMIT 1");
+    // 🔎 Busca o item a mover
+    $stmt = $mysqli->prepare("SELECT id, nome_arquivo, caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? LIMIT 1");
     $stmt->bind_param("ii", $id, $user_id);
     $stmt->execute();
     $item = $stmt->get_result()->fetch_assoc();
@@ -43,20 +53,22 @@ try {
     $origem_abs = "/var/www/html/uploads/" . $item['caminho_arquivo'];
     if (!file_exists($origem_abs)) throw new Exception('Arquivo/pasta física não encontrada.');
 
-    // Evita duplicidade
-    $novo_caminho_rel = rtrim($destino_rel, '/') . '/' . basename($item['caminho_arquivo']);
+    // Monta novo caminho
+    $novo_nome = basename($item['caminho_arquivo']);
+    $novo_caminho_rel = rtrim($destino_rel, '/') . '/' . $novo_nome;
     $novo_abs = "/var/www/html/uploads/" . $novo_caminho_rel;
 
+    // Evita mover para o mesmo local
     if (realpath($origem_abs) === realpath($novo_abs)) {
         throw new Exception('O item já está nesse local.');
     }
 
     // 🚚 Move fisicamente
-    if (!rename($origem_abs, $novo_abs)) {
+    if (!@rename($origem_abs, $novo_abs)) {
         throw new Exception('Erro ao mover o item no sistema de arquivos.');
     }
 
-    /    // 🗃️ Atualiza o banco
+    // 💾 Atualiza caminho no banco
     $stmt = $mysqli->prepare("UPDATE silo_arquivos SET caminho_arquivo = ? WHERE id = ?");
     $stmt->bind_param("si", $novo_caminho_rel, $id);
     $stmt->execute();
@@ -67,7 +79,7 @@ try {
         'msg' => '📦 Item movido com sucesso!',
         'novo_caminho' => $novo_caminho_rel
     ]);
-
-catch (Exception $e) {
+} catch (Exception $e) {
+    http_response_code(400);
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
