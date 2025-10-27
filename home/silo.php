@@ -162,7 +162,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     font-size: 16px;
     }
     .icon-folder {
-    background-image: url('../img/icon/pasta.svg');
+    background-image: url('../img/icon/icon-pasta.svg');
     background-size: contain;
     background-repeat: no-repeat;
     }
