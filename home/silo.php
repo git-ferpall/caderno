@@ -78,10 +78,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <div class="btn-icon icon-camera cor-preto"></div>
                             <span class="link-title">Escanear documento</span>
                         </button>
-                        <!-- Mover arquivo -->
+                        <!-- Mover arquivo 
                         <button class="silo-dados-add-btn fundo-laranja cor-branco" id="btn-silo-mover">
                             <div class="btn-icon icon-mover cor-branco"></div>
-                            <span class="link-title">Mover arquivo</span>
+                            <span class="link-title">Mover arquivo</span>-->
                         </button>
 
                     </div>
