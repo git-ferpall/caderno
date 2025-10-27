@@ -53,68 +53,26 @@ document.addEventListener('DOMContentLoaded', () => {
 // 🚀 Upload com barra de progresso
 // ===================================
 async function enviarArquivo(file, origem = 'upload') {
-  if (!file) return;
-
-  let popup = document.createElement('div');
-  popup.className = 'upload-popup';
-  popup.innerHTML = `
-    <div class="upload-box">
-      <h3>Enviando arquivo...</h3>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill"></div>
-      </div>
-      <span class="progress-text">0%</span>
-      <button class="cancel-upload">Cancelar</button>
-    </div>`;
-  document.body.appendChild(popup);
-
-  const bar = popup.querySelector('.progress-bar-fill');
-  const txt = popup.querySelector('.progress-text');
-  const cancelBtn = popup.querySelector('.cancel-upload');
-
   const fd = new FormData();
   fd.append('arquivo', file);
   fd.append('origem', origem);
+  fd.append('parent_id', pastaAtual || ""); // 🔥 adiciona pasta atual
 
   const xhr = new XMLHttpRequest();
-  xhr.open('POST', '../funcoes/silo/upload_arquivo.php', true);
-
-  xhr.upload.onprogress = e => {
-    if (e.lengthComputable) {
-      const percent = Math.round((e.loaded / e.total) * 100);
-      bar.style.width = percent + '%';
-      txt.textContent = percent + '%';
-    }
-  };
-
-  cancelBtn.onclick = () => {
-    xhr.abort();
-    popup.remove();
-    alert('Upload cancelado.');
-  };
-
+  xhr.open('POST', '../funcoes/silo/upload_arquivo.php');
   xhr.onload = () => {
-    popup.remove();
     try {
       const j = JSON.parse(xhr.responseText);
       if (j.ok) {
-        alert('✅ Arquivo enviado com sucesso!');
+        abrirPopup("✅ Enviado", "Arquivo enviado com sucesso!");
         atualizarLista();
-        atualizarUso();
       } else {
-        alert('❌ ' + (j.msg || j.err || 'Falha desconhecida.'));
+        abrirPopup("❌ Erro", j.err || "Falha no upload.");
       }
-    } catch {
-      console.error(xhr.responseText);
-      alert('❌ Retorno inválido do servidor.');
+    } catch (err) {
+      abrirPopup("❌ Retorno inválido", xhr.responseText);
     }
   };
-
-  xhr.onerror = () => {
-    popup.remove();
-    alert('❌ Erro de conexão.');
-  };
-
   xhr.send(fd);
 }
 
