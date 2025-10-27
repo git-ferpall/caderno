@@ -37,7 +37,8 @@ try {
 
     if (!empty($parent_id)) {
         $stmt = $mysqli->prepare("
-            SELECT caminho_arquivo FROM silo_arquivos 
+            SELECT caminho_arquivo 
+            FROM silo_arquivos 
             WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'
         ");
         $stmt->bind_param('ii', $parent_id, $user_id);
@@ -46,27 +47,34 @@ try {
         $stmt->close();
 
         if ($res && !empty($res['caminho_arquivo'])) {
-            $destinoDir = $base . '/' . $res['caminho_arquivo'];
-            $caminhoRelativoBase = $res['caminho_arquivo'];
+            // 🔧 Corrige para evitar "uploads/uploads"
+            $rel = str_replace(['uploads/', './'], '', $res['caminho_arquivo']);
+            $destinoDir = $base . '/' . $rel;
+            $caminhoRelativoBase = $rel;
         }
     }
 
-    // 🧾 Tipos permitidos
+    // 🔍 Tipos permitidos
     $permitidos = [
         'image/jpeg', 'image/png', 'image/jpg',
         'application/pdf', 'text/plain'
     ];
     if (!in_array($arquivo['type'], $permitidos)) throw new Exception('tipo_invalido');
 
-    // 🔢 Gera nome único (para evitar conflitos)
+    // 🧾 Nome final e caminho
     $nomeOriginal = basename($arquivo['name']);
     $nome_unico = uniqid('', true) . '-' . $nomeOriginal;
     $destino = "$destinoDir/$nome_unico";
 
+    // Garante que a pasta exista
+    if (!is_dir($destinoDir)) {
+        mkdir($destinoDir, 0775, true);
+    }
+
     // Caminho relativo para salvar no banco
     $caminho_relativo = "$caminhoRelativoBase/$nome_unico";
 
-    // 💾 Move o arquivo
+    // 💾 Move o arquivo físico
     if (!move_uploaded_file($arquivo['tmp_name'], $destino)) {
         throw new Exception('falha_upload');
     }
@@ -78,16 +86,16 @@ try {
     // 🧱 Salva registro no banco
     $stmt = $mysqli->prepare("
         INSERT INTO silo_arquivos 
-            (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, pasta, parent_id, origem, tipo, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'arquivo', NOW())
+            (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, origem, tipo, criado_em)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'arquivo', NOW())
     ");
-    $stmt->bind_param('ississis', 
+    $stmt->bind_param(
+        'issisis',
         $user_id,
         $nomeOriginal,
         $tipoMime,
         $tamanho,
         $caminho_relativo,
-        $parent_id,
         $parent_id,
         $origem
     );
@@ -97,7 +105,6 @@ try {
     echo json_encode([
         'ok' => true,
         'msg' => 'Arquivo enviado com sucesso!',
-        'parent_id' => $parent_id,
         'path' => $caminho_relativo
     ]);
 
