@@ -4,6 +4,15 @@
 
 let pastaAtual = ''; // raiz padrão
 
+document.addEventListener('DOMContentLoaded', () => {
+  const btnCriarPasta = document.getElementById('btn-silo-pasta');
+  if (btnCriarPasta) {
+    btnCriarPasta.addEventListener('click', criarPasta);
+  } else {
+    console.warn('⚠️ Botão #btn-silo-pasta não encontrado.');
+  }
+});
+
 // ================================
 // 📁 Criar nova pasta
 // ================================
@@ -19,10 +28,13 @@ async function criarPasta() {
     const res = await fetch("../funcoes/silo/criar_pasta.php", {
       method: "POST",
       body: fd,
-      credentials: "include" // importante para sessão PHP
+      credentials: "include"
     });
 
-    const j = await res.json();
+    const text = await res.text();
+    console.log('📩 Retorno criar_pasta.php:', text);
+
+    const j = JSON.parse(text);
 
     if (j.ok) {
       abrirPopupSistema("📁 Sucesso", j.msg || "Pasta criada com sucesso!");
@@ -35,6 +47,8 @@ async function criarPasta() {
     abrirPopupSistema("❌ Erro", "Falha ao comunicar com o servidor.");
   }
 }
+window.criarPasta = criarPasta; // garante visibilidade global
+
 
 // ================================
 // 📂 Abrir pasta (entrar)
