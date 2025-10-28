@@ -2,17 +2,17 @@
 // 📂 Funções de Pastas - Silo de Dados
 // ===================================
 
-let pastaAtual = ''; // raiz padrão
+// 🌍 Global (usado também por upload e listar)
+window.pastaAtual = parseInt(localStorage.getItem("silo_pastaAtual")) || 0;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const btnCriarPasta = document.getElementById('btn-silo-pasta');
+document.addEventListener("DOMContentLoaded", () => {
+  const btnCriarPasta = document.getElementById("btn-silo-pasta");
   if (btnCriarPasta) {
-    btnCriarPasta.addEventListener('click', criarPasta);
+    btnCriarPasta.addEventListener("click", criarPasta);
   } else {
-    console.warn('⚠️ Botão #btn-silo-pasta não encontrado.');
+    console.warn("⚠️ Botão #btn-silo-pasta não encontrado.");
   }
 
-  // Atualiza breadcrumb ao iniciar
   atualizarBreadcrumb();
 });
 
@@ -25,17 +25,17 @@ async function criarPasta() {
 
   const fd = new FormData();
   fd.append("nome", nome.trim());
-  fd.append("parent_id", pastaAtual || "");
+  fd.append("parent_id", window.pastaAtual || 0);
 
   try {
     const res = await fetch("../funcoes/silo/criar_pasta.php", {
       method: "POST",
       body: fd,
-      credentials: "include"
+      credentials: "include",
     });
 
     const text = await res.text();
-    console.log('📩 Retorno criar_pasta.php:', text);
+    console.log("📩 Retorno criar_pasta.php:", text);
 
     const j = JSON.parse(text);
 
@@ -56,9 +56,11 @@ window.criarPasta = criarPasta;
 // 📂 Abrir pasta (entrar)
 // ================================
 function abrirPasta(id, nome) {
-  pastaAtual = id;
+  window.pastaAtual = parseInt(id) || 0;
+  localStorage.setItem("silo_pastaAtual", window.pastaAtual);
   atualizarLista();
   atualizarBreadcrumb(nome);
+  console.log("📂 Pasta atual definida:", window.pastaAtual);
 }
 
 // ================================
@@ -66,10 +68,10 @@ function abrirPasta(id, nome) {
 // ================================
 function abrirMenuPasta(e, pasta) {
   e.stopPropagation();
-  fecharMenuArquivo(); // fecha menus antigos
+  fecharMenuArquivo(); // Fecha menus anteriores
 
-  const menu = document.createElement('div');
-  menu.className = 'silo-menu-arquivo';
+  const menu = document.createElement("div");
+  menu.className = "silo-menu-arquivo";
   menu.innerHTML = `
     <button class="menu-btn acessar">📂 Acessar</button>
     <button class="menu-btn rename">✏️ Renomear</button>
@@ -77,112 +79,110 @@ function abrirMenuPasta(e, pasta) {
   `;
 
   document.body.appendChild(menu);
-  menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
-  menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
+  menu.style.top = (e.clientY + window.scrollY + 10) + "px";
+  menu.style.left = (e.clientX + window.scrollX + 10) + "px";
 
-  // 📂 Acessar pasta
-  menu.querySelector('.acessar').onclick = () => {
+  menu.querySelector(".acessar").onclick = () => {
     abrirPasta(pasta.id, pasta.nome_arquivo);
     fecharMenuArquivo();
   };
 
-  // ✏️ Renomear pasta
-  menu.querySelector('.rename').onclick = async () => {
-    const novoNome = prompt('Digite o novo nome da pasta:', pasta.nome_arquivo);
-    if (!novoNome || novoNome.trim() === '' || novoNome === pasta.nome_arquivo) {
+  menu.querySelector(".rename").onclick = async () => {
+    const novoNome = prompt("Digite o novo nome da pasta:", pasta.nome_arquivo);
+    if (!novoNome || novoNome.trim() === "" || novoNome === pasta.nome_arquivo) {
       fecharMenuArquivo();
       return;
     }
 
     const fd = new FormData();
-    fd.append('id', pasta.id);
-    fd.append('novo_nome', novoNome.trim());
-    const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
+    fd.append("id", pasta.id);
+    fd.append("novo_nome", novoNome.trim());
+    const res = await fetch("../funcoes/silo/rename_arquivo.php", { method: "POST", body: fd });
     const j = await res.json();
 
     if (j.ok) {
-      abrirPopup('✅ Sucesso', j.msg);
+      abrirPopup("✅ Sucesso", j.msg);
       atualizarLista();
     } else {
-      abrirPopup('❌ Erro', j.err || 'Falha ao renomear pasta.');
+      abrirPopup("❌ Erro", j.err || "Falha ao renomear pasta.");
     }
 
     fecharMenuArquivo();
   };
 
-  // 🗑️ Excluir pasta
-  menu.querySelector('.delete').onclick = async () => {
-    if (!confirm('🗑️ Deseja realmente excluir esta pasta e todo o conteúdo dentro dela?')) {
+  menu.querySelector(".delete").onclick = async () => {
+    if (!confirm("🗑️ Deseja realmente excluir esta pasta e todo o conteúdo dentro dela?")) {
       fecharMenuArquivo();
       return;
     }
 
     const fd = new FormData();
-    fd.append('id', pasta.id);
-    const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
+    fd.append("id", pasta.id);
+    const res = await fetch("../funcoes/silo/excluir_arquivo.php", { method: "POST", body: fd });
     const j = await res.json();
 
     if (j.ok) {
-      abrirPopup('🗑️ Removido', j.msg || 'Pasta excluída com sucesso.');
+      abrirPopup("🗑️ Removido", j.msg || "Pasta excluída com sucesso.");
       atualizarLista();
     } else {
-      abrirPopup('❌ Erro', j.err || 'Falha ao excluir pasta.');
+      abrirPopup("❌ Erro", j.err || "Falha ao excluir pasta.");
     }
 
     fecharMenuArquivo();
   };
 
-  document.addEventListener('click', fecharMenuArquivo, { once: true });
+  document.addEventListener("click", fecharMenuArquivo, { once: true });
 }
 
 // ================================
-// ⬅️ Voltar para a pasta anterior (1 nível)
+// ⬅️ Voltar pasta anterior
 // ================================
 async function voltarPasta() {
-  if (!pastaAtual || pastaAtual === '') {
-    pastaAtual = '';
+  if (!window.pastaAtual || window.pastaAtual === 0) {
+    window.pastaAtual = 0;
+    localStorage.setItem("silo_pastaAtual", 0);
     atualizarLista();
     atualizarBreadcrumb();
     return;
   }
 
   try {
-    const res = await fetch(`../funcoes/silo/get_parent.php?id=${pastaAtual}`);
+    const res = await fetch(`../funcoes/silo/get_parent.php?id=${window.pastaAtual}`);
     const j = await res.json();
 
     if (j.ok) {
-      pastaAtual = j.parent_id || '';
-      atualizarLista();
-      atualizarBreadcrumb();
+      window.pastaAtual = j.parent_id || 0;
+      localStorage.setItem("silo_pastaAtual", window.pastaAtual);
     } else {
-      pastaAtual = '';
-      atualizarLista();
-      atualizarBreadcrumb();
+      window.pastaAtual = 0;
+      localStorage.setItem("silo_pastaAtual", 0);
     }
+
+    atualizarLista();
+    atualizarBreadcrumb();
   } catch (err) {
-    console.error('Erro ao voltar pasta:', err);
-    pastaAtual = '';
+    console.error("Erro ao voltar pasta:", err);
+    window.pastaAtual = 0;
+    localStorage.setItem("silo_pastaAtual", 0);
     atualizarLista();
     atualizarBreadcrumb();
   }
 }
 
-
 // ================================
-// 🧭 Atualiza breadcrumb hierárquico completo
+// 🧭 Atualiza breadcrumb
 // ================================
 async function atualizarBreadcrumb() {
-  const breadcrumb = document.querySelector('.silo-breadcrumb');
+  const breadcrumb = document.querySelector(".silo-breadcrumb");
   if (!breadcrumb) return;
 
-  // Raiz padrão
-  if (!pastaAtual || pastaAtual === '') {
+  if (!window.pastaAtual || window.pastaAtual === 0) {
     breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
     return;
   }
 
   try {
-    const res = await fetch(`../funcoes/silo/get_caminho.php?id=${pastaAtual}`);
+    const res = await fetch(`../funcoes/silo/get_caminho.php?id=${window.pastaAtual}`);
     const j = await res.json();
 
     if (!j.ok) {
@@ -190,43 +190,41 @@ async function atualizarBreadcrumb() {
       return;
     }
 
-    // Monta caminho completo
     let html = `<span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>`;
     html += `<span style="opacity:0.6;"> / </span>`;
-    html += `<span class="breadcrumb-item link" onclick="abrirPasta('', 'Raiz')">📁 Raiz</span>`;
+    html += `<span class="breadcrumb-item link" onclick="abrirPasta(0, 'Raiz')">📁 Raiz</span>`;
 
-    j.caminho.forEach((p, idx) => {
+    j.caminho.forEach((p) => {
       html += ` <span style="opacity:0.6;">/</span> `;
       html += `<span class="breadcrumb-item link" onclick="abrirPasta(${p.id}, '${p.nome.replace(/'/g, "\\'")}')">${p.nome}</span>`;
     });
 
     breadcrumb.innerHTML = html;
   } catch (err) {
-    console.error('Erro ao atualizar breadcrumb:', err);
+    console.error("Erro ao atualizar breadcrumb:", err);
     breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
   }
 }
 
-
 // ================================
-// 🧩 Ícone conforme tipo de item
+// 🧩 Ícone conforme tipo
 // ================================
 function getIconClass(tipo, isFolder = false) {
-  if (isFolder || tipo === 'pasta' || tipo === 'folder') return 'icon-pasta';
+  if (isFolder || tipo === "pasta" || tipo === "folder") return "icon-pasta";
   tipo = tipo.toLowerCase();
-  if (tipo.includes('pdf')) return 'icon-pdf';
-  if (tipo.includes('txt')) return 'icon-txt';
-  if (tipo.includes('image') || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'png')
-    return 'icon-img';
-  return 'icon-file';
+  if (tipo.includes("pdf")) return "icon-pdf";
+  if (tipo.includes("txt")) return "icon-txt";
+  if (tipo.includes("image") || tipo === "jpg" || tipo === "jpeg" || tipo === "png")
+    return "icon-img";
+  return "icon-file";
 }
 
 // ================================
-// 📢 Popup padrão do sistema
+// 📢 Popup padrão
 // ================================
 function abrirPopup(titulo, mensagem) {
-  const popup = document.createElement('div');
-  popup.className = 'popup-sistema';
+  const popup = document.createElement("div");
+  popup.className = "popup-sistema";
   popup.innerHTML = `
     <div class="popup-box">
       <h3>${titulo}</h3>
@@ -235,37 +233,37 @@ function abrirPopup(titulo, mensagem) {
     </div>
   `;
   document.body.appendChild(popup);
-  popup.querySelector('.popup-fechar').onclick = () => popup.remove();
+  popup.querySelector(".popup-fechar").onclick = () => popup.remove();
 }
 window.abrirPopup = abrirPopup;
 
 // ================================
-// 🧭 Adapta listar_arquivos() para suportar navegação e menus
+// 🧭 Atualiza lista
 // ================================
 async function atualizarLista() {
   try {
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || ''}`);
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
     const j = await res.json();
-    const box = document.querySelector('.silo-arquivos');
-    box.innerHTML = '';
+    const box = document.querySelector(".silo-arquivos");
+    box.innerHTML = "";
 
     if (!j.ok || !Array.isArray(j.arquivos)) {
-      console.error('Resposta inválida:', j);
-      box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
+      console.error("Resposta inválida:", j);
+      box.innerHTML = "<p>❌ Erro ao carregar arquivos.</p>";
       return;
     }
 
     if (j.arquivos.length === 0) {
-      box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum item encontrado.</p>';
+      box.innerHTML = "<p style='text-align:center; opacity:0.6;'>Nenhum item encontrado.</p>";
       return;
     }
 
-    j.arquivos.forEach(a => {
-      const isFolder = a.tipo === 'pasta' || a.tipo_arquivo === 'folder';
-      const icon = getIconClass(a.tipo_arquivo || '', isFolder);
+    j.arquivos.forEach((a) => {
+      const isFolder = a.tipo === "pasta" || a.tipo_arquivo === "folder";
+      const icon = getIconClass(a.tipo_arquivo || "", isFolder);
 
-      const div = document.createElement('div');
-      div.className = 'silo-item-box';
+      const div = document.createElement("div");
+      div.className = "silo-item-box";
       div.dataset.id = a.id;
       div.dataset.nome = a.nome_arquivo;
       div.dataset.tipo = a.tipo_arquivo;
@@ -278,14 +276,12 @@ async function atualizarLista() {
       `;
 
       if (isFolder) {
-        // 📂 Abre menu de pasta
-        div.addEventListener('click', (e) => {
+        div.addEventListener("click", (e) => {
           e.stopPropagation();
           abrirMenuPasta(e, a);
         });
       } else {
-        // 📄 Abre menu de arquivo
-        div.addEventListener('click', (e) => {
+        div.addEventListener("click", (e) => {
           e.stopPropagation();
           abrirMenuArquivo(e, a);
         });
@@ -294,8 +290,8 @@ async function atualizarLista() {
       box.appendChild(div);
     });
   } catch (err) {
-    console.error('Erro ao atualizar lista:', err);
-    document.querySelector('.silo-arquivos').innerHTML =
-      '<p>❌ Falha ao comunicar com o servidor.</p>';
+    console.error("Erro ao atualizar lista:", err);
+    document.querySelector(".silo-arquivos").innerHTML =
+      "<p>❌ Falha ao comunicar com o servidor.</p>";
   }
 }
