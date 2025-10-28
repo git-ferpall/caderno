@@ -114,6 +114,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <script src="../js/silo_pasta.js"></script>
         <script src="../js/silo_mover.js"></script>
         <script src="../js/silo_upload.js"></script>
+        <script src="../js/silo_busca.js"></script>
     </div>   
     <?php include '../include/footer.php' ?>
 </body>
