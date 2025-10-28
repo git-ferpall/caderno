@@ -1,6 +1,6 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v2.6
- * Corrige o carregamento dos fertilizantes (com debug e fallback)
+ * HIDROPONIA_FERTILIZANTE.JS v2.7
+ * Corrige o carregamento e salvamento com IDs dinâmicos
  * Atualizado em 2025-10-28
  */
 
@@ -93,9 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ? outroInput.value.trim()
         : produtoNome;
 
-      const dose = form.querySelector('input[name="dose"]').value.trim();
-      const tipo = form.querySelector('input[name="tipo"]:checked')?.value || "";
-      const obs = form.querySelector('textarea[name="obs"]').value.trim();
+      // ✅ Corrigido: busca dinâmica dos campos dose/tipo/obs
+      const dose = form.querySelector('input[name^="fert-"][name$="-dose"]')?.value.trim() || "";
+      const tipo = form.querySelector('input[name^="fert-"][name$="-tipo"]:checked')?.value || "";
+      const obs  = form.querySelector('textarea[name^="fert-"][name$="-obs"]')?.value.trim() || "";
 
       if (!area_id || !estufa_id) {
         alert("Erro interno: área ou estufa não identificada.");
@@ -107,6 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
+        console.log("💾 Enviando fertilizante:", { estufa_id, area_id, produto_id, produtoFinal, dose, tipo, obs });
+
         const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -114,6 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
             estufa_id,
             area_id,
             produto_id: produto_id === "outro" ? 0 : produto_id,
+            produto_nome: produtoFinal,
             dose,
             tipo,
             obs
@@ -125,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.ok) {
           form.classList.add("d-none");
+          alert("✅ Fertilizante salvo com sucesso!");
           location.reload();
         } else {
           alert("❌ " + (data.err || "Erro ao salvar fertilizante."));
