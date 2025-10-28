@@ -1,14 +1,33 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v3.2
- * Totalmente compatível com HTML existente
- * Inclui fallback de seletor, recarrega lista ao abrir formulário,
- * e mostra logs claros no console.
+ * HIDROPONIA_FERTILIZANTE.JS v3.3
+ * Compatível com HTML existente (sem alterar forms)
+ * Detecta automaticamente estufa_id e área_id pelo ID do form
  * Atualizado em 2025-10-28
  */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === Função principal para carregar os fertilizantes ===
+  // === Autoatribui data-estufa-id e data-area-id com base no ID do form ===
+  document.querySelectorAll(".form-fertilizante").forEach(form => {
+    const id = form.id; // ex: add-e-1-b-Bancada 01-fertilizante
+    const match = id.match(/e-(\d+)-b-(.+)-fertilizante$/);
+
+    if (match) {
+      const estufaId = match[1];
+      const bancadaNome = match[2].trim();
+      form.dataset.estufaId = estufaId;
+
+      // tenta extrair número no final do nome da bancada
+      const numMatch = bancadaNome.match(/(\d+)$/);
+      form.dataset.areaId = numMatch ? numMatch[1] : bancadaNome;
+
+      console.log(`🧩 Vinculado form ${id} → estufa=${estufaId}, area=${form.dataset.areaId}`);
+    } else {
+      console.warn("⚠️ Formulário sem padrão esperado:", id);
+    }
+  });
+
+  // === Função para carregar todos os fertilizantes ===
   async function carregarFertilizantes() {
     try {
       console.log("🔄 Carregando fertilizantes...");
@@ -17,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       let data = await resp.text();
 
-      // --- Parse seguro de JSON ---
       try {
         data = JSON.parse(data);
       } catch {
@@ -32,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log(`✅ ${data.length} fertilizantes carregados.`);
 
-      // --- Fallback de seletor: cobre todos os casos possíveis ---
+      // Fallback de seletor
       const selects = document.querySelectorAll(
         '.form-fertilizante select[id*="-produto"], ' +
         '.form-fertilizante select[name*="produto"], ' +
@@ -40,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       if (!selects.length) {
-        console.warn("⚠️ Nenhum <select> encontrado dentro de formulários .form-fertilizante");
+        console.warn("⚠️ Nenhum <select> encontrado em .form-fertilizante");
         return;
       }
 
@@ -52,8 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
           opt.textContent = item.nome;
           sel.appendChild(opt);
         });
-
-        // Adiciona "Outro"
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
@@ -69,14 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Carrega inicialmente ---
   carregarFertilizantes();
 
-  // --- Recarrega lista ao abrir formulário (corrige forms dinâmicos) ---
+  // --- Recarrega lista ao abrir formulário ---
   document.addEventListener("click", (e) => {
     if (e.target.closest(".bancada-fertilizante")) {
       setTimeout(carregarFertilizantes, 400);
     }
   });
 
-  // === Exibir campo extra ao escolher "Outro" ===
+  // === Exibir campo "Outro" ===
   document.addEventListener("change", (e) => {
     if (e.target.matches('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name*="produto"]')) {
       const sel = e.target;
