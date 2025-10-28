@@ -1,10 +1,25 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v2.7
- * Corrige o carregamento e salvamento com IDs dinâmicos
+ * HIDROPONIA_FERTILIZANTE.JS v2.8
+ * Adiciona identificação automática de estufa/bancada + fixes dinâmicos
  * Atualizado em 2025-10-28
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  // === [NOVIDADE] Corrige formulários sem data-estufa-id / data-area-id ===
+  document.querySelectorAll('.form-fertilizante').forEach(form => {
+    // Exemplo de ID: add-e-1-b-01-fertilizante
+    const idMatch = form.id.match(/e-(\d+)-b-([^-]+)/);
+    if (idMatch) {
+      const estufaId = idMatch[1];
+      const areaId = idMatch[2];
+      form.dataset.estufaId = estufaId;
+      form.dataset.areaId = areaId;
+      console.log(`🧩 Dados automáticos adicionados → Estufa ${estufaId}, Bancada ${areaId}`);
+    } else {
+      console.warn("⚠️ Não foi possível identificar estufa/bancada para o formulário:", form.id);
+    }
+  });
 
   // === Função para carregar todos os fertilizantes ===
   async function carregarFertilizantes() {
@@ -93,13 +108,14 @@ document.addEventListener("DOMContentLoaded", () => {
         ? outroInput.value.trim()
         : produtoNome;
 
-      // ✅ Corrigido: busca dinâmica dos campos dose/tipo/obs
+      // ✅ Campos dinâmicos corrigidos
       const dose = form.querySelector('input[name^="fert-"][name$="-dose"]')?.value.trim() || "";
       const tipo = form.querySelector('input[name^="fert-"][name$="-tipo"]:checked')?.value || "";
       const obs  = form.querySelector('textarea[name^="fert-"][name$="-obs"]')?.value.trim() || "";
 
       if (!area_id || !estufa_id) {
         alert("Erro interno: área ou estufa não identificada.");
+        console.warn("Form sem dataset:", form);
         return;
       }
       if (!produto_id && !produtoFinal) {
