@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
+
+// ✅ Garante que o navegador vai renderizar HTML corretamente
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=utf-8');
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
