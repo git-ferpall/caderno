@@ -71,12 +71,14 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
             });
 
             const data = await res.json();
-            if (data.ok) {
-                alert(data.msg);
+            if (data && data.ok) {
                 location.reload();
             } else {
-                alert("Erro: " + data.err);
+                console.error("Erro ao salvar bancada:", data);
+                const msg = data && data.err ? data.err : "Erro inesperado ao salvar a bancada.";
+                alert(msg);
             }
+
         } catch (err) {
             console.error("Falha no envio:", err);
             alert("Erro de comunicação com o servidor.");
