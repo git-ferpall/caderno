@@ -1,14 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-  // === Carregar fertilizantes em TODOS os selects ===
+  // === Função para carregar todos os fertilizantes ===
   async function carregarFertilizantes() {
     try {
       const resp = await fetch("../funcoes/buscar_fertilizantes.php");
       const data = await resp.json();
 
-      // Para cada select dentro dos formulários de fertilizante
+      // Preenche todos os selects de fertilizante
       document.querySelectorAll('.form-fertilizante select[id*="-produto"]').forEach(sel => {
-        sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+        sel.innerHTML = '<option value="-">Selecione o fertilizante</option>';
 
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -17,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
           sel.appendChild(opt);
         });
 
-        // Adiciona opção "Outro"
+        // Adiciona a opção "Outro"
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
@@ -30,13 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarFertilizantes();
 
-  // === Exibir campo texto quando selecionar "Outro" ===
+  // === Exibir campo extra ao escolher "Outro" ===
   document.addEventListener("change", (e) => {
     if (e.target.matches('.form-fertilizante select[id*="-produto"]')) {
       const sel = e.target;
       const form = sel.closest(".form-fertilizante");
 
-      // Procura o input associado (se não existir, cria dinamicamente)
+      // Procura ou cria o campo de texto extra
       let inputOutro = form.querySelector(".fertilizante-outro");
       if (!inputOutro) {
         inputOutro = document.createElement("input");
@@ -45,12 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
         inputOutro.placeholder = "Digite o nome do fertilizante";
         inputOutro.style.marginTop = "8px";
         inputOutro.style.display = "none";
-
-        // Insere o input logo abaixo do select
         sel.insertAdjacentElement("afterend", inputOutro);
       }
 
-      // Mostra ou oculta o campo dependendo da seleção
+      // Mostra/oculta o campo conforme a seleção
       if (sel.value === "outro") {
         inputOutro.style.display = "block";
       } else {
@@ -66,12 +63,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const form = btn.closest('.form-fertilizante');
       const formId = form.id;
+
+      // Extrai IDs de estufa e bancada
       const match = formId.match(/add-e-(\d+)-b-(.+)-fertilizante/);
-      if (!match) return alert("Erro interno ao identificar estufa/bancada");
+      if (!match) {
+        alert("Erro ao identificar estufa/bancada.");
+        return;
+      }
 
       const estufaId = match[1];
       const bancadaNome = match[2];
 
+      // Captura os valores
       const produtoSel = form.querySelector('select[id*="-produto"]');
       const produtoVal = produtoSel.value;
       const produtoNome = produtoSel.options[produtoSel.selectedIndex].text.trim();
@@ -84,31 +87,39 @@ document.addEventListener("DOMContentLoaded", () => {
       const tipo = form.querySelector('input[name*="-tipo"]:checked').value;
       const obs = form.querySelector('textarea[id*="-obs"]').value.trim();
 
+      // Validações básicas
       if (!produtoFinal) {
-        alert('Informe o nome do fertilizante.');
+        alert("Selecione ou digite o nome do fertilizante.");
         return;
       }
 
       try {
-        const resp = await fetch("../funcoes/salvar_fertilizante.php", {
+        // Envia os dados ao PHP
+        const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
+            estufa_id: estufaId,
+            bancada_nome: bancadaNome,
             nome: produtoFinal,
-            obs: `Estufa ${estufaId}, Bancada ${bancadaNome} — ${obs}`
+            dose: dose,
+            tipo: tipo,
+            obs: obs
           })
         });
+
         const data = await resp.json();
+        console.log(data); // útil para debug
 
         if (data.ok) {
-          alert("✅ " + data.msg);
+          alert(data.msg || "✅ Fertilizante aplicado com sucesso!");
           form.classList.add("d-none");
         } else {
-          alert("❌ " + (data.msg || "Erro ao salvar fertilizante."));
+          alert("❌ " + (data.err || data.msg || "Erro ao salvar fertilizante."));
         }
       } catch (err) {
-        console.error(err);
-        alert("Erro de comunicação com o servidor.");
+        console.error("Erro na comunicação:", err);
+        alert("❌ Falha na comunicação com o servidor.");
       }
     });
   });
@@ -120,5 +131,4 @@ document.addEventListener("DOMContentLoaded", () => {
       form.classList.add('d-none');
     });
   });
-
 });

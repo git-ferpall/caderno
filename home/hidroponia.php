@@ -179,9 +179,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                                     <select name="fert-' . $form_id . '-produto" id="fert-' . $form_id . '-produto" class="form-select form-text" required>
                                                         <option value="-">Selecione o produto aplicado</option>
                                                     </select>
-                                                    <button class="add-btn add-produto" type="button">
-                                                        <div class="btn-icon icon-plus cor-branco"></div>
-                                                    </button>
+            
                                                 </div>
                                                 <!-- Campo extra que só aparece se selecionar "Outro" -->
                                                 <input 
