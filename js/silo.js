@@ -212,6 +212,19 @@ function fecharMenuArquivo() {
   if (menu) menu.remove();
 }
 
+// ===================================
+// 📁 Controle da pasta atual
+// ===================================
+
+// Garante que a variável global exista
+window.pastaAtual = 0;
+
+// Função usada ao entrar em uma pasta
+function acessarPasta(id) {
+  window.pastaAtual = id;
+  atualizarLista();
+  atualizarBreadcrumb();
+}
 // Permite que outros scripts (como upload/mover) atualizem a lista
 window.atualizarLista = atualizarLista;
 window.atualizarUso = atualizarUso;
