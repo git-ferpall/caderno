@@ -49,7 +49,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <div class="silo-dados">
             <!-- Cabeçalho de navegação (breadcrumb) -->
-            <div class="silo-breadcrumb" style="margin:10px 0; font-size:14px;"></div>
+            <div class="silo-breadcrumb" style="margin:10px 0; font-size:14px; margin-left:20px;"></div>
             <div class="silo-busca">
                 <input type="text" id="siloBusca" placeholder="🔍 Buscar arquivos ou pastas...">
             </div>    
