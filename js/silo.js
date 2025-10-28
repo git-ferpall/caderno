@@ -4,85 +4,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   atualizarLista();
   atualizarUso();
-
-  // 📤 Upload manual (compatível com mobile)
-  const btnUpload = document.getElementById('btn-silo-arquivo');
-  btnUpload.addEventListener('click', () => {
-    // Cria input de arquivo
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,application/pdf,text/plain';
-
-    // Quando o usuário escolhe um arquivo
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-
-      // Checa limite só DEPOIS de o usuário escolher
-      const ok = await checarLimiteAntesUpload();
-      if (ok) enviarArquivo(file);
-      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
-    };
-
-    // Abre seletor de arquivo
-    input.click();
-  });
-
-  // 📸 Escanear documento (abrir câmera)
-  const btnScan = document.getElementById('btn-silo-scan');
-  btnScan.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      const ok = await checarLimiteAntesUpload();
-      if (ok) enviarArquivo(file, 'scan');
-      else alert('Limite atingido. Exclua arquivos antes de enviar novos.');
-    };
-
-    input.click();
-  });
 });
-
-
-// ===================================
-// 🚀 Upload com barra de progresso
-// ===================================
-async function enviarArquivo(file, origem = 'upload') {
-  const fd = new FormData();
-  fd.append('arquivo', file);
-  fd.append('origem', origem);
-  fd.append('parent_id', pastaAtual || ""); // 🔥 adiciona pasta atual
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '../funcoes/silo/upload_arquivo.php');
-  xhr.onload = () => {
-    try {
-      const j = JSON.parse(xhr.responseText);
-      if (j.ok) {
-        abrirPopup("✅ Enviado", "Arquivo enviado com sucesso!");
-        atualizarLista();
-      } else {
-        abrirPopup("❌ Erro", j.err || "Falha no upload.");
-      }
-    } catch (err) {
-      abrirPopup("❌ Retorno inválido", xhr.responseText);
-    }
-  };
-  xhr.send(fd);
-}
 
 // ===================================
 // 📜 Atualiza lista (com ícones por tipo e suporte a pastas)
 // ===================================
 async function atualizarLista() {
   try {
-    // 🔹 Busca arquivos da pasta atual (ou raiz)
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?pasta=${pastaAtual || ''}`);
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || 0}`);
     const j = await res.json();
     const box = document.querySelector('.silo-arquivos');
     box.innerHTML = '';
@@ -98,16 +27,12 @@ async function atualizarLista() {
       return;
     }
 
-    // 🔹 Separa pastas e arquivos
     const pastas = j.arquivos.filter(a => a.tipo_arquivo === 'folder');
     const arquivos = j.arquivos.filter(a => a.tipo_arquivo !== 'folder');
 
-    // 🔹 Exibe pastas primeiro
     [...pastas, ...arquivos].forEach(a => {
       const isFolder = a.tipo_arquivo === 'folder';
-      const icon = isFolder
-        ? 'icon-folder'
-        : getIconClass(a.tipo_arquivo || 'file');
+      const icon = isFolder ? 'icon-folder' : getIconClass(a.tipo_arquivo || 'file');
 
       const div = document.createElement('div');
       div.className = 'silo-item-box';
@@ -122,13 +47,11 @@ async function atualizarLista() {
         </div>
       `;
 
-      // 🔹 Clique normal → menu de ações
       div.addEventListener('click', (e) => {
         e.stopPropagation();
         abrirMenuArquivo(e, a);
       });
 
-      // 🔹 Duplo clique → entra na pasta
       if (isFolder && typeof acessarPasta === 'function') {
         div.addEventListener('dblclick', (e) => {
           e.stopPropagation();
@@ -139,7 +62,6 @@ async function atualizarLista() {
       box.appendChild(div);
     });
 
-    // 🔹 Atualiza cabeçalho de navegação (breadcrumb)
     atualizarBreadcrumb();
 
   } catch (err) {
@@ -149,29 +71,22 @@ async function atualizarLista() {
   }
 }
 
-
 // ===================================
-// 🧩 Define ícone conforme tipo de arquivo (usando seus SVGs)
+// 🧩 Ícones conforme tipo
 // ===================================
 function getIconClass(tipo) {
   tipo = tipo.toLowerCase();
 
-  if (tipo.includes('pdf')) return 'icon-pdf'; // 📄 PDF
-  if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif'))
-    return 'icon-img'; // 🖼️ Imagem
-  if (tipo.includes('txt')) return 'icon-txt'; // 📜 Texto
-  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip'; // 📦 Compactado
-  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx'))
-    return 'icon-x'; // 📗 Planilhas
-  if (tipo.includes('doc') || tipo.includes('docx'))
-    return 'icon-file'; // 📘 Word
-  if (tipo.includes('ppt') || tipo.includes('pptx'))
-    return 'icon-file'; // 🧾 PowerPoint
+  if (tipo.includes('pdf')) return 'icon-pdf';
+  if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif')) return 'icon-img';
+  if (tipo.includes('txt')) return 'icon-txt';
+  if (tipo.includes('zip') || tipo.includes('rar')) return 'icon-zip';
+  if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx')) return 'icon-x';
+  if (tipo.includes('doc') || tipo.includes('docx')) return 'icon-file';
+  if (tipo.includes('ppt') || tipo.includes('pptx')) return 'icon-file';
 
-  return 'icon-file'; // Padrão
+  return 'icon-file';
 }
-
-
 
 // ===================================
 // 📂 Menu de ações (Baixar / Renomear / Mover / Excluir)
@@ -193,13 +108,11 @@ function abrirMenuArquivo(e, arquivo) {
   menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
   menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
 
-  // 📥 Baixar arquivo
   menu.querySelector('.download').onclick = () => {
     baixarArquivo(`../funcoes/silo/download_arquivo.php?id=${arquivo.id}`);
     fecharMenuArquivo();
   };
 
-  // ✏️ Renomear arquivo
   menu.querySelector('.rename').onclick = async () => {
     const novoNome = prompt('Digite o novo nome do arquivo:', arquivo.nome_arquivo);
     if (novoNome && novoNome.trim() !== '' && novoNome !== arquivo.nome_arquivo) {
@@ -218,13 +131,11 @@ function abrirMenuArquivo(e, arquivo) {
     fecharMenuArquivo();
   };
 
-  // 📂 Mover arquivo/pasta
   menu.querySelector('.mover').onclick = () => {
-    moverItem(arquivo.id); // função vinda do silo_mover.js
+    moverItem(arquivo.id);
     fecharMenuArquivo();
   };
 
-  // 🗑️ Excluir
   menu.querySelector('.delete').onclick = () => {
     excluirArquivo(arquivo.id);
     fecharMenuArquivo();
@@ -233,10 +144,8 @@ function abrirMenuArquivo(e, arquivo) {
   document.addEventListener('click', fecharMenuArquivo, { once: true });
 }
 
-
-
 // ===================================
-// ⬇️ Baixar arquivo
+// ⬇️ Baixar
 // ===================================
 function baixarArquivo(url) {
   const link = document.createElement('a');
@@ -249,7 +158,7 @@ function baixarArquivo(url) {
 }
 
 // ===================================
-// 🗑️ Excluir arquivo
+// 🗑️ Excluir
 // ===================================
 async function excluirArquivo(id) {
   if (!confirm('Excluir este arquivo?')) return;
@@ -296,20 +205,13 @@ async function checarLimiteAntesUpload() {
 }
 
 // ===================================
-// 🧩 Define ícone
-// ===================================
-function getIconClass(tipo) {
-  tipo = tipo.toLowerCase();
-  if (tipo.includes('pdf')) return 'icon-pdf';
-  if (tipo.includes('txt')) return 'icon-txt';
-  if (tipo.includes('image') || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'png')
-    return 'icon-img';
-  return 'icon-file';
-}
-// ===================================
-// ❌ Fecha qualquer menu de arquivo aberto
+// ❌ Fecha menus
 // ===================================
 function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
+
+// Permite que outros scripts (como upload/mover) atualizem a lista
+window.atualizarLista = atualizarLista;
+window.atualizarUso = atualizarUso;
