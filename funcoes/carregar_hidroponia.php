@@ -3,12 +3,13 @@ require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 /**
- * Retorna todas as estufas e bancadas da propriedade ativa, incluindo o nome do produto.
+ * Retorna todas as estufas e bancadas da propriedade ativa,
+ * incluindo o nome do produto vinculado.
  */
 function carregarHidroponia(): array {
     global $mysqli;
 
-    header('Content-Type: application/json; charset=utf-8');
+    // ⚠️ Importante: NÃO definir header aqui
     session_start();
 
     // 🔐 1️⃣ Identifica usuário autenticado
@@ -59,7 +60,7 @@ function carregarHidroponia(): array {
     while ($estufa = $r_estufas->fetch_assoc()) {
         $estufa_id = (int)$estufa['id'];
 
-        // 🪴 4️⃣ Busca bancadas vinculadas à estufa + nome do produto
+        // 🪴 4️⃣ Busca bancadas + nome do produto
         $bancadas = [];
         $q_banc = $mysqli->prepare("
             SELECT 
@@ -82,7 +83,7 @@ function carregarHidroponia(): array {
                 'id'          => (int)$bancada['id'],
                 'nome'        => $bancada['nome'],
                 'produto_id'  => (int)$bancada['produto_id'],
-                'cultura'     => $bancada['produto_nome'], // usado pelo front-end
+                'cultura'     => $bancada['produto_nome'], // compatível com front-end
                 'obs'         => $bancada['obs'] ?? ''
             ];
         }
