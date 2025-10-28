@@ -36,30 +36,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🟢 Adicionar nova bancada
     document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
-        btn.addEventListener("click", async e => {
-            const id = e.target.id.split("-").pop();
-            const nome = document.querySelector(`#item-add-bancada-estufa-${id} #b-nome`).value.trim();
-            const cultura = document.querySelector(`#item-add-bancada-estufa-${id} #b-area`).value.trim();
-            const obs = document.querySelector(`#item-add-bancada-estufa-${id} #b-obs`).value.trim();
+    btn.addEventListener("click", async e => {
+    const id = e.target.id.split("-").pop();
+    const form = document.querySelector(`#item-add-bancada-estufa-${id}`);
 
-            if (!nome) {
-                alert("Informe o nome/número da bancada");
-                return;
-            }
+    if (!form) {
+      alert("Formulário de bancada não encontrado.");
+      return;
+    }
 
-            const res = await fetch("../funcoes/salvar_bancada.php", {
-                method: "POST",
-                body: new URLSearchParams({ estufa_id: id, nome, cultura, obs })
-            });
-            const data = await res.json();
+    const nomeInput = form.querySelector("#b-nome");
+    const produtoSelect = form.querySelector("#b-produto");
+    const obsInput = form.querySelector("#b-obs");
 
-            if (data.ok) {
-                location.reload();
-            } else {
-                alert("Erro: " + data.err);
-            }
-        });
+    if (!nomeInput || !produtoSelect) {
+      alert("Campos obrigatórios não encontrados.");
+      return;
+    }
+
+    const nome = nomeInput.value.trim();
+    const produto_id = produtoSelect.value.trim();
+    const obs = obsInput ? obsInput.value.trim() : "";
+
+    if (!nome) {
+      alert("Informe o nome/número da bancada");
+      return;
+    }
+
+    if (!produto_id) {
+      alert("Selecione o produto/cultura da bancada");
+      return;
+    }
+
+    const res = await fetch("../funcoes/salvar_bancada.php", {
+      method: "POST",
+      body: new URLSearchParams({ estufa_id: id, nome, produto_id, obs })
     });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      location.reload();
+    } else {
+      alert("Erro: " + data.err);
+    }
+  });
+});
+
 
 });
 
