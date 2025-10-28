@@ -396,3 +396,20 @@
   text-align: center;
   color: #444;
 }
+.silo-busca {
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+#siloBusca {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 250px;
+}
+
+#siloBusca:focus {
+  outline: none;
+  border-color: var(--verde);
+}
+
