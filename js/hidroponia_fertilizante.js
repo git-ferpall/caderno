@@ -1,13 +1,20 @@
+/**
+ * HIDROPONIA_FERTILIZANTE.JS v2.5
+ * Sistema Caderno de Campo - Frutag
+ * Atualizado em 2025-10-28
+ * Integração completa com área_id e produto_id das bancadas
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
-  // === Função para carregar todos os fertilizantes ===
+
+  // === Carrega todos os fertilizantes ===
   async function carregarFertilizantes() {
     try {
       const resp = await fetch("../funcoes/buscar_fertilizantes.php");
       const data = await resp.json();
 
-      // Preenche todos os selects de fertilizante
-      document.querySelectorAll('.form-fertilizante select[id*="-produto"]').forEach(sel => {
-        sel.innerHTML = '<option value="-">Selecione o fertilizante</option>';
+      document.querySelectorAll('.form-fertilizante select[name="produto_id"]').forEach(sel => {
+        sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
 
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -16,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
           sel.appendChild(opt);
         });
 
-        // Adiciona a opção "Outro"
+        // Opção “Outro”
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
@@ -29,14 +36,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarFertilizantes();
 
-  // === Exibir campo extra ao escolher "Outro" ===
+  // === Exibir campo de texto se “Outro” for selecionado ===
   document.addEventListener("change", (e) => {
-    if (e.target.matches('.form-fertilizante select[id*="-produto"]')) {
+    if (e.target.matches('.form-fertilizante select[name="produto_id"]')) {
       const sel = e.target;
       const form = sel.closest(".form-fertilizante");
-
-      // Procura ou cria o campo de texto extra
       let inputOutro = form.querySelector(".fertilizante-outro");
+
       if (!inputOutro) {
         inputOutro = document.createElement("input");
         inputOutro.type = "text";
@@ -47,84 +53,74 @@ document.addEventListener("DOMContentLoaded", () => {
         sel.insertAdjacentElement("afterend", inputOutro);
       }
 
-      // Mostra/oculta o campo conforme a seleção
-      if (sel.value === "outro") {
-        inputOutro.style.display = "block";
-      } else {
-        inputOutro.style.display = "none";
-      }
+      inputOutro.style.display = (sel.value === "outro") ? "block" : "none";
     }
   });
 
-  // === Botão "Salvar" ===
+  // === Botão “Salvar” ===
   document.querySelectorAll('.form-fertilizante .form-save').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
 
       const form = btn.closest('.form-fertilizante');
-      const formId = form.id;
+      const estufa_id = form.dataset.estufaId;
+      const area_id = form.dataset.areaId; // cada form carrega o area_id da bancada
 
-      // Extrai IDs de estufa e bancada
-      const match = formId.match(/add-e-(\d+)-b-(.+)-fertilizante/);
-      if (!match) {
-        alert("Erro ao identificar estufa/bancada.");
-        return;
-      }
-
-      const estufaId = match[1];
-      const bancadaNome = match[2];
-
-      // Captura os valores
-      const produtoSel = form.querySelector('select[id*="-produto"]');
-      const produtoVal = produtoSel.value;
-      const produtoNome = produtoSel.options[produtoSel.selectedIndex].text.trim();
+      const produtoSel = form.querySelector('select[name="produto_id"]');
+      const produto_id = produtoSel.value;
+      const produtoNome = produtoSel.options[produtoSel.selectedIndex]?.text.trim() || "";
       const outroInput = form.querySelector('.fertilizante-outro');
-      const produtoFinal = (produtoVal === "outro" && outroInput)
+      const produtoFinal = (produto_id === "outro" && outroInput)
         ? outroInput.value.trim()
         : produtoNome;
 
-      const dose = form.querySelector('input[id*="-dose"]').value.trim();
-      const tipo = form.querySelector('input[name*="-tipo"]:checked').value;
-      const obs = form.querySelector('textarea[id*="-obs"]').value.trim();
+      const dose = form.querySelector('input[name="dose"]').value.trim();
+      const tipo = form.querySelector('input[name="tipo"]:checked')?.value || "";
+      const obs = form.querySelector('textarea[name="obs"]').value.trim();
 
-      // Validações básicas
-      if (!produtoFinal) {
-        alert("Selecione ou digite o nome do fertilizante.");
+      if (!area_id || !estufa_id) {
+        alert("Erro interno: área ou estufa não identificada.");
+        return;
+      }
+
+      if (!produto_id && !produtoFinal) {
+        alert("Selecione ou digite o fertilizante.");
         return;
       }
 
       try {
-        // Envia os dados ao PHP
-        const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
+        const resp = await fetch("../funcoes/salvar_fertilizante.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
-            estufa_id: estufaId,
-            bancada_nome: bancadaNome,
-            nome: produtoFinal,
-            dose: dose,
-            tipo: tipo,
-            obs: obs
+            estufa_id,
+            area_id,
+            produto_id: produto_id === "outro" ? 0 : produto_id,
+            dose,
+            tipo,
+            obs
           })
         });
 
         const data = await resp.json();
-        console.log(data); // útil para debug
+        console.log("Resposta servidor:", data);
 
-        if (data.ok) {
-          alert(data.msg || "✅ Fertilizante aplicado com sucesso!");
+        if (data && data.ok) {
+          // Usa padrão do sistema (sem alert)
           form.classList.add("d-none");
+          location.reload();
         } else {
-          alert("❌ " + (data.err || data.msg || "Erro ao salvar fertilizante."));
+          console.error("Erro ao salvar fertilizante:", data);
+          alert("❌ " + (data.err || "Erro ao salvar fertilizante."));
         }
       } catch (err) {
-        console.error("Erro na comunicação:", err);
+        console.error("Falha na comunicação:", err);
         alert("❌ Falha na comunicação com o servidor.");
       }
     });
   });
 
-  // === Botão "Cancelar" ===
+  // === Botão “Cancelar” ===
   document.querySelectorAll('.form-fertilizante .form-cancel').forEach(btn => {
     btn.addEventListener('click', () => {
       const form = btn.closest('.form-fertilizante');
