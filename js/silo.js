@@ -2,6 +2,10 @@
 // 📦 Silo de Dados - Caderno de Campo
 // ================================
 document.addEventListener('DOMContentLoaded', () => {
+  // 🧠 Restaura última pasta acessada (persistência)
+  const ultima = localStorage.getItem("silo_pastaAtual");
+  window.pastaAtual = ultima ? parseInt(ultima) : 0;
+
   atualizarLista();
   atualizarUso();
   atualizarBreadcrumb();
@@ -70,6 +74,17 @@ async function atualizarLista() {
     document.querySelector('.silo-arquivos').innerHTML =
       '<p>❌ Falha ao comunicar com o servidor.</p>';
   }
+}
+
+// ===================================
+// 📁 Acessar e manter pasta atual
+// ===================================
+function acessarPasta(id) {
+  window.pastaAtual = parseInt(id);
+  localStorage.setItem("silo_pastaAtual", id); // salva no navegador
+  atualizarLista();
+  atualizarBreadcrumb();
+  console.log("📁 Pasta atual definida:", id);
 }
 
 // ===================================
@@ -195,19 +210,7 @@ async function atualizarUso() {
 }
 
 // ===================================
-// 📁 Navegação
-// ===================================
-window.pastaAtual = 0;
-
-function acessarPasta(id) {
-  window.pastaAtual = id;
-  atualizarLista();
-  atualizarBreadcrumb();
-  console.log("📁 Pasta atual:", id);
-}
-
-// ===================================
-// 🧭 Breadcrumb (caminho de navegação)
+// 🧭 Breadcrumb
 // ===================================
 async function atualizarBreadcrumb() {
   const nav = document.querySelector('.silo-breadcrumb');
@@ -258,8 +261,3 @@ function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
-
-// Exporta funções globais
-window.atualizarLista = atualizarLista;
-window.atualizarUso = atualizarUso;
-window.atualizarBreadcrumb = atualizarBreadcrumb;

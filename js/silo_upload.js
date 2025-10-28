@@ -1,6 +1,13 @@
 // =====================================
 // 📤 Upload de Arquivos - Silo de Dados
 // =====================================
+
+// 🔧 Garante que pastaAtual exista mesmo se o silo.js ainda não tiver carregado
+if (typeof window.pastaAtual === "undefined") {
+  const ultima = localStorage.getItem("silo_pastaAtual");
+  window.pastaAtual = ultima ? parseInt(ultima) : 0;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const btnUpload = document.getElementById("btn-silo-arquivo");
   if (!btnUpload) return;
@@ -20,12 +27,23 @@ document.addEventListener("DOMContentLoaded", () => {
 let uploadAtivo = false;
 
 // =====================================
-// 🚀 Envia arquivos (com barra e cancelamento)
+// 🚀 Função principal de upload
 // =====================================
 function enviarArquivosSilo(files) {
   if (uploadAtivo) {
     abrirPopup("⚠️ Aguarde", "Já há um upload em andamento.");
     return;
+  }
+
+  // 🚫 Verifica se há arquivos maliciosos ou suspeitos
+  const tiposPermitidos = [
+    "image/jpeg", "image/png", "application/pdf", "text/plain"
+  ];
+  for (let f of files) {
+    if (!tiposPermitidos.includes(f.type)) {
+      abrirPopup("❌ Tipo inválido", `O arquivo "${f.name}" possui tipo não permitido.`);
+      return;
+    }
   }
 
   uploadAtivo = true;
@@ -47,11 +65,12 @@ function enviarArquivosSilo(files) {
   const txt = overlay.querySelector(".progress-txt");
   const btnCancel = overlay.querySelector("#btnCancelarUpload");
 
-  const file = files[0]; // um por vez (fácil estender para múltiplos)
+  const file = files[0]; // (upload único por vez)
   const fd = new FormData();
   fd.append("arquivo", file);
   fd.append("origem", "upload");
   fd.append("parent_id", window.pastaAtual || 0);
+
   console.log("📁 Enviando para pasta:", window.pastaAtual);
 
   const xhr = new XMLHttpRequest();
@@ -66,6 +85,7 @@ function enviarArquivosSilo(files) {
     abrirPopup("🚫 Cancelado", "Envio interrompido.");
   };
 
+  // 📊 Progresso visual
   xhr.upload.onprogress = (e) => {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -74,6 +94,7 @@ function enviarArquivosSilo(files) {
     }
   };
 
+  // 📥 Conclusão
   xhr.onload = () => {
     uploadAtivo = false;
     if (cancelado) return;
@@ -96,11 +117,13 @@ function enviarArquivosSilo(files) {
         setTimeout(() => overlay.remove(), 1200);
       }
     } catch (err) {
-      abrirPopup("❌ Retorno inválido", "Erro ao interpretar resposta.");
+      console.error("Erro na resposta:", xhr.responseText);
+      abrirPopup("❌ Retorno inválido", "Erro ao interpretar resposta do servidor.");
       overlay.remove();
     }
   };
 
+  // ⚠️ Erros gerais
   xhr.onerror = () => {
     uploadAtivo = false;
     if (!cancelado) {
