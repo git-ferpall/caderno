@@ -45,14 +45,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
             </div>
             <div class="silo-info-bar" id="silo-uso-bar"></div>
         </div>
-        <div class="silo-busca">
-            <input type="text" id="siloBusca" placeholder="🔍 Buscar arquivos ou pastas...">
-        </div>
+        
 
         <div class="silo-dados">
             <!-- Cabeçalho de navegação (breadcrumb) -->
             <div class="silo-breadcrumb" style="margin:10px 0; font-size:14px;"></div>
-
+            <div class="silo-busca">
+                <input type="text" id="siloBusca" placeholder="🔍 Buscar arquivos ou pastas...">
+            </div>
             <div class="silo-arquivos">
                 <div class="silo-arquivos-sort">
                     <button class="silo-sort-btn" type="button">
