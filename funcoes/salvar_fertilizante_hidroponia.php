@@ -2,11 +2,8 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 session_start();
-
-// 🧾 Grava debug local (para entender o que chega do JS)
-file_put_contents(__DIR__ . "/debug_fertilizante.txt", print_r($_POST, true) . "\n---\n", FILE_APPEND);
 
 try {
     // === Identifica o usuário logado ===
@@ -34,22 +31,23 @@ try {
 
     $propriedade_id = $prop['id'];
 
-    // === Dados recebidos ===
-    $estufa_id   = (int)($_POST['estufa_id'] ?? 0);
-    $area_id     = (int)($_POST['area_id'] ?? 0);
-    $produto_id  = (int)($_POST['produto_id'] ?? 0);
+    // === Dados vindos do formulário (via fetch POST) ===
+    $estufa_id   = $_POST['estufa_id'] ?? null;
+    $area_id     = $_POST['area_id'] ?? null;
+    $produto_id  = $_POST['produto_id'] ?? null;
     $dose        = trim($_POST['dose'] ?? '');
     $tipo        = trim($_POST['tipo'] ?? '');
     $obs         = trim($_POST['obs'] ?? '');
-    $data        = date('Y-m-d');
+    $data        = date('Y-m-d'); // data atual
 
-    if ($estufa_id <= 0 || $area_id <= 0) throw new Exception('Estufa ou área não identificada.');
-    if ($produto_id <= 0) throw new Exception('Selecione o fertilizante.');
+    if (!$estufa_id || !$area_id || !$produto_id) {
+        throw new Exception('Campos obrigatórios não informados.');
+    }
 
-    // === Transação ===
+    // === Transação para consistência ===
     $mysqli->begin_transaction();
 
-    // 1️⃣ Inserir em apontamentos
+    // 1️⃣ Inserir o apontamento principal
     $tipo_apontamento = "fertilizante";
     $status = "pendente";
     $quantidade = ($dose !== '') ? floatval($dose) : 0;
@@ -63,26 +61,54 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2️⃣ Inserir em apontamento_detalhes
-    $detalhes = [
-        ['campo' => 'estufa_id',      'valor' => $estufa_id],
-        ['campo' => 'area_id',        'valor' => $area_id],
-        ['campo' => 'produto_id',     'valor' => $produto_id],
-        ['campo' => 'tipo_aplicacao', 'valor' => ($tipo == 1 ? "Foliar" : "Solução")]
-    ];
-
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
-    foreach ($detalhes as $d) {
-        $stmt->bind_param("iss", $apontamento_id, $d['campo'], $d['valor']);
-        $stmt->execute();
+    if (!$apontamento_id) {
+        throw new Exception('Falha ao criar o apontamento principal.');
     }
+
+    // 2️⃣ Inserir detalhes: estufa_id
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    $campo = "estufa_id";
+    $valor = (string)$estufa_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
     $stmt->close();
 
+    // 3️⃣ Inserir detalhes: area_id (substitui bancada_nome)
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    $campo = "area_id";
+    $valor = (string)$area_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
+    $stmt->close();
+
+    // 4️⃣ Inserir detalhes: produto_id
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    $campo = "produto_id";
+    $valor = (string)$produto_id;
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
+    $stmt->close();
+
+    // 5️⃣ Inserir detalhes: tipo de aplicação
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    $campo = "tipo_aplicacao";
+    $valor = ($tipo == 1) ? "Foliar" : "Solução";
+    $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
+    $stmt->execute();
+    $stmt->close();
+
+    // ✅ Finaliza a transação
     $mysqli->commit();
 
-    echo json_encode(['ok' => true, 'msg' => 'Fertilizante salvo com sucesso!']);
+    echo json_encode([
+        'ok' => true,
+        'msg' => '✅ Fertilizante aplicado com sucesso (Hidroponia)!'
+    ]);
 
 } catch (Exception $e) {
     $mysqli->rollback();
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode([
+        'ok' => false,
+        'err' => $e->getMessage()
+    ]);
 }

@@ -176,12 +176,7 @@ if (!headers_sent()) {
                                             <div class="item-bancada-option-title">Aplicar Fertilizante</div>
                                         </button>
 
-                                       <form 
-                                            action="hidroponia.php" 
-                                            class="main-form form-fertilizante d-none" 
-                                            id="add-' . $form_id . '-fertilizante"
-                                            data-estufa-id="' . $estufa['id'] . '" 
-                                            data-area-id="' . $bancada['id_area'] . '">
+                                        <form action="hidroponia.php" class="main-form form-fertilizante d-none" id="add-' . $form_id . '-fertilizante">
 
                                             <div class="form-campo">
                                                 <label for="fert-' . $form_id . '-produto">Produto aplicado</label>
