@@ -170,6 +170,7 @@
   font-size: 14px;
   color: var(--cinza-claro);
   margin-bottom: 10px;
+  margin-left: 20px;
 }
 
 .silo-breadcrumb span {
