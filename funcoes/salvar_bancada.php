@@ -106,7 +106,6 @@ try {
 
     echo json_encode([
         'ok' => true,
-        'msg' => '✅ Bancada salva com sucesso!',
         'bancada_id' => $bancada_id,
         'area_id' => $area_id,
         'debug' => [
