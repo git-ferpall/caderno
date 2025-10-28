@@ -92,7 +92,7 @@ try {
         INSERT INTO bancadas (area_id, estufa_id, nome, produto_id, obs)
         VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("iiiss", $area_id, $estufa_id, $nome, $produto_id, $obs);
+    $stmt->bind_param("iisis", $area_id, $estufa_id, $nome, $produto_id, $obs);
     $stmt->execute();
     $bancada_id = $stmt->insert_id;
     $stmt->close();
