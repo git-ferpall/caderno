@@ -104,16 +104,14 @@ try {
     // ✅ Confirma transação
     $mysqli->commit();
 
+    // Retorno padrão do sistema (sem mensagem visual)
     echo json_encode([
         'ok' => true,
         'bancada_id' => $bancada_id,
-        'area_id' => $area_id,
-        'debug' => [
-            'estufa_id' => $estufa_id,
-            'nome' => $nome,
-            'produto_id' => $produto_id,
-            'obs' => $obs
-        ]
+        'area_id' => $area_id
     ]);
 
-} 
+} catch (Exception $e) {
+    $mysqli->rollback();
+    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+}
