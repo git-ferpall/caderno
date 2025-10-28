@@ -183,7 +183,17 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                                         <div class="btn-icon icon-plus cor-branco"></div>
                                                     </button>
                                                 </div>
+                                                <!-- Campo extra que só aparece se selecionar "Outro" -->
+                                                <input 
+                                                    type="text" 
+                                                    id="fert-' . $form_id . '-produto-outro" 
+                                                    name="fert-' . $form_id . '-produto-outro"
+                                                    class="form-text fertilizante-outro"
+                                                    placeholder="Digite o nome do fertilizante"
+                                                    style="display:none; margin-top:8px;"
+                                                >
                                             </div>
+
 
                                             <div class="form-campo">
                                                 <label class="item-label" for="fert-' . $form_id . '-dose">Dose utilizada</label>
