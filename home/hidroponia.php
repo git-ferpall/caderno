@@ -115,53 +115,41 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                             <div class="item-bancada-option-title">Aplicar Defensivo</div>
                                         </button>
 
-                                        <form action="hidroponia.php" class="main-form form-defensivo d-none" id="add-' . $form_id . '-defensivo">
+                                        <form action="hidroponia.php" class="main-form form-defensivo d-none" id="add-<?php echo $form_id; ?>-defensivo">
 
                                             <div class="form-campo">
-                                                <label for="def-' . $form_id . '-produto">Produto aplicado</label>
-                                                <div class="form-box form-box-produto">
-                                                    <select name="def-' . $form_id . '-produto" id="def-' . $form_id . '-produto" class="form-select form-text" required>
-                                                        <option value="-">Selecione o produto aplicado</option>
-                                                    </select>
-                                                    <button class="add-btn add-produto" type="button">
-                                                        <div class="btn-icon icon-plus cor-branco"></div>
-                                                    </button>
-                                                </div>
+                                                <label for="def-<?php echo $form_id; ?>-produto">Produto aplicado</label>
+                                                <input type="text" class="form-text" name="produto" id="def-<?php echo $form_id; ?>-produto" placeholder="Digite o produto aplicado" required>
                                             </div>
 
                                             <div class="form-campo">
-                                                <label class="item-label" for="def-' . $form_id . '-dose">Dose utilizada</label>
-                                                <input type="text" class="form-text" name="def-' . $form_id . '-dose" id="def-' . $form_id . '-dose" placeholder="Dose utilizada">
+                                                <label class="item-label" for="def-<?php echo $form_id; ?>-dose">Dose utilizada</label>
+                                                <input type="text" class="form-text" name="dose" id="def-<?php echo $form_id; ?>-dose" placeholder="Dose utilizada">
                                             </div>
 
                                             <div class="form-campo">
-                                                <label class="item-label" for="def-' . $form_id . '-motivo">Motivo</label>
-                                                <div class="form-radio-box" id="def-' . $form_id . '-motivo">
+                                                <label class="item-label" for="def-<?php echo $form_id; ?>-motivo">Motivo</label>
+                                                <div class="form-radio-box" id="def-<?php echo $form_id; ?>-motivo">
                                                     <label class="form-radio v2">
-                                                        <input type="radio" name="def-' . $form_id . '-motivo" value="1" checked/>
-                                                        Prevenção
+                                                        <input type="radio" name="motivo" value="1" checked/> Prevenção
                                                     </label>
                                                     <label class="form-radio v2">
-                                                        <input type="radio" name="def-' . $form_id . '-motivo" value="2" />
-                                                        Controle
+                                                        <input type="radio" name="motivo" value="2" /> Controle
                                                     </label>
                                                 </div>
                                             </div>
 
                                             <div class="form-campo">
-                                                <label for="def-' . $form_id . '-obs">Observações</label>
-                                                <textarea class="form-text form-textarea" name="def-' . $form_id . '-obs" id="def-' . $form_id . '-obs" placeholder="Insira aqui suas observações..."></textarea>
+                                                <label for="def-<?php echo $form_id; ?>-obs">Observações</label>
+                                                <textarea class="form-text form-textarea" name="observacoes" id="def-<?php echo $form_id; ?>-obs" placeholder="Insira aqui suas observações..."></textarea>
                                             </div>
 
                                             <div class="form-submit">
-                                                <button class="main-btn fundo-cinza-b cor-preto form-cancel" id="form-cancel-def-' . $form_id . '" type="button">
-                                                    <!-- <div class="btn-icon icon-x cor-cinza-b"></div> -->
-                                                    <span class="main-btn-text">Cancelar</span>
-                                                </button>
-                                                <button class="main-btn fundo-verde form-save" id="form-save-def-' . $form_id . '" type="button">
-                                                    <!-- <div class="btn-icon icon-check cor-verde"></div> -->
-                                                    <span class="main-btn-text">Salvar</span>
-                                                </button>
+                                                <button class="main-btn fundo-cinza-b cor-preto form-cancel" type="button">Cancelar</button>
+                                                <button class="main-btn fundo-verde form-save salvar-defensivo" 
+                                                    data-estufa="<?php echo $estufa['id']; ?>" 
+                                                    data-bancada="<?php echo $bancada['nome']; ?>"
+                                                    type="button">Salvar</button>
                                             </div>
                                         </form>
 
@@ -399,7 +387,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <?php include '../include/imports.php' ?>
     </div>
-    <script src="../js/hidroponia.js"></script>    
+    <script src="../js/hidroponia.js"></script>   
+    <script src="../js/hidroponia_defensivo.js"></script> 
     <?php include '../include/footer.php' ?>
 </body>
 </html>

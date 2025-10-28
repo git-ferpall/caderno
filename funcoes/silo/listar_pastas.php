@@ -7,11 +7,13 @@ try {
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) throw new Exception('unauthorized');
 
+    $base = "/var/www/html/uploads/silo/$user_id";
+
     $stmt = $mysqli->prepare("
-        SELECT id, nome_arquivo, caminho_arquivo
-        FROM silo_arquivos
-        WHERE user_id = ? AND tipo_arquivo = 'folder'
-        ORDER BY caminho_arquivo
+        SELECT id, nome_arquivo, caminho_arquivo 
+        FROM silo_arquivos 
+        WHERE user_id = ? AND tipo = 'pasta'
+        ORDER BY nome_arquivo
     ");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -19,7 +21,7 @@ try {
 
     $pastas = [];
 
-    // 🏠 Adiciona opção de mover para a raiz
+    // 🏠 Adiciona a opção de mover para a raiz
     $pastas[] = [
         'id' => 0,
         'nome' => '📁 Raiz',
@@ -27,12 +29,18 @@ try {
     ];
 
     while ($r = $res->fetch_assoc()) {
-        $relPath = preg_replace("#^silo/$user_id/#", "", $r['caminho_arquivo']); // remove prefixo
-        $pastas[] = [
-            'id' => (int)$r['id'],
-            'nome' => $r['nome_arquivo'],
-            'caminho' => $relPath
-        ];
+        $absPath = "$base/" . str_replace("silo/$user_id/", "", $r['caminho_arquivo']);
+        if (is_dir($absPath)) {
+
+            // Remove o prefixo técnico do caminho
+            $relPath = str_replace("silo/$user_id/", "", $r['caminho_arquivo']);
+
+            $pastas[] = [
+                'id' => $r['id'],
+                'nome' => $r['nome_arquivo'],
+                'caminho' => $relPath
+            ];
+        }
     }
 
     echo json_encode(['ok' => true, 'pastas' => $pastas], JSON_UNESCAPED_UNICODE);
