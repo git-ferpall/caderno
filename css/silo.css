@@ -398,7 +398,8 @@
 }
 .silo-busca {
   margin-bottom: 10px;
-  text-align: right;
+  text-align: left;
+  margin-left: 10px;
 }
 
 #siloBusca {
