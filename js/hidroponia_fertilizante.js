@@ -1,6 +1,8 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v2.9
- * Corrige ID numérico da bancada e remove mensagem duplicada
+ * HIDROPONIA_FERTILIZANTE.JS v3.0
+ * Corrige identificação de bancadas com nomes textuais ("Bancada 01")
+ * Garante uso do ID numérico real em area_id
+ * Remove mensagens duplicadas e mantém compatibilidade total
  * Atualizado em 2025-10-28
  */
 
@@ -8,14 +10,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Corrige formulários sem data-estufa-id / data-area-id ===
   document.querySelectorAll('.form-fertilizante').forEach(form => {
-    // Exemplo de ID: add-e-1-b-4-fertilizante
-    const idMatch = form.id.match(/e-(\d+)-b-(\d+)/);
+    // Exemplo: id="add-e-1-b-Bancada 01-fertilizante"
+    const idMatch = form.id.match(/e-(\d+)-b-(.+)-fertilizante$/);
     if (idMatch) {
       const estufaId = idMatch[1];
-      const bancadaId = idMatch[2];
-      form.dataset.estufaId = estufaId;
-      form.dataset.areaId = bancadaId; // usa ID numérico
-      console.log(`🧩 Dados automáticos adicionados → Estufa ${estufaId}, Bancada ID ${bancadaId}`);
+      const bancadaNome = idMatch[2].replace(/-/g, " ").trim();
+
+      // Procura o botão da bancada correspondente
+      const btn = Array.from(document.querySelectorAll(`.item-bancada`))
+        .find(b => b.textContent.trim() === bancadaNome);
+
+      if (btn) {
+        // Exemplo de botão: id="item-bancada-4-estufa-1"
+        const matchBtn = btn.id.match(/item-bancada-(\d+)-estufa/);
+        const bancadaId = matchBtn ? matchBtn[1] : null;
+
+        if (bancadaId) {
+          form.dataset.estufaId = estufaId;
+          form.dataset.areaId = bancadaId;
+          console.log(`🧩 Dados automáticos adicionados → Estufa ${estufaId}, Bancada ID ${bancadaId}`);
+        } else {
+          console.warn(`⚠️ Não foi possível extrair ID numérico do botão da bancada "${bancadaNome}"`);
+        }
+      } else {
+        console.warn(`⚠️ Nenhum botão encontrado para bancada "${bancadaNome}"`);
+      }
     } else {
       console.warn("⚠️ Não foi possível identificar estufa/bancada para o formulário:", form.id);
     }
@@ -44,8 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log(`✅ ${data.length} fertilizantes carregados.`);
 
+      // Preenche todos os selects de fertilizante
       document.querySelectorAll('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]').forEach(sel => {
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
+
         data.forEach(item => {
           const opt = document.createElement("option");
           opt.value = item.id;
@@ -67,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarFertilizantes();
 
-  // === Campo "Outro" ===
+  // === Exibir campo extra ao escolher "Outro" ===
   document.addEventListener("change", (e) => {
     if (e.target.matches('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]')) {
       const sel = e.target;
