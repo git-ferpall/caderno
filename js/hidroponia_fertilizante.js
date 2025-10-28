@@ -1,19 +1,36 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v2.5
- * Sistema Caderno de Campo - Frutag
+ * HIDROPONIA_FERTILIZANTE.JS v2.6
+ * Corrige o carregamento dos fertilizantes (com debug e fallback)
  * Atualizado em 2025-10-28
- * Integração completa com área_id e produto_id das bancadas
  */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === Carrega todos os fertilizantes ===
+  // === Função para carregar todos os fertilizantes ===
   async function carregarFertilizantes() {
     try {
-      const resp = await fetch("../funcoes/buscar_fertilizantes.php");
-      const data = await resp.json();
+      console.log("🔄 Carregando fertilizantes...");
+      const resp = await fetch("../funcoes/buscar_fertilizantes.php", {
+        headers: { "Cache-Control": "no-cache" }
+      });
+      let data = await resp.text();
 
-      document.querySelectorAll('.form-fertilizante select[name="produto_id"]').forEach(sel => {
+      try {
+        data = JSON.parse(data);
+      } catch {
+        console.warn("⚠️ Retorno não era JSON, conteúdo recebido:", data);
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.warn("⚠️ Resposta inesperada, não é lista:", data);
+        return;
+      }
+
+      console.log(`✅ ${data.length} fertilizantes carregados.`);
+
+      // Preenche todos os selects de fertilizante
+      document.querySelectorAll('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]').forEach(sel => {
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
 
         data.forEach(item => {
@@ -23,26 +40,28 @@ document.addEventListener("DOMContentLoaded", () => {
           sel.appendChild(opt);
         });
 
-        // Opção “Outro”
+        // Adiciona a opção "Outro"
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
         sel.appendChild(outro);
       });
+
     } catch (err) {
-      console.error("Erro ao carregar fertilizantes:", err);
+      console.error("❌ Erro ao carregar fertilizantes:", err);
+      alert("Erro ao carregar lista de fertilizantes. Verifique o console.");
     }
   }
 
   carregarFertilizantes();
 
-  // === Exibir campo de texto se “Outro” for selecionado ===
+  // === Exibir campo extra ao escolher "Outro" ===
   document.addEventListener("change", (e) => {
-    if (e.target.matches('.form-fertilizante select[name="produto_id"]')) {
+    if (e.target.matches('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]')) {
       const sel = e.target;
       const form = sel.closest(".form-fertilizante");
-      let inputOutro = form.querySelector(".fertilizante-outro");
 
+      let inputOutro = form.querySelector(".fertilizante-outro");
       if (!inputOutro) {
         inputOutro = document.createElement("input");
         inputOutro.type = "text";
@@ -57,18 +76,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // === Botão “Salvar” ===
+  // === Botão "Salvar" ===
   document.querySelectorAll('.form-fertilizante .form-save').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
 
       const form = btn.closest('.form-fertilizante');
       const estufa_id = form.dataset.estufaId;
-      const area_id = form.dataset.areaId; // cada form carrega o area_id da bancada
+      const area_id = form.dataset.areaId;
 
-      const produtoSel = form.querySelector('select[name="produto_id"]');
-      const produto_id = produtoSel.value;
-      const produtoNome = produtoSel.options[produtoSel.selectedIndex]?.text.trim() || "";
+      const produtoSel = form.querySelector('select[id*="-produto"], select[name="produto_id"]');
+      const produto_id = produtoSel?.value || "";
+      const produtoNome = produtoSel?.options[produtoSel.selectedIndex]?.text.trim() || "";
       const outroInput = form.querySelector('.fertilizante-outro');
       const produtoFinal = (produto_id === "outro" && outroInput)
         ? outroInput.value.trim()
@@ -82,7 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Erro interno: área ou estufa não identificada.");
         return;
       }
-
       if (!produto_id && !produtoFinal) {
         alert("Selecione ou digite o fertilizante.");
         return;
@@ -103,24 +121,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const data = await resp.json();
-        console.log("Resposta servidor:", data);
+        console.log("📦 Resposta salvar fertilizante:", data);
 
-        if (data && data.ok) {
-          // Usa padrão do sistema (sem alert)
+        if (data.ok) {
           form.classList.add("d-none");
           location.reload();
         } else {
-          console.error("Erro ao salvar fertilizante:", data);
           alert("❌ " + (data.err || "Erro ao salvar fertilizante."));
         }
       } catch (err) {
-        console.error("Falha na comunicação:", err);
+        console.error("Erro na comunicação com o servidor:", err);
         alert("❌ Falha na comunicação com o servidor.");
       }
     });
   });
 
-  // === Botão “Cancelar” ===
+  // === Botão "Cancelar" ===
   document.querySelectorAll('.form-fertilizante .form-cancel').forEach(btn => {
     btn.addEventListener('click', () => {
       const form = btn.closest('.form-fertilizante');
