@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const resp = await fetch("../funcoes/salvar_fertilizante.php", {
+        const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
