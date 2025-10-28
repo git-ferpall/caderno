@@ -1,7 +1,8 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v3.3
+ * HIDROPONIA_FERTILIZANTE.JS v3.4
  * Compatível com HTML existente (sem alterar forms)
  * Detecta automaticamente estufa_id e área_id pelo ID do form
+ * Corrige input "Dose utilizada" bloqueado
  * Atualizado em 2025-10-28
  */
 
@@ -25,6 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.warn("⚠️ Formulário sem padrão esperado:", id);
     }
+  });
+
+  // === Corrige inputs bloqueados (ex: 'Dose utilizada') ===
+  document.querySelectorAll('.form-fertilizante input[id*="-dose"]').forEach(inp => {
+    inp.removeAttribute('readonly');
+    inp.removeAttribute('disabled');
+    inp.type = "text";
+    inp.style.pointerEvents = "auto";
   });
 
   // === Função para carregar todos os fertilizantes ===
@@ -130,9 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ? outroInput.value.trim()
         : produtoNome;
 
-      const dose = form.querySelector('input[name*="dose"]')?.value.trim() || "";
+      const dose = form.querySelector('input[id*="-dose"]')?.value.trim() || "";
       const tipo = form.querySelector('input[name*="tipo"]:checked')?.value || "";
-      const obs = form.querySelector('textarea[name*="obs"]')?.value.trim() || "";
+      const obs = form.querySelector('textarea[id*="-obs"]')?.value.trim() || "";
 
       if (!area_id || !estufa_id) {
         alert("Erro interno: área ou estufa não identificada.");
