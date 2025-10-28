@@ -36,6 +36,42 @@ document.addEventListener("DOMContentLoaded", () => {
     inp.style.pointerEvents = "auto";
   });
 
+  // 🔍 Função auxiliar para pegar area_id da bancada selecionada
+  function getAreaIdFromSelectedBancada(estufa_id) {
+  // A bancada selecionada fica com a classe "bancada-selecionada"
+  const bancadaSel = document.querySelector(
+    `.item-bancada.bancada-selecionada[id*="estufa-${estufa_id}"]`
+  );
+
+  if (!bancadaSel) {
+    console.warn("⚠️ Nenhuma bancada selecionada para estufa", estufa_id);
+    return null;
+  }
+
+  // Normalmente o botão tem ID do tipo: item-bancada-Bancada 01-estufa-1
+  const nomeMatch = bancadaSel.id.match(/item-bancada-(.+?)-estufa-(\d+)/);
+  if (!nomeMatch) {
+    console.warn("⚠️ ID da bancada não segue o padrão esperado:", bancadaSel.id);
+    return null;
+  }
+
+  const nomeBancada = nomeMatch[1].trim();
+
+  // Procura na DOM a div .item-bancada-content correspondente
+  const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${estufa_id}`);
+  if (!box) {
+    console.warn("⚠️ Box da bancada não encontrada:", nomeBancada);
+    return null;
+  }
+
+  // Cada .item-bancada-content tem um formulário .form-fertilizante
+  // que herda implicitamente o area_id da criação via hidroponia.js (salvar_bancada.php)
+  // podemos aproveitar esse valor via atributo data ou fallback numérico
+  const areaId = box.dataset.areaId || nomeBancada.replace(/\D/g, "");
+  return areaId || null;
+}
+
+
   // === Função para carregar todos os fertilizantes ===
   async function carregarFertilizantes() {
     try {
@@ -129,7 +165,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const form = btn.closest(".form-fertilizante");
       const estufa_id = form.dataset.estufaId;
-      const area_id = form.dataset.areaId;
+      let area_id = form.dataset.areaId;
+      if (!area_id) {
+        area_id = getAreaIdFromSelectedBancada(form.dataset.estufaId);
+        console.log(`🧭 area_id obtido pela bancada selecionada: ${area_id}`);
+      }
+
 
       const produtoSel = form.querySelector('select[id*="-produto"], select[name*="produto"]');
       const produto_id = produtoSel?.value || "";
