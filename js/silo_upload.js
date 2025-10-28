@@ -1,127 +1,122 @@
-// ===================================
-// 📤 Upload de Arquivos com Barra de Progresso
-// ===================================
+// =====================================
+// 📤 Upload de Arquivos - Silo de Dados
+// =====================================
 
-let xhrAtivo = null; // referência global para cancelar upload
+document.addEventListener("DOMContentLoaded", () => {
+  const btnUpload = document.getElementById("btn-silo-arquivo");
 
-async function enviarArquivosSilo(arquivos, parent_id = "") {
-  if (!arquivos || arquivos.length === 0) return;
+  if (!btnUpload) return;
 
-  // Mostra popup
-  const popup = document.getElementById("uploadPopup");
-  const lista = document.getElementById("uploadLista");
-  const resumo = document.getElementById("uploadResumo");
-  const btnCancelar = document.getElementById("btnCancelarUpload");
+  btnUpload.addEventListener("click", () => {
+    // Cria seletor de arquivo invisível
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*,application/pdf,text/plain";
+    input.multiple = true;
 
-  popup.style.display = "flex";
-  lista.innerHTML = "";
-  resumo.textContent = "Iniciando uploads...";
+    input.onchange = () => {
+      if (!input.files.length) return;
+      enviarArquivosSilo(input.files);
+    };
 
-  // Cancela upload ativo
-  if (xhrAtivo) {
-    try { xhrAtivo.abort(); } catch (e) {}
+    input.click();
+  });
+});
+
+// =====================================
+// 🚀 Função principal de upload
+// =====================================
+let uploadAtivo = false;
+
+function enviarArquivosSilo(files) {
+  if (uploadAtivo) {
+    abrirPopup("⚠️ Aguarde", "Já há um upload em andamento.");
+    return;
   }
 
-  // Listener do botão "Cancelar"
-  btnCancelar.onclick = () => {
-    if (xhrAtivo) {
-      xhrAtivo.abort();
-      resumo.textContent = "❌ Upload cancelado.";
-      popup.style.display = "none";
+  uploadAtivo = true;
+  const overlay = document.createElement("div");
+  overlay.className = "upload-popup";
+  overlay.innerHTML = `
+    <div class="upload-box">
+      <h3>📤 Enviando arquivos...</h3>
+      <div class="progress-bar-bg" style="width:100%;background:#ddd;border-radius:6px;overflow:hidden;height:20px;margin:10px 0;">
+        <div class="progress-bar" style="width:0%;height:100%;background:var(--verde);transition:width 0.3s;"></div>
+      </div>
+      <p class="progress-txt" style="font-size:13px;color:#333;">Iniciando upload...</p>
+      <button id="btnCancelarUpload" style="background:#c33;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;margin-top:10px;">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const barra = overlay.querySelector(".progress-bar");
+  const txt = overlay.querySelector(".progress-txt");
+  const btnCancel = overlay.querySelector("#btnCancelarUpload");
+
+  let cancelado = false;
+  btnCancel.onclick = () => {
+    cancelado = true;
+    xhr.abort();
+    uploadAtivo = false;
+    overlay.remove();
+    abrirPopup("🚫 Cancelado", "Envio interrompido pelo usuário.");
+  };
+
+  const file = files[0]; // (futuro: iterar se quiser múltiplos uploads)
+  const fd = new FormData();
+  fd.append("arquivo", file);
+  fd.append("origem", "upload");
+  fd.append("parent_id", window.pastaAtual || 0);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "../funcoes/silo/upload_arquivo.php");
+
+  // 📊 Progresso visual
+  xhr.upload.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const percent = Math.round((e.loaded / e.total) * 100);
+      barra.style.width = percent + "%";
+      txt.textContent = `Enviando ${file.name} — ${percent}%`;
     }
   };
 
-  // Processa cada arquivo individualmente
-  for (const arquivo of arquivos) {
-    const item = document.createElement("div");
-    item.className = "upload-item";
-    item.innerHTML = `
-      <div class="nome">${arquivo.name}</div>
-      <div class="progress-bar"><div class="progress-fill"></div></div>
-      <div class="progress-text">0%</div>
-    `;
-    lista.appendChild(item);
+  // 📥 Conclusão
+  xhr.onload = () => {
+    uploadAtivo = false;
+    if (cancelado) return;
 
-    const barra = item.querySelector(".progress-fill");
-    const texto = item.querySelector(".progress-text");
-
-    const fd = new FormData();
-    fd.append("arquivo", arquivo);
-    fd.append("parent_id", parent_id || "");
-    fd.append("origem", "upload");
-
-    // Faz upload via XMLHttpRequest para capturar progresso
-    await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhrAtivo = xhr;
-
-      xhr.open("POST", "../funcoes/silo/upload_arquivo.php", true);
-
-      // Atualiza a barra de progresso
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          barra.style.width = percent + "%";
-          texto.textContent = percent + "%";
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          try {
-            const j = JSON.parse(xhr.responseText);
-            if (j.ok) {
-              texto.textContent = "✅ Concluído";
-              barra.style.background = "#4caf50";
-              resolve();
-            } else {
-              texto.textContent = "❌ " + (j.err || "Erro no envio");
-              barra.style.background = "#e74c3c";
-              reject();
-            }
-          } catch {
-            texto.textContent = "❌ Resposta inválida";
-            barra.style.background = "#e74c3c";
-            reject();
-          }
-        } else {
-          texto.textContent = "❌ Falha no envio (" + xhr.status + ")";
-          barra.style.background = "#e74c3c";
-          reject();
-        }
-      };
-
-      xhr.onerror = () => {
-        texto.textContent = "❌ Erro de rede";
-        barra.style.background = "#e74c3c";
-        reject();
-      };
-
-      xhr.send(fd);
-    });
-  }
-
-  resumo.textContent = "✅ Todos os uploads concluídos!";
-  setTimeout(() => {
-    popup.style.display = "none";
-    if (typeof atualizarLista === "function") atualizarLista();
-  }, 1500);
-}
-
-// ===================================
-// 🔗 Conecta botão e input automaticamente
-// ===================================
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("btn-silo-arquivo");
-  const input = document.getElementById("inputUploadSilo");
-
-  if (btn && input) {
-    btn.addEventListener("click", () => input.click());
-    input.addEventListener("change", function () {
-      if (this.files.length > 0) {
-        enviarArquivosSilo(this.files, window.pastaAtual || "");
+    try {
+      const j = JSON.parse(xhr.responseText);
+      if (j.ok) {
+        barra.style.background = "var(--verde)";
+        txt.textContent = "✅ Upload concluído!";
+        abrirPopup("✅ Sucesso", j.msg || "Arquivo enviado com sucesso!");
+        setTimeout(() => {
+          overlay.remove();
+          if (typeof atualizarLista === "function") atualizarLista();
+          if (typeof atualizarUso === "function") atualizarUso();
+        }, 800);
+      } else {
+        barra.style.background = "#c33";
+        txt.textContent = "❌ Erro: " + (j.err || "Falha ao enviar arquivo");
+        abrirPopup("❌ Erro", j.err || "Falha ao enviar arquivo.");
+        setTimeout(() => overlay.remove(), 1200);
       }
-    });
-  }
-});
+    } catch (err) {
+      console.error("Erro ao interpretar resposta:", xhr.responseText);
+      abrirPopup("❌ Retorno inválido", "Erro na resposta do servidor.");
+      overlay.remove();
+    }
+  };
+
+  // ⚠️ Erros gerais
+  xhr.onerror = () => {
+    uploadAtivo = false;
+    if (!cancelado) {
+      abrirPopup("❌ Erro", "Falha na conexão durante o upload.");
+      overlay.remove();
+    }
+  };
+
+  xhr.send(fd);
+}
