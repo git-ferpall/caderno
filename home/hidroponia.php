@@ -329,8 +329,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                         </div>
 
                                         <div class="form-campo">
-                                            <label class="item-label" for="e-area">Cultura/Espécie</label>
-                                            <input type="text" class="form-text" name="barea" id="b-area" placeholder="Cultura ou espécie (Opcional)">
+                                            <label class="item-label" for="b-produto">Cultura/Produto</label>
+                                            <div class="form-box form-box-produto">
+                                                <select name="bproduto" id="b-produto" class="form-select form-text produto-select" required>
+                                                    <option value="">Selecione o produto</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <div class="form-campo">

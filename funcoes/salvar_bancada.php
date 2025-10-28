@@ -31,11 +31,11 @@ if (!$prop) {
 
 $propriedade_id = (int)$prop['id'];
 
-// 🧾 Dados recebidos
-$estufa_id = (int)($_POST['estufa_id'] ?? 0);
-$nome      = trim($_POST['nome'] ?? '');
-$cultura   = trim($_POST['cultura'] ?? '');
-$obs       = trim($_POST['obs'] ?? '');
+// 🧾 Dados recebidos do formulário
+$estufa_id  = (int)($_POST['estufa_id'] ?? 0);
+$nome       = trim($_POST['nome'] ?? '');
+$produto_id = (int)($_POST['produto_id'] ?? 0);
+$obs        = trim($_POST['obs'] ?? '');
 
 if ($estufa_id <= 0) {
     echo json_encode(['ok' => false, 'err' => 'Estufa não identificada']);
@@ -45,12 +45,16 @@ if ($nome === '') {
     echo json_encode(['ok' => false, 'err' => 'O nome da bancada é obrigatório']);
     exit;
 }
+if ($produto_id <= 0) {
+    echo json_encode(['ok' => false, 'err' => 'Selecione o produto (cultura) da bancada']);
+    exit;
+}
 
-// 🚀 Transação segura
+// 🚀 Inicia transação
 $mysqli->begin_transaction();
 
 try {
-    // 🔍 1️⃣ Busca nome da estufa (para compor o nome da área)
+    // 🔍 Busca nome da estufa (para montar nome da área)
     $stmt2 = $mysqli->prepare("SELECT nome FROM estufas WHERE id = ?");
     $stmt2->bind_param("i", $estufa_id);
     $stmt2->execute();
@@ -60,14 +64,14 @@ try {
 
     $nome_estufa = $estufa ? $estufa['nome'] : 'Estufa sem nome';
     $nome_area = "{$nome_estufa} - Bancada {$nome}";
-    $tipo = 'bancada';
+    $tipo_area = 'bancada';
 
-    // 🌱 2️⃣ Cria primeiro a área
+    // 🌱 1️⃣ Cria uma nova área vinculada
     $stmt3 = $mysqli->prepare("
         INSERT INTO areas (user_id, propriedade_id, nome, tipo)
         VALUES (?, ?, ?, ?)
     ");
-    $stmt3->bind_param("iiss", $user_id, $propriedade_id, $nome_area, $tipo);
+    $stmt3->bind_param("iiss", $user_id, $propriedade_id, $nome_area, $tipo_area);
     $stmt3->execute();
     $area_id = $stmt3->insert_id;
     $stmt3->close();
@@ -76,12 +80,12 @@ try {
         throw new Exception('Erro ao salvar na tabela areas.');
     }
 
-    // 🧱 3️⃣ Cria a bancada vinculada à área (agora com FK)
+    // 🧱 2️⃣ Cria a bancada vinculada à área e ao produto selecionado
     $stmt = $mysqli->prepare("
-        INSERT INTO bancadas (area_id, estufa_id, nome, cultura, obs)
+        INSERT INTO bancadas (area_id, estufa_id, nome, produto_id, obs)
         VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("iisss", $area_id, $estufa_id, $nome, $cultura, $obs);
+    $stmt->bind_param("iiiss", $area_id, $estufa_id, $nome, $produto_id, $obs);
     $stmt->execute();
     $bancada_id = $stmt->insert_id;
     $stmt->close();
@@ -90,12 +94,12 @@ try {
         throw new Exception('Erro ao salvar na tabela bancadas.');
     }
 
-    // ✅ Confirma tudo
+    // ✅ Finaliza a transação
     $mysqli->commit();
 
     echo json_encode([
         'ok' => true,
-        'msg' => 'Bancada salva com sucesso!',
+        'msg' => '✅ Bancada salva com sucesso!',
         'bancada_id' => $bancada_id,
         'area_id' => $area_id
     ]);

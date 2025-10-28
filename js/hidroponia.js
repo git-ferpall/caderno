@@ -212,3 +212,32 @@ function voltarEstufa(idEstufa) {
     const formNovaBancada = document.getElementById(`add-bancada-estufa-${idEstufa}`);
     if (formNovaBancada) formNovaBancada.classList.remove("d-none");
 }
+// === Carregar produtos (culturas) ===
+async function carregarProdutos() {
+  try {
+    const resp = await fetch("../funcoes/buscar_produtos.php");
+    const data = await resp.json();
+
+    document.querySelectorAll(".produto-select").forEach(sel => {
+      sel.innerHTML = '<option value="">Selecione o produto</option>';
+      data.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nome;
+        sel.appendChild(opt);
+      });
+    });
+  } catch (err) {
+    console.error("Erro ao carregar produtos:", err);
+  }
+}
+
+// Executa o carregamento inicial
+carregarProdutos();
+
+// Caso o usuário adicione uma nova bancada dinamicamente
+document.addEventListener("click", (e) => {
+  if (e.target.id?.startsWith("bancada-add-estufa-")) {
+    setTimeout(carregarProdutos, 300); // aguarda o campo aparecer
+  }
+});
