@@ -97,20 +97,7 @@ async function buscarArquivos(termo) {
   }
 }
 
-// =============================================
-// 🧩 Ícones conforme tipo
-// =============================================
-function getIconClass(tipo) {
-  tipo = tipo.toLowerCase();
-  if (tipo.includes("pdf")) return "icon-pdf";
-  if (tipo.includes("jpg") || tipo.includes("jpeg") || tipo.includes("png") || tipo.includes("gif"))
-    return "icon-img";
-  if (tipo.includes("txt")) return "icon-txt";
-  if (tipo.includes("zip") || tipo.includes("rar")) return "icon-zip";
-  if (tipo.includes("csv") || tipo.includes("xls") || tipo.includes("xlsx")) return "icon-x";
-  if (tipo.includes("doc") || tipo.includes("docx")) return "icon-file";
-  return "icon-file";
-}
+
 
 // =============================================
 // 🎨 Loader simples CSS (adicione no seu style.css)
