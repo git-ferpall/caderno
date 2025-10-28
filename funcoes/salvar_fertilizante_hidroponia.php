@@ -31,17 +31,21 @@ try {
 
     $propriedade_id = $prop['id'];
 
-    // === Dados vindos do formulário (via fetch POST) ===
-    $estufa_id     = $_POST['estufa_id'] ?? null;
-    $area_id       = $_POST['area_id'] ?? null; // 🆕 vincula à área (bancada)
-    $produto_id    = $_POST['produto_id'] ?? null;
-    $dose          = trim($_POST['dose'] ?? '');
-    $tipo          = trim($_POST['tipo'] ?? ''); // Foliar / Solução
-    $obs           = trim($_POST['obs'] ?? '');
-    $data          = date('Y-m-d'); // data atual
+    // === Dados recebidos do formulário ===
+    $estufa_id   = (int)($_POST['estufa_id'] ?? 0);
+    $area_id     = (int)($_POST['area_id'] ?? 0);
+    $produto_id  = (int)($_POST['produto_id'] ?? 0);
+    $dose        = trim($_POST['dose'] ?? '');
+    $tipo        = trim($_POST['tipo'] ?? '');
+    $obs         = trim($_POST['obs'] ?? '');
+    $data        = date('Y-m-d');
 
-    if (!$estufa_id || !$area_id || !$produto_id) {
-        throw new Exception('Campos obrigatórios ausentes (estufa, área ou produto).');
+    if ($estufa_id <= 0 || $area_id <= 0) {
+        throw new Exception('Estufa ou área não identificada.');
+    }
+
+    if ($produto_id <= 0) {
+        throw new Exception('Selecione o fertilizante.');
     }
 
     // === Transação para consistência ===
@@ -61,56 +65,34 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2️⃣ Inserir detalhes: estufa_id
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, 'estufa_id', ?)
-    ");
-    $valor = (string)$estufa_id;
-    $stmt->bind_param("is", $apontamento_id, $valor);
-    $stmt->execute();
+    if (!$apontamento_id) {
+        throw new Exception('Erro ao criar apontamento.');
+    }
+
+    // 2️⃣ Inserir detalhes essenciais (sem observações duplicadas)
+    $detalhes = [
+        ['campo' => 'estufa_id',      'valor' => $estufa_id],
+        ['campo' => 'area_id',        'valor' => $area_id],
+        ['campo' => 'produto_id',     'valor' => $produto_id],
+        ['campo' => 'tipo_aplicacao', 'valor' => ($tipo == 1 ? "Foliar" : "Solução")]
+    ];
+
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
+    foreach ($detalhes as $d) {
+        $stmt->bind_param("iss", $apontamento_id, $d['campo'], $d['valor']);
+        $stmt->execute();
+    }
     $stmt->close();
 
-    // 3️⃣ Inserir detalhes: area_id (referência da bancada)
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, 'area_id', ?)
-    ");
-    $valor = (string)$area_id;
-    $stmt->bind_param("is", $apontamento_id, $valor);
-    $stmt->execute();
-    $stmt->close();
-
-    // 4️⃣ Inserir detalhes: produto_id
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, 'produto_id', ?)
-    ");
-    $valor = (string)$produto_id;
-    $stmt->bind_param("is", $apontamento_id, $valor);
-    $stmt->execute();
-    $stmt->close();
-
-    // 5️⃣ Inserir detalhes: tipo de aplicação
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, 'tipo_aplicacao', ?)
-    ");
-    $valor = ($tipo == 1) ? "Foliar" : "Solução";
-    $stmt->bind_param("is", $apontamento_id, $valor);
-    $stmt->execute();
-    $stmt->close();
-
-    // ✅ Finaliza a transação
     $mysqli->commit();
 
     echo json_encode([
         'ok' => true,
-        'msg' => '✅ Fertilizante aplicado com sucesso!'
+        'msg' => 'Fertilizante salvo com sucesso!'
     ]);
 
 } catch (Exception $e) {
-    $mysqli->rollback();
+    if ($mysqli->errno) $mysqli->rollback();
     echo json_encode([
         'ok' => false,
         'err' => $e->getMessage()
