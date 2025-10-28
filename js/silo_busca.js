@@ -70,7 +70,7 @@ async function buscarArquivos(termo) {
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-title">${a.nome_arquivo}</span>
+          <span class="silo-item-path" style="display:block; opacity:0.6; font-size:11px;">${formatarCaminho(a.caminho_arquivo)}</span>
           <span class="silo-item-path" style="display:block; opacity:0.6; font-size:11px;">${a.caminho_arquivo}</span>
         </div>
       `;
@@ -97,7 +97,14 @@ async function buscarArquivos(termo) {
   }
 }
 
-
+// =============================================
+// 🧭 Remove prefixo "silo/USERID" e formata caminho
+// =============================================
+function formatarCaminho(caminho) {
+  if (!caminho) return "";
+  // Remove "silo/xxxx/" (onde xxxx é o ID do usuário)
+  return caminho.replace(/^silo\/\d+\//, "");
+}
 
 // =============================================
 // 🎨 Loader simples CSS (adicione no seu style.css)
