@@ -4,6 +4,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   atualizarLista();
   atualizarUso();
+  atualizarBreadcrumb();
 });
 
 // ===================================
@@ -46,11 +47,13 @@ async function atualizarLista() {
         </div>
       `;
 
+      // Clique → menu de ações
       div.addEventListener('click', (e) => {
         e.stopPropagation();
         abrirMenuArquivo(e, a);
       });
 
+      // Duplo clique → entrar em pasta
       if (isFolder) {
         div.addEventListener('dblclick', (e) => {
           e.stopPropagation();
@@ -104,11 +107,13 @@ function abrirMenuArquivo(e, arquivo) {
   menu.style.top = (e.clientY + window.scrollY + 10) + 'px';
   menu.style.left = (e.clientX + window.scrollX + 10) + 'px';
 
+  // 📥 Baixar
   menu.querySelector('.download').onclick = () => {
     baixarArquivo(`../funcoes/silo/download_arquivo.php?id=${arquivo.id}`);
     fecharMenuArquivo();
   };
 
+  // ✏️ Renomear
   menu.querySelector('.rename').onclick = async () => {
     const novoNome = prompt('Digite o novo nome do arquivo:', arquivo.nome_arquivo);
     if (novoNome && novoNome.trim() !== '' && novoNome !== arquivo.nome_arquivo) {
@@ -127,11 +132,13 @@ function abrirMenuArquivo(e, arquivo) {
     fecharMenuArquivo();
   };
 
+  // 📂 Mover
   menu.querySelector('.mover').onclick = () => {
     moverItem(arquivo.id);
     fecharMenuArquivo();
   };
 
+  // 🗑️ Excluir
   menu.querySelector('.delete').onclick = () => {
     excluirArquivo(arquivo.id);
     fecharMenuArquivo();
@@ -141,7 +148,7 @@ function abrirMenuArquivo(e, arquivo) {
 }
 
 // ===================================
-// 📥 Baixar / 🗑️ Excluir
+// 📥 Baixar
 // ===================================
 function baixarArquivo(url) {
   const link = document.createElement('a');
@@ -153,6 +160,9 @@ function baixarArquivo(url) {
   document.body.removeChild(link);
 }
 
+// ===================================
+// 🗑️ Excluir
+// ===================================
 async function excluirArquivo(id) {
   if (!confirm('Excluir este arquivo?')) return;
   const fd = new FormData();
@@ -169,13 +179,13 @@ async function excluirArquivo(id) {
 }
 
 // ===================================
-// 📊 Atualiza uso
+// 📊 Atualiza uso de espaço
 // ===================================
 async function atualizarUso() {
   const res = await fetch('../funcoes/silo/get_uso.php');
   const j = await res.json();
   if (j.ok) {
-    const usado = parseFloat(j.usado).toFixed(3);
+    const usado = parseFloat(j.usado).toFixed(2);
     const limite = parseFloat(j.limite).toFixed(2);
     document.querySelector('.silo-info-title').innerText =
       `${j.percent}% utilizado (${usado} GB de ${limite} GB)`;
@@ -185,7 +195,7 @@ async function atualizarUso() {
 }
 
 // ===================================
-// 📁 Controle de navegação
+// 📁 Navegação
 // ===================================
 window.pastaAtual = 0;
 
@@ -196,10 +206,60 @@ function acessarPasta(id) {
   console.log("📁 Pasta atual:", id);
 }
 
+// ===================================
+// 🧭 Breadcrumb (caminho de navegação)
+// ===================================
+async function atualizarBreadcrumb() {
+  const nav = document.querySelector('.silo-breadcrumb');
+  if (!nav) return;
+
+  try {
+    const res = await fetch(`../funcoes/silo/get_caminho.php?pasta_id=${window.pastaAtual || 0}`);
+    const j = await res.json();
+    if (j.ok) {
+      nav.innerHTML = '';
+      j.caminho.forEach((p, i) => {
+        const span = document.createElement('span');
+        span.textContent = p.nome;
+        span.className = 'breadcrumb-item';
+        span.onclick = () => acessarPasta(p.id);
+        nav.appendChild(span);
+        if (i < j.caminho.length - 1) nav.innerHTML += ' / ';
+      });
+    } else {
+      nav.innerHTML = 'Silo de Dados';
+    }
+  } catch {
+    nav.innerHTML = 'Silo de Dados';
+  }
+}
+
+// ===================================
+// 📂 Mover arquivo/pasta
+// ===================================
+async function moverItem(id) {
+  const destino = prompt("Digite o ID da pasta de destino:");
+  if (!destino || isNaN(destino)) return;
+  const fd = new FormData();
+  fd.append('id', id);
+  fd.append('destino', destino);
+  const res = await fetch('../funcoes/silo/mover_arquivo.php', { method: 'POST', body: fd });
+  const j = await res.json();
+  if (j.ok) {
+    abrirPopup('📂 Movido', j.msg);
+    atualizarLista();
+  } else abrirPopup('❌ Erro', j.err);
+}
+
+// ===================================
+// ❌ Fecha menus abertos
+// ===================================
 function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
 
+// Exporta funções globais
 window.atualizarLista = atualizarLista;
 window.atualizarUso = atualizarUso;
+window.atualizarBreadcrumb = atualizarBreadcrumb;
