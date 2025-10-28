@@ -116,7 +116,4 @@ try {
         ]
     ]);
 
-} catch (Exception $e) {
-    $mysqli->rollback();
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
-}
+} 
