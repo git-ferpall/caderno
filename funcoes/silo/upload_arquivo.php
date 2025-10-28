@@ -16,7 +16,8 @@ try {
 
     $arquivo = $_FILES['arquivo'];
     $origem = $_POST['origem'] ?? 'upload';
-    $parent_id = $_POST['parent_id'] ?? null;
+    $parent_id = isset($_POST['parent_id']) && is_numeric($_POST['parent_id']) ? intval($_POST['parent_id']) : null;
+
 
     // 📁 Base
     $base = realpath(__DIR__ . '/../../uploads');
