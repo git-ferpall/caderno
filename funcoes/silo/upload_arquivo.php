@@ -3,112 +3,86 @@ require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
+ini_set('display_errors', 0);
 
 try {
-    // 🔐 Autenticação
     $payload = verify_jwt();
     $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
     if (!$user_id) throw new Exception('unauthorized');
 
-    // 📂 Verifica se há arquivo enviado
-    if (empty($_FILES['arquivo']['tmp_name'])) throw new Exception('nenhum_arquivo');
+    if (empty($_FILES['arquivo']['tmp_name']) || !is_uploaded_file($_FILES['arquivo']['tmp_name']))
+        throw new Exception('nenhum_arquivo');
 
     $arquivo = $_FILES['arquivo'];
-    $origem  = $_POST['origem'] ?? 'upload';
+    $origem = $_POST['origem'] ?? 'upload';
     $parent_id = $_POST['parent_id'] ?? null;
 
-    // 📦 Diretórios base
+    // 📁 Base
     $base = realpath(__DIR__ . '/../../uploads');
-    $pasta_silo = "$base/silo";
-    $pasta_user = "$pasta_silo/$user_id";
+    $pasta_user = "$base/silo/$user_id";
+    if (!is_dir($pasta_user)) mkdir($pasta_user, 0775, true);
 
-    // 🔧 Garante que o diretório do usuário existe
-    if (!is_dir($pasta_user)) {
-        if (!mkdir($pasta_user, 0775, true)) {
-            throw new Exception('mkdir_falhou: ' . $pasta_user);
-        }
-    }
-
-    // 📁 Define diretório de destino (pasta atual)
     $destinoDir = $pasta_user;
     $caminhoRelativoBase = "silo/$user_id";
 
+    // Caso esteja dentro de pasta
     if (!empty($parent_id)) {
-        $stmt = $mysqli->prepare("
-            SELECT caminho_arquivo 
-            FROM silo_arquivos 
-            WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'
-        ");
+        $stmt = $mysqli->prepare("SELECT caminho_arquivo FROM silo_arquivos WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'");
         $stmt->bind_param('ii', $parent_id, $user_id);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
         if ($res && !empty($res['caminho_arquivo'])) {
-            // 🔧 Corrige para evitar "uploads/uploads"
             $rel = str_replace(['uploads/', './'], '', $res['caminho_arquivo']);
             $destinoDir = $base . '/' . $rel;
             $caminhoRelativoBase = $rel;
         }
     }
 
-    // 🔍 Tipos permitidos
-    $permitidos = [
-        'image/jpeg', 'image/png', 'image/jpg',
-        'application/pdf', 'text/plain'
-    ];
-    if (!in_array($arquivo['type'], $permitidos)) throw new Exception('tipo_invalido');
-
-    // 🧾 Nome final e caminho
+    // 🔒 Checa extensões
     $nomeOriginal = basename($arquivo['name']);
+    $ext = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
+    $bloqueadas = ['php','phtml','exe','sh','js','bat','cmd','html','htm'];
+    if (in_array($ext, $bloqueadas))
+        throw new Exception('extensao_proibida');
+
+    // MIME real
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $arquivo['tmp_name']);
+    finfo_close($finfo);
+
+    $permitidos = ['image/jpeg','image/png','application/pdf','text/plain'];
+    if (!in_array($mime, $permitidos))
+        throw new Exception('mime_invalido: '.$mime);
+
+    // 🚫 Verifica código malicioso no início do arquivo
+    $head = file_get_contents($arquivo['tmp_name'], false, null, 0, 512);
+    if (preg_match('/<\?(php|=)|base64_decode|eval\(|shell_exec|system\(/i', $head))
+        throw new Exception('arquivo_malicioso');
+
+    // 💾 Move
     $nome_unico = uniqid('', true) . '-' . $nomeOriginal;
     $destino = "$destinoDir/$nome_unico";
+    if (!move_uploaded_file($arquivo['tmp_name'], $destino))
+        throw new Exception('falha_upload');
+    chmod($destino, 0644);
 
-    // Garante que a pasta exista
-    if (!is_dir($destinoDir)) {
-        mkdir($destinoDir, 0775, true);
-    }
-
-    // Caminho relativo para salvar no banco
+    $tamanho = filesize($destino);
     $caminho_relativo = "$caminhoRelativoBase/$nome_unico";
 
-    // 💾 Move o arquivo físico
-    if (!move_uploaded_file($arquivo['tmp_name'], $destino)) {
-        throw new Exception('falha_upload');
-    }
-
-    // 📏 Tamanho e tipo
-    $tamanho = filesize($destino);
-    $tipoMime = $arquivo['type'];
-
-    // 🧱 Salva registro no banco
     $stmt = $mysqli->prepare("
         INSERT INTO silo_arquivos 
-            (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, origem, tipo, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'arquivo', NOW())
+        (user_id,nome_arquivo,tipo_arquivo,tamanho_bytes,caminho_arquivo,parent_id,origem,tipo,criado_em)
+        VALUES (?,?,?,?,?,?,?,'arquivo',NOW())
     ");
-    $stmt->bind_param(
-        'issisis',
-        $user_id,
-        $nomeOriginal,
-        $tipoMime,
-        $tamanho,
-        $caminho_relativo,
-        $parent_id,
-        $origem
-    );
+    $stmt->bind_param('issisis', $user_id, $nomeOriginal, $mime, $tamanho, $caminho_relativo, $parent_id, $origem);
     $stmt->execute();
     $stmt->close();
 
-    echo json_encode([
-        'ok' => true,
-        'msg' => 'Arquivo enviado com sucesso!',
-        'path' => $caminho_relativo
-    ]);
-
-} catch (Exception $e) {
+    echo json_encode(['ok'=>true,'msg'=>'✅ Arquivo enviado!','path'=>$caminho_relativo]);
+} catch (Throwable $e) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok'=>false,'err'=>$e->getMessage()]);
 }

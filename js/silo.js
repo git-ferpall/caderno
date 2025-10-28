@@ -7,17 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===================================
-// 📜 Atualiza lista (com ícones por tipo e suporte a pastas)
+// 📜 Atualiza lista de arquivos/pastas
 // ===================================
 async function atualizarLista() {
   try {
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${pastaAtual || 0}`);
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
     const j = await res.json();
     const box = document.querySelector('.silo-arquivos');
     box.innerHTML = '';
 
     if (!j.ok || !Array.isArray(j.arquivos)) {
-      console.error('Resposta inválida:', j);
       box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
       return;
     }
@@ -52,7 +51,7 @@ async function atualizarLista() {
         abrirMenuArquivo(e, a);
       });
 
-      if (isFolder && typeof acessarPasta === 'function') {
+      if (isFolder) {
         div.addEventListener('dblclick', (e) => {
           e.stopPropagation();
           acessarPasta(a.id);
@@ -63,7 +62,6 @@ async function atualizarLista() {
     });
 
     atualizarBreadcrumb();
-
   } catch (err) {
     console.error('Erro ao atualizar lista:', err);
     document.querySelector('.silo-arquivos').innerHTML =
@@ -76,7 +74,6 @@ async function atualizarLista() {
 // ===================================
 function getIconClass(tipo) {
   tipo = tipo.toLowerCase();
-
   if (tipo.includes('pdf')) return 'icon-pdf';
   if (tipo.includes('jpg') || tipo.includes('jpeg') || tipo.includes('png') || tipo.includes('gif')) return 'icon-img';
   if (tipo.includes('txt')) return 'icon-txt';
@@ -84,7 +81,6 @@ function getIconClass(tipo) {
   if (tipo.includes('csv') || tipo.includes('xls') || tipo.includes('xlsx')) return 'icon-x';
   if (tipo.includes('doc') || tipo.includes('docx')) return 'icon-file';
   if (tipo.includes('ppt') || tipo.includes('pptx')) return 'icon-file';
-
   return 'icon-file';
 }
 
@@ -145,7 +141,7 @@ function abrirMenuArquivo(e, arquivo) {
 }
 
 // ===================================
-// ⬇️ Baixar
+// 📥 Baixar / 🗑️ Excluir
 // ===================================
 function baixarArquivo(url) {
   const link = document.createElement('a');
@@ -157,9 +153,6 @@ function baixarArquivo(url) {
   document.body.removeChild(link);
 }
 
-// ===================================
-// 🗑️ Excluir
-// ===================================
 async function excluirArquivo(id) {
   if (!confirm('Excluir este arquivo?')) return;
   const fd = new FormData();
@@ -167,11 +160,11 @@ async function excluirArquivo(id) {
   const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
   const j = await res.json();
   if (j.ok) {
-    alert('🗑️ Arquivo removido!');
+    abrirPopup('🗑️ Removido', j.msg || 'Arquivo excluído.');
     atualizarLista();
     atualizarUso();
   } else {
-    alert('❌ ' + j.err);
+    abrirPopup('❌ Erro', j.err || 'Falha ao excluir arquivo.');
   }
 }
 
@@ -192,39 +185,21 @@ async function atualizarUso() {
 }
 
 // ===================================
-// 🚫 Checa limite antes do upload
+// 📁 Controle de navegação
 // ===================================
-async function checarLimiteAntesUpload() {
-  const res = await fetch('../funcoes/silo/get_uso.php');
-  const j = await res.json();
-  if (j.ok && j.usado >= j.limite) {
-    alert(`❌ Limite de ${j.limite} GB atingido. Exclua arquivos antes de enviar novos.`);
-    return false;
-  }
-  return true;
+window.pastaAtual = 0;
+
+function acessarPasta(id) {
+  window.pastaAtual = id;
+  atualizarLista();
+  atualizarBreadcrumb();
+  console.log("📁 Pasta atual:", id);
 }
 
-// ===================================
-// ❌ Fecha menus
-// ===================================
 function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
 
-// ===================================
-// 📁 Controle da pasta atual
-// ===================================
-
-// Garante que a variável global exista
-window.pastaAtual = 0;
-
-// Função usada ao entrar em uma pasta
-function acessarPasta(id) {
-  window.pastaAtual = id;
-  atualizarLista();
-  atualizarBreadcrumb();
-}
-// Permite que outros scripts (como upload/mover) atualizem a lista
 window.atualizarLista = atualizarLista;
 window.atualizarUso = atualizarUso;
