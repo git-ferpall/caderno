@@ -273,13 +273,12 @@ if ($user_id) {
     <!-- Popup de Upload com Progresso -->
     <div id="uploadPopup" class="upload-popup" style="display:none;">
     <div class="upload-box">
-        <h3>⬆️ Enviando arquivo...</h3>
-        <div class="progress-bar">
-        <div class="progress-fill" id="uploadProgress"></div>
-        </div>
-        <p id="uploadPercent" class="progress-text">0%</p>
+        <h3>⬆️ Enviando arquivos...</h3>
+        <div id="uploadLista"></div>
+        <p id="uploadResumo" class="progress-text">Preparando...</p>
     </div>
     </div>
+
 
 
    
