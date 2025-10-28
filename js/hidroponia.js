@@ -40,10 +40,19 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
         const id = e.target.id.split("-").pop();
         const container = document.querySelector(`#item-add-bancada-estufa-${id}`);
 
-        // captura correta dos campos existentes no HTML
-        const nome = container.querySelector("#b-nome").value.trim();
-        const produto_id = container.querySelector("#b-produto").value.trim();
-        const obs = container.querySelector("#b-obs").value.trim();
+        if (!container) {
+            alert("Erro interno: container da estufa não encontrado.");
+            return;
+        }
+
+        // Pega os campos dentro desse container específico
+        const nomeInput = container.querySelector("#b-nome");
+        const produtoInput = container.querySelector("#b-produto");
+        const obsInput = container.querySelector("#b-obs");
+
+        const nome = nomeInput ? nomeInput.value.trim() : "";
+        const produto_id = produtoInput ? produtoInput.value.trim() : "";
+        const obs = obsInput ? obsInput.value.trim() : "";
 
         if (!nome) {
             alert("Informe o nome/número da bancada");
@@ -55,10 +64,17 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
             return;
         }
 
+        // Envia os dados corretamente
         const res = await fetch("../funcoes/salvar_bancada.php", {
             method: "POST",
-            body: new URLSearchParams({ estufa_id: id, nome, produto_id, obs })
+            body: new URLSearchParams({
+                estufa_id: id,
+                nome,
+                produto_id,
+                obs
+            })
         });
+
         const data = await res.json();
 
         if (data.ok) {
@@ -69,6 +85,7 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
         }
     });
 });
+
 
 
 });
