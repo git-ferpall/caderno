@@ -318,7 +318,6 @@ if (!headers_sent()) {
                                 
                         echo '</div>
                             <form action="hidroponia.php" class="main-form form-bancada" id="add-bancada-estufa-<?php echo $estufa['id']; ?>">
-
                                 <div class="item-add">
                                     <button class="main-btn btn-alter btn-alter-item fundo-verde" 
                                             id="bancada-add-estufa-<?php echo $estufa['id']; ?>" 
