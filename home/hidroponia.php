@@ -317,66 +317,49 @@ if (!headers_sent()) {
                         }
                                 
                         echo '</div>
-                            <form action="hidroponia.php" class="main-form form-bancada" id="add-bancada-estufa-<?php echo $estufa['id']; ?>">
+                            <form action="hidroponia.php" class="main-form form-bancada" id="add-bancada-estufa-' . $estufa['id'] . '">
+
                                 <div class="item-add">
-                                    <button class="main-btn btn-alter btn-alter-item fundo-verde" 
-                                            id="bancada-add-estufa-<?php echo $estufa['id']; ?>" 
-                                            type="button">
+                                    <button class="main-btn btn-alter btn-alter-item fundo-verde" id="bancada-add-estufa-' . $estufa['id'] . '" type="button">
                                         <div class="btn-icon icon-plus cor-verde"></div>
                                         <span class="main-btn-text">Nova Bancada</span>
                                     </button>
                                 </div>
 
-                                <div class="item-add-box" id="item-add-bancada-estufa-<?php echo $estufa['id']; ?>">
+                                <div class="item-add-box" id="item-add-bancada-estufa-' . $estufa['id'] . '">
                                     <div class="item-add-box-p">
-
                                         <div class="form-campo">
-                                            <label class="item-label" for="b-nome-estufa-<?php echo $estufa['id']; ?>">Número/Nome da Bancada</label>
-                                            <input type="text" 
-                                                class="form-text" 
-                                                name="b-nome" 
-                                                id="b-nome-estufa-<?php echo $estufa['id']; ?>" 
-                                                placeholder="Ex: 01, 02..." 
-                                                required>
+                                            <label class="item-label" for="b-nome">Número/Nome da Bancada</label>
+                                            <input type="text" class="form-text" name="enome" id="b-nome" placeholder="Ex: 01, 02..." required>
                                         </div>
 
                                         <div class="form-campo">
-                                            <label class="item-label" for="b-produto-estufa-<?php echo $estufa['id']; ?>">Cultura/Produto</label>
+                                            <label class="item-label" for="b-produto">Cultura/Produto</label>
                                             <div class="form-box form-box-produto">
-                                                <select name="b-produto" 
-                                                        id="b-produto-estufa-<?php echo $estufa['id']; ?>" 
-                                                        class="form-select form-text produto-select" 
-                                                        required>
+                                                <select name="bproduto" id="b-produto" class="form-select form-text produto-select" required>
                                                     <option value="">Selecione o produto</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div class="form-campo">
-                                            <label for="b-obs-estufa-<?php echo $estufa['id']; ?>">Observações</label>
-                                            <textarea class="form-text form-textarea" 
-                                                    name="b-obs" 
-                                                    id="b-obs-estufa-<?php echo $estufa['id']; ?>" 
-                                                    placeholder="Insira aqui suas observações..."></textarea>
+                                            <label for="e-obs">Observações</label>
+                                            <textarea class="form-text form-textarea" name="bobs" id="b-obs" placeholder="Insira aqui suas observações..."></textarea>
                                         </div>
 
                                         <div class="form-submit">
-                                            <button class="item-btn fundo-cinza-b cor-preto form-cancel" 
-                                                    id="form-cancel-bancada-estufa-<?php echo $estufa['id']; ?>" 
-                                                    type="button">
+                                            <button class="item-btn fundo-cinza-b cor-preto form-cancel" id="form-cancel-bancada-estufa-' . $estufa['id'] . '" type="button">
+                                                <!-- <div class="btn-icon icon-x cor-cinza-b"></div> -->
                                                 <span class="main-btn-text">Cancelar</span>
                                             </button>
-                                            <button class="item-btn fundo-verde form-save" 
-                                                    id="form-save-bancada-estufa-<?php echo $estufa['id']; ?>" 
-                                                    type="button">
+                                            <button class="item-btn fundo-verde form-save" id="form-save-bancada-estufa-' . $estufa['id'] . '" type="button">
+                                                <!-- <div class="btn-icon icon-check cor-verde"></div> -->
                                                 <span class="main-btn-text">Salvar</span>
                                             </button>
                                         </div>
-
                                     </div>
                                 </div>
                             </form>
-
                         </div>
                     </div>';
                     }
