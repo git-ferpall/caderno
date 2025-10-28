@@ -8,8 +8,13 @@ session_start();
 // 🔐 Identifica usuário logado
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
+    try {
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
+    } catch (Exception $e) {
+        echo json_encode(['ok' => false, 'err' => 'Falha ao validar token.']);
+        exit;
+    }
 }
 if (!$user_id) {
     echo json_encode(['ok' => false, 'err' => 'Usuário não autenticado']);
@@ -31,11 +36,11 @@ if (!$prop) {
 
 $propriedade_id = (int)$prop['id'];
 
-// 🧾 Dados recebidos do formulário
-$estufa_id  = (int)($_POST['estufa_id'] ?? 0);
-$nome       = trim($_POST['nome'] ?? '');
-$produto_id = (int)($_POST['produto_id'] ?? 0);
-$obs        = trim($_POST['obs'] ?? '');
+// 🧾 Dados recebidos
+$estufa_id  = isset($_POST['estufa_id']) ? (int)$_POST['estufa_id'] : 0;
+$nome       = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+$produto_id = isset($_POST['produto_id']) ? (int)$_POST['produto_id'] : 0;
+$obs        = isset($_POST['obs']) ? trim($_POST['obs']) : '';
 
 if ($estufa_id <= 0) {
     echo json_encode(['ok' => false, 'err' => 'Estufa não identificada']);
@@ -50,11 +55,10 @@ if ($produto_id <= 0) {
     exit;
 }
 
-// 🚀 Inicia transação
-$mysqli->begin_transaction();
-
 try {
-    // 🔍 Busca nome da estufa (para montar nome da área)
+    $mysqli->begin_transaction();
+
+    // 🔍 Busca nome da estufa (para gerar nome da área)
     $stmt2 = $mysqli->prepare("SELECT nome FROM estufas WHERE id = ?");
     $stmt2->bind_param("i", $estufa_id);
     $stmt2->execute();
@@ -66,7 +70,7 @@ try {
     $nome_area = "{$nome_estufa} - Bancada {$nome}";
     $tipo_area = 'bancada';
 
-    // 🌱 1️⃣ Cria uma nova área vinculada
+    // 🌱 1️⃣ Cria uma nova área vinculada à bancada
     $stmt3 = $mysqli->prepare("
         INSERT INTO areas (user_id, propriedade_id, nome, tipo)
         VALUES (?, ?, ?, ?)
@@ -77,7 +81,7 @@ try {
     $stmt3->close();
 
     if ($area_id <= 0) {
-        throw new Exception('Erro ao salvar na tabela areas.');
+        throw new Exception('Erro ao salvar a área vinculada.');
     }
 
     // 🧱 2️⃣ Cria a bancada vinculada à área e ao produto selecionado
@@ -91,17 +95,17 @@ try {
     $stmt->close();
 
     if ($bancada_id <= 0) {
-        throw new Exception('Erro ao salvar na tabela bancadas.');
+        throw new Exception('Erro ao salvar a bancada.');
     }
 
-    // ✅ Finaliza a transação
     $mysqli->commit();
 
     echo json_encode([
         'ok' => true,
         'msg' => '✅ Bancada salva com sucesso!',
         'bancada_id' => $bancada_id,
-        'area_id' => $area_id
+        'area_id' => $area_id,
+        'nome' => $nome
     ]);
 
 } catch (Exception $e) {
