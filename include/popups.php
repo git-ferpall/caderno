@@ -270,14 +270,7 @@ if ($user_id) {
         <button id="btn-confirmar-mover">Mover</button>
     </div>
     </div>
-    <!-- Popup de Upload com Progresso -->
-    <div id="uploadPopup" class="upload-popup" style="display:none;">
-    <div class="upload-box">
-        <h3>⬆️ Enviando arquivos...</h3>
-        <div id="uploadLista"></div>
-        <p id="uploadResumo" class="progress-text">Preparando...</p>
-    </div>
-    </div>
+    
 
 
 
