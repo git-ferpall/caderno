@@ -71,7 +71,6 @@ async function buscarArquivos(termo) {
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <span class="silo-item-path" style="display:block; opacity:0.6; font-size:11px;">${formatarCaminho(a.caminho_arquivo)}</span>
-          <span class="silo-item-path" style="display:block; opacity:0.6; font-size:11px;">${a.caminho_arquivo}</span>
         </div>
       `;
 
