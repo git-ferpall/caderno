@@ -1,21 +1,21 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v2.8
- * Adiciona identificação automática de estufa/bancada + fixes dinâmicos
+ * HIDROPONIA_FERTILIZANTE.JS v2.9
+ * Corrige ID numérico da bancada e remove mensagem duplicada
  * Atualizado em 2025-10-28
  */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === [NOVIDADE] Corrige formulários sem data-estufa-id / data-area-id ===
+  // === Corrige formulários sem data-estufa-id / data-area-id ===
   document.querySelectorAll('.form-fertilizante').forEach(form => {
-    // Exemplo de ID: add-e-1-b-01-fertilizante
-    const idMatch = form.id.match(/e-(\d+)-b-([^-]+)/);
+    // Exemplo de ID: add-e-1-b-4-fertilizante
+    const idMatch = form.id.match(/e-(\d+)-b-(\d+)/);
     if (idMatch) {
       const estufaId = idMatch[1];
-      const areaId = idMatch[2];
+      const bancadaId = idMatch[2];
       form.dataset.estufaId = estufaId;
-      form.dataset.areaId = areaId;
-      console.log(`🧩 Dados automáticos adicionados → Estufa ${estufaId}, Bancada ${areaId}`);
+      form.dataset.areaId = bancadaId; // usa ID numérico
+      console.log(`🧩 Dados automáticos adicionados → Estufa ${estufaId}, Bancada ID ${bancadaId}`);
     } else {
       console.warn("⚠️ Não foi possível identificar estufa/bancada para o formulário:", form.id);
     }
@@ -44,10 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log(`✅ ${data.length} fertilizantes carregados.`);
 
-      // Preenche todos os selects de fertilizante
       document.querySelectorAll('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]').forEach(sel => {
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
-
         data.forEach(item => {
           const opt = document.createElement("option");
           opt.value = item.id;
@@ -55,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
           sel.appendChild(opt);
         });
 
-        // Adiciona a opção "Outro"
         const outro = document.createElement("option");
         outro.value = "outro";
         outro.textContent = "Outro (digitar manualmente)";
@@ -70,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarFertilizantes();
 
-  // === Exibir campo extra ao escolher "Outro" ===
+  // === Campo "Outro" ===
   document.addEventListener("change", (e) => {
     if (e.target.matches('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name="produto_id"]')) {
       const sel = e.target;
@@ -108,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ? outroInput.value.trim()
         : produtoNome;
 
-      // ✅ Campos dinâmicos corrigidos
       const dose = form.querySelector('input[name^="fert-"][name$="-dose"]')?.value.trim() || "";
       const tipo = form.querySelector('input[name^="fert-"][name$="-tipo"]:checked')?.value || "";
       const obs  = form.querySelector('textarea[name^="fert-"][name$="-obs"]')?.value.trim() || "";
@@ -145,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.ok) {
           form.classList.add("d-none");
-          alert("✅ Fertilizante salvo com sucesso!");
           location.reload();
         } else {
           alert("❌ " + (data.err || "Erro ao salvar fertilizante."));
