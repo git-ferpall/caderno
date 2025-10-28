@@ -70,6 +70,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <div class="btn-icon icon-upload cor-branco"></div>
                             <span class="link-title">Enviar arquivo</span>
                         </button>
+                        <input type="file" id="inputUploadSilo" multiple style="display:none;" />
                         <button class="silo-dados-add-btn fundo-laranja cor-branco" id="btn-silo-pasta">
                             <div class="btn-icon icon-pasta cor-branco"></div>
                             <span class="link-title">Criar nova pasta</span>
@@ -101,6 +102,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <script src="../js/silo.js"></script>
         <script src="../js/silo_pasta.js"></script>
         <script src="../js/silo_mover.js"></script>
+        <script src="../js/silo_upload.js"></script>
+
     </div>
         
     <?php include '../include/footer.php' ?>
