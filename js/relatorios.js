@@ -1,7 +1,6 @@
 /**
- * RELATORIOS.JS v1.5
- * Corrige detecção de seleção múltipla e recarrega filtros dependentes corretamente
- * Compatível com Chrome, Edge e Safari
+ * RELATORIOS.JS v1.6
+ * Seleção múltipla 100% funcional (captura cliques, Ctrl, Shift e teclado)
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -10,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectCult = document.getElementById("pf-cult");
   const selectMane = document.getElementById("pf-mane");
 
-  // === Carrega propriedades e filtros ===
+  // === Carrega filtros ===
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
       const params = new URLSearchParams();
@@ -29,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros.");
 
-      // === Popula propriedades ===
+      // === Popula propriedades (primeira vez apenas) ===
       if (!propriedadesSelecionadas.length) {
         selectProp.innerHTML = "";
         data.propriedades.forEach(p => {
@@ -48,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = a;
         selectArea.appendChild(opt);
       });
+
       if (!data.areas?.length) {
         selectArea.innerHTML += "<option>Nenhuma área encontrada</option>";
       }
@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = c;
         selectCult.appendChild(opt);
       });
+
       if (!data.cultivos?.length) {
         selectCult.innerHTML += "<option>Nenhum cultivo encontrado</option>";
       }
@@ -72,6 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = m.charAt(0).toUpperCase() + m.slice(1).replace("_", " ");
         selectMane.appendChild(opt);
       });
+
       if (!data.manejos?.length) {
         selectMane.innerHTML += "<option>Nenhum tipo de manejo encontrado</option>";
       }
@@ -85,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // === Inicializa com propriedades ===
   await carregarFiltros();
 
-  // === Atualiza quando o usuário seleciona propriedades ===
+  // === Função de atualização dinâmica ===
   const atualizar = () => {
     const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
     console.log("🎯 Propriedades selecionadas:", selecionadas);
@@ -97,10 +99,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Eventos que garantem funcionamento confiável em <select multiple>
-  selectProp.addEventListener("change", atualizar);
-  selectProp.addEventListener("input", atualizar);
-  selectProp.addEventListener("click", atualizar);
-  selectProp.addEventListener("keyup", atualizar);
-  selectProp.addEventListener("mouseup", () => setTimeout(atualizar, 100)); // atraso pra capturar seleção após clique
+  // === Eventos que funcionam em todos os cenários ===
+  ["change", "click", "keyup", "mouseup", "focusout"].forEach(evt => {
+    selectProp.addEventListener(evt, () => setTimeout(atualizar, 100));
+  });
 });
