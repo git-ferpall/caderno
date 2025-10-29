@@ -38,6 +38,13 @@
                 <form action="relatorios.php" class="main-form container" id="rel-form">
 
                     <div class="form-campo">
+                        <label for="pf-propriedades">Propriedades</label>
+                        <select name="pfpropriedades[]" id="pf-propriedades" class="form-select form-text f1" multiple required>
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-campo">
                         <label for="pf-cult">Cultivos</label>
                         <select name="pfcult" id="pf-cult" class="form-select form-text f1" required>
                             <option value="" selected>Todos os cultivos</option>
@@ -100,6 +107,7 @@
         </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/relatorios.js"></script>
     </div>
         
     <?php include '../include/footer.php' ?>
