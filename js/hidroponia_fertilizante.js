@@ -1,16 +1,15 @@
 /**
- * HIDROPONIA_FERTILIZANTE.JS v3.4
- * Compatível com HTML existente (sem alterar forms)
- * Detecta automaticamente estufa_id e área_id pelo ID do form
- * Corrige input "Dose utilizada" bloqueado
+ * HIDROPONIA_FERTILIZANTE.JS v3.9
+ * Detecta automaticamente estufa_id e area_id (sem alterar HTML)
+ * Mantém compatibilidade total com hidroponia.js v2.5
  * Atualizado em 2025-10-28
  */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === Autoatribui data-estufa-id e data-area-id com base no ID do form ===
+  // === Vincula forms automaticamente com estufa/área ===
   document.querySelectorAll(".form-fertilizante").forEach(form => {
-    const id = form.id; // ex: add-e-1-b-Bancada 01-fertilizante
+    const id = form.id; // ex: add-e-1-b-Bancada 04-fertilizante
     const match = id.match(/e-(\d+)-b-(.+)-fertilizante$/);
 
     if (match) {
@@ -18,96 +17,62 @@ document.addEventListener("DOMContentLoaded", () => {
       const bancadaNome = match[2].trim();
       form.dataset.estufaId = estufaId;
 
-      // tenta extrair número no final do nome da bancada
       const numMatch = bancadaNome.match(/(\d+)$/);
       form.dataset.areaId = numMatch ? numMatch[1] : bancadaNome;
 
       console.log(`🧩 Vinculado form ${id} → estufa=${estufaId}, area=${form.dataset.areaId}`);
     } else {
-      console.warn("⚠️ Formulário sem padrão esperado:", id);
+      console.warn("⚠️ Formulário fora do padrão esperado:", id);
     }
   });
 
-  // === Corrige inputs bloqueados (ex: 'Dose utilizada') ===
+  // === Corrige inputs travados ===
   document.querySelectorAll('.form-fertilizante input[id*="-dose"]').forEach(inp => {
-    inp.removeAttribute('readonly');
-    inp.removeAttribute('disabled');
-    inp.type = "text";
+    inp.removeAttribute("readonly");
+    inp.removeAttribute("disabled");
     inp.style.pointerEvents = "auto";
   });
 
-  // 🔍 Função auxiliar para pegar area_id da bancada selecionada
+  // === Detecta area_id pela bancada selecionada, sem mudar HTML ===
   function getAreaIdFromSelectedBancada(estufa_id) {
-  // A bancada selecionada fica com a classe "bancada-selecionada"
-  const bancadaSel = document.querySelector(
-    `.item-bancada.bancada-selecionada[id*="estufa-${estufa_id}"]`
-  );
+    const bancadaSel = document.querySelector(`.item-bancada.bancada-selecionada[id*="estufa-${estufa_id}"]`);
+    if (!bancadaSel) return null;
 
-  if (!bancadaSel) {
-    console.warn("⚠️ Nenhuma bancada selecionada para estufa", estufa_id);
-    return null;
+    const nomeMatch = bancadaSel.id.match(/item-bancada-(.+?)-estufa-(\d+)/);
+    if (!nomeMatch) return null;
+    const nomeBancada = nomeMatch[1].trim();
+
+    // procura form relacionado
+    const formMatch = Array.from(document.querySelectorAll(`.form-fertilizante[id*="e-${estufa_id}-b-"]`))
+      .find(f => f.id.includes(nomeBancada));
+
+    if (formMatch) {
+      const datasetArea = formMatch.dataset.areaId;
+      if (datasetArea && !isNaN(datasetArea)) return datasetArea;
+
+      const numMatch = nomeBancada.match(/(\d+)$/);
+      if (numMatch) return numMatch[1];
+    }
+
+    const numMatch = nomeBancada.match(/(\d+)$/);
+    return numMatch ? numMatch[1] : null;
   }
 
-  // Normalmente o botão tem ID do tipo: item-bancada-Bancada 01-estufa-1
-  const nomeMatch = bancadaSel.id.match(/item-bancada-(.+?)-estufa-(\d+)/);
-  if (!nomeMatch) {
-    console.warn("⚠️ ID da bancada não segue o padrão esperado:", bancadaSel.id);
-    return null;
-  }
-
-  const nomeBancada = nomeMatch[1].trim();
-
-  // Procura na DOM a div .item-bancada-content correspondente
-  const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${estufa_id}`);
-  if (!box) {
-    console.warn("⚠️ Box da bancada não encontrada:", nomeBancada);
-    return null;
-  }
-
-  // Cada .item-bancada-content tem um formulário .form-fertilizante
-  // que herda implicitamente o area_id da criação via hidroponia.js (salvar_bancada.php)
-  // podemos aproveitar esse valor via atributo data ou fallback numérico
-  const areaId = box.dataset.areaId || nomeBancada.replace(/\D/g, "");
-  return areaId || null;
-}
-
-
-  // === Função para carregar todos os fertilizantes ===
+  // === Carrega fertilizantes ===
   async function carregarFertilizantes() {
     try {
       console.log("🔄 Carregando fertilizantes...");
-      const resp = await fetch("../funcoes/buscar_fertilizantes.php", {
-        headers: { "Cache-Control": "no-cache" }
-      });
+      const resp = await fetch("../funcoes/buscar_fertilizantes.php", { headers: { "Cache-Control": "no-cache" } });
       let data = await resp.text();
 
-      try {
-        data = JSON.parse(data);
-      } catch {
-        console.warn("⚠️ Retorno não era JSON, conteúdo recebido:", data);
-        return;
-      }
+      try { data = JSON.parse(data); }
+      catch { console.warn("⚠️ Retorno não era JSON:", data); return; }
 
-      if (!Array.isArray(data)) {
-        console.warn("⚠️ Resposta inesperada, não é lista:", data);
-        return;
-      }
+      if (!Array.isArray(data)) { console.warn("⚠️ Resposta inesperada:", data); return; }
 
       console.log(`✅ ${data.length} fertilizantes carregados.`);
 
-      // Fallback de seletor
-      const selects = document.querySelectorAll(
-        '.form-fertilizante select[id*="-produto"], ' +
-        '.form-fertilizante select[name*="produto"], ' +
-        '.form-fertilizante select'
-      );
-
-      if (!selects.length) {
-        console.warn("⚠️ Nenhum <select> encontrado em .form-fertilizante");
-        return;
-      }
-
-      selects.forEach(sel => {
+      document.querySelectorAll('.form-fertilizante select[id*="-produto"]').forEach(sel => {
         sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
         data.forEach(item => {
           const opt = document.createElement("option");
@@ -120,30 +85,25 @@ document.addEventListener("DOMContentLoaded", () => {
         outro.textContent = "Outro (digitar manualmente)";
         sel.appendChild(outro);
       });
-
     } catch (err) {
       console.error("❌ Erro ao carregar fertilizantes:", err);
-      alert("Erro ao carregar lista de fertilizantes. Veja o console.");
     }
   }
 
-  // --- Carrega inicialmente ---
   carregarFertilizantes();
 
-  // --- Recarrega lista ao abrir formulário ---
+  // Recarrega ao abrir o form
   document.addEventListener("click", (e) => {
-    if (e.target.closest(".bancada-fertilizante")) {
-      setTimeout(carregarFertilizantes, 400);
-    }
+    if (e.target.closest(".bancada-fertilizante")) setTimeout(carregarFertilizantes, 400);
   });
 
-  // === Exibir campo "Outro" ===
+  // === Campo "Outro" ===
   document.addEventListener("change", (e) => {
-    if (e.target.matches('.form-fertilizante select[id*="-produto"], .form-fertilizante select[name*="produto"]')) {
+    if (e.target.matches('.form-fertilizante select[id*="-produto"]')) {
       const sel = e.target;
       const form = sel.closest(".form-fertilizante");
-      let inputOutro = form.querySelector(".fertilizante-outro");
 
+      let inputOutro = form.querySelector(".fertilizante-outro");
       if (!inputOutro) {
         inputOutro = document.createElement("input");
         inputOutro.type = "text";
@@ -153,12 +113,11 @@ document.addEventListener("DOMContentLoaded", () => {
         inputOutro.style.display = "none";
         sel.insertAdjacentElement("afterend", inputOutro);
       }
-
       inputOutro.style.display = (sel.value === "outro") ? "block" : "none";
     }
   });
 
-  // === Botão "Salvar" ===
+  // === Salvar ===
   document.querySelectorAll(".form-fertilizante .form-save").forEach(btn => {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -166,13 +125,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const form = btn.closest(".form-fertilizante");
       const estufa_id = form.dataset.estufaId;
       let area_id = form.dataset.areaId;
+
       if (!area_id) {
-        area_id = getAreaIdFromSelectedBancada(form.dataset.estufaId);
-        console.log(`🧭 area_id obtido pela bancada selecionada: ${area_id}`);
+        area_id = getAreaIdFromSelectedBancada(estufa_id);
+        console.log(`🧭 area_id obtido via bancada selecionada: ${area_id}`);
       }
 
-
-      const produtoSel = form.querySelector('select[id*="-produto"], select[name*="produto"]');
+      const produtoSel = form.querySelector('select[id*="-produto"]');
       const produto_id = produtoSel?.value || "";
       const produtoNome = produtoSel?.options[produtoSel.selectedIndex]?.text.trim() || "";
       const outroInput = form.querySelector(".fertilizante-outro");
@@ -186,25 +145,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!area_id || !estufa_id) {
         alert("Erro interno: área ou estufa não identificada.");
-        console.warn("🧩 Dados ausentes:", { estufa_id, area_id, form });
+        console.warn("🧩 Dados ausentes:", { estufa_id, area_id });
         return;
       }
-
       if (!produto_id && !produtoFinal) {
         alert("Selecione ou digite o fertilizante.");
         return;
       }
 
-      try {
-        console.log("💾 Salvando fertilizante:", {
-          estufa_id,
-          area_id,
-          produto_id,
-          dose,
-          tipo,
-          obs,
-        });
+      console.log("💾 Salvando fertilizante:", { estufa_id, area_id, produto_id, dose, tipo, obs });
 
+      try {
         const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -234,11 +185,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // === Botão "Cancelar" ===
+  // === Cancelar ===
   document.querySelectorAll(".form-fertilizante .form-cancel").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const form = btn.closest(".form-fertilizante");
-      form.classList.add("d-none");
-    });
+    btn.addEventListener("click", () => btn.closest(".form-fertilizante").classList.add("d-none"));
   });
 });
