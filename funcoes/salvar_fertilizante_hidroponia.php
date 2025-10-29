@@ -37,24 +37,33 @@ try {
     $tipo        = trim($_POST['tipo'] ?? '');
     $obs         = trim($_POST['obs'] ?? '');
     $data        = date('Y-m-d');
-    $data_conclusao = date('Y-m-d H:i:s');
+    $data_conclusao = date('Y-m-d H:i:s'); // datetime completo
 
     if (!$area_id || !$produto_id) {
         throw new Exception("Campos obrigatórios não informados (area_id, produto)");
     }
 
+    // === Inicia transação ===
     $mysqli->begin_transaction();
 
     // === Cria apontamento principal ===
     $tipo_apontamento = "fertilizante";
-    $status = "pendente";
+    $status = "concluido"; // ✅ já concluído no ato
     $quantidade = ($dose !== '') ? floatval($dose) : 0.0;
 
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, data_conclusao, quantidade, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("isssdss", $propriedade_id, $tipo_apontamento, $data, $data_conclusao, $quantidade, $obs, $status);
+    $stmt->bind_param("isssdss", 
+        $propriedade_id, 
+        $tipo_apontamento, 
+        $data, 
+        $data_conclusao, 
+        $quantidade, 
+        $obs, 
+        $status
+    );
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
@@ -63,13 +72,13 @@ try {
         throw new Exception("Falha ao criar apontamento principal");
     }
 
-    // === Detalhes: área e produto ===
+    // === Detalhes: área e fertilizante ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $area_id);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)");
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'fertilizante', ?)");
     $stmt->bind_param("is", $apontamento_id, $produto_id);
     $stmt->execute();
     $stmt->close();
@@ -81,6 +90,7 @@ try {
     $stmt->execute();
     $stmt->close();
 
+    // === Finaliza ===
     $mysqli->commit();
     echo json_encode(['ok' => true]);
 
