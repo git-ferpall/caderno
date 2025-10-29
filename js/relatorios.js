@@ -1,6 +1,7 @@
 /**
- * RELATORIOS.JS v1.4
- * Corrige envio do array propriedades[] e recarrega filtros dependentes corretamente
+ * RELATORIOS.JS v1.5
+ * Corrige detecção de seleção múltipla e recarrega filtros dependentes corretamente
+ * Compatível com Chrome, Edge e Safari
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectCult = document.getElementById("pf-cult");
   const selectMane = document.getElementById("pf-mane");
 
-  // === Função principal ===
+  // === Carrega propriedades e filtros ===
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
       const params = new URLSearchParams();
@@ -41,47 +42,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // === Áreas ===
       selectArea.innerHTML = "<option value='' selected>Todas as áreas</option>";
-      if (data.areas?.length) {
-        data.areas.forEach(a => {
-          const opt = document.createElement("option");
-          opt.value = a;
-          opt.textContent = a;
-          selectArea.appendChild(opt);
-        });
-      } else {
+      (data.areas || []).forEach(a => {
         const opt = document.createElement("option");
-        opt.textContent = "Nenhuma área encontrada";
+        opt.value = a;
+        opt.textContent = a;
         selectArea.appendChild(opt);
+      });
+      if (!data.areas?.length) {
+        selectArea.innerHTML += "<option>Nenhuma área encontrada</option>";
       }
 
       // === Cultivos ===
       selectCult.innerHTML = "<option value='' selected>Todos os cultivos</option>";
-      if (data.cultivos?.length) {
-        data.cultivos.forEach(c => {
-          const opt = document.createElement("option");
-          opt.value = c;
-          opt.textContent = c;
-          selectCult.appendChild(opt);
-        });
-      } else {
+      (data.cultivos || []).forEach(c => {
         const opt = document.createElement("option");
-        opt.textContent = "Nenhum cultivo encontrado";
+        opt.value = c;
+        opt.textContent = c;
         selectCult.appendChild(opt);
+      });
+      if (!data.cultivos?.length) {
+        selectCult.innerHTML += "<option>Nenhum cultivo encontrado</option>";
       }
 
-      // === ManejOS ===
+      // === Manejos ===
       selectMane.innerHTML = "<option value='' selected>Todos os tipos de manejo</option>";
-      if (data.manejos?.length) {
-        data.manejos.forEach(m => {
-          const opt = document.createElement("option");
-          opt.value = m;
-          opt.textContent = m.charAt(0).toUpperCase() + m.slice(1).replace("_", " ");
-          selectMane.appendChild(opt);
-        });
-      } else {
+      (data.manejos || []).forEach(m => {
         const opt = document.createElement("option");
-        opt.textContent = "Nenhum tipo de manejo encontrado";
+        opt.value = m;
+        opt.textContent = m.charAt(0).toUpperCase() + m.slice(1).replace("_", " ");
         selectMane.appendChild(opt);
+      });
+      if (!data.manejos?.length) {
+        selectMane.innerHTML += "<option>Nenhum tipo de manejo encontrado</option>";
       }
 
     } catch (err) {
@@ -90,20 +82,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // === Inicializa propriedades ===
+  // === Inicializa com propriedades ===
   await carregarFiltros();
 
-  // === Recarrega filtros quando muda seleção ===
+  // === Atualiza quando o usuário seleciona propriedades ===
   const atualizar = () => {
     const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
     console.log("🎯 Propriedades selecionadas:", selecionadas);
-    if (selecionadas.length) {
+
+    if (selecionadas.length > 0) {
       carregarFiltros(selecionadas);
+    } else {
+      console.warn("⚠️ Nenhuma propriedade selecionada.");
     }
   };
 
-  // Corrige comportamento em selects múltiplos
+  // Eventos que garantem funcionamento confiável em <select multiple>
   selectProp.addEventListener("change", atualizar);
   selectProp.addEventListener("input", atualizar);
   selectProp.addEventListener("click", atualizar);
+  selectProp.addEventListener("keyup", atualizar);
+  selectProp.addEventListener("mouseup", () => setTimeout(atualizar, 100)); // atraso pra capturar seleção após clique
 });
