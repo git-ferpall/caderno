@@ -29,29 +29,27 @@ try {
     $propriedade_id = $prop['id'];
 
     // === Dados recebidos ===
-    $estufa_id       = $_POST['estufa_id'] ?? null;
-    $bancada_nome    = $_POST['area_id'] ?? null; // vem como "Bancada 01"
-    $defensivo_id    = $_POST['produto_id'] ?? null;
-    $produto_outro   = trim($_POST['produto_outro'] ?? '');
-    $dose            = trim($_POST['dose'] ?? '');
-    $motivo          = trim($_POST['motivo'] ?? '');
-    $obs             = trim($_POST['obs'] ?? '');
-    $data            = date('Y-m-d');
-    $data_conclusao  = date('Y-m-d H:i:s');
+    $bancada_nome   = $_POST['area_id'] ?? null; // vem como "Bancada 04"
+    $defensivo_id   = $_POST['produto_id'] ?? null;
+    $produto_outro  = trim($_POST['produto_outro'] ?? '');
+    $dose           = trim($_POST['dose'] ?? '');
+    $motivo         = trim($_POST['motivo'] ?? '');
+    $obs            = trim($_POST['obs'] ?? '');
+    $data           = date('Y-m-d');
+    $data_conclusao = date('Y-m-d H:i:s');
 
-    if (!$bancada_nome || !$defensivo_id || !$estufa_id) {
-        throw new Exception("Campos obrigatórios não informados (bancada, estufa ou defensivo)");
+    if (!$bancada_nome || !$defensivo_id) {
+        throw new Exception("Campos obrigatórios não informados (bancada ou defensivo)");
     }
 
-    // === Descobre área e produto da bancada ===
+    // === Busca área e produto da bancada ===
     $stmt = $mysqli->prepare("
         SELECT area_id, produto_id 
         FROM bancadas 
-        WHERE estufa_id = ? 
-          AND nome LIKE CONCAT('%', ?, '%') 
+        WHERE nome LIKE CONCAT('%', ?, '%') 
         LIMIT 1
     ");
-    $stmt->bind_param("is", $estufa_id, $bancada_nome);
+    $stmt->bind_param("s", $bancada_nome);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -81,7 +79,7 @@ try {
 
     // === Cria apontamento principal ===
     $tipo_apontamento = "defensivo";
-    $status = "concluido"; // ✅ já concluído
+    $status = "concluido";
     $quantidade = ($dose !== '') ? floatval($dose) : 0.0;
 
     $stmt = $mysqli->prepare("
@@ -106,34 +104,26 @@ try {
         throw new Exception("Falha ao criar apontamento principal");
     }
 
-    // === Detalhes: área e produto vinculados à bancada ===
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)
-    ");
+    // === Detalhes: área e produto da bancada ===
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $area_id_real);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)
-    ");
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $produto_id_real);
     $stmt->execute();
     $stmt->close();
 
     // === Nome do defensivo aplicado ===
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'defensivo', ?)
-    ");
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'defensivo', ?)");
     $stmt->bind_param("is", $apontamento_id, $defensivo_nome);
     $stmt->execute();
     $stmt->close();
 
     // === Motivo da aplicação ===
     $motivo_txt = ($motivo == 1) ? "Prevenção" : "Controle";
-    $stmt = $mysqli->prepare("
-        INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'motivo', ?)
-    ");
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'motivo', ?)");
     $stmt->bind_param("is", $apontamento_id, $motivo_txt);
     $stmt->execute();
     $stmt->close();
