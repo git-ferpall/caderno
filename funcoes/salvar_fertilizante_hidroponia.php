@@ -26,12 +26,11 @@ try {
     if (!$prop) {
         throw new Exception('Nenhuma propriedade ativa encontrada');
     }
-
     $propriedade_id = $prop['id'];
 
     // === Dados do formulário ===
     $estufa_id   = $_POST['estufa_id'] ?? null;
-    $area_id     = $_POST['area_id'] ?? null;
+    $bancada_nome = $_POST['area_id'] ?? null; // vem do form, ex: "04"
     $produto_id  = $_POST['produto_id'] ?? null;
     $dose        = trim($_POST['dose'] ?? '');
     $tipo        = trim($_POST['tipo'] ?? '');
@@ -39,16 +38,36 @@ try {
     $data        = date('Y-m-d');
     $data_conclusao = date('Y-m-d H:i:s'); // datetime completo
 
-    if (!$area_id || !$produto_id) {
-        throw new Exception("Campos obrigatórios não informados (area_id, produto)");
+    if (!$bancada_nome || !$produto_id || !$estufa_id) {
+        throw new Exception("Campos obrigatórios não informados (bancada, estufa ou produto)");
     }
+
+    // === Descobre o area_id real a partir da tabela bancadas ===
+    $stmt = $mysqli->prepare("SELECT area_id FROM bancadas WHERE estufa_id = ? AND nome LIKE CONCAT('%', ?, '%') LIMIT 1");
+    $stmt->bind_param("is", $estufa_id, $bancada_nome);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$res || empty($res['area_id'])) {
+        throw new Exception("Área vinculada à bancada não encontrada");
+    }
+    $area_id_real = $res['area_id'];
+
+    // === Busca o nome do fertilizante ===
+    $stmt = $mysqli->prepare("SELECT nome FROM fertilizantes WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $produto_id);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    $fertilizante_nome = $res['nome'] ?? "Fertilizante não identificado";
 
     // === Inicia transação ===
     $mysqli->begin_transaction();
 
     // === Cria apontamento principal ===
     $tipo_apontamento = "fertilizante";
-    $status = "concluido"; // ✅ já concluído no ato
+    $status = "concluido";
     $quantidade = ($dose !== '') ? floatval($dose) : 0.0;
 
     $stmt = $mysqli->prepare("
@@ -72,34 +91,26 @@ try {
         throw new Exception("Falha ao criar apontamento principal");
     }
 
-    // === Busca o nome do fertilizante ===
-    $stmt = $mysqli->prepare("SELECT nome FROM fertilizantes WHERE id = ? LIMIT 1");
-    $stmt->bind_param("i", $produto_id);
-    $stmt->execute();
-    $res = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    $fertilizante_nome = $res['nome'] ?? "Fertilizante não identificado";
-
-    // === Detalhes: área, produto_id e fertilizante (nome) ===
+    // === Detalhes corretos ===
+    // 1. Área vinculada à bancada
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
-    $stmt->bind_param("is", $apontamento_id, $area_id);
+    $stmt->bind_param("is", $apontamento_id, $area_id_real);
     $stmt->execute();
     $stmt->close();
 
-    // salva o ID do produto (fertilizante)
+    // 2. Produto ID
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $produto_id);
     $stmt->execute();
     $stmt->close();
 
-    // salva o nome do fertilizante (campo correto)
+    // 3. Fertilizante (nome)
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'fertilizante', ?)");
     $stmt->bind_param("is", $apontamento_id, $fertilizante_nome);
     $stmt->execute();
     $stmt->close();
 
-    // === Tipo de aplicação (Foliar/Solução) ===
+    // 4. Tipo de aplicação
     $tipo_txt = ($tipo == 1) ? "Foliar" : "Solução";
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'tipo_aplicacao', ?)");
     $stmt->bind_param("is", $apontamento_id, $tipo_txt);
