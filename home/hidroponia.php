@@ -425,6 +425,8 @@ if (!headers_sent()) {
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>
     <script src="../js/hidroponia_defensivo.js"></script>
+    <script src="../js/hidroponia_historico.js"></script>
+
     
     <?php include '../include/footer.php' ?>
 </body>
