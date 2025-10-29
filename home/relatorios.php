@@ -11,6 +11,30 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
+<style>
+    #pf-propriedades {
+  height: auto;
+  min-height: 48px;
+  max-height: 140px; /* define altura visível */
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+  font-size: 15px;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+#pf-propriedades option {
+  padding: 6px;
+}
+
+#pf-propriedades option:checked {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+</style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
