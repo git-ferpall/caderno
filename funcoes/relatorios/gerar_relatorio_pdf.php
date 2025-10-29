@@ -120,6 +120,7 @@ try {
         'format' => 'A4',
         'margin_top' => 40,
         'margin_bottom' => 20
+        'tempDir' => __DIR__ . '/../../tmp/mpdf'
     ]);
 
     // === Cabeçalho com logo ===
