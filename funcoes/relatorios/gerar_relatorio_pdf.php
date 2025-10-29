@@ -1,7 +1,13 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
-require_once __DIR__ . '/../../scripts/php/mpdf/vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php'; // ✅ caminho correto do mPDF no container
+
+use Mpdf\Mpdf;
+
+header('Content-Type: application/pdf; charset=utf-8');
+session_start();
+
 
 header('Content-Type: application/pdf; charset=utf-8');
 session_start();
