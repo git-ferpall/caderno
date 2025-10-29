@@ -120,7 +120,8 @@ if (!headers_sent()) {
                                             <div class="item-bancada-option-title">Aplicar Defensivo</div>
                                         </button>
 
-                                        <form action="hidroponia.php" class="main-form form-defensivo d-none" id="add-<?php echo $form_id; ?>-defensivo">
+                                        <form action="hidroponia.php" class="main-form form-defensivo d-none" id="add-' . $form_id . '-defensivo">
+
                                             <div class="form-campo">
                                                 <label for="def-' . $form_id . '-produto">Produto aplicado</label>
                                                 <div class="form-box form-box-produto">
