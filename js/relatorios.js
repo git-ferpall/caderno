@@ -1,7 +1,6 @@
 /**
- * RELATORIOS.JS v1.8
- * Compatível com <select multiple>, detecta seleção por clique, Ctrl, Shift e teclado
- * Atualiza filtros (áreas, cultivos e manejos) dinamicamente
+ * RELATORIOS.JS v2.0
+ * Totalmente compatível com Select2 (multi-select) e carregamento dinâmico de filtros
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -10,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectCult = document.getElementById("pf-cult");
   const selectMane = document.getElementById("pf-mane");
 
-  // === Função de carregamento de filtros ===
+  // === Função principal de carregamento de filtros ===
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
       const params = new URLSearchParams();
@@ -29,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros.");
 
-      // === Popula propriedades (somente na primeira execução) ===
+      // === Preenche lista de propriedades (somente na primeira execução) ===
       if (!propriedadesSelecionadas.length && data.propriedades?.length) {
         selectProp.innerHTML = "";
         data.propriedades.forEach(p => {
@@ -48,7 +47,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = a;
         selectArea.appendChild(opt);
       });
-
       if (!data.areas?.length)
         selectArea.innerHTML += "<option disabled>Nenhuma área encontrada</option>";
 
@@ -60,7 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = c;
         selectCult.appendChild(opt);
       });
-
       if (!data.cultivos?.length)
         selectCult.innerHTML += "<option disabled>Nenhum cultivo encontrado</option>";
 
@@ -72,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = m.charAt(0).toUpperCase() + m.slice(1).replace("_", " ");
         selectMane.appendChild(opt);
       });
-
       if (!data.manejos?.length)
         selectMane.innerHTML += "<option disabled>Nenhum manejo encontrado</option>";
 
@@ -82,13 +78,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // === Carga inicial ===
+  // === Carregamento inicial ===
   await carregarFiltros();
 
-  // === Detecta mudanças no select de propriedades ===
-  function atualizar() {
-    const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
-    console.log("🎯 Propriedades selecionadas:", selecionadas);
+  // === Detectar seleção via Select2 (eventos jQuery) ===
+  $(document).on('change', '#pf-propriedades', function (e) {
+    const selecionadas = $(this).val() || [];
+    console.log("🎯 Propriedades selecionadas (Select2):", selecionadas);
+
     if (selecionadas.length > 0) {
       carregarFiltros(selecionadas);
     } else {
@@ -97,17 +94,5 @@ document.addEventListener("DOMContentLoaded", async () => {
       selectCult.innerHTML = "<option value='' selected>Todos os cultivos</option>";
       selectMane.innerHTML = "<option value='' selected>Todos os tipos de manejo</option>";
     }
-  }
-
-  // === Força atualização em todos os tipos de interação ===
-  ["change", "click", "keyup", "mouseup", "input", "blur", "focusout"].forEach(evt => {
-    selectProp.addEventListener(evt, () => setTimeout(atualizar, 200));
-  });
-
-  // === Garante atualização até por rolagem ou Tab ===
-  selectProp.addEventListener("focus", () => {
-    const observer = new MutationObserver(() => setTimeout(atualizar, 200));
-    observer.observe(selectProp, { attributes: true, childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 2000);
   });
 });
