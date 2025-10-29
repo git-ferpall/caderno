@@ -1,7 +1,6 @@
 /**
- * RELATORIOS.JS v1.3
- * Atualiza filtros dinamicamente (propriedades → áreas, cultivos, manejos)
- * Com logs detalhados para debug
+ * RELATORIOS.JS v1.4
+ * Corrige envio do array propriedades[] e recarrega filtros dependentes corretamente
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -94,9 +93,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   // === Inicializa propriedades ===
   await carregarFiltros();
 
-  // === Atualiza dinamicamente quando muda seleção ===
-  selectProp.addEventListener("change", () => {
+  // === Recarrega filtros quando muda seleção ===
+  const atualizar = () => {
     const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
-    carregarFiltros(selecionadas);
-  });
+    console.log("🎯 Propriedades selecionadas:", selecionadas);
+    if (selecionadas.length) {
+      carregarFiltros(selecionadas);
+    }
+  };
+
+  // Corrige comportamento em selects múltiplos
+  selectProp.addEventListener("change", atualizar);
+  selectProp.addEventListener("input", atualizar);
+  selectProp.addEventListener("click", atualizar);
 });
