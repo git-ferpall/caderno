@@ -22,118 +22,109 @@ try {
     $stmt->execute();
     $prop = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-
-    if (!$prop) {
-        throw new Exception('Nenhuma propriedade ativa encontrada');
-    }
+    if (!$prop) throw new Exception('Nenhuma propriedade ativa encontrada');
     $propriedade_id = $prop['id'];
 
-    // === Dados do formulário ===
+    // === Dados recebidos ===
     $estufa_id      = $_POST['estufa_id'] ?? null;
-    $bancada_nome   = $_POST['area_id'] ?? null; // vem como "Bancada 04"
-    $fertilizante_id = $_POST['produto_id'] ?? null;
+    $bancada_nome   = $_POST['bancada_nome'] ?? null;
+    $produto_id     = $_POST['produto_id'] ?? null;
+    $produto_outro  = trim($_POST['produto_outro'] ?? '');
     $dose           = trim($_POST['dose'] ?? '');
-    $tipo           = trim($_POST['tipo'] ?? '');
+    $motivo         = trim($_POST['motivo'] ?? '');
     $obs            = trim($_POST['obs'] ?? '');
     $data           = date('Y-m-d');
-    $data_conclusao = date('Y-m-d H:i:s');
 
-    if (!$bancada_nome || !$fertilizante_id || !$estufa_id) {
-        throw new Exception("Campos obrigatórios não informados (bancada, estufa ou fertilizante)");
+    error_log("🔍 salvar_defensivo_hidroponia.php → estufa_id=$estufa_id, bancada_nome=$bancada_nome, produto_id=$produto_id, produto_outro=$produto_outro");
+
+    if (!$estufa_id || !$bancada_nome) {
+        throw new Exception("Dados obrigatórios ausentes (estufa ou bancada)");
     }
 
-    // === Normaliza o nome da bancada para busca ===
-    $bancada_nome_limpo = trim(strtolower(str_replace(' ', '', $bancada_nome)));
-
-    // === Busca área e produto da bancada (mais tolerante) ===
+    // === Busca área_id e produto_id pela bancada ===
     $stmt = $mysqli->prepare("
         SELECT area_id, produto_id
         FROM bancadas
         WHERE estufa_id = ?
-          AND LOWER(REPLACE(nome, ' ', '')) = ?
+          AND LOWER(REPLACE(nome, ' ', '')) = LOWER(REPLACE(?, ' ', ''))
         LIMIT 1
     ");
-    $stmt->bind_param("is", $estufa_id, $bancada_nome_limpo);
+    $stmt->bind_param("is", $estufa_id, $bancada_nome);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    if (!$res) {
-        error_log("❌ Bancada não encontrada: estufa_id=$estufa_id nome='$bancada_nome_limpo'");
-        throw new Exception("Bancada não encontrada ou sem vínculos.");
-    }
-
-    $area_id_real = $res['area_id'];
-    $produto_id_real = $res['produto_id'];
-
-    // === Busca nome do fertilizante ===
-    $stmt = $mysqli->prepare("SELECT nome FROM fertilizantes WHERE id = ? LIMIT 1");
-    $stmt->bind_param("i", $fertilizante_id);
-    $stmt->execute();
-    $res = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    $fertilizante_nome = $res['nome'] ?? "Fertilizante não identificado";
+    if (!$res) throw new Exception("Bancada não encontrada ou sem vínculos");
+    $area_id = $res['area_id'];
+    $produto_bancada_id = $res['produto_id'];
 
     // === Inicia transação ===
     $mysqli->begin_transaction();
 
     // === Cria apontamento principal ===
-    $tipo_apontamento = "fertilizante";
-    $status = "concluido";
+    $tipo_apontamento = "defensivo";
+    $status = "pendente";
     $quantidade = ($dose !== '') ? floatval($dose) : 0.0;
 
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, data_conclusao, quantidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param(
-        "isssdss",
-        $propriedade_id,
-        $tipo_apontamento,
-        $data,
-        $data_conclusao,
-        $quantidade,
-        $obs,
-        $status
-    );
+    $stmt->bind_param("issdss", $propriedade_id, $tipo_apontamento, $data, $quantidade, $obs, $status);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
+    if (!$apontamento_id) throw new Exception("Falha ao criar apontamento principal");
 
-    if (!$apontamento_id) {
-        throw new Exception("Falha ao criar apontamento principal");
-    }
-
-    // === Detalhes: área e produto da bancada ===
+    // === Detalhes: área e produto ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
-    $stmt->bind_param("is", $apontamento_id, $area_id_real);
+    $stmt->bind_param("is", $apontamento_id, $area_id);
     $stmt->execute();
     $stmt->close();
 
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)");
-    $stmt->bind_param("is", $apontamento_id, $produto_id_real);
+    $stmt->bind_param("is", $apontamento_id, $produto_bancada_id);
     $stmt->execute();
     $stmt->close();
 
-    // === Nome do fertilizante aplicado ===
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'fertilizante', ?)");
-    $stmt->bind_param("is", $apontamento_id, $fertilizante_nome);
+    // === Defensivo aplicado ===
+    $nome_defensivo = ($produto_id === 'outro' && $produto_outro !== '') ? $produto_outro : null;
+
+    if ($nome_defensivo) {
+        $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'defensivo', ?)");
+        $stmt->bind_param("is", $apontamento_id, $nome_defensivo);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        $stmt = $mysqli->prepare("
+            SELECT nome FROM inseticidas WHERE id = ? LIMIT 1
+        ");
+        $stmt->bind_param("i", $produto_id);
+        $stmt->execute();
+        $nome = $stmt->get_result()->fetch_assoc()['nome'] ?? null;
+        $stmt->close();
+
+        if ($nome) {
+            $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'defensivo', ?)");
+            $stmt->bind_param("is", $apontamento_id, $nome);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    // === Motivo ===
+    $motivo_txt = ($motivo == 1) ? "Prevenção" : "Controle";
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'motivo', ?)");
+    $stmt->bind_param("is", $apontamento_id, $motivo_txt);
     $stmt->execute();
     $stmt->close();
 
-    // === Tipo de aplicação ===
-    $tipo_txt = ($tipo == 1) ? "Foliar" : "Solução";
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'tipo_aplicacao', ?)");
-    $stmt->bind_param("is", $apontamento_id, $tipo_txt);
-    $stmt->execute();
-    $stmt->close();
-
-    // === Finaliza ===
+    // === Finaliza transação ===
     $mysqli->commit();
     echo json_encode(['ok' => true]);
 
 } catch (Exception $e) {
     if ($mysqli->errno) $mysqli->rollback();
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    error_log("❌ Erro salvar_defensivo_hidroponia.php → " . $e->getMessage());
 }
