@@ -127,10 +127,15 @@ if (!headers_sent()) {
                                                     <select name="def-' . $form_id . '-produto" id="def-' . $form_id . '-produto" class="form-select form-text" required>
                                                         <option value="-">Selecione o produto aplicado</option>
                                                     </select>
-                                                    <button class="add-btn add-produto" type="button">
-                                                        <div class="btn-icon icon-plus cor-branco"></div>
-                                                    </button>
                                                 </div>
+                                                <input
+                                                    type="text"
+                                                    id="def-' . $form_id . '-produto-outro"
+                                                    name="def-' . $form_id . '-produto-outro"
+                                                    class="form-text defensivo-outro"
+                                                    placeholder="Digite o nome do inseticida"
+                                                    style="display:none; margin-top:8px;"
+                                                    >
                                             </div>
 
                                             <div class="form-campo">
@@ -418,6 +423,7 @@ if (!headers_sent()) {
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>
+    <script src="../js/hidroponia_defensivo.js"></script>
     
     <?php include '../include/footer.php' ?>
 </body>
