@@ -16,10 +16,11 @@ try {
 
     // === Recebe propriedades selecionadas (pode ser várias) ===
     $propriedades_ids = $_POST['propriedades'] ?? [];
+    error_log("📥 POST recebido: " . json_encode($_POST));
 
     // === Lista todas as propriedades do usuário ===
     $stmt = $mysqli->prepare("
-        SELECT id, nome_razao 
+        SELECT id, nome_razao, ativo 
         FROM propriedades 
         WHERE user_id = ?
         ORDER BY ativo DESC, nome_razao ASC
@@ -31,13 +32,14 @@ try {
     while ($r = $res->fetch_assoc()) $propriedades[] = $r;
     $stmt->close();
 
-    // === Inicializa filtros vazios ===
+    // === Inicializa arrays ===
     $areas = [];
     $cultivos = [];
     $manejos = [];
 
     if (!empty($propriedades_ids)) {
         $ids_str = implode(',', array_map('intval', $propriedades_ids));
+        error_log("🔎 Buscando filtros para propriedades: " . $ids_str);
 
         // === Áreas ===
         $sqlAreas = "
@@ -46,7 +48,8 @@ try {
             WHERE a.propriedade_id IN ($ids_str)
             ORDER BY a.nome
         ";
-        $areas = $mysqli->query($sqlAreas)->fetch_all(MYSQLI_ASSOC);
+        $res = $mysqli->query($sqlAreas);
+        if ($res) $areas = $res->fetch_all(MYSQLI_ASSOC);
 
         // === Cultivos (produtos vinculados às bancadas das áreas) ===
         $sqlCultivos = "
@@ -57,7 +60,8 @@ try {
             WHERE a.propriedade_id IN ($ids_str)
             ORDER BY p.nome
         ";
-        $cultivos = $mysqli->query($sqlCultivos)->fetch_all(MYSQLI_ASSOC);
+        $res = $mysqli->query($sqlCultivos);
+        if ($res) $cultivos = $res->fetch_all(MYSQLI_ASSOC);
 
         // === Tipos de manejo ===
         $sqlManejos = "
@@ -66,7 +70,10 @@ try {
             WHERE a.propriedade_id IN ($ids_str)
             ORDER BY a.tipo
         ";
-        $manejos = $mysqli->query($sqlManejos)->fetch_all(MYSQLI_ASSOC);
+        $res = $mysqli->query($sqlManejos);
+        if ($res) $manejos = $res->fetch_all(MYSQLI_ASSOC);
+    } else {
+        error_log("⚠️ Nenhuma propriedade selecionada recebida.");
     }
 
     echo json_encode([
@@ -76,6 +83,8 @@ try {
         'cultivos' => array_column($cultivos, 'nome'),
         'manejos' => array_column($manejos, 'tipo')
     ]);
+
 } catch (Exception $e) {
+    error_log("❌ Erro buscar_filtros_relatorio: " . $e->getMessage());
     echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
 }
