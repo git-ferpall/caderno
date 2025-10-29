@@ -37,7 +37,7 @@ try {
     $tipo        = trim($_POST['tipo'] ?? '');
     $obs         = trim($_POST['obs'] ?? '');
     $data        = date('Y-m-d');
-    $data_conclusao = date('Y-m-d H:i:s'); // ✅ Corrigido para datetime completo
+    $data_conclusao = date('Y-m-d H:i:s');
 
     if (!$area_id || !$produto_id) {
         throw new Exception("Campos obrigatórios não informados (area_id, produto)");
@@ -54,7 +54,7 @@ try {
         INSERT INTO apontamentos (propriedade_id, tipo, data, data_conclusao, quantidade, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issdsss", $propriedade_id, $tipo_apontamento, $data, $data_conclusao, $quantidade, $obs, $status);
+    $stmt->bind_param("isssdss", $propriedade_id, $tipo_apontamento, $data, $data_conclusao, $quantidade, $obs, $status);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
