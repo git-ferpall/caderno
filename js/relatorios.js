@@ -1,6 +1,6 @@
 /**
- * RELATORIOS.JS v1.6
- * Seleção múltipla 100% funcional (captura cliques, Ctrl, Shift e teclado)
+ * RELATORIOS.JS v1.7
+ * Corrige o evento de múltipla seleção e garante atualização dos filtros
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectCult = document.getElementById("pf-cult");
   const selectMane = document.getElementById("pf-mane");
 
-  // === Carrega filtros ===
+  // === Função para buscar filtros ===
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
       const params = new URLSearchParams();
@@ -28,8 +28,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros.");
 
-      // === Popula propriedades (primeira vez apenas) ===
-      if (!propriedadesSelecionadas.length) {
+      // === Popula propriedades (só na carga inicial) ===
+      if (!propriedadesSelecionadas.length && data.propriedades) {
         selectProp.innerHTML = "";
         data.propriedades.forEach(p => {
           const opt = document.createElement("option");
@@ -87,20 +87,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   // === Inicializa com propriedades ===
   await carregarFiltros();
 
-  // === Função de atualização dinâmica ===
+  // === Atualiza ao selecionar propriedades ===
   const atualizar = () => {
     const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
     console.log("🎯 Propriedades selecionadas:", selecionadas);
-
-    if (selecionadas.length > 0) {
-      carregarFiltros(selecionadas);
-    } else {
-      console.warn("⚠️ Nenhuma propriedade selecionada.");
-    }
+    if (selecionadas.length > 0) carregarFiltros(selecionadas);
   };
 
-  // === Eventos que funcionam em todos os cenários ===
-  ["change", "click", "keyup", "mouseup", "focusout"].forEach(evt => {
-    selectProp.addEventListener(evt, () => setTimeout(atualizar, 100));
+  // Captura todos os tipos de interação
+  ["change", "click", "keyup", "mouseup", "blur", "focusout"].forEach(evt => {
+    selectProp.addEventListener(evt, () => {
+      setTimeout(atualizar, 150); // leve atraso pra o navegador aplicar a seleção
+    });
   });
 });
