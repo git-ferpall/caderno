@@ -1,7 +1,6 @@
 /**
- * RELATORIOS.JS v1.0
- * Atualiza filtros de relatórios (propriedades, áreas, cultivos, manejos)
- * Atualizado em 2025-10-29
+ * RELATORIOS.JS v1.2
+ * Atualiza filtros dinamicamente (propriedades → áreas, cultivos, manejos)
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -12,13 +11,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
+      const params = new URLSearchParams();
+      propriedadesSelecionadas.forEach(id => params.append("propriedades[]", id));
+
       const resp = await fetch("../funcoes/relatorios/buscar_filtros_relatorio.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ propriedades: propriedadesSelecionadas })
+        body: params.toString()
       });
-      const data = await resp.json();
 
+      const data = await resp.json();
       if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros.");
 
       // === Popula propriedades ===
@@ -27,12 +29,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         data.propriedades.forEach(p => {
           const opt = document.createElement("option");
           opt.value = p.id;
-          opt.textContent = p.nome_razao;
+          opt.textContent = p.nome_razao + (p.ativo ? " (Ativa)" : "");
           selectProp.appendChild(opt);
         });
       }
 
-      // === Popula áreas ===
+      // === Áreas ===
       selectArea.innerHTML = "<option value='' selected>Todas as áreas</option>";
       data.areas.forEach(a => {
         const opt = document.createElement("option");
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectArea.appendChild(opt);
       });
 
-      // === Popula cultivos ===
+      // === Cultivos ===
       selectCult.innerHTML = "<option value='' selected>Todos os cultivos</option>";
       data.cultivos.forEach(c => {
         const opt = document.createElement("option");
@@ -50,25 +52,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectCult.appendChild(opt);
       });
 
-      // === Popula manejos ===
+      // === ManejOS ===
       selectMane.innerHTML = "<option value='' selected>Todos os tipos de manejo</option>";
       data.manejos.forEach(m => {
         const opt = document.createElement("option");
         opt.value = m;
-        opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+        opt.textContent = m.charAt(0).toUpperCase() + m.slice(1).replace("_", " ");
         selectMane.appendChild(opt);
       });
+
     } catch (err) {
       console.error("❌ Erro ao carregar filtros:", err);
     }
   }
 
-  // Carrega inicial
+  // Carrega inicial (propriedades)
   await carregarFiltros();
 
-  // Quando alterar propriedades, atualiza os outros filtros
+  // Atualiza os filtros dependentes ao alterar propriedades
   selectProp.addEventListener("change", () => {
-    const propsSelecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
-    carregarFiltros(propsSelecionadas);
+    const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
+    carregarFiltros(selecionadas);
   });
 });
