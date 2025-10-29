@@ -96,3 +96,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
+document.getElementById("form-pdf-relatorio").addEventListener("click", () => {
+  const form = document.getElementById("rel-form");
+  const formData = new FormData(form);
+
+  fetch("../funcoes/relatorios/gerar_relatorio_pdf.php", {
+    method: "POST",
+    body: formData
+  })
+    .then(resp => {
+      if (!resp.ok) throw new Error("Erro ao gerar PDF");
+      return resp.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    })
+    .catch(err => {
+      alert("❌ Falha ao gerar PDF: " + err.message);
+      console.error(err);
+    });
+});
