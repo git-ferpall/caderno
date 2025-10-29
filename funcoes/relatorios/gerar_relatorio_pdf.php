@@ -116,12 +116,13 @@ try {
 
     // === Cria o PDF ===
     $mpdf = new Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4',
-        'margin_top' => 40,
-        'margin_bottom' => 20
-        'tempDir' => __DIR__ . '/../../tmp/mpdf'
+    'mode' => 'utf-8',
+    'format' => 'A4',
+    'margin_top' => 40,
+    'margin_bottom' => 20,
+    'tempDir' => __DIR__ . '/../../tmp/mpdf'
     ]);
+
 
     // === Cabeçalho com logo ===
     $logo_path = __DIR__ . '/../../img/logo.png';
