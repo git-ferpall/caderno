@@ -37,7 +37,7 @@ try {
     $tipo        = trim($_POST['tipo'] ?? '');
     $obs         = trim($_POST['obs'] ?? '');
     $data        = date('Y-m-d');
-    $data_conclusao = $data;
+    $data_conclusao = date('Y-m-d H:i:s'); // ✅ Corrigido para datetime completo
 
     if (!$area_id || !$produto_id) {
         throw new Exception("Campos obrigatórios não informados (area_id, produto)");
