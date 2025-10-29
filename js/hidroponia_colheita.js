@@ -1,5 +1,5 @@
 /**
- * HIDROPONIA_COLHEITA.JS v1.0
+ * HIDROPONIA_COLHEITA.JS v1.1
  * Caderno de Campo - Frutag
  * Registra colheitas por bancada (sem alterar HTML)
  * Atualizado em 2025-10-29
@@ -71,8 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("📦 Resposta do servidor:", data);
 
         if (data.ok) {
-          alert("✅ Colheita registrada com sucesso!");
-          form.classList.add("d-none");
+          form.classList.add("d-none"); // ✅ Só oculta o form, sem alert
         } else {
           alert("❌ " + (data.err || "Erro ao registrar colheita."));
         }
