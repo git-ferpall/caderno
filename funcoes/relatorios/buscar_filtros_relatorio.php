@@ -12,79 +12,95 @@ try {
         $payload = verify_jwt();
         $user_id = $payload['sub'] ?? null;
     }
-    if (!$user_id) throw new Exception("Usuário não autenticado.");
 
-    // === Recebe propriedades selecionadas (pode ser várias) ===
-    $propriedades_ids = $_POST['propriedades'] ?? [];
-    error_log("📥 POST recebido: " . json_encode($_POST));
+    if (!$user_id) {
+        throw new Exception('Usuário não autenticado');
+    }
 
-    // === Lista todas as propriedades do usuário ===
+    // === Busca todas as propriedades do usuário ===
     $stmt = $mysqli->prepare("
-        SELECT id, nome_razao, ativo 
-        FROM propriedades 
+        SELECT id, nome_razao, ativo
+        FROM propriedades
         WHERE user_id = ?
-        ORDER BY ativo DESC, nome_razao ASC
+        ORDER BY nome_razao
     ");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
-    $propriedades = [];
-    while ($r = $res->fetch_assoc()) $propriedades[] = $r;
+    $propriedades = $res->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    // === Inicializa arrays ===
-    $areas = [];
-    $cultivos = [];
-    $manejos = [];
-
-    if (!empty($propriedades_ids)) {
-        $ids_str = implode(',', array_map('intval', $propriedades_ids));
-        error_log("🔎 Buscando filtros para propriedades: " . $ids_str);
-
-        // === Áreas ===
-        $sqlAreas = "
-            SELECT DISTINCT a.nome 
-            FROM areas a
-            WHERE a.propriedade_id IN ($ids_str)
-            ORDER BY a.nome
-        ";
-        $res = $mysqli->query($sqlAreas);
-        if ($res) $areas = $res->fetch_all(MYSQLI_ASSOC);
-
-        // === Cultivos (produtos vinculados às bancadas das áreas) ===
-        $sqlCultivos = "
-            SELECT DISTINCT p.nome 
-            FROM produtos p
-            JOIN bancadas b ON b.produto_id = p.id
-            JOIN areas a ON a.id = b.area_id
-            WHERE a.propriedade_id IN ($ids_str)
-            ORDER BY p.nome
-        ";
-        $res = $mysqli->query($sqlCultivos);
-        if ($res) $cultivos = $res->fetch_all(MYSQLI_ASSOC);
-
-        // === Tipos de manejo ===
-        $sqlManejos = "
-            SELECT DISTINCT a.tipo 
-            FROM apontamentos a
-            WHERE a.propriedade_id IN ($ids_str)
-            ORDER BY a.tipo
-        ";
-        $res = $mysqli->query($sqlManejos);
-        if ($res) $manejos = $res->fetch_all(MYSQLI_ASSOC);
-    } else {
-        error_log("⚠️ Nenhuma propriedade selecionada recebida.");
+    // === Caso nenhuma propriedade esteja selecionada ===
+    if (empty($_POST['propriedades'])) {
+        echo json_encode([
+            'ok' => true,
+            'propriedades' => $propriedades,
+            'areas' => [],
+            'cultivos' => [],
+            'manejos' => []
+        ]);
+        exit;
     }
+
+    // === Filtra pelas propriedades selecionadas ===
+    $propriedades_sel = array_map('intval', $_POST['propriedades']);
+    $placeholders = implode(',', array_fill(0, count($propriedades_sel), '?'));
+
+    // === Monta tipos dinamicamente para bind_param ===
+    $types = str_repeat('i', count($propriedades_sel));
+
+    // --- Áreas ---
+    $sql_areas = "
+        SELECT DISTINCT a.nome 
+        FROM areas a
+        WHERE a.propriedade_id IN ($placeholders)
+        ORDER BY a.nome
+    ";
+    $stmt = $mysqli->prepare($sql_areas);
+    $stmt->bind_param($types, ...$propriedades_sel);
+    $stmt->execute();
+    $areas = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'nome');
+    $stmt->close();
+
+    // --- Cultivos (produtos das bancadas vinculadas às áreas dessas propriedades) ---
+    $sql_cultivos = "
+        SELECT DISTINCT p.nome
+        FROM produtos p
+        JOIN bancadas b ON b.produto_id = p.id
+        JOIN areas a ON a.id = b.area_id
+        WHERE a.propriedade_id IN ($placeholders)
+        ORDER BY p.nome
+    ";
+    $stmt = $mysqli->prepare($sql_cultivos);
+    $stmt->bind_param($types, ...$propriedades_sel);
+    $stmt->execute();
+    $cultivos = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'nome');
+    $stmt->close();
+
+    // --- Tipos de manejo (apontamentos registrados) ---
+    $sql_manejos = "
+        SELECT DISTINCT a.tipo
+        FROM apontamentos a
+        WHERE a.propriedade_id IN ($placeholders)
+        ORDER BY a.tipo
+    ";
+    $stmt = $mysqli->prepare($sql_manejos);
+    $stmt->bind_param($types, ...$propriedades_sel);
+    $stmt->execute();
+    $manejos = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'tipo');
+    $stmt->close();
 
     echo json_encode([
         'ok' => true,
         'propriedades' => $propriedades,
-        'areas' => array_column($areas, 'nome'),
-        'cultivos' => array_column($cultivos, 'nome'),
-        'manejos' => array_column($manejos, 'tipo')
+        'areas' => $areas,
+        'cultivos' => $cultivos,
+        'manejos' => $manejos
     ]);
 
 } catch (Exception $e) {
-    error_log("❌ Erro buscar_filtros_relatorio: " . $e->getMessage());
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode([
+        'ok' => false,
+        'err' => $e->getMessage()
+    ]);
 }
