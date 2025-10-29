@@ -23,10 +23,7 @@ try {
     $prop = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    if (!$prop) {
-        throw new Exception('Nenhuma propriedade ativa encontrada');
-    }
-
+    if (!$prop) throw new Exception('Nenhuma propriedade ativa encontrada');
     $propriedade_id = $prop['id'];
 
     // === Dados do formulário ===
@@ -37,16 +34,15 @@ try {
     $tipo        = trim($_POST['tipo'] ?? '');
     $obs         = trim($_POST['obs'] ?? '');
     $data        = date('Y-m-d');
-    $data_conclusao = date('Y-m-d H:i:s'); // ✅ Corrigido para datetime completo
+    $data_conclusao = date('Y-m-d H:i:s');
 
-    if (!$area_id || !$produto_id) {
+    if (!$area_id || !$produto_id)
         throw new Exception("Campos obrigatórios não informados (area_id, produto)");
-    }
 
     $mysqli->begin_transaction();
 
     // === Cria apontamento principal ===
-    $tipo_apontamento = "fertilizante";
+    $tipo_apontamento = "defensivo";
     $status = "pendente";
     $quantidade = ($dose !== '') ? floatval($dose) : 0.0;
 
@@ -59,9 +55,8 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    if (!$apontamento_id) {
+    if (!$apontamento_id)
         throw new Exception("Falha ao criar apontamento principal");
-    }
 
     // === Detalhes: área e produto ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
@@ -74,8 +69,8 @@ try {
     $stmt->execute();
     $stmt->close();
 
-    // === Tipo de aplicação (Foliar/Solução) ===
-    $tipo_txt = ($tipo == 1) ? "Foliar" : "Solução";
+    // === Tipo de aplicação ===
+    $tipo_txt = ($tipo == 1) ? "Pulverização" : "Drench";
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'tipo_aplicacao', ?)");
     $stmt->bind_param("is", $apontamento_id, $tipo_txt);
     $stmt->execute();
