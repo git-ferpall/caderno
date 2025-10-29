@@ -1,6 +1,7 @@
 /**
- * RELATORIOS.JS v1.7
- * Corrige o evento de múltipla seleção e garante atualização dos filtros
+ * RELATORIOS.JS v1.8
+ * Compatível com <select multiple>, detecta seleção por clique, Ctrl, Shift e teclado
+ * Atualiza filtros (áreas, cultivos e manejos) dinamicamente
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectCult = document.getElementById("pf-cult");
   const selectMane = document.getElementById("pf-mane");
 
-  // === Função para buscar filtros ===
+  // === Função de carregamento de filtros ===
   async function carregarFiltros(propriedadesSelecionadas = []) {
     try {
       const params = new URLSearchParams();
@@ -28,8 +29,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros.");
 
-      // === Popula propriedades (só na carga inicial) ===
-      if (!propriedadesSelecionadas.length && data.propriedades) {
+      // === Popula propriedades (somente na primeira execução) ===
+      if (!propriedadesSelecionadas.length && data.propriedades?.length) {
         selectProp.innerHTML = "";
         data.propriedades.forEach(p => {
           const opt = document.createElement("option");
@@ -48,9 +49,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectArea.appendChild(opt);
       });
 
-      if (!data.areas?.length) {
-        selectArea.innerHTML += "<option>Nenhuma área encontrada</option>";
-      }
+      if (!data.areas?.length)
+        selectArea.innerHTML += "<option disabled>Nenhuma área encontrada</option>";
 
       // === Cultivos ===
       selectCult.innerHTML = "<option value='' selected>Todos os cultivos</option>";
@@ -61,9 +61,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectCult.appendChild(opt);
       });
 
-      if (!data.cultivos?.length) {
-        selectCult.innerHTML += "<option>Nenhum cultivo encontrado</option>";
-      }
+      if (!data.cultivos?.length)
+        selectCult.innerHTML += "<option disabled>Nenhum cultivo encontrado</option>";
 
       // === Manejos ===
       selectMane.innerHTML = "<option value='' selected>Todos os tipos de manejo</option>";
@@ -74,9 +73,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectMane.appendChild(opt);
       });
 
-      if (!data.manejos?.length) {
-        selectMane.innerHTML += "<option>Nenhum tipo de manejo encontrado</option>";
-      }
+      if (!data.manejos?.length)
+        selectMane.innerHTML += "<option disabled>Nenhum manejo encontrado</option>";
 
     } catch (err) {
       console.error("❌ Erro ao carregar filtros:", err);
@@ -84,20 +82,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // === Inicializa com propriedades ===
+  // === Carga inicial ===
   await carregarFiltros();
 
-  // === Atualiza ao selecionar propriedades ===
-  const atualizar = () => {
+  // === Detecta mudanças no select de propriedades ===
+  function atualizar() {
     const selecionadas = Array.from(selectProp.selectedOptions).map(o => o.value);
     console.log("🎯 Propriedades selecionadas:", selecionadas);
-    if (selecionadas.length > 0) carregarFiltros(selecionadas);
-  };
+    if (selecionadas.length > 0) {
+      carregarFiltros(selecionadas);
+    } else {
+      // limpa filtros se nada selecionado
+      selectArea.innerHTML = "<option value='' selected>Todas as áreas</option>";
+      selectCult.innerHTML = "<option value='' selected>Todos os cultivos</option>";
+      selectMane.innerHTML = "<option value='' selected>Todos os tipos de manejo</option>";
+    }
+  }
 
-  // Captura todos os tipos de interação
-  ["change", "click", "keyup", "mouseup", "blur", "focusout"].forEach(evt => {
-    selectProp.addEventListener(evt, () => {
-      setTimeout(atualizar, 150); // leve atraso pra o navegador aplicar a seleção
-    });
+  // === Força atualização em todos os tipos de interação ===
+  ["change", "click", "keyup", "mouseup", "input", "blur", "focusout"].forEach(evt => {
+    selectProp.addEventListener(evt, () => setTimeout(atualizar, 200));
+  });
+
+  // === Garante atualização até por rolagem ou Tab ===
+  selectProp.addEventListener("focus", () => {
+    const observer = new MutationObserver(() => setTimeout(atualizar, 200));
+    observer.observe(selectProp, { attributes: true, childList: true, subtree: true });
+    setTimeout(() => observer.disconnect(), 2000);
   });
 });
