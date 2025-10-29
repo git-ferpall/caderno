@@ -417,6 +417,7 @@ if (!headers_sent()) {
     </div>
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
+    <script src="../js/hidroponia_colheita.js"></script>
     
     <?php include '../include/footer.php' ?>
 </body>
