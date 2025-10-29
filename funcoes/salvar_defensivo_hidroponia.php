@@ -83,7 +83,7 @@ try {
         INSERT INTO apontamentos (propriedade_id, tipo, data, data_conclusao, quantidade, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issdsss",
+    $stmt->bind_param("isssdss",
         $propriedade_id,
         $tipo_apontamento,
         $data,
