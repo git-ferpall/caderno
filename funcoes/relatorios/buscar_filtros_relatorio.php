@@ -17,12 +17,12 @@ try {
     // === Recebe propriedades selecionadas (pode ser várias) ===
     $propriedades_ids = $_POST['propriedades'] ?? [];
 
-    // === Lista todas as propriedades ativas do usuário ===
+    // === Lista todas as propriedades do usuário ===
     $stmt = $mysqli->prepare("
         SELECT id, nome_razao 
         FROM propriedades 
-        WHERE user_id = ? AND ativo = 1
-        ORDER BY nome_razao
+        WHERE user_id = ?
+        ORDER BY ativo DESC, nome_razao ASC
     ");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -31,22 +31,24 @@ try {
     while ($r = $res->fetch_assoc()) $propriedades[] = $r;
     $stmt->close();
 
+    // === Inicializa filtros vazios ===
     $areas = [];
     $cultivos = [];
     $manejos = [];
 
     if (!empty($propriedades_ids)) {
-        // === Áreas ===
         $ids_str = implode(',', array_map('intval', $propriedades_ids));
+
+        // === Áreas ===
         $sqlAreas = "
-            SELECT DISTINCT nome 
-            FROM areas 
-            WHERE propriedade_id IN ($ids_str)
-            ORDER BY nome
+            SELECT DISTINCT a.nome 
+            FROM areas a
+            WHERE a.propriedade_id IN ($ids_str)
+            ORDER BY a.nome
         ";
         $areas = $mysqli->query($sqlAreas)->fetch_all(MYSQLI_ASSOC);
 
-        // === Cultivos (produtos vinculados às bancadas dessas áreas) ===
+        // === Cultivos (produtos vinculados às bancadas das áreas) ===
         $sqlCultivos = "
             SELECT DISTINCT p.nome 
             FROM produtos p
@@ -59,10 +61,10 @@ try {
 
         // === Tipos de manejo ===
         $sqlManejos = "
-            SELECT DISTINCT tipo 
-            FROM apontamentos 
-            WHERE propriedade_id IN ($ids_str)
-            ORDER BY tipo
+            SELECT DISTINCT a.tipo 
+            FROM apontamentos a
+            WHERE a.propriedade_id IN ($ids_str)
+            ORDER BY a.tipo
         ";
         $manejos = $mysqli->query($sqlManejos)->fetch_all(MYSQLI_ASSOC);
     }
