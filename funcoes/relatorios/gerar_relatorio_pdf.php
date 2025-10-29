@@ -23,7 +23,7 @@ try {
         throw new Exception("Usuário não autenticado.");
     }
 
-    // === Coleta filtros do POST ===
+    // === Filtros recebidos via POST ===
     $propriedades = $_POST['propriedades'] ?? [];
     $cultivo = $_POST['cultivo'] ?? '';
     $area = $_POST['area'] ?? '';
@@ -31,7 +31,26 @@ try {
     $data_ini = $_POST['data_ini'] ?? date('Y-m-01');
     $data_fim = $_POST['data_fim'] ?? date('Y-m-t');
 
-    // === Monta a query dinâmica ===
+    // === Se nenhuma propriedade foi selecionada, pega todas do usuário ===
+    if (empty($propriedades)) {
+        $stmtProp = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ?");
+        $stmtProp->bind_param("i", $user_id);
+        $stmtProp->execute();
+        $resProp = $stmtProp->get_result();
+        while ($row = $resProp->fetch_assoc()) {
+            $propriedades[] = $row['id'];
+        }
+        $stmtProp->close();
+    }
+
+    if (empty($propriedades)) {
+        throw new Exception("Nenhuma propriedade encontrada para este usuário.");
+    }
+
+    // === Monta placeholders ===
+    $placeholders = implode(',', array_fill(0, count($propriedades), '?'));
+
+    // === Query principal ===
     $sql = "
         SELECT 
             a.id,
@@ -49,7 +68,7 @@ try {
         LEFT JOIN produtos p ON p.id = ad_prod.valor
         LEFT JOIN propriedades prop ON prop.id = a.propriedade_id
         WHERE a.data BETWEEN ? AND ?
-          AND a.propriedade_id IN (" . str_repeat('?,', count($propriedades) - 1) . "?)
+          AND a.propriedade_id IN ($placeholders)
     ";
 
     $params = [$data_ini, $data_fim];
@@ -95,21 +114,45 @@ try {
     }
     $stmt->close();
 
-    // === Gera o PDF ===
-    $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4']);
-    $mpdf->SetTitle("Relatório de Manejos - Frutag");
+    // === Cria o PDF ===
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_top' => 40,
+        'margin_bottom' => 20
+    ]);
 
-    // Cabeçalho e CSS básico
+    // === Cabeçalho com logo ===
+    $logo_path = __DIR__ . '/../../img/logo.png';
+    $logo_base64 = file_exists($logo_path) ? base64_encode(file_get_contents($logo_path)) : null;
+    $logo_html = $logo_base64
+        ? '<img src="data:image/png;base64,' . $logo_base64 . '" width="120">'
+        : '<strong>Frutag</strong>';
+
+    $mpdf->SetHTMLHeader('
+        <div style="text-align:left; border-bottom:1px solid #ddd; padding-bottom:6px;">
+            ' . $logo_html . '
+            <span style="float:right; font-size:12px; margin-top:10px; color:#555;">Relatório de Manejos</span>
+        </div>
+    ');
+
+    $mpdf->SetHTMLFooter('
+        <div style="border-top:1px solid #ccc; text-align:center; font-size:10px; color:#777; padding-top:4px;">
+            Página {PAGENO} de {nb} | Gerado em ' . date('d/m/Y H:i') . '
+        </div>
+    ');
+
+    // === Estilo e conteúdo ===
     $html = '
     <style>
         body { font-family: sans-serif; font-size: 12px; }
         h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
-        h2 { text-align: center; font-size: 14px; margin-top: 0; }
+        h2 { text-align: center; font-size: 13px; margin-top: 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
         th { background-color: #4caf50; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .footer { font-size: 10px; text-align: center; color: #777; margin-top: 20px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .no-data { text-align:center; margin-top:40px; font-size:13px; color:#777; }
     </style>
     ';
 
@@ -117,7 +160,7 @@ try {
     $html .= '<h2>Período: ' . date('d/m/Y', strtotime($data_ini)) . ' a ' . date('d/m/Y', strtotime($data_fim)) . '</h2>';
 
     if (empty($dados)) {
-        $html .= '<p style="text-align:center; margin-top:40px;">Nenhum registro encontrado para os filtros selecionados.</p>';
+        $html .= '<div class="no-data">Nenhum registro encontrado para os filtros selecionados.</div>';
     } else {
         $html .= '<table>
                     <thead>
@@ -146,11 +189,9 @@ try {
         $html .= '</tbody></table>';
     }
 
-    $html .= '<div class="footer">Gerado em ' . date('d/m/Y H:i') . ' - Frutag Caderno de Campo</div>';
-
-    // Gera PDF inline
     $mpdf->WriteHTML($html);
     $mpdf->Output('relatorio.pdf', Destination::INLINE);
+
 } catch (Exception $e) {
     echo "<pre>Erro: " . htmlspecialchars($e->getMessage()) . "</pre>";
 }
