@@ -1,28 +1,46 @@
 /**
- * HIDROPONIA_DEFENSIVO.JS v3.9
- * Detecta automaticamente estufa_id e area_id (sem alterar HTML)
- * Compatível com hidroponia.js v2.5
- * Baseado em hidroponia_fertilizante.js v3.9
+ * HIDROPONIA_DEFENSIVO.JS v4.0
+ * Funciona mesmo com forms que usam <?php echo $form_id; ?> literal
+ * Detecta estufa e bancada via contexto DOM
+ * Baseado no padrão hidroponia_fertilizante.js v3.9
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // === Vincula forms automaticamente (mesmo com <?php echo ... ?> literal) ===
+  document.querySelectorAll(".form-defensivo").forEach((form, i) => {
+    let estufaId = null;
+    let bancadaNome = null;
 
-  // === Vincula forms automaticamente com estufa/área ===
-  document.querySelectorAll(".form-defensivo").forEach(form => {
-    const id = form.id; // ex: add-e-1-b-Bancada 04-defensivo
-    const match = id.match(/e-(\d+)-b-(.+)-defensivo$/);
+    // 1️⃣ tenta deduzir pelo botão de defensivo correspondente
+    const parentBtn = form.closest(".item-bancada-content")?.querySelector(".bancada-defensivo");
+    if (parentBtn && parentBtn.id) {
+      const match = parentBtn.id.match(/item-bancada-(.+?)-estufa-(\d+)-defensivo/);
+      if (match) {
+        bancadaNome = match[1].trim();
+        estufaId = match[2];
+      }
+    }
 
-    if (match) {
-      const estufaId = match[1];
-      const bancadaNome = match[2].trim();
-      form.dataset.estufaId = estufaId;
+    // 2️⃣ fallback — tenta pegar pelo item-bancada-content
+    if (!estufaId) {
+      const container = form.closest(".item-bancada-content");
+      if (container && container.id) {
+        const match = container.id.match(/item-bancada-(.+?)-content-estufa-(\d+)/);
+        if (match) {
+          bancadaNome = match[1].trim();
+          estufaId = match[2];
+        }
+      }
+    }
 
+    // 3️⃣ define dataset se achou
+    if (estufaId && bancadaNome) {
       const numMatch = bancadaNome.match(/(\d+)$/);
+      form.dataset.estufaId = estufaId;
       form.dataset.areaId = numMatch ? numMatch[1] : bancadaNome;
-
-      console.log(`🧩 Vinculado form ${id} → estufa=${estufaId}, area=${form.dataset.areaId}`);
+      console.log(`🧩 Vinculado form defensivo #${i + 1} → estufa=${estufaId}, area=${form.dataset.areaId}`);
     } else {
-      console.warn("⚠️ Formulário fora do padrão esperado:", id);
+      console.warn("⚠️ Formulário defensivo sem correspondência clara:", form);
     }
   });
 
@@ -60,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarInseticidas();
 
-  // === Recarrega ao abrir ===
+  // Recarrega quando abre o form
   document.addEventListener("click", (e) => {
     if (e.target.closest(".bancada-defensivo")) setTimeout(carregarInseticidas, 400);
   });
@@ -79,16 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".form-defensivo .form-save").forEach(btn => {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
-
       const form = btn.closest(".form-defensivo");
       const estufa_id = form.dataset.estufaId;
-      let area_id = form.dataset.areaId;
-
+      const area_id = form.dataset.areaId;
       const produtoSel = form.querySelector('select[id*="-produto"]');
       const produto_id = produtoSel?.value || "";
       const outroInput = form.querySelector(".defensivo-outro");
       const produto_outro = (produto_id === "outro") ? outroInput.value.trim() : "";
-
       const dose = form.querySelector('input[id*="-dose"]')?.value.trim() || "";
       const motivo = form.querySelector('input[name*="motivo"]:checked')?.value || "";
       const obs = form.querySelector('textarea[id*="-obs"]')?.value.trim() || "";
