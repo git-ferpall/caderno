@@ -72,14 +72,30 @@ try {
         throw new Exception("Falha ao criar apontamento principal");
     }
 
-    // === Detalhes: área e fertilizante ===
+    // === Busca o nome do fertilizante ===
+    $stmt = $mysqli->prepare("SELECT nome FROM fertilizantes WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $produto_id);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $fertilizante_nome = $res['nome'] ?? "Fertilizante não identificado";
+
+    // === Detalhes: área, produto_id e fertilizante (nome) ===
     $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'area_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $area_id);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'fertilizante', ?)");
+    // salva o ID do produto (fertilizante)
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'produto_id', ?)");
     $stmt->bind_param("is", $apontamento_id, $produto_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // salva o nome do fertilizante (campo correto)
+    $stmt = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, 'fertilizante', ?)");
+    $stmt->bind_param("is", $apontamento_id, $fertilizante_nome);
     $stmt->execute();
     $stmt->close();
 
