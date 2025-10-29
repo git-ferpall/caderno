@@ -75,13 +75,18 @@ if (!empty($user_id)) {
                 <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj']) ?></h5>
             </div>
 
-
             <div class="propriedade">
                 <h5 class="user-type">Propriedade Atual</h5>
-                <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_cidade']) ?> </h4>
-                <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_uf']) ?> </h4>
+                <?php if (!empty($propAtiva)) : ?>
+                    <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_cidade']) ?></h4>
+                    <h4 class="user-name"><?= htmlspecialchars($propAtiva['endereco_uf']) ?></h4>
+                <?php else : ?>
+                    <h4 class="user-name" style="color: #ff4444;">⚠️ Nenhuma propriedade cadastrada</h4>
+                    <h5 class="user-id">Favor cadastrar uma propriedade para continuar.</h5>
+                <?php endif; ?>
             </div>
         </div>
+
 
         <div class="menu-list">
             <ul class="menu-links">
