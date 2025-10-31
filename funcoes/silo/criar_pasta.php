@@ -21,29 +21,30 @@ try {
     }
 
     // 📂 Pasta pai (para subpastas)
-    $parent_id = $_POST['parent_id'] ?? '';
+    $parent_id = isset($_POST['parent_id']) && is_numeric($_POST['parent_id'])
+        ? intval($_POST['parent_id']) : 0;
 
-    // Caminho base
+    // Caminhos base
     $pastaBase = realpath(__DIR__ . '/../../uploads');
-    if (!$pastaBase) {
-        throw new Exception('Caminho base inválido');
-    }
+    if (!$pastaBase) throw new Exception('Caminho base inválido');
 
-    $pastaSilo = $pastaBase . '/silo';
-    $pastaUsuario = $pastaSilo . '/' . $user_id;
+    $pastaSilo = "$pastaBase/silo";
+    $pastaUsuario = "$pastaSilo/$user_id";
 
-    // Garante que o diretório base do usuário exista
-    if (!is_dir($pastaUsuario)) {
-        mkdir($pastaUsuario, 0775, true);
-    }
+    // ✅ Garante que os diretórios base existam
+    if (!is_dir($pastaSilo)) mkdir($pastaSilo, 0775, true);
+    if (!is_dir($pastaUsuario)) mkdir($pastaUsuario, 0775, true);
 
-    // 📁 Determina o caminho final
-    if ($parent_id !== '') {
-        // Busca caminho da pasta pai (corrigido)
+    // 📁 Determina caminho final
+    $destinoDir = $pastaUsuario;
+    $caminhoRelativo = "silo/$user_id";
+
+    if ($parent_id > 0) {
+        // Busca caminho da pasta pai
         $stmt = $mysqli->prepare("
             SELECT caminho_arquivo 
             FROM silo_arquivos 
-            WHERE id = ? AND user_id = ? AND (tipo = 'pasta' OR tipo_arquivo = 'folder')
+            WHERE id = ? AND user_id = ? AND tipo_arquivo = 'folder'
         ");
         $stmt->bind_param('ii', $parent_id, $user_id);
         $stmt->execute();
@@ -54,43 +55,39 @@ try {
             throw new Exception('Pasta pai não encontrada');
         }
 
-        // Remove prefixos duplicados
-        $rel = str_replace(['uploads/', 'silo/'], '', $res['caminho_arquivo']);
-        $rel = trim($rel, '/');
-
-        $pastaFinal = "$pastaSilo/$rel/$nome";
-        $caminhoRelativo = "silo/$rel/$nome";
-    } else {
-        $pastaFinal = "$pastaUsuario/$nome";
-        $caminhoRelativo = "silo/$user_id/$nome";
+        // 🔧 Caminho relativo completo da pasta pai
+        $rel = str_replace(['uploads/', './'], '', $res['caminho_arquivo']);
+        $destinoDir = "$pastaBase/$rel";
+        $caminhoRelativo = $rel;
     }
 
-    // 🏗️ Cria a pasta física
+    // 🚀 Cria nova pasta
+    $pastaFinal = "$destinoDir/$nome";
     if (!mkdir($pastaFinal, 0775, true) && !is_dir($pastaFinal)) {
         throw new Exception('Falha ao criar pasta física');
     }
 
-    // 💾 Salva no banco
+    // 💾 Caminho relativo final para salvar no banco
+    $caminhoFinal = "$caminhoRelativo/$nome";
+
     $stmt = $mysqli->prepare("
         INSERT INTO silo_arquivos 
         (user_id, nome_arquivo, tipo_arquivo, tamanho_bytes, caminho_arquivo, parent_id, tipo, origem)
         VALUES (?, ?, 'folder', 0, ?, ?, 'pasta', 'upload')
     ");
-    $stmt->bind_param('issi', $user_id, $nome, $caminhoRelativo, $parent_id);
+    $stmt->bind_param('issi', $user_id, $nome, $caminhoFinal, $parent_id);
     $ok = $stmt->execute();
     $stmt->close();
 
-    if (!$ok) {
-        throw new Exception('Erro ao registrar no banco');
-    }
+    if (!$ok) throw new Exception('Erro ao registrar no banco');
 
     echo json_encode([
         'ok' => true,
         'msg' => '📁 Pasta criada com sucesso!',
-        'path' => $caminhoRelativo
+        'path' => $caminhoFinal
     ], JSON_UNESCAPED_UNICODE);
-} 
-catch (Exception $e) {
+
+} catch (Throwable $e) {
     http_response_code(400);
     echo json_encode([
         'ok' => false,
