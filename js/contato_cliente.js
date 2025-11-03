@@ -1,8 +1,9 @@
 /**
- * CONTATO_CLIENTE.JS
- * -------------------
+ * CONTATO_CLIENTE.JS v2
+ * ----------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * -------------------
+ * Agora com aviso único e sem duplo envio.
+ * ----------------------
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -13,6 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputNome = document.getElementById("pf-nome");
   const inputEmail = document.getElementById("pf-email");
   const inputTel = document.getElementById("pf-num1");
+  const chkEmail = document.getElementById("aceita_email");
+  const chkSms = document.getElementById("aceita_sms");
+
+  // Evita que o formulário envie sozinho
+  form.addEventListener("submit", (e) => e.preventDefault());
 
   // === 1️⃣ Carrega dados existentes ===
   async function carregarContato() {
@@ -23,13 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
       inputNome.value = data?.nome || "";
       inputEmail.value = data?.email || "";
       inputTel.value = data?.telefone || "";
+      chkEmail.checked = data?.aceita_email == 1;
+      chkSms.checked = data?.aceita_sms == 1;
     } catch (err) {
       console.error("❌ Erro ao buscar contato:", err);
     }
   }
 
   // === 2️⃣ Salva dados ===
-  async function salvarContato() {
+  async function salvarContato(e) {
+    e.preventDefault(); // evita duplo envio
+
     const formData = new FormData(form);
 
     try {
@@ -41,10 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (json.ok) {
         alert("✅ Dados salvos com sucesso!");
-        // opcional: recarregar os dados do banco sem mostrar outro alerta
         carregarContato();
       } else {
-        alert("⚠️ " + (json.msg || "Erro ao salvar os dados."));
+        alert("⚠️ " + (json.msg || "Erro ao salvar dados."));
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
@@ -52,11 +61,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === 3️⃣ Reseta o formulário ===
+  // === 3️⃣ Limpar ===
   function limparCampos() {
     inputNome.value = "";
     inputEmail.value = "";
     inputTel.value = "";
+    chkEmail.checked = false;
+    chkSms.checked = false;
   }
 
   // === 4️⃣ Eventos ===
