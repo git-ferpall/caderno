@@ -66,6 +66,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <input class="form-text form-tel only-num" type="tel" name="pfnum1" id="pf-num1" placeholder="(DDD) + Número" maxlength="15" value="<?php echo $num ?>" required>
                         </div>
                     </div>
+                    <div class="form-campo">
+                    <label>Preferências de Contato</label>
+                    <div class="form-box" style="display: flex; gap: 20px; align-items: center;">
+                        <label>
+                        <input type="checkbox" name="aceita_email" id="aceita_email" value="1">
+                        Aceito receber e-mails
+                        </label>
+                        <label>
+                        <input type="checkbox" name="aceita_sms" id="aceita_sms" value="1">
+                        Aceito receber SMS
+                        </label>
+                    </div>
+                    </div>
+
                     
                     <!--<div class="form-campo">
                         <label for="pf-num2">Número de Telefone Secundário</label>

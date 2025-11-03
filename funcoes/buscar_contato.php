@@ -18,7 +18,7 @@ if (!$user_id) {
 }
 
 $stmt = $mysqli->prepare("
-    SELECT nome, email, telefone
+    SELECT nome, email, telefone, aceita_email, aceita_sms, consentimento_data
     FROM contato_cliente
     WHERE user_id = ?
     LIMIT 1
