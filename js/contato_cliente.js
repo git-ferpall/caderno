@@ -1,8 +1,8 @@
 /**
- * CONTATO_CLIENTE.JS v2
+ * CONTATO_CLIENTE.JS v3
  * ----------------------
- * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * Agora com aviso único e sem duplo envio.
+ * Evita alertas duplicados ("✅ Dados salvos com sucesso!")
+ * e impede duplo clique no botão Salvar.
  * ----------------------
  */
 
@@ -17,10 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const chkEmail = document.getElementById("aceita_email");
   const chkSms = document.getElementById("aceita_sms");
 
-  // Evita que o formulário envie sozinho
+  // ⚙️ Garante que o formulário não recarregue a página
   form.addEventListener("submit", (e) => e.preventDefault());
 
-  // === 1️⃣ Carrega dados existentes ===
+  // === 1️⃣ Carregar dados existentes ===
   async function carregarContato() {
     try {
       const resp = await fetch("../funcoes/buscar_contato.php", { cache: "no-store" });
@@ -36,9 +36,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === 2️⃣ Salva dados ===
-  async function salvarContato(e) {
-    e.preventDefault(); // evita duplo envio
+  // === 2️⃣ Salvar dados (com bloqueio de duplo clique) ===
+  let salvando = false;
+  async function salvarContato(event) {
+    event.preventDefault();
+
+    if (salvando) return; // impede duplo clique
+    salvando = true;
+    btnSalvar.disabled = true;
 
     const formData = new FormData(form);
 
@@ -51,17 +56,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (json.ok) {
         alert("✅ Dados salvos com sucesso!");
-        carregarContato();
+        await carregarContato();
       } else {
         alert("⚠️ " + (json.msg || "Erro ao salvar dados."));
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
       alert("Erro ao salvar os dados.");
+    } finally {
+      salvando = false;
+      btnSalvar.disabled = false;
     }
   }
 
-  // === 3️⃣ Limpar ===
+  // === 3️⃣ Limpar campos ===
   function limparCampos() {
     inputNome.value = "";
     inputEmail.value = "";
@@ -70,8 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
     chkSms.checked = false;
   }
 
-  // === 4️⃣ Eventos ===
-  btnSalvar.addEventListener("click", salvarContato);
+  // === 4️⃣ Eventos (garante que só existe UM listener ativo) ===
+  btnSalvar.replaceWith(btnSalvar.cloneNode(true)); // remove listeners antigos
+  const newBtnSalvar = document.getElementById("form-save-perfil");
+  newBtnSalvar.addEventListener("click", salvarContato);
+
   btnCancelar.addEventListener("click", limparCampos);
 
   // === 5️⃣ Inicializa ===
