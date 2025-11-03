@@ -2,6 +2,7 @@
  * CONTATO_CLIENTE.JS
  * -------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
+ * Corrigido: checkboxes agora enviam 0 quando desmarcados.
  * -------------------
  */
 
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       inputNome.value = data?.nome || "";
       inputEmail.value = data?.email || "";
       inputTel.value = data?.telefone || "";
+
       chkEmail.checked = data?.aceita_email == 1;
       chkSms.checked = data?.aceita_sms == 1;
     } catch (err) {
@@ -32,11 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === 2️⃣ Salva dados (sem alert) ===
+  // === 2️⃣ Salva dados ===
   async function salvarContato() {
     const formData = new FormData(form);
-    formData.set("aceita_email", chkEmail.checked ? "1" : "");
-    formData.set("aceita_sms", chkSms.checked ? "1" : "");
+
+    // Envia valores fixos (1 ou 0)
+    formData.set("aceita_email", chkEmail.checked ? "1" : "0");
+    formData.set("aceita_sms", chkSms.checked ? "1" : "0");
 
     try {
       const resp = await fetch("../funcoes/salvar_contato.php", {
@@ -45,9 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
-      // sem alertas — apenas recarrega dados se salvou corretamente
       if (json.ok) {
-        carregarContato();
+        carregarContato(); // Atualiza sem alertas
       } else {
         console.warn("⚠️ Erro ao salvar:", json.msg || "Erro desconhecido");
       }
@@ -56,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === 3️⃣ Reseta o formulário ===
+  // === 3️⃣ Limpa campos ===
   function limparCampos() {
     inputNome.value = "";
     inputEmail.value = "";
