@@ -1,8 +1,8 @@
 /**
- * CONTATO_CLIENTE.JS v3
+ * CONTATO_CLIENTE.JS v2
  * ----------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * Mantém apenas o aviso do popup interno (sem alert nativo).
+ * Agora com aviso único e sem duplo envio.
  * ----------------------
  */
 
@@ -38,12 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === 2️⃣ Salva dados ===
   async function salvarContato(e) {
-    e.preventDefault();
+    e.preventDefault(); // evita duplo envio
 
     const formData = new FormData(form);
-    // Garante envio correto dos checkboxes
-    formData.set("aceita_email", chkEmail.checked ? "1" : "0");
-    formData.set("aceita_sms", chkSms.checked ? "1" : "0");
 
     try {
       const resp = await fetch("../funcoes/salvar_contato.php", {
@@ -53,15 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const json = await resp.json();
 
       if (json.ok) {
-        // ✅ Mostra aviso no popup interno
-        mostrarPopup("✅ Dados salvos com sucesso!", "sucesso");
+        alert("✅ Dados salvos com sucesso! remover isso que inferno");
         carregarContato();
       } else {
-        mostrarPopup("⚠️ " + (json.msg || "Erro ao salvar dados."), "erro");
+        alert("⚠️ " + (json.msg || "Erro ao salvar dados."));
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
-      mostrarPopup("Erro ao salvar os dados.", "erro");
+      alert("Erro ao salvar os dados.");
     }
   }
 
@@ -80,20 +76,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === 5️⃣ Inicializa ===
   carregarContato();
-
-  // === 6️⃣ Função genérica de popup ===
-  function mostrarPopup(mensagem, tipo = "info") {
-    // Usa o seu sistema interno de popups se já existir
-    const popup = document.getElementById("popup-overlay");
-    const msgBox = document.getElementById("popup-msg");
-
-    if (popup && msgBox) {
-      msgBox.innerHTML = mensagem;
-      popup.classList.add("ativo");
-      setTimeout(() => popup.classList.remove("ativo"), 2500);
-    } else {
-      // fallback silencioso no console
-      console.log(`[${tipo.toUpperCase()}] ${mensagem}`);
-    }
-  }
 });
