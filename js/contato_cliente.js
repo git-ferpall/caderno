@@ -2,7 +2,6 @@
  * CONTATO_CLIENTE.JS
  * -------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * Compatível com sessão PHP e JWT.
  * -------------------
  */
 
@@ -24,8 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
       inputNome.value = data?.nome || "";
       inputEmail.value = data?.email || "";
       inputTel.value = data?.telefone || "";
-
-      console.log("✅ Dados carregados:", data);
     } catch (err) {
       console.error("❌ Erro ao buscar contato:", err);
     }
@@ -42,11 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
-      alert(json.msg || "Resposta desconhecida.");
-      console.log("💾 Retorno:", json);
-
       if (json.ok) {
-        carregarContato(); // Atualiza dados após salvar
+        alert("✅ Dados salvos com sucesso!");
+        // opcional: recarregar os dados do banco sem mostrar outro alerta
+        carregarContato();
+      } else {
+        alert("⚠️ " + (json.msg || "Erro ao salvar os dados."));
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
