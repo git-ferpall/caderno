@@ -25,8 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
       inputNome.value = data?.nome || "";
       inputEmail.value = data?.email || "";
       inputTel.value = data?.telefone || "";
-
-      // ✅ Atualiza os checkboxes
       chkEmail.checked = data?.aceita_email == 1;
       chkSms.checked = data?.aceita_sms == 1;
     } catch (err) {
@@ -34,11 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === 2️⃣ Salva dados ===
+  // === 2️⃣ Salva dados (sem alert) ===
   async function salvarContato() {
     const formData = new FormData(form);
-
-    // ✅ Adiciona manualmente os valores dos checkboxes
     formData.set("aceita_email", chkEmail.checked ? "1" : "");
     formData.set("aceita_sms", chkSms.checked ? "1" : "");
 
@@ -49,15 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
+      // sem alertas — apenas recarrega dados se salvou corretamente
       if (json.ok) {
-        alert("✅ Dados salvos com sucesso!");
-        carregarContato(); // recarrega dados
+        carregarContato();
       } else {
-        alert("⚠️ " + (json.msg || "Erro ao salvar os dados."));
+        console.warn("⚠️ Erro ao salvar:", json.msg || "Erro desconhecido");
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
-      alert("Erro ao salvar os dados.");
     }
   }
 
