@@ -49,15 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
+     
       if (json.ok) {
-        alert("✅ Dados salvos com sucesso! remover isso que inferno");
+        console.log("✅ Dados salvos com sucesso!");
         carregarContato();
       } else {
-        alert("⚠️ " + (json.msg || "Erro ao salvar dados."));
+        console.warn("⚠️ " + (json.msg || "Erro ao salvar dados."));
       }
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
-      alert("Erro ao salvar os dados.");
     }
   }
 
