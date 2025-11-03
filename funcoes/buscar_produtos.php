@@ -4,18 +4,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 header('Content-Type: application/json');
 
-// Verifica se há usuário autenticado
+// Garante que a sessão está ativa
+session_start();
+
 if (empty($_SESSION['user_id'])) {
-    echo json_encode(['erro' => 'Usuário não autenticado']);
+    echo json_encode([]);
     exit;
 }
 
 $user_id = (int) $_SESSION['user_id'];
 
-// Busca apenas produtos do usuário logado
 $stmt = $mysqli->prepare("
-    SELECT id, nome 
-    FROM produtos 
+    SELECT id, nome
+    FROM produtos
     WHERE user_id = ?
     ORDER BY nome ASC
 ");
