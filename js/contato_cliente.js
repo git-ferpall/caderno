@@ -1,9 +1,9 @@
 /**
- * CONTATO_CLIENTE.JS
- * -------------------
+ * CONTATO_CLIENTE.JS v2
+ * ----------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * Corrigido: checkboxes agora enviam 0 quando desmarcados.
- * -------------------
+ * Agora envia corretamente os campos de aceite (1/0).
+ * ----------------------
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const chkEmail = document.getElementById("aceita_email");
   const chkSms = document.getElementById("aceita_sms");
 
+  // Evita que o formulário envie sozinho
+  form.addEventListener("submit", (e) => e.preventDefault());
+
   // === 1️⃣ Carrega dados existentes ===
   async function carregarContato() {
     try {
@@ -26,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
       inputNome.value = data?.nome || "";
       inputEmail.value = data?.email || "";
       inputTel.value = data?.telefone || "";
-
       chkEmail.checked = data?.aceita_email == 1;
       chkSms.checked = data?.aceita_sms == 1;
     } catch (err) {
@@ -35,10 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === 2️⃣ Salva dados ===
-  async function salvarContato() {
+  async function salvarContato(e) {
+    e.preventDefault(); // evita duplo envio
+
     const formData = new FormData(form);
 
-    // Envia valores fixos (1 ou 0)
+    // 🔹 Garante que os checkboxes sejam enviados sempre
     formData.set("aceita_email", chkEmail.checked ? "1" : "0");
     formData.set("aceita_sms", chkSms.checked ? "1" : "0");
 
@@ -49,17 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
-      if (json.ok) {
-        carregarContato(); // Atualiza sem alertas
-      } else {
+      if (!json.ok) {
         console.warn("⚠️ Erro ao salvar:", json.msg || "Erro desconhecido");
       }
+      // sem alertas visuais — silencioso
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
     }
   }
 
-  // === 3️⃣ Limpa campos ===
+  // === 3️⃣ Limpar ===
   function limparCampos() {
     inputNome.value = "";
     inputEmail.value = "";
