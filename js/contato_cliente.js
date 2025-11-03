@@ -2,7 +2,7 @@
  * CONTATO_CLIENTE.JS v2
  * ----------------------
  * Gerencia o carregamento e salvamento de dados do contato do usuário.
- * Agora envia corretamente os campos de aceite (1/0).
+ * Agora com aviso único e sem duplo envio.
  * ----------------------
  */
 
@@ -42,10 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const formData = new FormData(form);
 
-    // 🔹 Garante que os checkboxes sejam enviados sempre
-    formData.set("aceita_email", chkEmail.checked ? "1" : "0");
-    formData.set("aceita_sms", chkSms.checked ? "1" : "0");
-
     try {
       const resp = await fetch("../funcoes/salvar_contato.php", {
         method: "POST",
@@ -53,12 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const json = await resp.json();
 
-      if (!json.ok) {
-        console.warn("⚠️ Erro ao salvar:", json.msg || "Erro desconhecido");
+      if (json.ok) {
+        alert("✅ Dados salvos com sucesso!");
+        carregarContato();
+      } else {
+        alert("⚠️ " + (json.msg || "Erro ao salvar dados."));
       }
-      // sem alertas visuais — silencioso
     } catch (err) {
       console.error("❌ Erro ao salvar contato:", err);
+      alert("Erro ao salvar os dados.");
     }
   }
 
