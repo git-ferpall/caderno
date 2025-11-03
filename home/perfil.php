@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../configuracao/protect.php';
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -47,15 +50,15 @@
                         <input class="form-text" type="email" name="pfemail" id="pf-email" placeholder="Seu endereço de e-mail" value="<?php echo $email ?>" required>
                     </div>
 
-                    <div class="form-campo">
+                    <!--<div class="form-campo">
                         <label for="pf-cpf">CPF</label>
                         <input class="form-text only-num" type="text" name="pfcpf" id="pf-cpf" placeholder="123.456.789-10" maxlength="14" value="<?php echo $cpf ?>" required>
-                    </div>
+                    </div> -->
                     
-                    <div class="form-campo">
+                    <!--<div class="form-campo">
                         <label for="pf-nasc">Data de Nascimento</label>
                         <input class="form-text only-num" type="date" name="pfnasc" id="pf-nasc" value="<?php echo $dtnasc ?>" required>
-                    </div>
+                    </div> -->
 
                     <div class="form-campo">
                         <label for="pf-num1">Número de Telefone</label>
@@ -64,13 +67,13 @@
                         </div>
                     </div>
                     
-                    <div class="form-campo">
+                    <!--<div class="form-campo">
                         <label for="pf-num2">Número de Telefone Secundário</label>
                         <div class="form-box">
                             <input class="form-text form-tel only-num" type="tel" name="pfnum2" id="pf-num2" placeholder="(DDD) + Número" maxlength="15" value="<?php echo $num2 ?>" required>
                         </div>
-                    </div>
-
+                    </div> -->
+                     <!--   
                     <div class="form-campo">
                         <div class="form-center">
                             <button class="main-btn btn-alter" type="button">Alterar Senha</button>
@@ -93,7 +96,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <div class="form-submit">
                         <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-perfil" type="button">
@@ -110,6 +113,8 @@
         </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/contato_cliente.js"></script>
+
     </div>
         
     <?php include '../include/footer.php' ?>
