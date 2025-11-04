@@ -4,26 +4,23 @@ declare(strict_types=1);
 require_once __DIR__ . '/env.php';
 @session_start();
 
-// 1️⃣ Limpa todos os dados da sessão
+// 1️⃣ Limpa completamente a sessão PHP
 $_SESSION = [];
-
-// Remove o cookie PHP padrão da sessão
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 }
-
-// 2️⃣ Destrói a sessão completamente
 session_destroy();
 
-// 3️⃣ Nome real do cookie JWT
+// 2️⃣ Nome real do cookie JWT
 $cookieName = defined('AUTH_COOKIE') ? AUTH_COOKIE : 'AUTH_COOKIE';
 
-// 4️⃣ Remove o cookie em todos os domínios possíveis
+// 3️⃣ Força expiração em todos os contextos possíveis
 $domains = [
-    '.frutag.com.br',           // domínio global
-    'frutag.com.br',            // sem ponto
-    $_SERVER['HTTP_HOST'] ?? '', // domínio atual (ex: caderno.frutag.com.br)
+    $_SERVER['HTTP_HOST'] ?? '',
+    'frutag.com.br',
+    '.frutag.com.br',
+    'caderno.frutag.com.br',
 ];
 
 foreach ($domains as $domain) {
@@ -38,10 +35,13 @@ foreach ($domains as $domain) {
     ]);
 }
 
-// 5️⃣ Remove referência local
+// 4️⃣ Remove do array local também
 unset($_COOKIE[$cookieName]);
 
-// 6️⃣ Redireciona para a tela de login (forçando refresh)
+// 5️⃣ Log opcional
+file_put_contents(__DIR__ . '/sso_debug.log', date('c') . " - Logout executado e cookie removido\n", FILE_APPEND);
+
+// 6️⃣ Redireciona para login com força de recarregar a página
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Location: /index.php?logout=ok');
