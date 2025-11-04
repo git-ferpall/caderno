@@ -2,51 +2,55 @@
 /**
  * /configuracao/sso_autologin.php
  * Integração SSO Frutag → Caderno de Campo
- * Autor: Fabiano Amaro / Frutag
- * Atualizado em: 2025-11-04
+ * Agora executa via navegador, respeitando os cookies de sessão reais.
  */
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$log = __DIR__ . '/sso_debug.log';
-file_put_contents($log, date('c') . " - Início do autologin\n", FILE_APPEND);
+@session_start();
 
-// 🔍 Recebe token (não é mais usado, mas mantido para compatibilidade)
+// 🔍 Token recebido (não é usado, mas deixamos para compatibilidade)
 $token = $_GET['token'] ?? null;
 
-// 🧠 Busca dados do usuário autenticado diretamente pela API Frutag
+// 🔗 Endpoint remoto (será consultado pelo navegador)
 $api_url = "https://frutag.com.br/sso/userinfo.php";
-file_put_contents($log, "Consultando API: $api_url\n", FILE_APPEND);
 
-$response = @file_get_contents($api_url);
-if ($response === false) {
-    file_put_contents($log, "Erro ao consultar API (file_get_contents falhou)\n", FILE_APPEND);
-    die("Erro ao consultar API.");
-}
+// 🔧 Script JS para fazer a chamada via navegador (mantém os cookies)
+echo <<<HTML
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Autenticando...</title>
+</head>
+<body>
+<script>
+(async () => {
+  try {
+    const resp = await fetch("$api_url", { credentials: 'include' });
+    const data = await resp.json();
 
-$data = json_decode($response, true);
-file_put_contents($log, "Resposta API:\n" . print_r($data, true) . "\n", FILE_APPEND);
+    if (!data.ok || !data.user) {
+      document.body.innerHTML = '<h3 style="color:red;">Usuário não autenticado ou sessão expirada.</h3>';
+      return;
+    }
 
-if (empty($data['ok']) || !$data['ok']) {
-    die("Usuário não autenticado.");
-}
+    // ✅ Envia os dados do usuário ao backend local do Caderno
+    await fetch('/sso/login_cookie.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data.user)
+    });
 
-$user = $data['user'] ?? [];
-if (empty($user['id'])) {
-    die("Dados inválidos do usuário.");
-}
-
-// ✅ Define o cookie local de autenticação no Caderno
-session_start();
-$_SESSION['user_id']   = $user['id'];
-$_SESSION['user_nome'] = $user['nome'];
-$_SESSION['user_tipo'] = $user['tipo'];
-$_SESSION['user_ativo'] = $user['ativo'];
-
-file_put_contents($log, "Sessão criada com sucesso: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
-
-// 🔁 Redireciona para o painel principal
-header('Location: /home/index.php');
-exit;
+    // 🔁 Redireciona para o painel principal
+    window.location.href = '/home/index.php';
+  } catch (e) {
+    document.body.innerHTML = '<h3 style="color:red;">Falha na autenticação: ' + e + '</h3>';
+  }
+})();
+</script>
+</body>
+</html>
+HTML;
