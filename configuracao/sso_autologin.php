@@ -1,8 +1,8 @@
 <?php
 /**
  * /configuracao/sso_autologin.php
- * Integração SSO Frutag → Caderno de Campo
- * Agora executa via navegador, respeitando os cookies de sessão reais.
+ * Recebe uid + sig e cria sessão no Caderno com base no login da Frutag.
+ * Última atualização: 2025-11-04
  */
 
 ini_set('display_errors', 1);
@@ -11,46 +11,37 @@ error_reporting(E_ALL);
 
 @session_start();
 
-// 🔍 Token recebido (não é usado, mas deixamos para compatibilidade)
-$token = $_GET['token'] ?? null;
+$log_file = __DIR__ . '/sso_debug.log';
+file_put_contents($log_file, "\n=== " . date('c') . " ===\n", FILE_APPEND);
 
-// 🔗 Endpoint remoto (será consultado pelo navegador)
-$api_url = "https://frutag.com.br/sso/userinfo.php";
+$uid = $_GET['uid'] ?? '';
+$sig = $_GET['sig'] ?? '';
 
-// 🔧 Script JS para fazer a chamada via navegador (mantém os cookies)
-echo <<<HTML
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<title>Autenticando...</title>
-</head>
-<body>
-<script>
-(async () => {
-  try {
-    const resp = await fetch("$api_url", { credentials: 'include' });
-    const data = await resp.json();
+if (!$uid || !$sig) {
+    file_put_contents($log_file, "❌ Parâmetros ausentes.\n", FILE_APPEND);
+    die('Parâmetros inválidos.');
+}
 
-    if (!data.ok || !data.user) {
-      document.body.innerHTML = '<h3 style="color:red;">Usuário não autenticado ou sessão expirada.</h3>';
-      return;
-    }
+// 🔐 Mesmo segredo usado no Frutag
+$SECRET = '}^BNS8~o80?RyV]d';
 
-    // ✅ Envia os dados do usuário ao backend local do Caderno
-    await fetch('/sso/login_cookie.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data.user)
-    });
+// 🔍 Valida assinatura HMAC
+$expected_sig = hash_hmac('sha256', $uid, $SECRET);
 
-    // 🔁 Redireciona para o painel principal
-    window.location.href = '/home/index.php';
-  } catch (e) {
-    document.body.innerHTML = '<h3 style="color:red;">Falha na autenticação: ' + e + '</h3>';
-  }
-})();
-</script>
-</body>
-</html>
-HTML;
+if (!hash_equals($expected_sig, $sig)) {
+    file_put_contents($log_file, "❌ Assinatura inválida. UID=$uid SIG=$sig EXPECTED=$expected_sig\n", FILE_APPEND);
+    die('Assinatura inválida.');
+}
+
+// ✅ Cria sessão local
+$_SESSION['user_id'] = $uid;
+$_SESSION['user_nome'] = 'SSO-User-' . $uid;
+$_SESSION['user_tipo'] = 'cliente';
+$_SESSION['user_ativo'] = 'S';
+
+// 🔎 Log
+file_put_contents($log_file, "✅ Sessão criada: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
+
+// 🔁 Redireciona para o painel principal
+header('Location: /home/index.php');
+exit;
