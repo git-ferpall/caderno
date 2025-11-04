@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
-
-require_once __DIR__ . '/env.php';
 @session_start();
 
-// 1️⃣ Limpa completamente a sessão PHP
+require_once __DIR__ . '/env.php';
+
+// === 1️⃣ Limpa sessão PHP ===
 $_SESSION = [];
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
@@ -12,37 +12,36 @@ if (ini_get('session.use_cookies')) {
 }
 session_destroy();
 
-// 2️⃣ Nome real do cookie JWT
-$cookieName = defined('AUTH_COOKIE') ? AUTH_COOKIE : 'AUTH_COOKIE';
+// === 2️⃣ Força remoção dos cookies JWT ===
+$cookieNames = [
+    defined('AUTH_COOKIE') ? AUTH_COOKIE : 'AUTH_COOKIE',
+    'token' // fallback caso outro nome tenha sido usado
+];
 
-// 3️⃣ Força expiração em todos os contextos possíveis
 $domains = [
     $_SERVER['HTTP_HOST'] ?? '',
     'frutag.com.br',
     '.frutag.com.br',
-    'caderno.frutag.com.br',
+    'caderno.frutag.com.br'
 ];
 
-foreach ($domains as $domain) {
-    if (empty($domain)) continue;
-    setcookie($cookieName, '', [
-        'expires'  => time() - 3600,
-        'path'     => '/',
-        'domain'   => $domain,
-        'secure'   => true,
-        'httponly' => true,
-        'samesite' => 'None'
-    ]);
+foreach ($cookieNames as $cookie) {
+    foreach ($domains as $domain) {
+        if (empty($domain)) continue;
+        setcookie($cookie, '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'domain'   => $domain,
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'None'
+        ]);
+    }
+    unset($_COOKIE[$cookie]);
 }
 
-// 4️⃣ Remove do array local também
-unset($_COOKIE[$cookieName]);
-
-// 5️⃣ Log opcional
-file_put_contents(__DIR__ . '/sso_debug.log', date('c') . " - Logout executado e cookie removido\n", FILE_APPEND);
-
-// 6️⃣ Redireciona para login com força de recarregar a página
+// === 3️⃣ Força recarregar o navegador ===
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
-header('Location: /index.php?logout=ok');
+header('Location: /index.php?logout=ok&_='.time()); // timestamp impede cache
 exit;
