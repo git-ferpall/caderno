@@ -8,7 +8,8 @@
 
 @session_start();
 require_once __DIR__ . '/../configuracao/env.php'; // onde está o JWT_SECRET
-$log = __DIR__ . '/sso_debug.log';
+$log = __DIR__ . '/sso_debug.log'; // ← mantém igual se este arquivo está dentro de /configuracao/
+
 
 file_put_contents($log, "\n=== " . date('c') . " ===\n", FILE_APPEND);
 
