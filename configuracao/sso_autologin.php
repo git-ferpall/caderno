@@ -1,60 +1,52 @@
 <?php
 /**
- * SSO AutoLogin - Caderno de Campo
- * ---------------------------------
- * Autentica via link assinado enviado pelo portal Frutag.
- * Não consulta o banco local, valida via API.
+ * /configuracao/sso_autologin.php
+ * Integração SSO Frutag → Caderno de Campo
+ * Autor: Fabiano Amaro / Frutag
+ * Atualizado em: 2025-11-04
  */
 
-@session_start();
-require_once __DIR__ . '/../configuracao/env.php'; // onde está o JWT_SECRET
-$log = __DIR__ . '/sso_debug.log'; // ← mantém igual se este arquivo está dentro de /configuracao/
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
+$log = __DIR__ . '/sso_debug.log';
+file_put_contents($log, date('c') . " - Início do autologin\n", FILE_APPEND);
 
-file_put_contents($log, "\n=== " . date('c') . " ===\n", FILE_APPEND);
+// 🔍 Recebe token (não é mais usado, mas mantido para compatibilidade)
+$token = $_GET['token'] ?? null;
 
-$uid = $_GET['uid'] ?? null;
-$sig = $_GET['sig'] ?? null;
+// 🧠 Busca dados do usuário autenticado diretamente pela API Frutag
+$api_url = "https://frutag.com.br/sso/userinfo.php";
+file_put_contents($log, "Consultando API: $api_url\n", FILE_APPEND);
 
-if (!$uid || !$sig) {
-    file_put_contents($log, "❌ Parâmetros ausentes (uid/sig)\n", FILE_APPEND);
-    die('Parâmetros ausentes.');
-}
-
-// 🔑 Mesmo segredo do Frutag
-$SSO_SECRET = '}^BNS8~o80?RyV]d';
-
-// 🔒 Valida assinatura
-$expected = hash_hmac('sha256', $uid, $SSO_SECRET);
-if (!hash_equals($expected, $sig)) {
-    file_put_contents($log, "❌ Assinatura inválida para UID=$uid\n", FILE_APPEND);
-    die('Assinatura inválida.');
-}
-
-// 🌐 Chama API do Frutag para buscar dados do usuário
-$api_url = "https://frutag.com.br/sso/userinfo.php?id=" . urlencode($uid);
 $response = @file_get_contents($api_url);
-
-if (!$response) {
-    file_put_contents($log, "❌ Falha ao chamar API: $api_url\n", FILE_APPEND);
-    die('Erro ao consultar API.');
+if ($response === false) {
+    file_put_contents($log, "Erro ao consultar API (file_get_contents falhou)\n", FILE_APPEND);
+    die("Erro ao consultar API.");
 }
 
 $data = json_decode($response, true);
-if (empty($data['ok'])) {
-    file_put_contents($log, "❌ API retornou erro: $response\n", FILE_APPEND);
-    die('Usuário inválido.');
+file_put_contents($log, "Resposta API:\n" . print_r($data, true) . "\n", FILE_APPEND);
+
+if (empty($data['ok']) || !$data['ok']) {
+    die("Usuário não autenticado.");
 }
 
-// ✅ Cria sessão local no Caderno
-$_SESSION['user_id']   = $data['user']['id'];
-$_SESSION['user_nome'] = $data['user']['nome'];
-$_SESSION['user_email'] = $data['user']['email'];
-$_SESSION['user_tipo'] = $data['user']['tipo'];
-$_SESSION['sso_from']  = 'frutag';
+$user = $data['user'] ?? [];
+if (empty($user['id'])) {
+    die("Dados inválidos do usuário.");
+}
 
-file_put_contents($log, "✅ Login OK: " . print_r($data['user'], true) . "\n", FILE_APPEND);
+// ✅ Define o cookie local de autenticação no Caderno
+session_start();
+$_SESSION['user_id']   = $user['id'];
+$_SESSION['user_nome'] = $user['nome'];
+$_SESSION['user_tipo'] = $user['tipo'];
+$_SESSION['user_ativo'] = $user['ativo'];
 
-// 🚀 Redireciona para o painel principal
+file_put_contents($log, "Sessão criada com sucesso: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
+
+// 🔁 Redireciona para o painel principal
 header('Location: /home/index.php');
 exit;
