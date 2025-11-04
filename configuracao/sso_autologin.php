@@ -1,52 +1,43 @@
 <?php
-/**
- * /configuracao/sso_autologin.php
- * -------------------------------
- * Autentica automaticamente usuários vindos do sistema Frutag,
- * com base em UID + assinatura HMAC, sem depender da API externa.
- * -------------------------------
- * Autor: Fabiano Amaro / Frutag
- * Última atualização: 2025-11-04
- */
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-@session_start();
+require_once __DIR__ . '/sso/env.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$log_file = __DIR__ . '/sso_debug.log';
-file_put_contents($log_file, "\n=== " . date('c') . " ===\n", FILE_APPEND);
+use Firebase\JWT\JWT;
 
-// 🔹 Parâmetros recebidos
 $uid = $_GET['uid'] ?? '';
 $sig = $_GET['sig'] ?? '';
 
-if (!$uid || !$sig) {
-    file_put_contents($log_file, "❌ Parâmetros ausentes.\n", FILE_APPEND);
-    die('Parâmetros inválidos.');
-}
+if (!$uid || !$sig) die('Parâmetros inválidos.');
 
-// 🔐 Mesmo segredo usado no Frutag
 $SECRET = '}^BNS8~o80?RyV]d';
-
-// 🔎 Valida assinatura HMAC
 $expected_sig = hash_hmac('sha256', $uid, $SECRET);
-if (!hash_equals($expected_sig, $sig)) {
-    file_put_contents($log_file, "❌ Assinatura inválida. UID=$uid\n", FILE_APPEND);
-    die('Assinatura inválida.');
-}
 
-// ✅ Cria sessão local (sem consultar API)
-$_SESSION['user_id']   = $uid;
-$_SESSION['user_nome'] = 'SSO-User-' . $uid;
-$_SESSION['user_tipo'] = 'cliente';
-$_SESSION['user_ativo'] = 'S';
-$_SESSION['sso_login'] = true;
+if (!hash_equals($expected_sig, $sig)) die('Assinatura inválida.');
 
-// 🧾 Log de sessão criada
-file_put_contents($log_file, "✅ Sessão criada com sucesso:\n" . print_r($_SESSION, true) . "\n", FILE_APPEND);
+$now = time();
+$payload = [
+    'iss' => 'https://frutag.com.br',
+    'aud' => 'frutag-apps',
+    'iat' => $now,
+    'exp' => $now + 3600,
+    'sub' => $uid,
+    'tipo' => 'cliente',
+    'name' => 'SSO-' . $uid,
+];
 
-// 🔁 Redireciona para o painel principal
+$jwt = JWT::encode($payload, $SECRET, 'HS256');
+
+setcookie('AUTH_COOKIE', $jwt, [
+    'expires'  => time() + 3600,
+    'path'     => '/',
+    'secure'   => true,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 header('Location: /home/index.php');
 exit;
