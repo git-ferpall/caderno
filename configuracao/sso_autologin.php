@@ -1,7 +1,11 @@
 <?php
 /**
  * /configuracao/sso_autologin.php
- * Recebe uid + sig e cria sessão no Caderno com base no login da Frutag.
+ * -------------------------------
+ * Autentica automaticamente usuários vindos do sistema Frutag,
+ * com base em UID + assinatura HMAC, sem depender da API externa.
+ * -------------------------------
+ * Autor: Fabiano Amaro / Frutag
  * Última atualização: 2025-11-04
  */
 
@@ -14,6 +18,7 @@ error_reporting(E_ALL);
 $log_file = __DIR__ . '/sso_debug.log';
 file_put_contents($log_file, "\n=== " . date('c') . " ===\n", FILE_APPEND);
 
+// 🔹 Parâmetros recebidos
 $uid = $_GET['uid'] ?? '';
 $sig = $_GET['sig'] ?? '';
 
@@ -25,22 +30,22 @@ if (!$uid || !$sig) {
 // 🔐 Mesmo segredo usado no Frutag
 $SECRET = '}^BNS8~o80?RyV]d';
 
-// 🔍 Valida assinatura HMAC
+// 🔎 Valida assinatura HMAC
 $expected_sig = hash_hmac('sha256', $uid, $SECRET);
-
 if (!hash_equals($expected_sig, $sig)) {
-    file_put_contents($log_file, "❌ Assinatura inválida. UID=$uid SIG=$sig EXPECTED=$expected_sig\n", FILE_APPEND);
+    file_put_contents($log_file, "❌ Assinatura inválida. UID=$uid\n", FILE_APPEND);
     die('Assinatura inválida.');
 }
 
-// ✅ Cria sessão local
-$_SESSION['user_id'] = $uid;
+// ✅ Cria sessão local (sem consultar API)
+$_SESSION['user_id']   = $uid;
 $_SESSION['user_nome'] = 'SSO-User-' . $uid;
 $_SESSION['user_tipo'] = 'cliente';
 $_SESSION['user_ativo'] = 'S';
+$_SESSION['sso_login'] = true;
 
-// 🔎 Log
-file_put_contents($log_file, "✅ Sessão criada: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
+// 🧾 Log de sessão criada
+file_put_contents($log_file, "✅ Sessão criada com sucesso:\n" . print_r($_SESSION, true) . "\n", FILE_APPEND);
 
 // 🔁 Redireciona para o painel principal
 header('Location: /home/index.php');
