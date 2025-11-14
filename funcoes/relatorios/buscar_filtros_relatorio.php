@@ -62,20 +62,18 @@ try {
     $areas = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'nome');
     $stmt->close();
 
-    // --- Cultivos (produtos das bancadas vinculadas às áreas dessas propriedades) ---
-    $sql_cultivos = "
-        SELECT DISTINCT p.nome
-        FROM produtos p
-        JOIN bancadas b ON b.produto_id = p.id
-        JOIN areas a ON a.id = b.area_id
-        WHERE a.propriedade_id IN ($placeholders)
-        ORDER BY p.nome
-    ";
-    $stmt = $mysqli->prepare($sql_cultivos);
-    $stmt->bind_param($types, ...$propriedades_sel);
+    // --- Cultivos (produtos cadastrados pelo usuário) ---
+    $stmt = $mysqli->prepare("
+        SELECT DISTINCT nome 
+        FROM produtos 
+        WHERE user_id = ? 
+        ORDER BY nome
+    ");
+    $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $cultivos = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'nome');
     $stmt->close();
+
 
     // --- Tipos de manejo (apontamentos registrados) ---
     $sql_manejos = "
