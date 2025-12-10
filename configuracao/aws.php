@@ -1,3 +1,3 @@
 <?php
-define('AWS_KEY', 'SAKIAVBMYWQOFTOIA66W4');
-define('AWS_SECRET', '5wZnvBoBWGf7IxbdKxLYMzN2aTao9x1+c6zRpHmZ');
+define('AWS_KEY', 'AKIAVBMYWQOFYPRQMLM5');
+define('AWS_SECRET', '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');
