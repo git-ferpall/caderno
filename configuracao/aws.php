@@ -1,3 +1,3 @@
 <?php
-define('AWS_KEY', 'SUA_AWS_ACCESS_KEY');
-define('AWS_SECRET', 'SUA_AWS_SECRET_KEY');
+define('AWS_KEY', 'SAKIAVBMYWQOFTOIA66W4');
+define('AWS_SECRET', '5wZnvBoBWGf7IxbdKxLYMzN2aTao9x1+c6zRpHmZ');

@@ -5,9 +5,9 @@ require __DIR__ . '/../../configuracao/aws.php';
 
 use Aws\Sns\SnsClient;
 
-// COLOQUE SUAS CHAVES AQUI:
-$awsKey    = 'AWS_ACCESS_KEY';
-$awsSecret = 'AWS_SECRET_KEY';
+$awsKey = getenv('AWS_ACCESS_KEY');
+$awsSecret = getenv('AWS_SECRET_KEY');
+
 
 $sns = new SnsClient([
     'region' => 'us-east-1',
