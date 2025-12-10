@@ -1,12 +1,14 @@
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
+
 require __DIR__ . '/../../configuracao/aws.php';
 
 
 use Aws\Sns\SnsClient;
 
-$awsKey = getenv('AWS_ACCESS_KEY');
-$awsSecret = getenv('AWS_SECRET_KEY');
+$awsKey = AWS_KEY;
+$awsSecret = AWS_SECRET;
+
 
 
 $sns = new SnsClient([
