@@ -124,16 +124,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                         </tr>
                                     </thead>
                                     <tbody> 
-                                        <!-- 
-                                        # Exemplo: A estrutura básica é assim, com o último filho (o Cultivo) tendo um fundo de cor de acordo com o produto cadastrado, cor essa que o usuário escolhe na hora do seu efetivo cadastro
-                                        -->
-                                        <tr class="espaco-tr"><td colspan="4"></td></tr>
-                                        <tr>
-                                            <td>19/05/2025</td>
-                                            <td>Aplicação de calcário</td>
-                                            <td>Talhão 1</td>
-                                            <td><div class="apontamento-produto fundo-laranja">Milho</div></td>
-                                        </tr>
                                     </tbody>
                                 </table>
 
