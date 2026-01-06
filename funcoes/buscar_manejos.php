@@ -37,13 +37,12 @@ $sql = "
         a.id,
         a.tipo,
         a.data,
+        a.data_conclusao,
         a.status,
         a.observacoes,
 
-        -- Lista de nomes das áreas relacionadas
         GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
 
-        -- Cultivo (produto vinculado)
         (
             SELECT p.nome
             FROM apontamento_detalhes ad2
@@ -54,8 +53,10 @@ $sql = "
         ) AS produto_nome
 
     FROM apontamentos a
-    LEFT JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
-    LEFT JOIN areas ar ON ar.id = ad.valor
+    LEFT JOIN apontamento_detalhes ad 
+        ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
+    LEFT JOIN areas ar 
+        ON ar.id = ad.valor
     WHERE a.propriedade_id = ?
     GROUP BY a.id
     ORDER BY a.data DESC
@@ -66,28 +67,32 @@ $stmt->bind_param("i", $propriedade_id);
 $stmt->execute();
 $res = $stmt->get_result();
 
-$pendentes = [];
+$pendentes  = [];
 $concluidos = [];
 
 while ($row = $res->fetch_assoc()) {
+
     $item = [
-        'id'      => $row['id'],
-        'tipo'    => ucfirst(str_replace('_', ' ', $row['tipo'])),
-        'data'    => date('d/m/Y', strtotime($row['data'])),
-        'areas'   => $row['areas'] ?: '—',
-        'produto' => $row['produto_nome'] ?: '—',
-        'status'  => $row['status']
+        'id'        => $row['id'],
+        'tipo'      => ucfirst(str_replace('_', ' ', $row['tipo'])),
+        'data'      => date('d/m/Y', strtotime($row['data'])),
+        'conclusao' => (
+            $row['status'] === 'concluido' && !empty($row['data_conclusao'])
+        ) ? date('d/m/Y', strtotime($row['data_conclusao'])) : null,
+        'areas'     => $row['areas'] ?: '—',
+        'produto'   => $row['produto_nome'] ?: '—',
+        'status'    => $row['status']
     ];
 
     if ($row['status'] === 'pendente') {
         $pendentes[] = $item;
-    } else {
+    } elseif ($row['status'] === 'concluido') {
         $concluidos[] = $item;
     }
 }
 
 echo json_encode([
     'ok' => true,
-    'pendentes' => $pendentes,
+    'pendentes'  => $pendentes,
     'concluidos' => $concluidos
 ]);

@@ -117,6 +117,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                     <thead>
                                         <tr>
                                             <th id="apt-data">Data</th>
+                                            <th id="apt-conclusao">Conclusão</th>
                                             <th id="apt-nome">Apontamento</th>
                                             <th id="apt-area">Área</th>
                                             <th id="apt-cult">Cultivo</th>
