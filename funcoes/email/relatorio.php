@@ -53,7 +53,7 @@ function enviarEmail($para, $nome, $html)
         $mail->Host       = 'mail.frutag.com.br';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'naoresponder@frutag.com.br';
-        $mail->Password   = getenv('EMAIL_PASS'); // ou direto a senha
+        $mail->Password = 'Fruta20ferpall2020';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL
         $mail->Port       = 465;
 
