@@ -391,3 +391,16 @@
   border-color: var(--verde);
 }
 
+/* Por padrão, ESCONDE */
+#btn-silo-scan {
+  display: none;
+}
+
+/* Exibe somente em telas pequenas (celular) */
+@media (max-width: 768px) {
+  #btn-silo-scan {
+    display: flex; /* ou inline-flex, conforme seu layout */
+    align-items: center;
+    gap: 6px;
+  }
+}
