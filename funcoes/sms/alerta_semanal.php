@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/enviar_sms.php';
 
 /**
- * Normaliza telefone para padrão E.164 (Brasil)
+ * Normaliza telefone para E.164 (Brasil)
  */
 function normalizarTelefone(string $tel): ?string
 {
@@ -31,7 +31,7 @@ function normalizarTelefone(string $tel): ?string
 }
 
 /**
- * Executa o alerta SMS semanal (por propriedade)
+ * Executa o alerta SMS semanal (1 SMS por usuário)
  */
 function executarAlertaSMS(): void
 {
@@ -40,6 +40,7 @@ function executarAlertaSMS(): void
     $hoje = new DateTime('today');
     $domingo = (clone $hoje)->modify('sunday this week');
 
+    // Usuários que aceitam SMS
     $usuarios = $mysqli->query("
         SELECT user_id, nome, telefone
         FROM contato_cliente
@@ -55,6 +56,8 @@ function executarAlertaSMS(): void
             error_log('[SMS] Telefone inválido: ' . $u['telefone']);
             continue;
         }
+
+        $linhas = [];
 
         // Todas as propriedades do usuário
         $stmtProp = $mysqli->prepare("
@@ -79,7 +82,7 @@ function executarAlertaSMS(): void
             $apontamentos = $stmtApt->get_result();
 
             $atrasadas = 0;
-            $semana = 0;
+            $pendentes = 0;
 
             while ($a = $apontamentos->fetch_assoc()) {
                 $data = new DateTime($a['data']);
@@ -87,27 +90,34 @@ function executarAlertaSMS(): void
                 if ($data < $hoje) {
                     $atrasadas++;
                 } elseif ($data <= $domingo) {
-                    $semana++;
+                    $pendentes++;
                 }
             }
 
-            // Se não há pendências, não envia SMS
-            if ($atrasadas === 0 && $semana === 0) {
+            // Se não há tarefas para a semana, ignora a propriedade
+            if ($atrasadas === 0 && $pendentes === 0) {
                 continue;
             }
 
-            // Monta mensagem curta
-            $msg = "Frutag | {$p['nome_razao']}: ";
-
-            if ($atrasadas > 0 && $semana > 0) {
-                $msg .= "{$atrasadas} atrasadas, {$semana} esta semana.";
-            } elseif ($atrasadas > 0) {
-                $msg .= "{$atrasadas} tarefas atrasadas.";
-            } else {
-                $msg .= "{$semana} tarefas esta semana.";
-            }
-
-            enviarSMS($telefone, $msg);
+            $linhas[] =
+                "{$p['nome_razao']}\n" .
+                "Atrasadas: {$atrasadas} | Pendentes: {$pendentes}";
         }
+
+        // Se o usuário não tem nada para a semana, não envia SMS
+        if (empty($linhas)) {
+            continue;
+        }
+
+        // Mensagem final (1 SMS por usuário)
+        $msg =
+            "Caderno de Campo\n\n" .
+            "Tarefas para essa semana\n\n" .
+            implode("\n\n", $linhas);
+
+        // Proteção para não estourar SMS
+        $msg = mb_strimwidth($msg, 0, 320, '...');
+
+        enviarSMS($telefone, $msg);
     }
 }
