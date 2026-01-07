@@ -2,10 +2,10 @@
 declare(strict_types=1);
 
 // Conexão com banco
-require_once '/var/www/html/configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 
 // Composer (AWS SDK)
-require_once '/var/www/html/vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Função de envio
 require_once __DIR__ . '/enviar_sms.php';
