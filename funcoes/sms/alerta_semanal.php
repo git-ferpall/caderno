@@ -100,8 +100,9 @@ function executarAlertaSMS(): void
             }
 
             $linhas[] =
-                "{$p['nome_razao']}\n" .
-                "Atrasadas: {$atrasadas} | Pendentes: {$pendentes}";
+                "🏡 {$p['nome_razao']}\n" .
+                "🔴 Atrasadas: {$atrasadas} | 🟡 Pendentes: {$pendentes}";
+
         }
 
         // Se o usuário não tem nada para a semana, não envia SMS
@@ -111,9 +112,10 @@ function executarAlertaSMS(): void
 
         // Mensagem final (1 SMS por usuário)
         $msg =
-            "Caderno de Campo\n\n" .
-            "Tarefas para essa semana\n\n" .
+            "📒 Caderno de Campo\n\n" .
+            "📅 Tarefas para essa semana\n\n" .
             implode("\n\n", $linhas);
+
 
         // Proteção para não estourar SMS
         $msg = mb_strimwidth($msg, 0, 320, '...');
