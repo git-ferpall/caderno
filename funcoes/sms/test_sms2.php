@@ -16,7 +16,7 @@ $sns = new SnsClient([
 try {
     $result = $sns->publish([
         'Message' => "🔔 Teste Frutag via sistema!\nSeu SMS via PHP está funcionando.",
-        'PhoneNumber' => '+554999346368',
+        'PhoneNumber' => '+5548988276272',
         'MessageAttributes' => [
             'AWS.SNS.SMS.SMSType' => [
                 'DataType' => 'String',
