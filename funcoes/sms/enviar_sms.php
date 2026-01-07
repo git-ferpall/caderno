@@ -22,7 +22,7 @@ function enviarSMS(string $telefone, string $mensagem): bool
         return true;
 
     } catch (AwsException $e) {
-        error_log('[SMS] ' . $e->getAwsErrorMessage());
+        error_log('[SMS] Erro AWS: ' . $e->getAwsErrorMessage());
         return false;
     }
 }
