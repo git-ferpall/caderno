@@ -1,7 +1,7 @@
 <?php
 /**
- * Página inicial do módulo Checklist
- * (MySQLi + SSO + Sessão)
+ * Salva (cria ou edita) um modelo de checklist
+ * Stack: MySQLi + Sessão + JWT (SSO)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
@@ -22,26 +22,69 @@ if (!$user_id) {
     die('Usuário não autenticado');
 }
 
+/* 📥 Dados do formulário */
 $id        = $_POST['id'] ?? null;
-$titulo    = $_POST['titulo'];
-$descricao = $_POST['descricao'] ?? null;
+$titulo    = trim($_POST['titulo'] ?? '');
+$descricao = trim($_POST['descricao'] ?? '');
 $publico   = isset($_POST['publico']) ? 1 : 0;
 
+/* 🧠 Regra de negócio:
+   - modelo público → criado_por = NULL
+   - modelo privado → criado_por = user_id
+*/
 $criado_por = $publico ? null : $user_id;
 
-if ($id) {
-    $sql = "
-        UPDATE checklist_modelos
-        SET titulo = ?, descricao = ?, publico = ?, criado_por = ?
-        WHERE id = ?
-    ";
-    $pdo->prepare($sql)->execute([$titulo, $descricao, $publico, $criado_por, $id]);
-} else {
-    $sql = "
-        INSERT INTO checklist_modelos (titulo, descricao, publico, criado_por)
-        VALUES (?, ?, ?, ?)
-    ";
-    $pdo->prepare($sql)->execute([$titulo, $descricao, $publico, $criado_por]);
+/* 🚫 Validação mínima */
+if ($titulo === '') {
+    die('Título é obrigatório');
 }
 
+/* 💾 UPDATE */
+if ($id) {
+
+    $sql = "
+        UPDATE checklist_modelos
+        SET
+            titulo = ?,
+            descricao = ?,
+            publico = ?,
+            criado_por = ?
+        WHERE id = ?
+    ";
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param(
+        "ssiii",
+        $titulo,
+        $descricao,
+        $publico,
+        $criado_por,
+        $id
+    );
+    $stmt->execute();
+    $stmt->close();
+
+/* 💾 INSERT */
+} else {
+
+    $sql = "
+        INSERT INTO checklist_modelos
+            (titulo, descricao, publico, criado_por)
+        VALUES (?, ?, ?, ?)
+    ";
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param(
+        "ssii",
+        $titulo,
+        $descricao,
+        $publico,
+        $criado_por
+    );
+    $stmt->execute();
+    $stmt->close();
+}
+
+/* 🔁 Volta para lista de modelos */
 header('Location: index.php');
+exit;
