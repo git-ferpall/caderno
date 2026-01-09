@@ -65,13 +65,25 @@ $stmt->close();
  * 📋 COPIA ITENS DO MODELO
  * ========================== */
 $stmt = $mysqli->prepare("
-    INSERT INTO checklist_itens
-        (checklist_id, descricao, permite_observacao, ordem)
+    INSERT INTO checklist_itens (
+    checklist_id,
+    descricao,
+    ordem,
+    permite_observacao,
+    permite_foto,
+    permite_anexo
+    )
     SELECT
-        ?, descricao, permite_observacao, ordem
+        ?,
+        descricao,
+        ordem,
+        permite_observacao,
+        permite_foto,
+        permite_anexo
     FROM checklist_modelo_itens
     WHERE modelo_id = ?
     ORDER BY ordem
+
 ");
 $stmt->bind_param("ii", $checklist_id, $modelo_id);
 $stmt->execute();
