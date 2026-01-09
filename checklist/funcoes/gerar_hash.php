@@ -1,33 +1,33 @@
 <?php
 /**
- * Gera hash de integridade de um checklist
+ * Gera hash de integridade do checklist
+ * O hash é baseado APENAS nos dados preenchidos
  */
 
 function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string
 {
-    // 🔎 Dados do checklist
+    /* 🔎 Verifica se checklist existe */
     $stmt = $mysqli->prepare("
-        SELECT id, user_id, fechado_em
+        SELECT id
         FROM checklists
-        WHERE id = ? AND concluido = 1
+        WHERE id = ?
         LIMIT 1
     ");
     $stmt->bind_param("i", $checklist_id);
     $stmt->execute();
-    $checklist = $stmt->get_result()->fetch_assoc();
+    $chk = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    if (!$checklist) {
-        throw new Exception('Checklist não finalizado');
+    if (!$chk) {
+        throw new Exception('Checklist não encontrado');
     }
 
-    // 🔎 Itens
+    /* 🔎 Itens */
     $stmt = $mysqli->prepare("
         SELECT
-            id,
+            descricao,
             concluido,
-            observacao,
-            ordem
+            COALESCE(observacao, '')
         FROM checklist_itens
         WHERE checklist_id = ?
         ORDER BY ordem
@@ -37,14 +37,12 @@ function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string
     $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    // 🧱 Estrutura canônica
-    $payload = [
-        'checklist_id' => $checklist['id'],
-        'user_id'      => $checklist['user_id'],
-        'fechado_em'   => $checklist['fechado_em'],
-        'itens'        => $itens
-    ];
+    if (!$itens) {
+        throw new Exception('Checklist sem itens');
+    }
 
-    // 🔐 Hash SHA-256
-    return hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE));
+    /* 🔐 Base do hash */
+    $base = json_encode($itens, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return hash('sha256', $base);
 }
