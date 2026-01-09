@@ -81,29 +81,51 @@ $stmt->close();
 <div class="card mb-3">
     <div class="card-body">
 
+        <!-- ✔ CHECK -->
         <div class="form-check mb-2">
             <input class="form-check-input"
                    type="checkbox"
-                   name="concluido[<?= $i['id'] ?>]"
-                   value="1"
                    <?= $i['concluido'] ? 'checked' : '' ?>
                    <?= $bloqueado ? 'disabled' : '' ?>>
-
             <label class="form-check-label fw-bold">
                 <?= htmlspecialchars($i['descricao']) ?>
             </label>
         </div>
 
+        <!-- 📝 OBSERVAÇÃO -->
         <?php if ((int)$i['permite_observacao'] === 1): ?>
-        <textarea class="form-control"
-                  name="observacao[<?= $i['id'] ?>]"
+        <textarea class="form-control mb-2"
                   placeholder="Observações"
                   <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
+        <?php endif; ?>
+
+        <!-- 📸 FOTO -->
+        <?php if ((int)$i['permite_foto'] === 1): ?>
+        <div class="mb-2">
+            <label class="form-label small">📸 Anexar foto</label>
+            <input type="file"
+                   class="form-control upload-foto"
+                   data-item="<?= $i['id'] ?>"
+                   accept="image/*"
+                   <?= $bloqueado ? 'disabled' : '' ?>>
+        </div>
+        <?php endif; ?>
+
+        <!-- 📄 DOCUMENTO -->
+        <?php if ((int)$i['permite_anexo'] === 1): ?>
+        <div class="mb-2">
+            <label class="form-label small">📄 Anexar documento</label>
+            <input type="file"
+                   class="form-control upload-doc"
+                   data-item="<?= $i['id'] ?>"
+                   <?= $bloqueado ? 'disabled' : '' ?>>
+        </div>
         <?php endif; ?>
 
     </div>
 </div>
 <?php endforeach; ?>
+
 
 <?php if (!$bloqueado): ?>
 <button type="submit" class="btn btn-danger">
