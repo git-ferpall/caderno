@@ -93,7 +93,7 @@ $stmt->close();
 
         <textarea class="form-control"
                   placeholder="Observações"
-                  <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao']) ?></textarea>
+                  <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
 
     </div>
 </div>

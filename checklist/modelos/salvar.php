@@ -21,8 +21,8 @@ $descricao = trim($_POST['descricao'] ?? '');
 $publico   = isset($_POST['publico']) ? 1 : 0;
 
 /* Itens */
-$item_ids  = $_POST['item_id']  ?? [];
 $item_desc = $_POST['item_desc'] ?? [];
+$item_obs  = $_POST['item_obs']  ?? [];
 
 /* 🔒 Regra:
  * - modelo padrão → criado_por = 0
@@ -116,21 +116,30 @@ if ($id > 0) {
 }
 
 /* ==========================
- * 💾 SALVAR ITENS (ORDEM)
+ * 💾 SALVAR ITENS (ORDEM + OBS)
  * ========================== */
 $ordem = 1;
 
 $stmt = $mysqli->prepare("
     INSERT INTO checklist_modelo_itens
-        (modelo_id, descricao, ordem)
-    VALUES (?, ?, ?)
+        (modelo_id, descricao, permite_observacao, ordem)
+    VALUES (?, ?, ?, ?)
 ");
 
-foreach ($item_desc as $desc) {
+foreach ($item_desc as $idx => $desc) {
     $desc = trim($desc);
     if ($desc === '') continue;
 
-    $stmt->bind_param("isi", $id, $desc, $ordem);
+    /* checkbox só vem se marcado */
+    $permite_obs = isset($item_obs[$idx]) ? 1 : 0;
+
+    $stmt->bind_param(
+        "isii",
+        $id,
+        $desc,
+        $permite_obs,
+        $ordem
+    );
     $stmt->execute();
     $ordem++;
 }

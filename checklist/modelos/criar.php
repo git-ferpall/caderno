@@ -118,11 +118,20 @@ if ($id) {
 
     <input type="hidden" name="item_id[]" value="<?= $i['id'] ?>">
     <input type="text" name="item_desc[]" class="form-control"
-           value="<?= htmlspecialchars($i['descricao']) ?>" required>
+           value="<?= htmlspecialchars($i['descricao'] ?? '') ?>" required>
+
+    <span class="input-group-text">
+        <input type="checkbox"
+               name="item_obs[]"
+               value="1"
+               <?= ($i['permite_observacao'] ?? 1) ? 'checked' : '' ?>>
+        <small class="ms-1">Obs</small>
+    </span>
 
     <button type="button" class="btn btn-danger"
             onclick="removerItem(this)">×</button>
 </div>
+
 <?php endforeach; ?>
 
 </div>
@@ -148,13 +157,21 @@ function addItem() {
     div.className = 'input-group mb-2 item';
     div.innerHTML = `
         <span class="input-group-text handle">☰</span>
+
         <input type="hidden" name="item_id[]" value="">
         <input type="text" name="item_desc[]" class="form-control" required>
+
+        <span class="input-group-text">
+            <input type="checkbox" name="item_obs[]" value="1" checked>
+            <small class="ms-1">Obs</small>
+        </span>
+
         <button type="button" class="btn btn-danger"
                 onclick="removerItem(this)">×</button>
     `;
     document.getElementById('itens').appendChild(div);
 }
+
 
 function removerItem(btn) {
     btn.closest('.item').remove();
