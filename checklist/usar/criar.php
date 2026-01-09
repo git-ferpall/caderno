@@ -57,8 +57,9 @@ $stmt->close();
  * ========================== */
 $stmt = $mysqli->prepare("
     INSERT INTO checklist_itens
-        (checklist_id, descricao, ordem)
-    SELECT ?, descricao, ordem
+    (checklist_id, descricao, permite_observacao, ordem)
+    SELECT
+        ?, descricao, permite_observacao, ordem
     FROM checklist_modelo_itens
     WHERE modelo_id = ?
     ORDER BY ordem
