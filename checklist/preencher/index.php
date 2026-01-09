@@ -7,18 +7,17 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-/* 🔒 Garante login */
+/* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
 $checklist_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
 if (!$checklist_id) {
     die('Checklist inválido');
 }
 
-/* 🔎 Busca checklist */
+/* 🔎 Checklist */
 $stmt = $mysqli->prepare("
     SELECT id, titulo, concluido
     FROM checklists
@@ -34,10 +33,10 @@ if (!$checklist) {
     die('Checklist não encontrado ou sem permissão');
 }
 
-/* 🔒 Bloqueio se concluído */
+/* 🔒 Bloqueio */
 $bloqueado = (int)$checklist['concluido'] === 1;
 
-/* 🔎 Busca itens (AGORA COM permite_observacao) */
+/* 🔎 Itens */
 $stmt = $mysqli->prepare("
     SELECT
         id,
@@ -60,15 +59,14 @@ $stmt->close();
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<title><?= htmlspecialchars($checklist['titulo'] ?? '') ?></title>
+<title><?= htmlspecialchars($checklist['titulo']) ?></title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
-
 <div class="container py-4">
 
-<h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo'] ?? '') ?></h3>
+<h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo']) ?></h3>
 
 <?php if ($bloqueado): ?>
 <div class="alert alert-warning">
@@ -76,7 +74,9 @@ $stmt->close();
 </div>
 <?php endif; ?>
 
-<form>
+<form method="post" action="salvar.php">
+
+<input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
 
 <?php foreach ($itens as $i): ?>
 <div class="card mb-3">
@@ -85,15 +85,19 @@ $stmt->close();
         <div class="form-check mb-2">
             <input class="form-check-input"
                    type="checkbox"
+                   name="concluido[<?= $i['id'] ?>]"
+                   value="1"
                    <?= $i['concluido'] ? 'checked' : '' ?>
                    <?= $bloqueado ? 'disabled' : '' ?>>
+
             <label class="form-check-label fw-bold">
-                <?= htmlspecialchars($i['descricao'] ?? '') ?>
+                <?= htmlspecialchars($i['descricao']) ?>
             </label>
         </div>
 
         <?php if ((int)$i['permite_observacao'] === 1): ?>
         <textarea class="form-control"
+                  name="observacao[<?= $i['id'] ?>]"
                   placeholder="Observações"
                   <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
         <?php endif; ?>
@@ -103,15 +107,15 @@ $stmt->close();
 <?php endforeach; ?>
 
 <?php if (!$bloqueado): ?>
-<a href="../fechar/index.php?id=<?= $checklist_id ?>"
-   class="btn btn-danger">
+<button type="submit"
+        formaction="../fechar/index.php?id=<?= $checklist_id ?>"
+        class="btn btn-danger">
     🔒 Finalizar checklist
-</a>
+</button>
 <?php endif; ?>
 
 </form>
 
 </div>
-
 </body>
 </html>
