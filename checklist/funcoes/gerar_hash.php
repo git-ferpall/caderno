@@ -1,17 +1,11 @@
 <?php
-/**
- * Gera hash de integridade do checklist
- * O hash é baseado APENAS nos dados preenchidos
- */
+function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string {
 
-function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string
-{
-    /* 🔎 Verifica se checklist existe */
+    // Checklist
     $stmt = $mysqli->prepare("
-        SELECT id
+        SELECT id, titulo, user_id, fechado_em
         FROM checklists
-        WHERE id = ?
-        LIMIT 1
+        WHERE id = ? AND concluido = 1
     ");
     $stmt->bind_param("i", $checklist_id);
     $stmt->execute();
@@ -19,15 +13,12 @@ function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string
     $stmt->close();
 
     if (!$chk) {
-        throw new Exception('Checklist não encontrado');
+        throw new Exception('Checklist não finalizado');
     }
 
-    /* 🔎 Itens */
+    // Itens + observações
     $stmt = $mysqli->prepare("
-        SELECT
-            descricao,
-            concluido,
-            COALESCE(observacao, '')
+        SELECT id, descricao, concluido, observacao
         FROM checklist_itens
         WHERE checklist_id = ?
         ORDER BY ordem
@@ -37,12 +28,25 @@ function gerarHashChecklist(mysqli $mysqli, int $checklist_id): string
     $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    if (!$itens) {
-        throw new Exception('Checklist sem itens');
-    }
+    // Arquivos
+    $stmt = $mysqli->prepare("
+        SELECT checklist_item_id, tipo, arquivo
+        FROM checklist_item_arquivos
+        WHERE checklist_item_id IN (
+            SELECT id FROM checklist_itens WHERE checklist_id = ?
+        )
+        ORDER BY checklist_item_id, arquivo
+    ");
+    $stmt->bind_param("i", $checklist_id);
+    $stmt->execute();
+    $arquivos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 
-    /* 🔐 Base do hash */
-    $base = json_encode($itens, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $payload = json_encode([
+        'checklist' => $chk,
+        'itens'     => $itens,
+        'arquivos'  => $arquivos
+    ], JSON_UNESCAPED_UNICODE);
 
-    return hash('sha256', $base);
+    return hash('sha256', $payload);
 }
