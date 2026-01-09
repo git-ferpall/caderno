@@ -3,10 +3,18 @@ require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 /*
- * O verify_jwt.php DEVE definir:
- *   $user_id
+ * 🔐 Valida JWT + acesso ao Caderno de Campo
+ * verify_jwt_and_access RETORNA o payload
  */
-if (!isset($user_id) || !$user_id) {
+$payload = verify_jwt_and_access($mysqli);
+
+/*
+ * 👤 ID do usuário autenticado (SSO)
+ * vem do JWT -> sub
+ */
+$user_id = (int)($payload['sub'] ?? 0);
+
+if (!$user_id) {
     http_response_code(401);
     die('Usuário não autenticado');
 }
