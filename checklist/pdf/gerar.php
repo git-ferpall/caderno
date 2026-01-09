@@ -1,7 +1,7 @@
 <?php
 /**
  * Gera PDF do checklist fechado
- * Stack: MySQLi + MPDF + endroid/qr-code v3
+ * Stack: MySQLi + MPDF + endroid/qr-code (v2 compatível)
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -11,7 +11,6 @@ require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
 use Mpdf\Mpdf;
 use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
 
 /* 🔒 Login */
 $user = require_login();
@@ -57,16 +56,17 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔳 QR CODE (endroid v3) */
+/* =========================
+ * 🔳 GERAR QR CODE (v2)
+ * ========================= */
 $validarUrl = 'https://caderno.frutag.com.br/checklist/validar/?hash=' . $checklist['hash_documento'];
 
-$qrCode = new QrCode($validarUrl);
-$qrCode->setSize(180);
-$qrCode->setMargin(5);
+$tmpQr = sys_get_temp_dir() . '/qr_checklist_' . $checklist_id . '.png';
 
-$writer = new PngWriter();
-$result = $writer->write($qrCode);
-$qrBase64 = $result->getDataUri();
+$qrCode = new QrCode($validarUrl);
+$qrCode->writeFile($tmpQr);
+
+$qrBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($tmpQr));
 
 /* =========================
  * 🧾 HTML DO PDF
@@ -142,4 +142,7 @@ $mpdf = new Mpdf([
 
 $mpdf->WriteHTML($html);
 $mpdf->Output('checklist_' . $checklist_id . '.pdf', 'I');
+
+/* 🧹 Limpeza */
+@unlink($tmpQr);
 exit;
