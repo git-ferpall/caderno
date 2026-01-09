@@ -1,7 +1,7 @@
 <?php
 /**
  * Cria um CHECKLIST (instância) a partir de um MODELO
- * Stack: MySQLi + SSO + Sessão
+ * Stack: MySQLi + protect.php (SSO)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
@@ -18,9 +18,9 @@ if (!$modelo_id) {
     die('Modelo inválido');
 }
 
-/* 🔎 Verifica se modelo existe */
+/* 🔎 Verifica se modelo existe e se é acessível */
 $stmt = $mysqli->prepare("
-    SELECT id, titulo
+    SELECT id, titulo, publico, criado_por
     FROM checklist_modelos
     WHERE id = ?
     LIMIT 1
@@ -32,6 +32,15 @@ $stmt->close();
 
 if (!$modelo) {
     die('Modelo não encontrado');
+}
+
+/* 🔒 Segurança:
+ * - modelo público → ok
+ * - modelo pessoal → só o dono pode usar
+ */
+if ((int)$modelo['publico'] === 0 && (int)$modelo['criado_por'] !== (int)$user_id) {
+    http_response_code(403);
+    die('Você não tem permissão para usar este modelo');
 }
 
 /* ==========================
@@ -57,7 +66,7 @@ $stmt->close();
  * ========================== */
 $stmt = $mysqli->prepare("
     INSERT INTO checklist_itens
-    (checklist_id, descricao, permite_observacao, ordem)
+        (checklist_id, descricao, permite_observacao, ordem)
     SELECT
         ?, descricao, permite_observacao, ordem
     FROM checklist_modelo_itens
