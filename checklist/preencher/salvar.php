@@ -25,11 +25,12 @@ if (!$chk || (int)$chk['concluido'] === 1) {
     die('Checklist inválido ou já finalizado');
 }
 
-/* 📥 Dados do formulário */
-$concluidos   = $_POST['concluido']   ?? [];
-$observacoes  = $_POST['observacao']  ?? [];
+/* 📥 Dados */
+$concluidos  = $_POST['concluido']  ?? [];
+$observacoes = $_POST['observacao'] ?? [];
+$acao        = $_POST['acao'] ?? 'salvar';
 
-/* 🔎 BUSCA TODOS OS ITENS DO CHECKLIST */
+/* 🔎 Todos os itens */
 $stmt = $mysqli->prepare("
     SELECT id
     FROM checklist_itens
@@ -40,7 +41,7 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 💾 Atualiza item por item */
+/* 💾 Atualiza itens */
 $stmt = $mysqli->prepare("
     UPDATE checklist_itens
     SET concluido = ?, observacao = ?
@@ -59,6 +60,10 @@ foreach ($itens as $item) {
 
 $stmt->close();
 
-/* 🔁 Volta para o checklist */
-header('Location: index.php?id=' . $checklist_id);
+/* 🔁 Decide fluxo */
+if ($acao === 'finalizar') {
+    header('Location: ../fechar/index.php?id=' . $checklist_id);
+} else {
+    header('Location: index.php?id=' . $checklist_id);
+}
 exit;

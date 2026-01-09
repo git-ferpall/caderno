@@ -12,7 +12,7 @@ $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
-$checklist_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$checklist_id = (int)($_GET['id'] ?? 0);
 if (!$checklist_id) {
     die('Checklist inválido');
 }
@@ -33,7 +33,6 @@ if (!$checklist) {
     die('Checklist não encontrado ou sem permissão');
 }
 
-/* 🔒 Bloqueio */
 $bloqueado = (int)$checklist['concluido'] === 1;
 
 /* 🔎 Itens */
@@ -70,13 +69,13 @@ $stmt->close();
 
 <?php if ($bloqueado): ?>
 <div class="alert alert-warning">
-    Este checklist já foi finalizado e não pode mais ser alterado.
+    Checklist já finalizado.
 </div>
 <?php endif; ?>
 
 <form method="post" action="salvar.php">
-
 <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
+<input type="hidden" name="acao" value="finalizar">
 
 <?php foreach ($itens as $i): ?>
 <div class="card mb-3">
@@ -107,9 +106,7 @@ $stmt->close();
 <?php endforeach; ?>
 
 <?php if (!$bloqueado): ?>
-<button type="submit"
-        formaction="../fechar/index.php?id=<?= $checklist_id ?>"
-        class="btn btn-danger">
+<button type="submit" class="btn btn-danger">
     🔒 Finalizar checklist
 </button>
 <?php endif; ?>
