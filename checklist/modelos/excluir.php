@@ -5,7 +5,7 @@
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../../sso/verify_jwt.php';
+require_once __DIR__ . '/../../configuracao/protect.php';
 
 session_start();
 
