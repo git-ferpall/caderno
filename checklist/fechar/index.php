@@ -1,22 +1,15 @@
 <?php
-/**
- * Finalizar checklist
- * Stack: MySQLi + protect.php (SSO)
- */
-
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
+require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
-/* 🔒 Login obrigatório */
+/* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
 $checklist_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if (!$checklist_id) {
-    die('Checklist inválido');
-}
+if (!$checklist_id) die('Checklist inválido');
 
 /* 🔎 Verifica checklist */
 $stmt = $mysqli->prepare("
@@ -30,15 +23,12 @@ $stmt->execute();
 $checklist = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$checklist) {
-    die('Checklist não encontrado ou sem permissão');
-}
+if (!$checklist) die('Checklist não encontrado');
+if ((int)$checklist['concluido'] === 1) die('Checklist já finalizado');
 
-if ((int)$checklist['concluido'] === 1) {
-    die('Checklist já foi finalizado');
-}
-
-/* 🔒 Finaliza checklist */
+/* =========================
+ * 🔒 FECHAMENTO
+ * ========================= */
 $stmt = $mysqli->prepare("
     UPDATE checklists
     SET
@@ -50,6 +40,22 @@ $stmt->bind_param("i", $checklist_id);
 $stmt->execute();
 $stmt->close();
 
-/* 🔁 Redireciona */
+/* =========================
+ * 🔐 GERA HASH DE INTEGRIDADE
+ * ========================= */
+$hash = gerarHashChecklist($mysqli, $checklist_id);
+
+$stmt = $mysqli->prepare("
+    UPDATE checklists
+    SET hash_documento = ?
+    WHERE id = ?
+");
+$stmt->bind_param("si", $hash, $checklist_id);
+$stmt->execute();
+$stmt->close();
+
+/* =========================
+ * 🔁 REDIRECIONA
+ * ========================= */
 header('Location: ../preencher/index.php?id=' . $checklist_id);
 exit;
