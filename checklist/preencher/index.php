@@ -1,6 +1,16 @@
 <?php
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-session_start();
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../configuracao/protect.php';
+
+/*
+ * 🔒 Garante login:
+ * - se não estiver logado → redirect
+ * - se estiver logado → retorna JWT (claims)
+ */
+$user = require_login();
+
+/* 👤 ID do usuário autenticado */
+$user_id = (int) $user->sub;
 
 $checklist_id = (int)($_GET['id'] ?? 0);
 
