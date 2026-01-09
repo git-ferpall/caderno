@@ -73,71 +73,55 @@ if ($id) {
 
 <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
 
-<form method="post" action="salvar.php">
+<form method="post" action="../itens/salvar.php">
 
-<input type="hidden" name="id" value="<?= $id ?>">
-
-<div class="mb-3">
-<label class="form-label">Título</label>
-<input type="text" name="titulo" class="form-control"
-       value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
-</div>
+<input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
 
 <div class="mb-3">
-<label class="form-label">Descrição</label>
-<textarea name="descricao" class="form-control"
-          rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
-</div>
-
-<div class="form-check mb-4">
-<input type="checkbox" name="publico" class="form-check-input"
-       <?= $modelo['publico'] ? 'checked' : '' ?>>
-<label class="form-check-label">Modelo padrão do sistema</label>
-</div>
-
-<hr>
-
-<h5>📋 Itens do checklist</h5>
-
-<div id="itens">
-<?php foreach ($itens as $i): 
-    $key = 'id_' . $i['id'];
-?>
-<div class="input-group mb-2 item">
-    <span class="input-group-text handle">☰</span>
-
-    <input type="hidden" name="item_key[]" value="<?= $key ?>">
-
+    <label class="form-label">Descrição do item</label>
     <input type="text"
-           name="item_desc[<?= $key ?>]"
+           name="descricao"
            class="form-control"
-           value="<?= htmlspecialchars($i['descricao']) ?>"
            required>
-
-    <span class="input-group-text">
-        <input type="checkbox"
-               name="item_obs[<?= $key ?>]"
-               value="1"
-               <?= $i['permite_observacao'] ? 'checked' : '' ?>>
-        <small class="ms-1">Obs</small>
-    </span>
-
-    <button type="button" class="btn btn-danger"
-            onclick="this.closest('.item').remove()">×</button>
-</div>
-<?php endforeach; ?>
 </div>
 
-<button type="button" class="btn btn-outline-primary mb-3" onclick="addItem()">
-➕ Adicionar item
+<div class="form-check">
+    <input class="form-check-input"
+           type="checkbox"
+           name="permite_observacao"
+           value="1"
+           checked>
+    <label class="form-check-label">
+        Permitir observação
+    </label>
+</div>
+
+<div class="form-check">
+    <input class="form-check-input"
+           type="checkbox"
+           name="permite_foto"
+           value="1">
+    <label class="form-check-label">
+        Permitir foto 📸
+    </label>
+</div>
+
+<div class="form-check mb-3">
+    <input class="form-check-input"
+           type="checkbox"
+           name="permite_anexo"
+           value="1">
+    <label class="form-check-label">
+        Permitir documento 📄
+    </label>
+</div>
+
+<button type="submit" class="btn btn-primary">
+    ➕ Adicionar item
 </button>
 
-<hr>
-
-<button class="btn btn-success">💾 Salvar modelo</button>
-<a href="index.php" class="btn btn-secondary">Cancelar</a>
-
 </form>
+
 
 </div>
 
