@@ -1,7 +1,7 @@
 <?php
 /**
  * Gera PDF do checklist fechado
- * Stack: MySQLi + MPDF + QR Code
+ * Stack: MySQLi + MPDF + endroid/qr-code v3
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
 use Mpdf\Mpdf;
-use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 
 /* 🔒 Login */
@@ -19,9 +19,11 @@ $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
 $checklist_id = (int)($_GET['id'] ?? 0);
-if (!$checklist_id) die('Checklist inválido');
+if (!$checklist_id) {
+    die('Checklist inválido');
+}
 
-/* 🔎 Checklist */
+/* 🔎 Checklist (somente fechado) */
 $stmt = $mysqli->prepare("
     SELECT id, titulo, fechado_em, hash_documento
     FROM checklists
@@ -34,10 +36,10 @@ $checklist = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$checklist) {
-    die('Checklist não encontrado ou não finalizado');
+    die('Checklist não encontrado, não finalizado ou sem permissão');
 }
 
-/* 🔐 Validação */
+/* 🔐 Validação de integridade */
 $hash_atual = gerarHashChecklist($mysqli, $checklist_id);
 if (!hash_equals($checklist['hash_documento'], $hash_atual)) {
     die('Checklist adulterado — PDF bloqueado');
@@ -55,17 +57,16 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔳 QR CODE (base64) */
+/* 🔳 QR CODE (endroid v3) */
 $validarUrl = 'https://caderno.frutag.com.br/checklist/validar/?hash=' . $checklist['hash_documento'];
 
-$qr = Builder::create()
-    ->writer(new PngWriter())
-    ->data($validarUrl)
-    ->size(180)
-    ->margin(5)
-    ->build();
+$qrCode = new QrCode($validarUrl);
+$qrCode->setSize(180);
+$qrCode->setMargin(5);
 
-$qrBase64 = $qr->getDataUri();
+$writer = new PngWriter();
+$result = $writer->write($qrCode);
+$qrBase64 = $result->getDataUri();
 
 /* =========================
  * 🧾 HTML DO PDF
@@ -73,20 +74,36 @@ $qrBase64 = $qr->getDataUri();
 $html = '
 <style>
 body { font-family: sans-serif; font-size: 12px }
-h1 { font-size: 18px }
-.item-ok { color: green }
+h1 { font-size: 18px; margin-bottom: 10px }
+h3 { margin-top: 20px }
+ul { padding-left: 15px }
+li { margin-bottom: 6px }
+.item-ok { color: #0a7a0a }
 .item-no { color: #999 }
-.hash { font-family: monospace; font-size: 9px; word-break: break-all }
-.footer { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px }
+.hash {
+    font-family: monospace;
+    font-size: 9px;
+    word-break: break-all;
+    background: #f5f5f5;
+    padding: 6px;
+}
+.footer {
+    margin-top: 25px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    text-align: center;
+}
+.small { font-size: 10px; color: #555 }
 </style>
 
 <h1>Checklist Finalizado</h1>
 
 <p><strong>Título:</strong> ' . htmlspecialchars($checklist['titulo']) . '</p>
-<p><strong>Fechado em:</strong> ' . $checklist['fechado_em'] . '</p>
+<p><strong>Fechado em:</strong> ' . htmlspecialchars($checklist['fechado_em']) . '</p>
 
 <h3>Itens</h3>
-<ul>';
+<ul>
+';
 
 foreach ($itens as $i) {
     $html .= '<li class="' . ($i['concluido'] ? 'item-ok' : 'item-no') . '">
@@ -105,9 +122,11 @@ $html .= '
 <div class="footer">
     <p><strong>Hash de integridade</strong></p>
     <div class="hash">' . $checklist['hash_documento'] . '</div>
+
     <br>
     <img src="' . $qrBase64 . '" width="120">
-    <p style="font-size:10px">
+
+    <p class="small">
         Valide este documento em:<br>
         ' . $validarUrl . '
     </p>
