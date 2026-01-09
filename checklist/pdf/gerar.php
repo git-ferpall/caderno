@@ -1,183 +1,107 @@
 <?php
+/**
+ * Gera PDF do checklist fechado com Hash + QR Code
+ * Stack: MySQLi + protect.php
+ */
+
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../configuracao/protect.php';
+require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
-require_once '../../vendor/autoload.php';
-require_once '../qr.php';
+require_once __DIR__ . '/../../vendor/fpdf/fpdf.php';
+require_once __DIR__ . '/../../vendor/phpqrcode/qrlib.php';
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
+/* 🔒 Login */
+$user = require_login();
+$user_id = (int)$user->sub;
 
-$checklist_id = $_GET['id'];
+/* 📥 Checklist */
+$checklist_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!$checklist_id) die('Checklist inválido');
 
-/* ===============================
-   1️⃣ Buscar checklist fechado
-   =============================== */
-$stmt = $pdo->prepare("
-    SELECT *
+/* 🔎 Checklist (SOMENTE FECHADO) */
+$stmt = $mysqli->prepare("
+    SELECT id, titulo, fechado_em, hash_documento
     FROM checklists
-    WHERE id = ? AND hash_documento IS NOT NULL
+    WHERE id = ? AND user_id = ? AND concluido = 1
+    LIMIT 1
 ");
-$stmt->execute([$checklist_id]);
-$checklist = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->bind_param("ii", $checklist_id, $user_id);
+$stmt->execute();
+$checklist = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if (!$checklist) {
-    die('Checklist não encontrado ou não fechado');
+    die('Checklist não encontrado, não finalizado ou sem permissão');
 }
 
-/* ===============================
-   2️⃣ Buscar itens + anexos
-   =============================== */
-$sql = "
-SELECT 
-    i.id,
-    i.descricao,
-    i.concluido,
-    i.observacao,
-    i.data_conclusao,
-    a.tipo,
-    a.arquivo
-FROM checklist_itens i
-LEFT JOIN checklist_item_anexos a
-    ON a.checklist_item_id = i.id
-WHERE i.checklist_id = ?
-ORDER BY i.id ASC
-";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$checklist_id]);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+/* 🔐 Valida integridade */
+$hash_atual = gerarHashChecklist($mysqli, $checklist_id);
+if (!hash_equals($checklist['hash_documento'], $hash_atual)) {
+    die('Checklist adulterado — PDF bloqueado');
+}
 
-/* ===============================
-   3️⃣ Organizar estrutura
-   =============================== */
-$itens = [];
+/* 🔎 Itens */
+$stmt = $mysqli->prepare("
+    SELECT descricao, concluido, observacao
+    FROM checklist_itens
+    WHERE checklist_id = ?
+    ORDER BY ordem
+");
+$stmt->bind_param("i", $checklist_id);
+$stmt->execute();
+$itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
-foreach ($rows as $r) {
-    if (!isset($itens[$r['id']])) {
-        $itens[$r['id']] = [
-            'descricao' => $r['descricao'],
-            'concluido' => $r['concluido'],
-            'observacao'=> $r['observacao'],
-            'data'      => $r['data_conclusao'],
-            'fotos'     => [],
-            'docs'      => []
-        ];
-    }
+/* 🔳 QR Code */
+$tmp_qr = sys_get_temp_dir() . '/qr_' . $checklist_id . '.png';
+$url_validar = 'https://caderno.frutag.com.br/checklist/validar/?hash=' . $checklist['hash_documento'];
+QRcode::png($url_validar, $tmp_qr, QR_ECLEVEL_M, 4);
 
-    if ($r['arquivo']) {
-        if ($r['tipo'] === 'foto') {
-            $itens[$r['id']]['fotos'][] = $r['arquivo'];
-        } else {
-            $itens[$r['id']]['docs'][] = $r['arquivo'];
-        }
+/* =========================
+ * 📄 PDF
+ * ========================= */
+$pdf = new FPDF();
+$pdf->AddPage();
+$pdf->SetFont('Arial', 'B', 14);
+
+$pdf->Cell(0, 10, 'Checklist Finalizado', 0, 1);
+$pdf->Ln(3);
+
+$pdf->SetFont('Arial', '', 11);
+$pdf->Cell(0, 8, 'Titulo: ' . $checklist['titulo'], 0, 1);
+$pdf->Cell(0, 8, 'Fechado em: ' . $checklist['fechado_em'], 0, 1);
+$pdf->Ln(4);
+
+$pdf->SetFont('Arial', 'B', 11);
+$pdf->Cell(0, 8, 'Itens', 0, 1);
+
+$pdf->SetFont('Arial', '', 10);
+
+foreach ($itens as $i) {
+    $status = $i['concluido'] ? '[X]' : '[ ]';
+    $pdf->MultiCell(0, 6, $status . ' ' . $i['descricao']);
+
+    if (!empty($i['observacao'])) {
+        $pdf->SetFont('Arial', 'I', 9);
+        $pdf->MultiCell(0, 5, 'Obs: ' . $i['observacao']);
+        $pdf->SetFont('Arial', '', 10);
     }
 }
 
-/* ===============================
-   4️⃣ QR Code
-   =============================== */
-$qrFile = gerarQRCodeChecklist($checklist['hash_documento']);
+/* 🔐 Hash */
+$pdf->Ln(6);
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(0, 6, 'Hash de integridade:', 0, 1);
+$pdf->SetFont('Courier', '', 8);
+$pdf->MultiCell(0, 5, $checklist['hash_documento']);
 
-/* ===============================
-   5️⃣ HTML do PDF
-   =============================== */
-ob_start();
-?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<style>
-body { font-family: DejaVu Sans; font-size: 12px; }
-h1 { font-size: 20px; margin-bottom: 5px; }
-hr { margin: 10px 0; }
-.item { margin-bottom: 15px; }
-.status-ok { color: green; font-weight: bold; }
-.status-no { color: red; font-weight: bold; }
-.foto { width: 120px; margin: 4px; border: 1px solid #ccc; }
-.footer { font-size: 9px; color: #555; }
-</style>
-</head>
+/* 🔳 QR Code no rodapé */
+$pdf->Image($tmp_qr, 160, 240, 35);
 
-<body>
+/* 🖨️ Saída */
+$pdf->Output('I', 'checklist_' . $checklist_id . '.pdf');
 
-<h1><?= htmlspecialchars($checklist['titulo']) ?></h1>
-<p>
-<strong>Checklist ID:</strong> <?= $checklist['id'] ?><br>
-<strong>Fechado em:</strong> <?= date('d/m/Y H:i', strtotime($checklist['fechado_em'])) ?>
-</p>
-
-<hr>
-
-<?php foreach ($itens as $item): ?>
-<div class="item">
-  <strong><?= htmlspecialchars($item['descricao']) ?></strong><br>
-
-  Status:
-  <?php if ($item['concluido']): ?>
-    <span class="status-ok">✔ Concluído</span>
-  <?php else: ?>
-    <span class="status-no">✖ Não concluído</span>
-  <?php endif; ?>
-
-  <?php if ($item['observacao']): ?>
-    <p><strong>Observação:</strong><br><?= nl2br(htmlspecialchars($item['observacao'])) ?></p>
-  <?php endif; ?>
-
-  <?php if ($item['fotos']): ?>
-    <div>
-      <?php foreach ($item['fotos'] as $f): ?>
-        <img class="foto"
-            src="<?= realpath(
-                __DIR__."/../../uploads/checklist/{$checklist_id}/{$item_id}/{$f}"
-            ) ?>">
-      <?php endforeach; ?>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($item['docs']): ?>
-    <p><strong>Documentos:</strong></p>
-    <ul>
-      <?php foreach ($item['docs'] as $d): ?>
-        <li><?= htmlspecialchars($d) ?></li>
-      <?php endforeach; ?>
-    </ul>
-  <?php endif; ?>
-
-</div>
-<?php endforeach; ?>
-
-<hr>
-
-<table width="100%">
-<tr>
-  <td width="70%" class="footer">
-    Documento gerado automaticamente<br>
-    Hash SHA-256:<br>
-    <strong><?= $checklist['hash_documento'] ?></strong>
-  </td>
-  <td width="30%" align="right">
-    <img src="<?= $qrFile ?>" width="100">
-  </td>
-</tr>
-</table>
-
-</body>
-</html>
-<?php
-$html = ob_get_clean();
-
-/* ===============================
-   6️⃣ Gerar PDF
-   =============================== */
-$options = new Options();
-$options->set('isRemoteEnabled', true);
-
-$dompdf = new Dompdf($options);
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-
-$dompdf->stream(
-    "checklist_{$checklist_id}.pdf",
-    ['Attachment' => false]
-);
+/* 🧹 Limpa */
+@unlink($tmp_qr);
+exit;
