@@ -1,22 +1,16 @@
 <?php
-session_start();
-
-/*
- * Ajuste o caminho conforme o SEU projeto
- * Pelo seu ls, normalmente fica em:
- * /opt/caderno_frutag/app/configuracao/...
- */
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 /*
- * 🔐 user_id vem da integração
- * vamos proteger para não quebrar
+ * O verify_jwt.php DEVE definir:
+ *   $user_id
  */
-$user_id = $_SESSION['user_id'] ?? null;
-
-if (!$user_id) {
+if (!isset($user_id) || !$user_id) {
+    http_response_code(401);
     die('Usuário não autenticado');
 }
+
 
 
 $sql = "
