@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/db.php';
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 
 $item_id      = (int)$_POST['item_id'];
 $checklist_id = (int)$_POST['checklist_id'];

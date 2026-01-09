@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/db.php';
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 session_start();
 
 $checklist_id = (int)($_GET['id'] ?? 0);
