@@ -1,16 +1,16 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../../sso/verify_jwt.php';
+require_once __DIR__ . '/../../configuracao/protect.php';
 
-session_start();
+/*
+ * 🔒 Garante login:
+ * - se não estiver logado → redirect
+ * - se estiver logado → retorna JWT (claims)
+ */
+$user = require_login();
 
-/* 🔐 user_id */
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-if (!$user_id) die('Usuário não autenticado');
+/* 👤 ID do usuário autenticado */
+$user_id = (int) $user->sub;
 
 /* 📥 Dados */
 $id        = $_POST['id'] ?? null;
