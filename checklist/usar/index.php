@@ -59,10 +59,12 @@ $stmt->close();
 <h3 class="mb-4">📋 Checklists disponíveis</h3>
 
 <?php if (empty($modelos)): ?>
-  <div class="alert alert-info">
-    Nenhum checklist disponível para você.
+  <div class="alert alert-warning">
+    <strong>Nenhum checklist encontrado.</strong><br>
+    Crie um modelo de checklist para começar.
   </div>
 <?php endif; ?>
+
 
 <div class="row">
 <?php foreach ($modelos as $m): ?>
