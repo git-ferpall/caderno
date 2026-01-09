@@ -139,5 +139,53 @@ $stmt->close();
 </form>
 
 </div>
+<script>
+document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
+
+    input.addEventListener('change', () => {
+
+        const file = input.files[0];
+        if (!file) return;
+
+        const form = new FormData();
+        form.append('item_id', input.dataset.item);
+        form.append('tipo', input.classList.contains('upload-foto') ? 'foto' : 'documento');
+        form.append('arquivo', file);
+
+        fetch('../itens/upload.php', {
+            method: 'POST',
+            body: form
+        })
+        .then(r => r.json())
+        .then(resp => {
+            if (!resp.ok) {
+                alert(resp.erro || 'Erro no upload');
+                return;
+            }
+
+            // Preview simples
+            const box = document.createElement('div');
+            box.className = 'mt-2';
+
+            if (resp.tipo === 'foto') {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.maxWidth = '200px';
+                img.className = 'img-thumbnail';
+                box.appendChild(img);
+            } else {
+                const a = document.createElement('a');
+                a.textContent = file.name;
+                a.href = '#';
+                box.appendChild(a);
+            }
+
+            input.closest('.card-body').appendChild(box);
+        });
+    });
+
+});
+</script>
+
 </body>
 </html>
