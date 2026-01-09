@@ -43,11 +43,14 @@ $stmt = $mysqli->prepare("
         ordem,
         concluido,
         observacao,
-        permite_observacao
+        permite_observacao,
+        permite_foto,
+        permite_anexo
     FROM checklist_itens
     WHERE checklist_id = ?
     ORDER BY ordem
 ");
+
 $stmt->bind_param("i", $checklist_id);
 $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
