@@ -6,7 +6,7 @@ session_start();
  * Pelo seu ls, normalmente fica em:
  * /opt/caderno_frutag/app/configuracao/...
  */
-require_once __DIR__ . '/../../configuracao/conexao.php';
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 
 /*
  * 🔐 user_id vem da integração
@@ -18,7 +18,6 @@ if (!$user_id) {
     die('Usuário não autenticado');
 }
 
-$user_id = $_SESSION['user_id'];
 
 $sql = "
 SELECT *
