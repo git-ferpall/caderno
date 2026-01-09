@@ -37,14 +37,15 @@ if (!$checklist) {
 /* 🔒 Bloqueio se concluído */
 $bloqueado = (int)$checklist['concluido'] === 1;
 
-/* 🔎 Busca itens */
+/* 🔎 Busca itens (AGORA COM permite_observacao) */
 $stmt = $mysqli->prepare("
     SELECT
         id,
         descricao,
         ordem,
         concluido,
-        observacao
+        observacao,
+        permite_observacao
     FROM checklist_itens
     WHERE checklist_id = ?
     ORDER BY ordem
@@ -59,7 +60,7 @@ $stmt->close();
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<title><?= htmlspecialchars($checklist['titulo']) ?></title>
+<title><?= htmlspecialchars($checklist['titulo'] ?? '') ?></title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -67,7 +68,7 @@ $stmt->close();
 
 <div class="container py-4">
 
-<h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo']) ?></h3>
+<h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo'] ?? '') ?></h3>
 
 <?php if ($bloqueado): ?>
 <div class="alert alert-warning">
@@ -87,13 +88,15 @@ $stmt->close();
                    <?= $i['concluido'] ? 'checked' : '' ?>
                    <?= $bloqueado ? 'disabled' : '' ?>>
             <label class="form-check-label fw-bold">
-                <?= htmlspecialchars($i['descricao']) ?>
+                <?= htmlspecialchars($i['descricao'] ?? '') ?>
             </label>
         </div>
 
+        <?php if ((int)$i['permite_observacao'] === 1): ?>
         <textarea class="form-control"
                   placeholder="Observações"
                   <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
+        <?php endif; ?>
 
     </div>
 </div>
