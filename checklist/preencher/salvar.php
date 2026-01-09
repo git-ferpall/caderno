@@ -6,9 +6,11 @@ $user = require_login();
 $user_id = (int)$user->sub;
 
 $checklist_id = (int)($_POST['checklist_id'] ?? 0);
-if (!$checklist_id) die('Checklist inválido');
+if (!$checklist_id) {
+    die('Checklist inválido');
+}
 
-/* 🔒 Confere permissão */
+/* 🔒 Confere checklist */
 $stmt = $mysqli->prepare("
     SELECT id, concluido
     FROM checklists
@@ -23,22 +25,33 @@ if (!$chk || (int)$chk['concluido'] === 1) {
     die('Checklist inválido ou já finalizado');
 }
 
-/* 📥 Dados */
-$concluidos = $_POST['concluido'] ?? [];
-$observacoes = $_POST['observacao'] ?? [];
+/* 📥 Dados do formulário */
+$concluidos   = $_POST['concluido']   ?? [];
+$observacoes  = $_POST['observacao']  ?? [];
 
-/* 💾 Salva itens */
+/* 🔎 BUSCA TODOS OS ITENS DO CHECKLIST */
+$stmt = $mysqli->prepare("
+    SELECT id
+    FROM checklist_itens
+    WHERE checklist_id = ?
+");
+$stmt->bind_param("i", $checklist_id);
+$stmt->execute();
+$itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+/* 💾 Atualiza item por item */
 $stmt = $mysqli->prepare("
     UPDATE checklist_itens
-    SET
-        concluido = ?,
-        observacao = ?
+    SET concluido = ?, observacao = ?
     WHERE id = ? AND checklist_id = ?
 ");
 
-foreach ($observacoes as $item_id => $obs) {
+foreach ($itens as $item) {
+    $item_id = (int)$item['id'];
+
     $done = isset($concluidos[$item_id]) ? 1 : 0;
-    $obs = trim($obs);
+    $obs  = trim($observacoes[$item_id] ?? '');
 
     $stmt->bind_param("isii", $done, $obs, $item_id, $checklist_id);
     $stmt->execute();
@@ -46,6 +59,6 @@ foreach ($observacoes as $item_id => $obs) {
 
 $stmt->close();
 
-/* 🔁 Volta */
+/* 🔁 Volta para o checklist */
 header('Location: index.php?id=' . $checklist_id);
 exit;
