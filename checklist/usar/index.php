@@ -58,6 +58,13 @@ $stmt->close();
 
 <h3 class="mb-4">📋 Checklists disponíveis</h3>
 
+<div class="mb-4">
+    <a href="../modelos/criar.php" class="btn btn-success">
+        ➕ Criar modelo de checklist
+    </a>
+</div>
+
+
 <?php if (empty($modelos)): ?>
   <div class="alert alert-warning">
     <strong>Nenhum checklist encontrado.</strong><br>
