@@ -112,7 +112,7 @@ if ($id) {
 
 <div id="itens">
 
-<?php foreach ($itens as $i): ?>
+<?php foreach ($itens as $idx => $i): ?>
 <div class="input-group mb-2 item">
     <span class="input-group-text handle">☰</span>
 
@@ -122,9 +122,10 @@ if ($id) {
 
     <span class="input-group-text">
         <input type="checkbox"
-               name="item_obs[]"
-               value="1"
-               <?= ($i['permite_observacao'] ?? 1) ? 'checked' : '' ?>>
+            name="item_obs[<?= $idx ?>]"
+            value="1"
+            <?= ($i['permite_observacao'] ?? 1) ? 'checked' : '' ?>>
+
         <small class="ms-1">Obs</small>
     </span>
 
@@ -153,6 +154,8 @@ if ($id) {
 
 <script>
 function addItem() {
+    const idx = document.querySelectorAll('#itens .item').length;
+
     const div = document.createElement('div');
     div.className = 'input-group mb-2 item';
     div.innerHTML = `
@@ -162,7 +165,7 @@ function addItem() {
         <input type="text" name="item_desc[]" class="form-control" required>
 
         <span class="input-group-text">
-            <input type="checkbox" name="item_obs[]" value="1" checked>
+            <input type="checkbox" name="item_obs[${idx}]" value="1" checked>
             <small class="ms-1">Obs</small>
         </span>
 
@@ -171,6 +174,7 @@ function addItem() {
     `;
     document.getElementById('itens').appendChild(div);
 }
+
 
 
 function removerItem(btn) {

@@ -21,8 +21,8 @@ $descricao = trim($_POST['descricao'] ?? '');
 $publico   = isset($_POST['publico']) ? 1 : 0;
 
 /* Itens */
-$item_desc = $_POST['item_desc'] ?? [];
-$item_obs  = $_POST['item_obs']  ?? [];
+$item_desc = $_POST['item_desc'] ?? [];          // descrições (array indexado)
+$item_obs  = $_POST['item_obs']  ?? [];          // checkboxes indexados
 
 /* 🔒 Regra:
  * - modelo padrão → criado_por = 0
@@ -65,7 +65,7 @@ if ($id > 0) {
         die('Sem permissão para editar este modelo');
     }
 
-    /* UPDATE */
+    /* UPDATE do modelo */
     $stmt = $mysqli->prepare("
         UPDATE checklist_modelos
         SET
@@ -97,7 +97,7 @@ if ($id > 0) {
 
 } else {
 
-    /* INSERT */
+    /* INSERT do modelo */
     $stmt = $mysqli->prepare("
         INSERT INTO checklist_modelos
             (titulo, descricao, publico, criado_por)
@@ -130,7 +130,10 @@ foreach ($item_desc as $idx => $desc) {
     $desc = trim($desc);
     if ($desc === '') continue;
 
-    /* checkbox só vem se marcado */
+    /* checkbox indexado:
+     * - se NÃO veio no POST → desmarcado (0)
+     * - se veio → marcado (1)
+     */
     $permite_obs = isset($item_obs[$idx]) ? 1 : 0;
 
     $stmt->bind_param(
