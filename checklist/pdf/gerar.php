@@ -1,25 +1,27 @@
 <?php
 /**
- * Gera PDF do checklist fechado com Hash + QR Code
- * Stack: MySQLi + protect.php
+ * Gera PDF do checklist fechado
+ * Stack: MySQLi + MPDF + QR Code
  */
 
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
-require_once __DIR__ . '/../../vendor/fpdf/fpdf.php';
-require_once __DIR__ . '/../../vendor/phpqrcode/qrlib.php';
+use Mpdf\Mpdf;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
 
 /* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
-$checklist_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$checklist_id = (int)($_GET['id'] ?? 0);
 if (!$checklist_id) die('Checklist inválido');
 
-/* 🔎 Checklist (SOMENTE FECHADO) */
+/* 🔎 Checklist */
 $stmt = $mysqli->prepare("
     SELECT id, titulo, fechado_em, hash_documento
     FROM checklists
@@ -32,10 +34,10 @@ $checklist = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$checklist) {
-    die('Checklist não encontrado, não finalizado ou sem permissão');
+    die('Checklist não encontrado ou não finalizado');
 }
 
-/* 🔐 Valida integridade */
+/* 🔐 Validação */
 $hash_atual = gerarHashChecklist($mysqli, $checklist_id);
 if (!hash_equals($checklist['hash_documento'], $hash_atual)) {
     die('Checklist adulterado — PDF bloqueado');
@@ -53,55 +55,72 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔳 QR Code */
-$tmp_qr = sys_get_temp_dir() . '/qr_' . $checklist_id . '.png';
-$url_validar = 'https://caderno.frutag.com.br/checklist/validar/?hash=' . $checklist['hash_documento'];
-QRcode::png($url_validar, $tmp_qr, QR_ECLEVEL_M, 4);
+/* 🔳 QR CODE (base64) */
+$validarUrl = 'https://caderno.frutag.com.br/checklist/validar/?hash=' . $checklist['hash_documento'];
+
+$qr = Builder::create()
+    ->writer(new PngWriter())
+    ->data($validarUrl)
+    ->size(180)
+    ->margin(5)
+    ->build();
+
+$qrBase64 = $qr->getDataUri();
 
 /* =========================
- * 📄 PDF
+ * 🧾 HTML DO PDF
  * ========================= */
-$pdf = new FPDF();
-$pdf->AddPage();
-$pdf->SetFont('Arial', 'B', 14);
+$html = '
+<style>
+body { font-family: sans-serif; font-size: 12px }
+h1 { font-size: 18px }
+.item-ok { color: green }
+.item-no { color: #999 }
+.hash { font-family: monospace; font-size: 9px; word-break: break-all }
+.footer { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px }
+</style>
 
-$pdf->Cell(0, 10, 'Checklist Finalizado', 0, 1);
-$pdf->Ln(3);
+<h1>Checklist Finalizado</h1>
 
-$pdf->SetFont('Arial', '', 11);
-$pdf->Cell(0, 8, 'Titulo: ' . $checklist['titulo'], 0, 1);
-$pdf->Cell(0, 8, 'Fechado em: ' . $checklist['fechado_em'], 0, 1);
-$pdf->Ln(4);
+<p><strong>Título:</strong> ' . htmlspecialchars($checklist['titulo']) . '</p>
+<p><strong>Fechado em:</strong> ' . $checklist['fechado_em'] . '</p>
 
-$pdf->SetFont('Arial', 'B', 11);
-$pdf->Cell(0, 8, 'Itens', 0, 1);
-
-$pdf->SetFont('Arial', '', 10);
+<h3>Itens</h3>
+<ul>';
 
 foreach ($itens as $i) {
-    $status = $i['concluido'] ? '[X]' : '[ ]';
-    $pdf->MultiCell(0, 6, $status . ' ' . $i['descricao']);
+    $html .= '<li class="' . ($i['concluido'] ? 'item-ok' : 'item-no') . '">
+        [' . ($i['concluido'] ? 'X' : ' ') . '] ' . htmlspecialchars($i['descricao']);
 
     if (!empty($i['observacao'])) {
-        $pdf->SetFont('Arial', 'I', 9);
-        $pdf->MultiCell(0, 5, 'Obs: ' . $i['observacao']);
-        $pdf->SetFont('Arial', '', 10);
+        $html .= '<br><em>Obs:</em> ' . htmlspecialchars($i['observacao']);
     }
+
+    $html .= '</li>';
 }
 
-/* 🔐 Hash */
-$pdf->Ln(6);
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(0, 6, 'Hash de integridade:', 0, 1);
-$pdf->SetFont('Courier', '', 8);
-$pdf->MultiCell(0, 5, $checklist['hash_documento']);
+$html .= '
+</ul>
 
-/* 🔳 QR Code no rodapé */
-$pdf->Image($tmp_qr, 160, 240, 35);
+<div class="footer">
+    <p><strong>Hash de integridade</strong></p>
+    <div class="hash">' . $checklist['hash_documento'] . '</div>
+    <br>
+    <img src="' . $qrBase64 . '" width="120">
+    <p style="font-size:10px">
+        Valide este documento em:<br>
+        ' . $validarUrl . '
+    </p>
+</div>
+';
 
-/* 🖨️ Saída */
-$pdf->Output('I', 'checklist_' . $checklist_id . '.pdf');
+/* =========================
+ * 📄 GERAR PDF
+ * ========================= */
+$mpdf = new Mpdf([
+    'tempDir' => __DIR__ . '/../../tmp'
+]);
 
-/* 🧹 Limpa */
-@unlink($tmp_qr);
+$mpdf->WriteHTML($html);
+$mpdf->Output('checklist_' . $checklist_id . '.pdf', 'I');
 exit;
