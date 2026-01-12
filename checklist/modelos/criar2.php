@@ -81,13 +81,13 @@ if ($id) {
             <div class="page-title">
                 <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
             </div>
-                <form action="salvar.php" method="POST" class="main-form container" id="prop-form">
-                    <input type="hidden" name="id" value="<?= $id ?>">
+                <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
 
                     <div class="form-campo">
-                        <label for="pf-razao">Título</label>
-                        <input type="text" name="titulo" class="form-control"
-                             value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+                        <label for="pf-razao">Nome ou Razão Social</label>
+                        <input class="form-text" type="text" name="pfrazao" id="pf-razao" 
+                            placeholder="Seu nome completo" required
+                            value="<?php echo htmlspecialchars($nome); ?>">
                     </div>
 
                     <div class="form-campo">
