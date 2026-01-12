@@ -1,23 +1,31 @@
 <?php
 /**
- * Validação de integridade do checklist
+ * Validação pública de checklist
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../funcoes/gerar_hash.php';
 
-/* 📥 Recebe hash */
-$hash = $_GET['hash'] ?? '';
+date_default_timezone_set('America/Sao_Paulo');
 
+/* 📥 Hash */
+$hash = $_GET['hash'] ?? '';
 if (!$hash || strlen($hash) !== 64) {
     die('Hash inválido');
 }
 
-/* 🔎 Busca checklist pelo hash */
+/* 🔎 Busca checklist */
 $stmt = $mysqli->prepare("
-    SELECT id, titulo, fechado_em, hash_documento
-    FROM checklists
-    WHERE hash_documento = ?
+    SELECT 
+        c.id,
+        c.titulo,
+        c.fechado_em,
+        c.hash_documento,
+        u.id AS user_id,
+        u.nome AS responsavel
+    FROM checklists c
+    LEFT JOIN usuarios u ON u.id = c.user_id
+    WHERE c.hash_documento = ?
     LIMIT 1
 ");
 $stmt->bind_param("s", $hash);
@@ -31,40 +39,168 @@ if (!$checklist) {
 
 /* 🔐 Recalcula hash */
 $hash_atual = gerarHashChecklist($mysqli, (int)$checklist['id']);
-
-/* 🔍 Validação */
 $integro = hash_equals($checklist['hash_documento'], $hash_atual);
+
+/* 🌐 IP visitante */
+$ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Indefinido';
+
+/* 🕒 Datas */
+$dataLocal = date('d/m/Y H:i:s');
+$dataUTC   = gmdate('d/m/Y H:i:s');
+
+/* 🧾 URL curta */
+$urlCurta = "/v/" . $hash;
+
+/* 📄 PDF */
+$pdfUrl = "/checklist/pdf/checklist_{$checklist['id']}.pdf";
+
+/* 🖼 Logo */
+$logo = "/assets/img/logo-frutag.png";
 ?>
 <!doctype html>
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<title>Validação de Checklist</title>
+<title>Validação de Documento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    background: linear-gradient(135deg, #f4f6f8, #eef2f5);
+}
+
+.logo {
+    max-height: 60px;
+}
+
+.card-validacao {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 12px 30px rgba(0,0,0,.08);
+}
+
+.selo {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.selo-ok {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #2e7d32;
+}
+
+.selo-no {
+    background: #fdecea;
+    color: #c62828;
+    border: 2px solid #c62828;
+}
+
+.hash-box {
+    font-size: .85rem;
+    background: #f8f9fa;
+    border: 1px dashed #ced4da;
+    border-radius: 6px;
+    padding: 10px;
+    word-break: break-all;
+}
+
+.termo {
+    font-size: .8rem;
+    color: #666;
+}
+
+.footer {
+    font-size: .8rem;
+    color: #777;
+    text-align: center;
+    margin-top: 25px;
+}
+</style>
 </head>
 
-<body class="bg-light">
+<body>
 
 <div class="container py-5">
+<div class="row justify-content-center">
+<div class="col-lg-8">
 
-<h3>🔎 Validação de Checklist</h3>
-
-<p><strong>Título:</strong> <?= htmlspecialchars($checklist['titulo']) ?></p>
-<p><strong>Fechado em:</strong> <?= htmlspecialchars($checklist['fechado_em']) ?></p>
-<p><strong>Hash:</strong><br><code><?= htmlspecialchars($hash) ?></code></p>
-
-<?php if ($integro): ?>
-<div class="alert alert-success">
-    ✅ Checklist íntegro<br>
-    O documento não sofreu alterações após o fechamento.
+<!-- LOGO -->
+<div class="text-center mb-4">
+    <img src="<?= $logo ?>" class="logo">
 </div>
-<?php else: ?>
-<div class="alert alert-danger">
-    ❌ Checklist adulterado<br>
-    O conteúdo foi alterado após o fechamento.
-</div>
-<?php endif; ?>
 
+<div class="card card-validacao p-4">
+
+<div class="text-center mb-3">
+    <h3>Validação de Documento</h3>
+
+    <?php if ($integro): ?>
+        <div class="selo selo-ok mt-2">✔ DOCUMENTO ÍNTEGRO</div>
+    <?php else: ?>
+        <div class="selo selo-no mt-2">✖ DOCUMENTO ADULTERADO</div>
+    <?php endif; ?>
+</div>
+
+<hr>
+
+<p><strong>Título:</strong><br><?= htmlspecialchars($checklist['titulo']) ?></p>
+<p><strong>Responsável:</strong><br><?= htmlspecialchars($checklist['responsavel'] ?? 'Não identificado') ?></p>
+
+<p>
+<strong>Usuário ID:</strong> <?= $checklist['user_id'] ?><br>
+<strong>IP de validação:</strong> <?= $ip ?>
+</p>
+
+<p>
+<strong>Fechado em:</strong> <?= htmlspecialchars($checklist['fechado_em']) ?><br>
+<strong>Validado em:</strong> <?= $dataLocal ?> (UTC <?= $dataUTC ?>)
+</p>
+
+<p class="mb-2"><strong>Hash criptográfico:</strong></p>
+<div class="hash-box mb-3"><?= htmlspecialchars($hash) ?></div>
+
+<p><strong>URL pública:</strong><br>
+<a href="<?= $urlCurta ?>"><?= $urlCurta ?></a>
+</p>
+
+<hr>
+
+<!-- MINIATURA PDF -->
+<h6>📄 Documento original</h6>
+
+<div class="ratio ratio-16x9 mb-2">
+    <iframe src="<?= $pdfUrl ?>#page=1&zoom=75"></iframe>
+</div>
+
+<a href="<?= $pdfUrl ?>" class="btn btn-outline-primary btn-sm" target="_blank">
+⬇ Baixar PDF
+</a>
+
+<hr>
+
+<div class="termo">
+<strong>Termo legal / LGPD</strong><br>
+Este documento foi validado publicamente por meio de hash criptográfico,
+garantindo a integridade e autenticidade das informações. Nenhum dado
+sensível além do necessário para identificação e auditoria é exibido,
+em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+</div>
+
+</div>
+
+<div class="footer">
+Sistema Caderno de Campo · Frutag<br>
+Validação pública de documentos
+</div>
+
+</div>
+</div>
 </div>
 
 </body>
