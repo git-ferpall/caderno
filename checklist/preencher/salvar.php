@@ -72,11 +72,11 @@ foreach ($itens as $item) {
 
 $stmt->close();
 
-/* 🔒 FINALIZAR SE PEDIDO */
 if ($acao === 'finalizar') {
-    header("Location: ../fechar/index.php?id=$checklist_id");
+    header("Location: ../fechar/assinar.php?id=$checklist_id");
     exit;
 }
+
 
 /* 🔁 Apenas salvar */
 header("Location: index.php?id=$checklist_id");
