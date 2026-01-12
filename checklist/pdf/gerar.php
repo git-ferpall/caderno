@@ -1,4 +1,12 @@
 <?php
+/**
+ * Geração de PDF do checklist
+ * - Fotos embutidas
+ * - Documentos listados
+ * - Hash de integridade
+ * - QR Code para validação
+ */
+
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 require_once __DIR__ . '/../funcoes/gerar_hash.php';
@@ -12,12 +20,16 @@ use Endroid\QrCode\Writer\PngWriter;
 $user = require_login();
 $user_id = (int)$user->sub;
 
+/* 📥 Checklist */
 $checklist_id = (int)($_GET['id'] ?? 0);
-if (!$checklist_id) die('Checklist inválido');
+if (!$checklist_id) {
+    die('Checklist inválido');
+}
 
-/* 🔐 Valida checklist */
+/* 🔐 Valida checklist finalizado */
 $stmt = $mysqli->prepare("
-    SELECT * FROM checklists
+    SELECT *
+    FROM checklists
     WHERE id = ? AND user_id = ? AND concluido = 1
 ");
 $stmt->bind_param("ii", $checklist_id, $user_id);
@@ -25,14 +37,20 @@ $stmt->execute();
 $checklist = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$checklist) die('Checklist não encontrado');
+if (!$checklist) {
+    die('Checklist não encontrado ou não finalizado');
+}
 
-/* 🔐 Hash */
-$hash = gerarHashChecklist($mysqli, $checklist_id);
+/* 🔐 Hash (já deve existir, mas garantimos) */
+$hash = $checklist['hash_documento'];
+if (!$hash) {
+    $hash = gerarHashChecklist($mysqli, $checklist_id);
+}
 
 /* 🔎 Itens */
 $stmt = $mysqli->prepare("
-    SELECT * FROM checklist_itens
+    SELECT *
+    FROM checklist_itens
     WHERE checklist_id = ?
     ORDER BY ordem
 ");
@@ -43,48 +61,86 @@ $stmt->close();
 
 /* 🔎 Arquivos */
 $stmt = $mysqli->prepare("
-    SELECT * FROM checklist_item_arquivos
+    SELECT *
+    FROM checklist_item_arquivos
     WHERE checklist_item_id IN (
         SELECT id FROM checklist_itens WHERE checklist_id = ?
     )
+    ORDER BY checklist_item_id, criado_em
 ");
 $stmt->bind_param("i", $checklist_id);
 $stmt->execute();
 $arquivos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔳 QR Code */
+/* 🔳 QR Code (API COMPATÍVEL COM SUA VERSÃO) */
 $url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
-$qr = QrCode::create($url)->setSize(180);
+
+$qrCode = new QrCode($url);
+$qrCode->setSize(180);
+
 $writer = new PngWriter();
-$qrImg = $writer->write($qr)->getDataUri();
+$result = $writer->write($qrCode);
+$qrImg = $result->getDataUri();
 
 /* 📄 PDF */
-$mpdf = new Mpdf();
-$html = "<h1>{$checklist['titulo']}</h1>";
-$html .= "<p><strong>Hash:</strong> $hash</p>";
-$html .= "<img src='$qrImg'><hr>";
+$mpdf = new Mpdf([
+    'margin_top'    => 15,
+    'margin_bottom' => 15,
+    'margin_left'   => 15,
+    'margin_right'  => 15
+]);
+
+$html = "
+<h1>{$checklist['titulo']}</h1>
+
+<p>
+<strong>Checklist ID:</strong> {$checklist['id']}<br>
+<strong>Data de fechamento:</strong> {$checklist['fechado_em']}<br>
+<strong>Hash de integridade:</strong><br>
+<small style='word-break:break-all'>$hash</small>
+</p>
+
+<img src='$qrImg' style='margin-bottom:20px'>
+<hr>
+";
 
 foreach ($itens as $i) {
-    $html .= "<p><strong>{$i['descricao']}</strong> ";
-    $html .= $i['concluido'] ? '✔️' : '❌';
-    if ($i['observacao']) {
-        $html .= "<br><em>{$i['observacao']}</em>";
+
+    $html .= "
+    <div style='margin-bottom:15px'>
+        <strong>{$i['descricao']}</strong>
+        <span style='float:right'>" . ($i['concluido'] ? '✔️' : '❌') . "</span>
+    ";
+
+    if (!empty($i['observacao'])) {
+        $html .= "<br><em>Obs:</em> {$i['observacao']}";
     }
 
+    /* Arquivos do item */
     foreach ($arquivos as $a) {
-        if ($a['checklist_item_id'] == $i['id']) {
-            $path = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}/{$a['arquivo']}";
+        if ($a['checklist_item_id'] != $i['id']) continue;
 
-            if ($a['tipo'] === 'foto') {
-                $html .= "<br><img src='$path' style='max-width:300px'>";
-            } else {
-                $html .= "<br>📄 {$a['arquivo']}";
-            }
+        $path = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}/{$a['arquivo']}";
+
+        if (!file_exists($path)) continue;
+
+        if ($a['tipo'] === 'foto') {
+            $html .= "
+            <div style='margin-top:8px'>
+                <img src='$path' style='max-width:300px;border:1px solid #ccc;padding:4px'>
+            </div>
+            ";
+        } else {
+            $html .= "
+            <div style='margin-top:8px'>
+                📄 Documento: {$a['arquivo']}
+            </div>
+            ";
         }
     }
 
-    $html .= "</p><hr>";
+    $html .= "</div><hr>";
 }
 
 $mpdf->WriteHTML($html);
