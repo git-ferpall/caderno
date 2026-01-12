@@ -109,38 +109,75 @@ if ($id) {
                             <label class="form-check-label">Modelo padrão do sistema</label>
                         </div>
 
-                        <div class="form-campo f5">
-                            <label for="pf-ender-cid">Cidade</label>
-                            <select name="pfender-cid" id="pf-ender-cid" class="form-select form-text" value="<?php echo $cidEnder ?>" required></select>
-                        </div>
                     </div>
+                    <h3>📋 Itens do checklist</h3>
 
-                    <div class="form-campo">
-                        <label for="pf-num1-com">Telefone Comercial</label>
-                        <div class="form-box">
-                            <input class="form-text form-tel only-num" type="tel" name="pfnum1-com" id="pf-num1-com"
-                                placeholder="(DDD) + Número" maxlength="15" 
-                                value="<?php echo htmlspecialchars($telCom); ?>">
-                        </div>
-                    </div>
+                        <div id="itens">
+                        <?php foreach ($itens as $i):
+                            $key = 'id_' . $i['id'];
+                        ?>
+                            <div class="form-campo item" data-key="<?= $key ?>">
 
-                    <div class="form-campo">
-                        <label for="pf-num2-com">Telefone Comercial Secundário</label>
-                        <div class="form-box">
-                            <input class="form-text form-tel only-num" type="tel" name="pfnum2-com" id="pf-num2-com"
-                                placeholder="(DDD) + Número" maxlength="15" 
-                                value="<?php echo htmlspecialchars($telCom2); ?>">
-                        </div>
-                    </div>
+                                <!-- Ordem / mover -->
+                                <div class="form-box">
+                                    <span class="handle" title="Mover item">☰</span>
 
-                    <div class="form-submit">
-                        <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-propriedade" type="button">
-                            <span class="main-btn-text">Cancelar</span>
-                        </button>
-                        <button class="main-btn fundo-verde form-save" id="form-save-propriedade" type="submit">
-                            <span class="main-btn-text">Salvar</span>
-                        </button>
-                    </div>
+                                    <input type="hidden" name="item_key[]" value="<?= $key ?>">
+
+                                    <!-- Descrição -->
+                                    <input
+                                        type="text"
+                                        name="item_desc[<?= $key ?>]"
+                                        class="form-text"
+                                        placeholder="Descrição do item"
+                                        value="<?= htmlspecialchars($i['descricao']) ?>"
+                                        required
+                                    >
+
+                                    <!-- Opções -->
+                                    <div class="form-opcoes">
+
+                                        <label class="form-check">
+                                            <input class="form-check-input opcao-item"
+                                                type="checkbox"
+                                                name="item_obs[<?= $key ?>]"
+                                                value="1"
+                                                <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                                            <span>Obs</span>
+                                        </label>
+
+                                        <label class="form-check">
+                                            <input class="form-check-input opcao-item"
+                                                type="checkbox"
+                                                name="item_foto[<?= $key ?>]"
+                                                value="1"
+                                                <?= !empty($i['permite_foto']) ? 'checked' : '' ?>>
+                                            <span>Foto</span>
+                                        </label>
+
+                                        <label class="form-check">
+                                            <input class="form-check-input opcao-item"
+                                                type="checkbox"
+                                                name="item_anexo[<?= $key ?>]"
+                                                value="1"
+                                                <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>>
+                                            <span>Doc</span>
+                                        </label>
+
+                                    </div>
+
+                                    <!-- Remover -->
+                                    <button type="button"
+                                            class="main-btn fundo-vermelho btn-remover"
+                                            onclick="this.closest('.item').remove()">
+                                        ×
+                                    </button>
+                                </div>
+
+                            </div>
+                        <?php endforeach; ?>
+                        </div>
+
                 </form>
 
             </div>
