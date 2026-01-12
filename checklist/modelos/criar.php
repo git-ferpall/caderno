@@ -1,9 +1,7 @@
 <?php
-define('APP_PATH', realpath(__DIR__ . '/../../'));
 /**
  * Criar / Editar MODELO de checklist
  * Stack: MySQLi + protect.php
- * Layout: padrão do sistema (menu do silo)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
@@ -54,152 +52,116 @@ if ($id) {
     $stmt->close();
 }
 ?>
+
 <!doctype html>
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title><?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</title>
+    <title><?= $id ? 'Editar' : 'Criar' ?> modelo</title>
 
-    <!-- Bootstrap + Sortable -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-    <!-- CSS do sistema -->
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/silo.css">
-
     <style>
-        .handle { cursor: grab }
+    .handle { cursor: grab }
     </style>
 </head>
 
-<body>
-<?php
-require APP_PATH . '/include/loading.php';
-require APP_PATH . '/include/popups.php';
-require APP_PATH . '/include/menu.php';
-require APP_PATH . '/include/imports.php';
-require APP_PATH . '/include/footer.php';
+<body class="bg-light">
 
-?>
-<div id="conteudo">
-    <?php require __DIR__ . '/../../include/menu.php'; ?>
+<div class="container py-4">
+    
 
-    <main class="sistema">
-        <div class="container py-4">
+    <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
 
-            <h3 class="mb-4">✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
+    <form method="post" action="salvar.php">
 
-            <form method="post" action="salvar.php">
+    <input type="hidden" name="id" value="<?= $id ?>">
 
-                <input type="hidden" name="id" value="<?= $id ?>">
+    <div class="mb-3">
+    <label class="form-label">Título</label>
+    <input type="text" name="titulo" class="form-control"
+        value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+    </div>
 
-                <!-- TÍTULO -->
-                <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input type="text"
-                           name="titulo"
-                           class="form-control"
-                           value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>"
-                           required>
-                </div>
+    <div class="mb-3">
+    <label class="form-label">Descrição</label>
+    <textarea name="descricao" class="form-control"
+            rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
+    </div>
 
-                <!-- DESCRIÇÃO -->
-                <div class="mb-3">
-                    <label class="form-label">Descrição</label>
-                    <textarea name="descricao"
-                              class="form-control"
-                              rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
-                </div>
-
-                <!-- PÚBLICO -->
-                <div class="form-check mb-4">
-                    <input type="checkbox"
-                           name="publico"
-                           class="form-check-input"
-                           <?= $modelo['publico'] ? 'checked' : '' ?>>
-                    <label class="form-check-label">
-                        Modelo padrão do sistema
-                    </label>
-                </div>
-
-                <hr>
-
-                <!-- ITENS -->
-                <h5 class="mb-3">📋 Itens do checklist</h5>
-
-                <div id="itens">
-                <?php foreach ($itens as $i):
-                    $key = 'id_' . $i['id'];
-                ?>
-                    <div class="input-group mb-2 item">
-                        <span class="input-group-text handle">☰</span>
-
-                        <input type="hidden" name="item_key[]" value="<?= $key ?>">
-
-                        <input type="text"
-                               name="item_desc[<?= $key ?>]"
-                               class="form-control"
-                               value="<?= htmlspecialchars($i['descricao']) ?>"
-                               required>
-
-                        <span class="input-group-text" data-grupo="<?= $key ?>">
-                            <div class="form-check form-check-inline mb-0">
-                                <input class="form-check-input opcao-item"
-                                       type="checkbox"
-                                       name="item_obs[<?= $key ?>]"
-                                       value="1"
-                                       <?= $i['permite_observacao'] ? 'checked' : '' ?>>
-                                <small class="ms-1">Obs</small>
-                            </div>
-
-                            <div class="form-check form-check-inline mb-0 ms-2">
-                                <input class="form-check-input opcao-item"
-                                       type="checkbox"
-                                       name="item_foto[<?= $key ?>]"
-                                       value="1"
-                                       <?= !empty($i['permite_foto']) ? 'checked' : '' ?>>
-                                <small class="ms-1">Foto</small>
-                            </div>
-
-                            <div class="form-check form-check-inline mb-0 ms-2">
-                                <input class="form-check-input opcao-item"
-                                       type="checkbox"
-                                       name="item_anexo[<?= $key ?>]"
-                                       value="1"
-                                       <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>>
-                                <small class="ms-1">Doc</small>
-                            </div>
-                        </span>
-
-                        <button type="button"
-                                class="btn btn-danger"
-                                onclick="this.closest('.item').remove()">×</button>
-                    </div>
-                <?php endforeach; ?>
-                </div>
-
-                <button type="button"
-                        class="btn btn-outline-primary mb-3"
-                        onclick="addItem()">
-                    ➕ Adicionar item
-                </button>
-
-                <hr>
-
-                <!-- AÇÕES -->
-                <button class="btn btn-success">💾 Salvar modelo</button>
-                <a href="index.php" class="btn btn-secondary">Cancelar</a>
-
-            </form>
-
-        </div>
-    </main>
-
-    <?php require __DIR__ . '/../../include/imports.php'; ?>
+    <div class="form-check mb-4">
+    <input type="checkbox" name="publico" class="form-check-input"
+        <?= $modelo['publico'] ? 'checked' : '' ?>>
+    <label class="form-check-label">Modelo padrão do sistema</label>
 </div>
 
-<?php require __DIR__ . '/../../include/footer.php'; ?>
+<hr>
+
+<h5>📋 Itens do checklist</h5>
+
+<div id="itens">
+<?php foreach ($itens as $i):
+    $key = 'id_' . $i['id'];
+?>
+<div class="input-group mb-2 item">
+    <span class="input-group-text handle">☰</span>
+
+    <input type="hidden" name="item_key[]" value="<?= $key ?>">
+
+    <input type="text"
+           name="item_desc[<?= $key ?>]"
+           class="form-control"
+           value="<?= htmlspecialchars($i['descricao']) ?>"
+           required>
+
+    <span class="input-group-text" data-grupo="<?= $key ?>">
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input opcao-item"
+                   type="checkbox"
+                   name="item_obs[<?= $key ?>]"
+                   value="1"
+                   <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+            <small class="ms-1">Obs</small>
+        </div>
+
+        <div class="form-check form-check-inline mb-0 ms-2">
+            <input class="form-check-input opcao-item"
+                   type="checkbox"
+                   name="item_foto[<?= $key ?>]"
+                   value="1"
+                   <?= !empty($i['permite_foto']) ? 'checked' : '' ?>>
+            <small class="ms-1">Foto</small>
+        </div>
+
+        <div class="form-check form-check-inline mb-0 ms-2">
+            <input class="form-check-input opcao-item"
+                   type="checkbox"
+                   name="item_anexo[<?= $key ?>]"
+                   value="1"
+                   <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>>
+            <small class="ms-1">Doc</small>
+        </div>
+    </span>
+
+    <button type="button" class="btn btn-danger"
+            onclick="this.closest('.item').remove()">×</button>
+</div>
+<?php endforeach; ?>
+</div>
+
+<button type="button" class="btn btn-outline-primary mb-3" onclick="addItem()">
+➕ Adicionar item
+</button>
+
+<hr>
+
+<button class="btn btn-success">💾 Salvar modelo</button>
+<a href="index.php" class="btn btn-secondary">Cancelar</a>
+
+</form>
+
+</div>
 
 <script>
 function addItem() {
@@ -212,10 +174,7 @@ function addItem() {
 
         <input type="hidden" name="item_key[]" value="${key}">
 
-        <input type="text"
-               name="item_desc[${key}]"
-               class="form-control"
-               required>
+        <input type="text" name="item_desc[${key}]" class="form-control" required>
 
         <span class="input-group-text" data-grupo="${key}">
             <div class="form-check form-check-inline mb-0">
@@ -244,8 +203,7 @@ function addItem() {
             </div>
         </span>
 
-        <button type="button"
-                class="btn btn-danger"
+        <button type="button" class="btn btn-danger"
                 onclick="this.closest('.item').remove()">×</button>
     `;
     document.getElementById('itens').appendChild(div);
@@ -256,7 +214,7 @@ new Sortable(document.getElementById('itens'), {
     animation: 150
 });
 
-/* 🔒 Apenas 1 opção por item */
+/* 🔒 Exclusividade: apenas 1 opção por item */
 document.addEventListener('change', function (e) {
     if (!e.target.classList.contains('opcao-item')) return;
 
@@ -270,7 +228,6 @@ document.addEventListener('change', function (e) {
     }
 });
 </script>
-<?php include '/../../include/imports.php' ?>
-<?php include '/../../include/footer.php' ?>
+
 </body>
 </html>
