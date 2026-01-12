@@ -7,7 +7,12 @@
  * - Assinatura digital
  * - Hash de integridade
  * - QR Code de validação
+ * - Data e hora
+ * - Carimbo de documento validado
+ * - Numeração de páginas
  */
+
+date_default_timezone_set('America/Sao_Paulo');
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
@@ -84,113 +89,198 @@ $temAssinatura  = file_exists($assinaturaPath);
 $url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
 $qrCode = new QrCode($url);
 $writer = new PngWriter();
-$result = $writer->write($qrCode);
-$qrImg = $result->getDataUri();
+$qrImg = $writer->write($qrCode)->getDataUri();
 
 /* 📄 PDF */
 $mpdf = new Mpdf([
     'tempDir'       => __DIR__ . '/../../tmp/mpdf',
-    'margin_top'    => 20,
-    'margin_bottom' => 20,
+    'margin_top'    => 35,
+    'margin_bottom' => 25,
     'margin_left'   => 15,
     'margin_right'  => 15
 ]);
 
-/* 🎨 ESTILO */
+/* 🔢 Numeração de páginas */
+$mpdf->SetFooter('{PAGENO} / {nbpg}');
+
+/* 🎨 CSS */
 $css = "
-body { font-family: sans-serif; font-size: 12px; }
-h1 { font-size: 22px; margin-bottom: 10px; }
-h2 { font-size: 16px; margin-top: 25px; }
-.item { margin-bottom: 12px; }
-.status { float:right; font-weight:bold; }
-.obs { margin-top:5px; font-style:italic; color:#444; }
-hr { border:0; border-top:1px solid #ccc; margin:15px 0; }
-.footer { text-align:center; margin-top:40px; font-size:10px; color:#555; }
+body { font-family: Arial; font-size: 12px; color:#333; }
+
+.header {
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.header img {
+    max-height:70px;
+}
+
+.header h1 {
+    margin:6px 0 0;
+    font-size:22px;
+}
+
+.meta {
+    font-size:11px;
+    color:#555;
+}
+
+.carimbo {
+    position:absolute;
+    top:120px;
+    right:-30px;
+    transform:rotate(-25deg);
+    border:3px solid #4CAF50;
+    color:#4CAF50;
+    font-size:18px;
+    font-weight:bold;
+    padding:8px 16px;
+}
+
+.section {
+    font-size:16px;
+    border-bottom:2px solid #4CAF50;
+    margin:25px 0 10px;
+}
+
+.item {
+    border:1px solid #ddd;
+    border-radius:6px;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.item-header {
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+}
+
+.ok { color:#2e7d32; }
+.no { color:#c62828; }
+
+.obs {
+    margin-top:6px;
+    font-style:italic;
+    color:#555;
+}
+
+.item img {
+    margin-top:6px;
+    max-width:260px;
+}
+
+.hash {
+    font-size:9px;
+    word-break:break-all;
+}
+
+.assinatura-qrcode {
+    width:100%;
+    margin-top:30px;
+}
+
+.assinatura-qrcode td {
+    text-align:center;
+    vertical-align:middle;
+}
+
+.assinatura-qrcode img {
+    max-width:220px;
+}
+
+.footer {
+    text-align:center;
+    font-size:10px;
+    color:#666;
+    margin-top:20px;
+}
 ";
 
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
-/* 🧾 CABEÇALHO */
+/* 🕒 Data e hora */
+$dataHora = date('d/m/Y H:i:s');
+
+/* 🧾 HTML */
+$logo = __DIR__ . "/../../assets/img/logo-frutag.png";
+
 $html = "
-<h1>{$checklist['titulo']}</h1>
+<div class='carimbo'>DOCUMENTO VALIDADO</div>
 
-<p>
-<strong>ID:</strong> {$checklist['id']}<br>
-<strong>Data de fechamento:</strong> {$checklist['fechado_em']}<br>
-<strong>Hash de integridade:</strong><br>
-<small style='word-break:break-all'>$hash</small>
-</p>
+<div class='header'>
+    <img src='$logo'>
+    <h1>{$checklist['titulo']}</h1>
+    <div class='meta'>
+        Checklist #{$checklist['id']} |
+        Fechado em {$checklist['fechado_em']}<br>
+        Gerado em $dataHora
+    </div>
+</div>
 
-<hr>
-<h2>Itens do checklist</h2>
+<p class='hash'><strong>Hash de integridade:</strong><br>$hash</p>
+
+<div class='section'>Itens do checklist</div>
 ";
 
 /* 📋 ITENS */
 foreach ($itens as $i) {
 
-    $status = $i['concluido'] ? '✔ OK' : '✖ Não';
+    $statusClass = $i['concluido'] ? 'ok' : 'no';
+    $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
 
     $html .= "
     <div class='item'>
-        <strong>{$i['descricao']}</strong>
-        <span class='status'>$status</span>
+        <div class='item-header'>
+            <span>{$i['descricao']}</span>
+            <span class='$statusClass'>$statusTexto</span>
+        </div>
     ";
 
     if (!empty($i['observacao'])) {
         $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
     }
 
-    /* Arquivos do item */
     foreach ($arquivos as $a) {
-
         if ($a['checklist_item_id'] != $i['id']) continue;
 
         $path = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}/{$a['arquivo']}";
         if (!file_exists($path)) continue;
 
         if ($a['tipo'] === 'foto') {
-            $html .= "
-            <div style='margin-top:6px'>
-                <img src='$path' style='max-width:280px;border:1px solid #ccc;padding:4px'>
-            </div>
-            ";
+            $html .= "<div><img src='$path'></div>";
         } else {
-            $html .= "
-            <div style='margin-top:6px'>
-                📄 Documento: {$a['arquivo']}
-            </div>
-            ";
+            $html .= "<div>📄 Documento: {$a['arquivo']}</div>";
         }
     }
 
-    $html .= "</div><hr>";
+    $html .= "</div>";
 }
 
-/* ✍️ ASSINATURA */
+/* ✍️ ASSINATURA + QR */
 if ($temAssinatura) {
     $html .= "
-    <h2>Assinatura</h2>
+    <div class='section'>Validação</div>
 
-    <div style='margin-top:10px'>
-        <img src='$assinaturaPath' style='width:320px;border:1px solid #000;padding:6px'>
-    </div>
-
-    <p style='font-size:11px;color:#555'>
-        Assinado digitalmente em {$checklist['fechado_em']}
-    </p>
-
-    <hr>
+    <table class='assinatura-qrcode'>
+        <tr>
+            <td width='50%'>
+                <strong>Assinatura</strong><br>
+                <img src='$assinaturaPath'><br>
+                <small>Assinado em {$checklist['fechado_em']}</small>
+            </td>
+            <td width='50%'>
+                <strong>QR Code</strong><br>
+                <img src='$qrImg'><br>
+                <small>$url</small>
+            </td>
+        </tr>
+    </table>
     ";
 }
 
-/* 🔳 QR + RODAPÉ */
-$html .= "
-<div class='footer'>
-    <p>Valide este checklist escaneando o QR Code:</p>
-    <img src='$qrImg' style='width:140px'><br>
-    <small>$url</small>
-</div>
-";
+$html .= "<div class='footer'>Documento gerado automaticamente pelo sistema Frutag</div>";
 
 $mpdf->WriteHTML($html);
 $mpdf->Output("checklist_$checklist_id.pdf", 'I');
