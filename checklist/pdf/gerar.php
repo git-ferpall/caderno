@@ -7,7 +7,8 @@
  * - Assinatura digital
  * - Hash de integridade
  * - QR Code de validação
- * - Data e hora
+ * - Data/hora local e UTC
+ * - ID do usuário + IP
  * - Carimbo de documento validado
  * - Numeração de páginas
  */
@@ -26,6 +27,18 @@ use Endroid\QrCode\Writer\PngWriter;
 /* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
+
+/* 🖋 Dados do responsável */
+$responsavel = $user->nome ?? $user->name ?? $user->email ?? 'Responsável não identificado';
+
+/* 🌐 IP do usuário */
+$ip_usuario = $_SERVER['HTTP_X_FORWARDED_FOR']
+    ?? $_SERVER['REMOTE_ADDR']
+    ?? 'IP não identificado';
+
+/* 🕒 Datas */
+$dataHoraLocal = date('d/m/Y H:i:s');
+$dataHoraUTC   = gmdate('d/m/Y H:i:s');
 
 /* 📥 Checklist */
 $checklist_id = (int)($_GET['id'] ?? 0);
@@ -89,18 +102,18 @@ $temAssinatura  = file_exists($assinaturaPath);
 $url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
 $qrCode = new QrCode($url);
 $writer = new PngWriter();
-$qrImg = $writer->write($qrCode)->getDataUri();
+$qrImg  = $writer->write($qrCode)->getDataUri();
 
 /* 📄 PDF */
 $mpdf = new Mpdf([
     'tempDir'       => __DIR__ . '/../../tmp/mpdf',
-    'margin_top'    => 35,
-    'margin_bottom' => 25,
+    'margin_top'    => 40,
+    'margin_bottom' => 30,
     'margin_left'   => 15,
     'margin_right'  => 15
 ]);
 
-/* 🔢 Numeração de páginas */
+/* 🔢 Numeração */
 $mpdf->SetFooter('{PAGENO} / {nbpg}');
 
 /* 🎨 CSS */
@@ -117,8 +130,8 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 }
 
 .header h1 {
-    margin:6px 0 0;
     font-size:22px;
+    margin:6px 0 0;
 }
 
 .meta {
@@ -194,17 +207,14 @@ body { font-family: Arial; font-size: 12px; color:#333; }
     text-align:center;
     font-size:10px;
     color:#666;
-    margin-top:20px;
+    margin-top:25px;
 }
 ";
 
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
-/* 🕒 Data e hora */
-$dataHora = date('d/m/Y H:i:s');
-
 /* 🧾 HTML */
-$logo = __DIR__ . "/../../img/logo-color.png";
+$logo = __DIR__ . "/../../assets/img/logo-frutag.png";
 
 $html = "
 <div class='carimbo'>DOCUMENTO VALIDADO</div>
@@ -213,9 +223,11 @@ $html = "
     <img src='$logo'>
     <h1>{$checklist['titulo']}</h1>
     <div class='meta'>
-        Checklist #{$checklist['id']} |
+        Checklist #{$checklist['id']}<br>
+        Responsável: <strong>$responsavel</strong><br>
+        Usuário ID: $user_id | IP: $ip_usuario<br>
         Fechado em {$checklist['fechado_em']}<br>
-        Gerado em $dataHora
+        Gerado em $dataHoraLocal (UTC $dataHoraUTC)
     </div>
 </div>
 
@@ -266,12 +278,16 @@ if ($temAssinatura) {
     <table class='assinatura-qrcode'>
         <tr>
             <td width='50%'>
-                <strong>Assinatura</strong><br>
-                <img src='$assinaturaPath'><br>
+                <strong>Assinatura digital</strong><br><br>
+                <img src='$assinaturaPath'><br><br>
+                <strong>$responsavel</strong><br>
+                <small>Usuário ID: $user_id</small><br>
+                <small>IP: $ip_usuario</small><br>
                 <small>Assinado em {$checklist['fechado_em']}</small>
             </td>
+
             <td width='50%'>
-                <strong>QR Code</strong><br>
+                <strong>QR Code de validação</strong><br><br>
                 <img src='$qrImg'><br>
                 <small>$url</small>
             </td>
@@ -280,7 +296,12 @@ if ($temAssinatura) {
     ";
 }
 
-$html .= "<div class='footer'>Documento gerado automaticamente pelo sistema Frutag</div>";
+$html .= "
+<div class='footer'>
+Documento assinado eletronicamente por <strong>$responsavel</strong>.<br>
+Data/hora local: $dataHoraLocal | UTC: $dataHoraUTC
+</div>
+";
 
 $mpdf->WriteHTML($html);
 $mpdf->Output("checklist_$checklist_id.pdf", 'I');
