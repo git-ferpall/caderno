@@ -70,7 +70,7 @@ if ($id) {
 <body class="bg-light">
 
 <div class="container py-4">
-    <?php include '../../include/menu.php' ?>
+    
 
     <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
 
