@@ -82,12 +82,15 @@ if ($id) {
                 <h2 class="main-title cor-branco">✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h2>
             </div>
                 <form action="salvar.php" method="POST" class="main-form container" id="prop-form">
+                    <input type="hidden" name="id" value="<?= $id ?>">
 
                     <div class="form-campo">
-                        <label class="form-label">Título</label>
-                            <input type="text" name="titulo" class="form-control"
-                                value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+                        <label for="titulo">Título</label>
+                        <input class="form-text" type="text" name="titulo" id="titulo"
+                            placeholder="Seu nome completo" required
+                            value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>">
                     </div>
+
 
                     <div class="form-campo">
                         <label for="pf-cnpj-cpf">Tipo e N° do Documento</label>
