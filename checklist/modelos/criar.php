@@ -62,16 +62,10 @@ if ($id) {
     <title><?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</title>
     <base href="/">
 
-    <!-- Bootstrap + Sortable -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
     <!-- CSS do sistema -->
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/silo.css">
 
-    <style>
-        .handle { cursor: grab }
-    </style>
 </head>
 
 <body>
@@ -80,9 +74,7 @@ if ($id) {
 <?php require APP_PATH . '/include/popups.php'; ?>
 
 <div id="conteudo">
-    <div class="page-title">
-        <h2 class="main-title cor-branco">Cadastro De Fo</h2>
-    </div>
+
     <?php require APP_PATH . '/include/menu.php'; ?>
 
     <!-- ESTRUTURA CORRETA DO SILO -->
@@ -269,8 +261,6 @@ document.addEventListener('change', function (e) {
     }
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"></script>
 
 <!-- JS base do sistema (caminhos absolutos) -->
 <script src="/js/jquery.js"></script>
