@@ -1,9 +1,10 @@
 <?php
 /**
- * Geração de PDF do checklist
+ * Geração de PDF do checklist FINALIZADO
  * - Itens preenchidos
  * - Observações
  * - Fotos e documentos
+ * - Assinatura digital
  * - Hash de integridade
  * - QR Code de validação
  */
@@ -23,13 +24,16 @@ $user_id = (int)$user->sub;
 
 /* 📥 Checklist */
 $checklist_id = (int)($_GET['id'] ?? 0);
-if (!$checklist_id) die('Checklist inválido');
+if (!$checklist_id) {
+    die('Checklist inválido');
+}
 
 /* 🔐 Checklist finalizado */
 $stmt = $mysqli->prepare("
     SELECT *
     FROM checklists
     WHERE id = ? AND user_id = ? AND concluido = 1
+    LIMIT 1
 ");
 $stmt->bind_param("ii", $checklist_id, $user_id);
 $stmt->execute();
@@ -71,6 +75,10 @@ $stmt->bind_param("i", $checklist_id);
 $stmt->execute();
 $arquivos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+/* ✍️ Assinatura */
+$assinaturaPath = __DIR__ . "/../../uploads/checklists/$checklist_id/assinatura.png";
+$temAssinatura  = file_exists($assinaturaPath);
 
 /* 🔳 QR Code */
 $url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
@@ -120,7 +128,7 @@ $html = "
 /* 📋 ITENS */
 foreach ($itens as $i) {
 
-    $status = $i['concluido'] ? '[OK]' : '[ ]';
+    $status = $i['concluido'] ? '✔ OK' : '✖ Não';
 
     $html .= "
     <div class='item'>
@@ -132,7 +140,7 @@ foreach ($itens as $i) {
         $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
     }
 
-    /* Arquivos */
+    /* Arquivos do item */
     foreach ($arquivos as $a) {
 
         if ($a['checklist_item_id'] != $i['id']) continue;
@@ -156,6 +164,23 @@ foreach ($itens as $i) {
     }
 
     $html .= "</div><hr>";
+}
+
+/* ✍️ ASSINATURA */
+if ($temAssinatura) {
+    $html .= "
+    <h2>Assinatura</h2>
+
+    <div style='margin-top:10px'>
+        <img src='$assinaturaPath' style='width:320px;border:1px solid #000;padding:6px'>
+    </div>
+
+    <p style='font-size:11px;color:#555'>
+        Assinado digitalmente em {$checklist['fechado_em']}
+    </p>
+
+    <hr>
+    ";
 }
 
 /* 🔳 QR + RODAPÉ */
