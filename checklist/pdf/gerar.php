@@ -126,9 +126,12 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 }
 
 .header img {
-    max-height: 10px;
-    max-width: 50px;
+    height: 40px;
+    width: auto;
+    display: block;
+    margin: 0 auto 8px auto;
 }
+
 
 .header h1 {
     font-size:22px;
