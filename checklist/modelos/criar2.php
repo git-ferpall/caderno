@@ -87,32 +87,17 @@ if ($id) {
                     <div class="form-campo">
                         <label for="titulo">Título</label>
                         <input class="form-text" type="text" name="titulo" id="titulo"
-                            placeholder="Seu nome completo" required
+                            placeholder="Título do Checklist" required
                             value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>">
                     </div>
 
 
-                    <div class="form-campo">
-                        <label for="pf-cnpj-cpf">Tipo e N° do Documento</label>
-                        <div class="form-box" id="pf-cnpj-cpf">
-                            <select name="pftipo" id="pf-tipo" class="form-select form-text f1" required>
-                                <option value="cnpj" <?php echo ($cnpj !== '') ? 'selected' : ''; ?>>CNPJ</option>
-                                <option value="cpf"  <?php echo ($cpf !== '')  ? 'selected' : ''; ?>>CPF</option>
-                            </select>
-
-                            <input class="form-text only-num f4" type="text" name="pfcnpj" id="pf-cnpj" 
-                                placeholder="12.345.789/0001-10" maxlength="18" 
-                                value="<?php echo htmlspecialchars($cnpj); ?>">
-                            <input class="form-text only-num f4" type="text" name="pfcpf" id="pf-cpf" 
-                                placeholder="123.456.789-10" maxlength="14" 
-                                value="<?php echo htmlspecialchars($cpf); ?>">
-                        </div>
-                    </div>
+                    
 
                     <div class="form-campo">
-                        <label for="pf-email-com">E-mail</label>
-                        <input class="form-text" type="email" name="pfemail-com" id="pf-email-com"
-                            placeholder="Seu e-mail comercial" required
+                        <label for="pf-email-com">Descrição</label>
+                        <input class="form-text" type="descricao" name="descricao" id="descricao"
+                            placeholder="Descrição do Checklist" required
                             value="<?php echo htmlspecialchars($email); ?>">
                     </div>
                         
