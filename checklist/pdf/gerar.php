@@ -4,7 +4,7 @@
  * - Fotos embutidas
  * - Documentos listados
  * - Hash de integridade
- * - QR Code para validação
+ * - QR Code (compatível com endroid/qr-code antigo)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
@@ -41,7 +41,7 @@ if (!$checklist) {
     die('Checklist não encontrado ou não finalizado');
 }
 
-/* 🔐 Hash (já deve existir, mas garantimos) */
+/* 🔐 Hash (já deve existir; se não, gera) */
 $hash = $checklist['hash_documento'];
 if (!$hash) {
     $hash = gerarHashChecklist($mysqli, $checklist_id);
@@ -73,13 +73,16 @@ $stmt->execute();
 $arquivos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔳 QR Code (API COMPATÍVEL COM SUA VERSÃO) */
+/* 🔳 QR Code — API ANTIGA (sem create(), sem setSize()) */
 $url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
 
 $qrCode = new QrCode($url);
-$qrCode->setSize(180);
-
 $writer = new PngWriter();
+
+/*
+ * Em versões antigas, o tamanho NÃO é definido no QrCode.
+ * O mPDF ajusta o tamanho via HTML.
+ */
 $result = $writer->write($qrCode);
 $qrImg = $result->getDataUri();
 
@@ -101,7 +104,7 @@ $html = "
 <small style='word-break:break-all'>$hash</small>
 </p>
 
-<img src='$qrImg' style='margin-bottom:20px'>
+<img src='$qrImg' style='width:180px; margin-bottom:20px'>
 <hr>
 ";
 
