@@ -58,7 +58,7 @@ body {
 }
 
 .logo {
-    max-height: 200px;
+    max-height: 180px;
 }
 
 .card-validacao {
