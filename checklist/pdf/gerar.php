@@ -99,7 +99,7 @@ $assinaturaPath = __DIR__ . "/../../uploads/checklists/$checklist_id/assinatura.
 $temAssinatura  = file_exists($assinaturaPath);
 
 /* 🔳 QR Code */
-$url = "https://caderno.frutag.com.br/checklist/validar.php?hash=$hash";
+$url = "https://caderno.frutag.com.br/checklist/validar/index.php?hash=$hash";
 $qrCode = new QrCode($url);
 $writer = new PngWriter();
 $qrImg  = $writer->write($qrCode)->getDataUri();
