@@ -126,7 +126,7 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 }
 
 .header img {
-    max-height: 40px;
+    max-height: 10px;
     max-width: 50px;
 }
 
