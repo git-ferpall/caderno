@@ -107,8 +107,8 @@ $qrImg  = $writer->write($qrCode)->getDataUri();
 /* 📄 PDF */
 $mpdf = new Mpdf([
     'tempDir'       => __DIR__ . '/../../tmp/mpdf',
-    'margin_top'    => 40,
-    'margin_bottom' => 30,
+    'margin_top'    => 5,
+    'margin_bottom' => 15,
     'margin_left'   => 15,
     'margin_right'  => 15
 ]);
