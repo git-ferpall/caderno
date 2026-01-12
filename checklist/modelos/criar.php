@@ -76,6 +76,8 @@ if ($id) {
 
 <?php require __DIR__ . '/../../include/loading.php'; ?>
 <?php require __DIR__ . '/../../include/popups.php'; ?>
+<?php require __DIR__ . '/../../../include/imports.php';
+require __DIR__ . '/../../../include/footer.php'; ?>
 
 <div id="conteudo">
     <?php require __DIR__ . '/../../include/menu.php'; ?>
