@@ -1,4 +1,5 @@
 <?php
+define('APP_PATH', realpath(__DIR__ . '/../../'));
 /**
  * Criar / Editar MODELO de checklist
  * Stack: MySQLi + protect.php
@@ -73,12 +74,14 @@ if ($id) {
 </head>
 
 <body>
+<?php
+require APP_PATH . '/include/loading.php';
+require APP_PATH . '/include/popups.php';
+require APP_PATH . '/include/menu.php';
+require APP_PATH . '/include/imports.php';
+require APP_PATH . '/include/footer.php';
 
-<?php require __DIR__ . '/../../include/loading.php'; ?>
-<?php require __DIR__ . '/../../include/popups.php'; ?>
-<?php require __DIR__ . '/../../../include/imports.php';
-require __DIR__ . '/../../../include/footer.php'; ?>
-
+?>
 <div id="conteudo">
     <?php require __DIR__ . '/../../include/menu.php'; ?>
 
