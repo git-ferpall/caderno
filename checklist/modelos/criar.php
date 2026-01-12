@@ -70,29 +70,30 @@ if ($id) {
 <body class="bg-light">
 
 <div class="container py-4">
+    <?php include '../../include/menu.php' ?>
 
-<h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
+    <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
 
-<form method="post" action="salvar.php">
+    <form method="post" action="salvar.php">
 
-<input type="hidden" name="id" value="<?= $id ?>">
+    <input type="hidden" name="id" value="<?= $id ?>">
 
-<div class="mb-3">
-<label class="form-label">Título</label>
-<input type="text" name="titulo" class="form-control"
-       value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
-</div>
+    <div class="mb-3">
+    <label class="form-label">Título</label>
+    <input type="text" name="titulo" class="form-control"
+        value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+    </div>
 
-<div class="mb-3">
-<label class="form-label">Descrição</label>
-<textarea name="descricao" class="form-control"
-          rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
-</div>
+    <div class="mb-3">
+    <label class="form-label">Descrição</label>
+    <textarea name="descricao" class="form-control"
+            rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
+    </div>
 
-<div class="form-check mb-4">
-<input type="checkbox" name="publico" class="form-check-input"
-       <?= $modelo['publico'] ? 'checked' : '' ?>>
-<label class="form-check-label">Modelo padrão do sistema</label>
+    <div class="form-check mb-4">
+    <input type="checkbox" name="publico" class="form-check-input"
+        <?= $modelo['publico'] ? 'checked' : '' ?>>
+    <label class="form-check-label">Modelo padrão do sistema</label>
 </div>
 
 <hr>
