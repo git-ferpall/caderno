@@ -79,7 +79,7 @@ if ($id) {
         <?php require APP_PATH . '/include/menu.php'; ?>
         <main id="propriedade" class="sistema">
             <div class="page-title">
-                <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
+                <h2 class="main-title cor-branco">Cadastro de Propriedade</h2>
             </div>
                 <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
 
@@ -175,7 +175,7 @@ if ($id) {
 
         <?php require APP_PATH . '/include/footer.php'; ?>
 
-    <script>
+        <script>
         function addItem() {
             const key = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
