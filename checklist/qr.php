@@ -4,7 +4,7 @@ use Endroid\QrCode\Writer\PngWriter;
 
 function gerarQRCodeChecklist(string $hash): string
 {
-    $url = "https://caderno.frutag.com.br/checklist/validar.php?h=".$hash;
+    $url = "https://caderno.frutag.com.br/checklist/validar/index.php?h=".$hash;
 
     $result = Builder::create()
         ->writer(new PngWriter())
