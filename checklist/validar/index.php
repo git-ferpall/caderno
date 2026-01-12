@@ -141,9 +141,6 @@ body {
 <p class="mb-2"><strong>Hash criptográfico:</strong></p>
 <div class="hash-box mb-3"><?= htmlspecialchars($hash) ?></div>
 
-<p><strong>URL pública:</strong><br>
-<a href="<?= $urlCurta ?>"><?= $urlCurta ?></a>
-</p>
 
 <hr>
 
