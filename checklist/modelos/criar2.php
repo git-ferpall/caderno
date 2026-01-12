@@ -79,15 +79,15 @@ if ($id) {
         <?php require APP_PATH . '/include/menu.php'; ?>
         <main id="propriedade" class="sistema">
             <div class="page-title">
-                <h2 class="main-title cor-branco">Cadastro de Propriedade</h2>
+                <h2 class="main-title cor-branco">✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h2>
             </div>
-                <form action="/funcoes/salvar_propriedade.php" method="POST" class="main-form container" id="prop-form">
+                <form action="salvar.php" method="POST" class="main-form container" id="prop-form">
 
                     <div class="form-campo">
-                        <label for="pf-razao">Nome ou Razão Social</label>
-                        <input class="form-text" type="text" name="pfrazao" id="pf-razao" 
-                            placeholder="Seu nome completo" required
-                            value="<?php echo htmlspecialchars($nome); ?>">
+                        <label for="pf-razao">Título</label>
+                        <label class="form-label">Título</label>
+                            <input type="text" name="titulo" class="form-control"
+                                value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
                     </div>
 
                     <div class="form-campo">
