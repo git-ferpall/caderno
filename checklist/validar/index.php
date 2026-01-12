@@ -40,7 +40,7 @@ $pdfUrl = "/checklist/pdf/checklist_{$checklist['id']}.pdf";
 $urlCurta = "/v/" . $hash;
 
 /* 🖼 Logo */
-$logo = "/assets/img/logo-frutag.png";
+$logo = "/../../img/logo-color.png";
 ?>
 <!doctype html>
 <html lang="pt-br">
