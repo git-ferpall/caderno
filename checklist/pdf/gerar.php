@@ -114,7 +114,10 @@ foreach ($itens as $i) {
     $html .= "
     <div style='margin-bottom:15px'>
         <strong>{$i['descricao']}</strong>
-        <span style='float:right'>" . ($i['concluido'] ? '✔️' : '❌') . "</span>
+        <span style="float:right">
+            <?= $i['concluido'] ? '<strong>CONCLUÍDO</strong>' : 'PENDENTE' ?>
+        </span>
+
     ";
 
     if (!empty($i['observacao'])) {
