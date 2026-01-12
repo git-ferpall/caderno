@@ -204,7 +204,7 @@ $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 $dataHora = date('d/m/Y H:i:s');
 
 /* 🧾 HTML */
-$logo = __DIR__ . "/../../assets/img/logo-frutag.png";
+$logo = __DIR__ . "/../../img/logo-color.png";
 
 $html = "
 <div class='carimbo'>DOCUMENTO VALIDADO</div>
