@@ -81,6 +81,7 @@ if ($id) {
 <?php require APP_PATH . '/include/popups.php'; ?>
 
 <div id="conteudo">
+    <h2 class="main-title cor-branco"></h2>
     <?php require APP_PATH . '/include/menu.php'; ?>
 
     <!-- ESTRUTURA CORRETA DO SILO -->
