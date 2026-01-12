@@ -1,12 +1,11 @@
 <?php
 /**
- * Validação pública de checklist
+ * Validação pública de integridade de checklist
+ * (sem exibição de dados pessoais – LGPD)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../funcoes/gerar_hash.php';
-
-date_default_timezone_set('America/Sao_Paulo');
 
 /* 📥 Hash */
 $hash = $_GET['hash'] ?? '';
@@ -16,16 +15,9 @@ if (!$hash || strlen($hash) !== 64) {
 
 /* 🔎 Busca checklist */
 $stmt = $mysqli->prepare("
-    SELECT 
-        c.id,
-        c.titulo,
-        c.fechado_em,
-        c.hash_documento,
-        u.id AS user_id,
-        u.nome AS responsavel
-    FROM checklists c
-    LEFT JOIN usuarios u ON u.id = c.user_id
-    WHERE c.hash_documento = ?
+    SELECT id, titulo, fechado_em, hash_documento
+    FROM checklists
+    WHERE hash_documento = ?
     LIMIT 1
 ");
 $stmt->bind_param("s", $hash);
@@ -41,18 +33,11 @@ if (!$checklist) {
 $hash_atual = gerarHashChecklist($mysqli, (int)$checklist['id']);
 $integro = hash_equals($checklist['hash_documento'], $hash_atual);
 
-/* 🌐 IP visitante */
-$ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Indefinido';
-
-/* 🕒 Datas */
-$dataLocal = date('d/m/Y H:i:s');
-$dataUTC   = gmdate('d/m/Y H:i:s');
+/* 📄 PDF */
+$pdfUrl = "/checklist/pdf/checklist_{$checklist['id']}.pdf";
 
 /* 🧾 URL curta */
 $urlCurta = "/v/" . $hash;
-
-/* 📄 PDF */
-$pdfUrl = "/checklist/pdf/checklist_{$checklist['id']}.pdf";
 
 /* 🖼 Logo */
 $logo = "/assets/img/logo-frutag.png";
@@ -132,7 +117,7 @@ body {
 
 <!-- LOGO -->
 <div class="text-center mb-4">
-    <img src="<?= $logo ?>" class="logo">
+    <img src="<?= $logo ?>" class="logo" alt="Frutag">
 </div>
 
 <div class="card card-validacao p-4">
@@ -150,17 +135,7 @@ body {
 <hr>
 
 <p><strong>Título:</strong><br><?= htmlspecialchars($checklist['titulo']) ?></p>
-<p><strong>Responsável:</strong><br><?= htmlspecialchars($checklist['responsavel'] ?? 'Não identificado') ?></p>
-
-<p>
-<strong>Usuário ID:</strong> <?= $checklist['user_id'] ?><br>
-<strong>IP de validação:</strong> <?= $ip ?>
-</p>
-
-<p>
-<strong>Fechado em:</strong> <?= htmlspecialchars($checklist['fechado_em']) ?><br>
-<strong>Validado em:</strong> <?= $dataLocal ?> (UTC <?= $dataUTC ?>)
-</p>
+<p><strong>Data de fechamento:</strong><br><?= htmlspecialchars($checklist['fechado_em']) ?></p>
 
 <p class="mb-2"><strong>Hash criptográfico:</strong></p>
 <div class="hash-box mb-3"><?= htmlspecialchars($hash) ?></div>
@@ -186,9 +161,9 @@ body {
 
 <div class="termo">
 <strong>Termo legal / LGPD</strong><br>
-Este documento foi validado publicamente por meio de hash criptográfico,
-garantindo a integridade e autenticidade das informações. Nenhum dado
-sensível além do necessário para identificação e auditoria é exibido,
+Esta página valida exclusivamente a integridade criptográfica do documento,
+não exibindo dados pessoais ou sensíveis. A verificação é realizada por meio
+de hash criptográfico, conforme boas práticas de segurança da informação e
 em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
 </div>
 
