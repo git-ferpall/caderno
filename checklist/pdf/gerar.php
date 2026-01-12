@@ -127,7 +127,7 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 
 .header img {
     max-height:40px;
-    width: 150px;
+    width: 90px;
 }
 
 .header h1 {
