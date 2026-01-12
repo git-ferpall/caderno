@@ -266,7 +266,7 @@ document.addEventListener('change', function (e) {
     }
 });
 </script>
-<?php include '../include/imports.php' ?>
-<?php include '../include/footer.php' ?>
+<?php include '/../../include/imports.php' ?>
+<?php include '/../../include/footer.php' ?>
 </body>
 </html>
