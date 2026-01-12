@@ -221,7 +221,6 @@ $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 $logo = __DIR__ . "/../../img/logo-color.png";
 
 $html = "
-<div class='carimbo'>DOCUMENTO VALIDADO</div>
 
 <div class='header'>
     <img src='$logo' style='height:40px;width:auto;display:block;margin:0 auto 8px;'>
