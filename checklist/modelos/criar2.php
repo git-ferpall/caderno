@@ -84,7 +84,6 @@ if ($id) {
                 <form action="salvar.php" method="POST" class="main-form container" id="prop-form">
 
                     <div class="form-campo">
-                        <label for="pf-razao">Título</label>
                         <label class="form-label">Título</label>
                             <input type="text" name="titulo" class="form-control"
                                 value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
