@@ -66,9 +66,6 @@ if ($id) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-    <!-- CSS do sistema -->
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/silo.css">
 
     <style>
         .handle { cursor: grab }
@@ -81,7 +78,9 @@ if ($id) {
 <?php require APP_PATH . '/include/popups.php'; ?>
 
 <div id="conteudo">
-    <h2 class="main-title cor-branco"></h2>
+    <div class="page-title">
+        <h2 class="main-title cor-branco">Cadastro De Fo</h2>
+    </div>
     <?php require APP_PATH . '/include/menu.php'; ?>
 
     <!-- ESTRUTURA CORRETA DO SILO -->
