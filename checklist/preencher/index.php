@@ -78,7 +78,6 @@ $stmt->close();
 
 <form method="post" action="salvar.php">
 <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
-<input type="hidden" name="acao" value="finalizar">
 
 <?php foreach ($itens as $i): ?>
 <div class="card mb-3">
@@ -87,19 +86,22 @@ $stmt->close();
         <!-- ✔ CHECK -->
         <div class="form-check mb-2">
             <input class="form-check-input"
-                   type="checkbox"
-                   <?= $i['concluido'] ? 'checked' : '' ?>
-                   <?= $bloqueado ? 'disabled' : '' ?>>
+                type="checkbox"
+                name="concluido[<?= $i['id'] ?>]"
+                value="1"
+                <?= $i['concluido'] ? 'checked' : '' ?>
+                <?= $bloqueado ? 'disabled' : '' ?>>
             <label class="form-check-label fw-bold">
                 <?= htmlspecialchars($i['descricao']) ?>
             </label>
         </div>
 
-        <!-- 📝 OBSERVAÇÃO -->
+        <!-- 📝 OBS -->
         <?php if ((int)$i['permite_observacao'] === 1): ?>
         <textarea class="form-control mb-2"
-                  placeholder="Observações"
-                  <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
+                name="observacao[<?= $i['id'] ?>]"
+                placeholder="Observações"
+                <?= $bloqueado ? 'disabled' : '' ?>><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
         <?php endif; ?>
 
         <!-- 📸 FOTO -->
