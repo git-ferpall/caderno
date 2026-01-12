@@ -39,7 +39,8 @@ $pdfUrl = "/checklist/pdf/gerar.php?id=" . $checklist['id'];
 
 /* 🧾 URL curta */
 $urlCurta = "/v/" . $hash;
-
+$dataFechamentoBR = (new DateTime($checklist['fechado_em']))
+    ->format('d/m/Y H:i:s');
 /* 🖼 Logo */
 $logo = "/../../img/logo-color.png";
 ?>
@@ -136,7 +137,7 @@ body {
 <hr>
 
 <p><strong>Título:</strong><br><?= htmlspecialchars($checklist['titulo']) ?></p>
-<p><strong>Data de fechamento:</strong><br><?= htmlspecialchars($checklist['fechado_em']) ?></p>
+<p><strong>Data de fechamento:</strong><br><?= $dataFechamentoBR ?></p>
 
 <p class="mb-2"><strong>Hash criptográfico:</strong></p>
 <div class="hash-box mb-3"><?= htmlspecialchars($hash) ?></div>
