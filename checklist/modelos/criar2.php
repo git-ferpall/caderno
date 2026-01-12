@@ -95,11 +95,16 @@ if ($id) {
                     
 
                     <div class="form-campo">
-                        <label for="pf-email-com">Descrição</label>
-                        <input class="form-text" type="descricao" name="descricao" id="descricao"
-                            placeholder="Descrição do Checklist" required
-                            value="<?php echo htmlspecialchars($email); ?>">
+                        <label for="descricao">Descrição</label>
+                        <textarea
+                            name="descricao"
+                            id="descricao"
+                            class="form-text"
+                            rows="3"
+                            placeholder="Descreva aqui..."
+                        ><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
                     </div>
+
                         
                     <div class="form-box">
                         <div class="form-campo f5">
