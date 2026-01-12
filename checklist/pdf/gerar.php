@@ -126,7 +126,8 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 }
 
 .header img {
-    max-height:70px;
+    max-height:40px;
+    width: 150px;
 }
 
 .header h1 {
@@ -214,7 +215,7 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
 /* 🧾 HTML */
-$logo = __DIR__ . "/../../assets/img/logo-frutag.png";
+$logo = __DIR__ . "/../../img/logo-color.png";
 
 $html = "
 <div class='carimbo'>DOCUMENTO VALIDADO</div>
