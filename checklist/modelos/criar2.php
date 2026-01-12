@@ -110,7 +110,7 @@ if ($id) {
                         </div>
 
                     </div>
-                    <h3>📋 Itens do checklist</h3>
+                    <h2>📋 Itens do checklist</h2>
 
                         <div id="itens">
                         <?php foreach ($itens as $i):
