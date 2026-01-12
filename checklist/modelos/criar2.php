@@ -90,10 +90,6 @@ if ($id) {
                             placeholder="Título do Checklist" required
                             value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>">
                     </div>
-
-
-                    
-
                     <div class="form-campo">
                         <label for="descricao">Descrição</label>
                         <textarea
@@ -104,28 +100,15 @@ if ($id) {
                             placeholder="Descreva aqui..."
                         ><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
                     </div>
-
-                        
-                    <div class="form-box">
-                        <div class="form-campo f5">
-                            <label for="pf-ender-rua">Endereço</label>
-                            <input class="form-text" type="text" name="pfender-rua" id="pf-ender-rua" 
-                                placeholder="Rua, logradouro, etc" required
-                                value="<?php echo htmlspecialchars($ruaEnder); ?>">
-                        </div>
-                        <div class="form-campo f2">
-                            <label for="pf-ender-num">N°</label>
-                            <input type="text" class="form-text form-num only-num" 
-                                name="pfender-num" id="pf-ender-num" placeholder="S/N" maxlength="6" 
-                                value="<?php echo htmlspecialchars($numEnder); ?>">
-                        </div>
-                    </div>
+        
 
                     <div class="form-box">
                         <div class="form-campo f2">
-                            <label for="pf-ender-uf">Estado</label>
-                            <select name="pfender-uf" id="pf-ender-uf" class="form-select form-text" value="<?php echo $ufEnder ?>" required></select>
+                             <input type="checkbox" name="publico" class="form-check-input"
+                                <?= $modelo['publico'] ? 'checked' : '' ?>>
+                            <label class="form-check-label">Modelo padrão do sistema</label>
                         </div>
+
                         <div class="form-campo f5">
                             <label for="pf-ender-cid">Cidade</label>
                             <select name="pfender-cid" id="pf-ender-cid" class="form-select form-text" value="<?php echo $cidEnder ?>" required></select>
