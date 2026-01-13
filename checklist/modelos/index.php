@@ -53,7 +53,7 @@ $stmt->close();
         
         
 
-        <h3 class="mb-3">📋 Modelos de Checklist</h3>
+        <h2 class="mb-3">📋 Modelos de Checklist</h2>
 
         <a href="criar.php" class="btn btn-success mb-3">
             ➕ Novo modelo
