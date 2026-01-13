@@ -46,16 +46,13 @@ $stmt->close();
     <div class="container-fluid">
         
     </div>
-    <style>
-        body {
-            padding-top: 80px; /* mesma altura do menu */
-        }
-    </style>    
+    
+  
 </head>
 
 <body class="bg-light">
     <?php require APP_PATH . '/include/menu.php'; ?>
-    <div class="container py-4">
+    <div class="container py-4 mt-5">
         
         
         
