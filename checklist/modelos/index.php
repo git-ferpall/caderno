@@ -46,6 +46,11 @@ $stmt->close();
     <div class="container-fluid">
         
     </div>
+    <style>
+        body {
+            padding-top: 80px; /* mesma altura do menu */
+        }
+    </style>    
 </head>
 
 <body class="bg-light">
