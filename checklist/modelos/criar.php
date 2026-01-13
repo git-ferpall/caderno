@@ -93,7 +93,7 @@ if ($id) {
                 ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
             </h3>
 
-            <form method="post" action="salvar.php">
+            <form method="post" action="/checklist/modelos/salvar.php">
 
                 <input type="hidden" name="id" value="<?= $id ?>">
 
@@ -224,7 +224,7 @@ if ($id) {
                         💾 Salvar modelo
                     </button>
 
-                    <a href="index.php" class="btn btn-secondary">
+                    <a href="/checklist/modelos/index.php" class="btn btn-secondary">
                         Cancelar
                     </a>
                 </div>
