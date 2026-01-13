@@ -208,12 +208,11 @@ function addItem() {
             <div class="form-opcoes">
                 <label><input type="checkbox" class="opcao-item" name="item_obs[${key}]" value="1" checked> Obs</label>
                 <label><input type="checkbox" class="opcao-item" name="item_foto[${key}]" value="1"> Foto</label>
-                <label><input type="checkbox" class="opcao-item" name="item_anexo[${key}]" value="1"> Doc</label>
             </div>
 
             <button type="button"
                     class="main-btn fundo-vermelho btn-remover"
-                    onclick="this.closest('.item').remove()">×</button>
+                    onclick="this.closest('.item').remove()"> Remover </button>
         </div>
     `;
 
