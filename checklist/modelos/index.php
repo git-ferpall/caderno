@@ -52,7 +52,7 @@ $stmt->close();
 
 <body class="bg-light">
     <?php require APP_PATH . '/include/menu.php'; ?>
-    <div class="container py-4 mt-7">
+    <div class="container py-4 mt-6">
         
         
         
