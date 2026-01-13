@@ -56,177 +56,187 @@ if ($id) {
 <!doctype html>
 <html lang="pt-br">
 <head>
-<meta charset="utf-8">
-<title><?= $id ? 'Editar' : 'Criar' ?> modelo</title>
+    <meta charset="utf-8">
+    <title><?= $id ? 'Editar' : 'Criar' ?> modelo</title>
+    <base href="/">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
-<style>
-.handle { cursor: grab }
-</style>
+    <style>
+    .handle { cursor: grab }
+    .page-content {
+            margin-top: 80px; /* altura real do menu */
+        }
+    </style>
 </head>
 
 <body class="bg-light">
+    <?php require APP_PATH . '/include/menu.php'; ?>
 
-<div class="container py-4">
+    <div class="container py-4 page-content">
 
-    <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
+        <h3>✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist</h3>
 
-<form method="post" action="salvar.php">
+    <form method="post" action="salvar.php">
 
-    <input type="hidden" name="id" value="<?= $id ?>">
+        <input type="hidden" name="id" value="<?= $id ?>">
 
-    <div class="mb-3">
-        <label class="form-label">Título</label>
-        <input type="text" name="titulo" class="form-control"
-            value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+        <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input type="text" name="titulo" class="form-control"
+                value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea name="descricao" class="form-control"
+                    rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
+        </div>
+
+        <div class="form-check mb-4">
+            <input type="checkbox" name="publico" class="form-check-input"
+                <?= $modelo['publico'] ? 'checked' : '' ?>>
+            <label class="form-check-label">Modelo padrão do sistema</label>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Descrição</label>
-        <textarea name="descricao" class="form-control"
-                rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
-    </div>
+    <hr>
 
-    <div class="form-check mb-4">
-        <input type="checkbox" name="publico" class="form-check-input"
-            <?= $modelo['publico'] ? 'checked' : '' ?>>
-        <label class="form-check-label">Modelo padrão do sistema</label>
-</div>
+    <h5>📋 Itens do checklist</h5>
 
-<hr>
-
-<h5>📋 Itens do checklist</h5>
-
-<div id="itens">
-<?php foreach ($itens as $i):
-    $key = 'id_' . $i['id'];
-?>
-<div class="input-group mb-2 item">
-    <span class="input-group-text handle">☰</span>
-
-    <input type="hidden" name="item_key[]" value="<?= $key ?>">
-
-    <input type="text"
-           name="item_desc[<?= $key ?>]"
-           class="form-control"
-           value="<?= htmlspecialchars($i['descricao']) ?>"
-           required>
-
-    <span class="input-group-text" data-grupo="<?= $key ?>">
-        <div class="form-check form-check-inline mb-0">
-            <input class="form-check-input opcao-item"
-                   type="checkbox"
-                   name="item_obs[<?= $key ?>]"
-                   value="1"
-                   <?= $i['permite_observacao'] ? 'checked' : '' ?>>
-            <small class="ms-1">Obs</small>
-        </div>
-
-        <div class="form-check form-check-inline mb-0 ms-2">
-            <input class="form-check-input opcao-item"
-                   type="checkbox"
-                   name="item_foto[<?= $key ?>]"
-                   value="1"
-                   <?= !empty($i['permite_foto']) ? 'checked' : '' ?>>
-            <small class="ms-1">Foto</small>
-        </div>
-
-        <div class="form-check form-check-inline mb-0 ms-2">
-            <input class="form-check-input opcao-item"
-                   type="checkbox"
-                   name="item_anexo[<?= $key ?>]"
-                   value="1"
-                   <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>>
-            <small class="ms-1">Doc</small>
-        </div>
-    </span>
-
-    <button type="button" class="btn btn-danger"
-            onclick="this.closest('.item').remove()">×</button>
-</div>
-<?php endforeach; ?>
-</div>
-
-<button type="button" class="btn btn-outline-primary mb-3" onclick="addItem()">
-➕ Adicionar item
-</button>
-
-<hr>
-
-<button class="btn btn-success">💾 Salvar modelo</button>
-<a href="index.php" class="btn btn-secondary">Cancelar</a>
-
-</form>
-
-</div>
-
-<script>
-function addItem() {
-    const key = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-    const div = document.createElement('div');
-    div.className = 'input-group mb-2 item';
-    div.innerHTML = `
+    <div id="itens">
+        <?php foreach ($itens as $i):
+            $key = 'id_' . $i['id'];
+        ?>
+    <div class="input-group mb-2 item">
         <span class="input-group-text handle">☰</span>
 
-        <input type="hidden" name="item_key[]" value="${key}">
+        <input type="hidden" name="item_key[]" value="<?= $key ?>">
 
-        <input type="text" name="item_desc[${key}]" class="form-control" required>
+        <input type="text"
+            name="item_desc[<?= $key ?>]"
+            class="form-control"
+            value="<?= htmlspecialchars($i['descricao']) ?>"
+            required>
 
-        <span class="input-group-text" data-grupo="${key}">
+        <span class="input-group-text" data-grupo="<?= $key ?>">
             <div class="form-check form-check-inline mb-0">
                 <input class="form-check-input opcao-item"
-                       type="checkbox"
-                       name="item_obs[${key}]"
-                       value="1"
-                       checked>
+                    type="checkbox"
+                    name="item_obs[<?= $key ?>]"
+                    value="1"
+                    <?= $i['permite_observacao'] ? 'checked' : '' ?>>
                 <small class="ms-1">Obs</small>
             </div>
 
             <div class="form-check form-check-inline mb-0 ms-2">
                 <input class="form-check-input opcao-item"
-                       type="checkbox"
-                       name="item_foto[${key}]"
-                       value="1">
+                    type="checkbox"
+                    name="item_foto[<?= $key ?>]"
+                    value="1"
+                    <?= !empty($i['permite_foto']) ? 'checked' : '' ?>>
                 <small class="ms-1">Foto</small>
             </div>
 
             <div class="form-check form-check-inline mb-0 ms-2">
                 <input class="form-check-input opcao-item"
-                       type="checkbox"
-                       name="item_anexo[${key}]"
-                       value="1">
+                    type="checkbox"
+                    name="item_anexo[<?= $key ?>]"
+                    value="1"
+                    <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>>
                 <small class="ms-1">Doc</small>
             </div>
         </span>
 
         <button type="button" class="btn btn-danger"
                 onclick="this.closest('.item').remove()">×</button>
-    `;
-    document.getElementById('itens').appendChild(div);
-}
+    </div>
+    <?php endforeach; ?>
+    </div>
 
-new Sortable(document.getElementById('itens'), {
-    handle: '.handle',
-    animation: 150
-});
+    <button type="button" class="btn btn-outline-primary mb-3" onclick="addItem()">
+    ➕ Adicionar item
+    </button>
 
-/* 🔒 Exclusividade: apenas 1 opção por item */
-document.addEventListener('change', function (e) {
-    if (!e.target.classList.contains('opcao-item')) return;
+    <hr>
 
-    const grupo = e.target.closest('[data-grupo]');
-    if (!grupo) return;
+    <button class="btn btn-success">💾 Salvar modelo</button>
+    <a href="index.php" class="btn btn-secondary">Cancelar</a>
 
-    if (e.target.checked) {
-        grupo.querySelectorAll('.opcao-item').forEach(cb => {
-            if (cb !== e.target) cb.checked = false;
-        });
+    </form>
+
+    </div>
+
+    <script>
+    function addItem() {
+        const key = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 item';
+        div.innerHTML = `
+            <span class="input-group-text handle">☰</span>
+
+            <input type="hidden" name="item_key[]" value="${key}">
+
+            <input type="text" name="item_desc[${key}]" class="form-control" required>
+
+            <span class="input-group-text" data-grupo="${key}">
+                <div class="form-check form-check-inline mb-0">
+                    <input class="form-check-input opcao-item"
+                        type="checkbox"
+                        name="item_obs[${key}]"
+                        value="1"
+                        checked>
+                    <small class="ms-1">Obs</small>
+                </div>
+
+                <div class="form-check form-check-inline mb-0 ms-2">
+                    <input class="form-check-input opcao-item"
+                        type="checkbox"
+                        name="item_foto[${key}]"
+                        value="1">
+                    <small class="ms-1">Foto</small>
+                </div>
+
+                <div class="form-check form-check-inline mb-0 ms-2">
+                    <input class="form-check-input opcao-item"
+                        type="checkbox"
+                        name="item_anexo[${key}]"
+                        value="1">
+                    <small class="ms-1">Doc</small>
+                </div>
+            </span>
+
+            <button type="button" class="btn btn-danger"
+                    onclick="this.closest('.item').remove()">×</button>
+        `;
+        document.getElementById('itens').appendChild(div);
     }
-});
-</script>
+
+    new Sortable(document.getElementById('itens'), {
+        handle: '.handle',
+        animation: 150
+    });
+
+    /* 🔒 Exclusividade: apenas 1 opção por item */
+    document.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('opcao-item')) return;
+
+        const grupo = e.target.closest('[data-grupo]');
+        if (!grupo) return;
+
+        if (e.target.checked) {
+            grupo.querySelectorAll('.opcao-item').forEach(cb => {
+                if (cb !== e.target) cb.checked = false;
+            });
+        }
+    });
+    </script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/popups.js"></script>
+    <script src="/js/script.js"></script>
 
 </body>
 </html>
