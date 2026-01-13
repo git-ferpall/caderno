@@ -6,7 +6,8 @@
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
-
+/* 🔒 BASE DO SISTEMA */
+define('APP_PATH', realpath(__DIR__ . '/../../'));
 /* 🔒 Login obrigatório */
 $user = require_login();
 $user_id = (int)$user->sub;
