@@ -146,22 +146,22 @@ if ($id) {
         <div class="form-opcoes">
             <label>
                 <input type="checkbox" class="opcao-item"
-                       name="item_obs[<?= $key ?>]" value="1"
-                       <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                    name="item_obs[<?= $key ?>]" value="1"
+                    <?= $i['permite_observacao'] ? 'checked' : '' ?>>
                 Obs
             </label>
 
             <label>
                 <input type="checkbox" class="opcao-item"
-                       name="item_foto[<?= $key ?>]" value="1"
-                       <?= $i['permite_foto'] ? 'checked' : '' ?>>
+                    name="item_foto[<?= $key ?>]" value="1"
+                    <?= $i['permite_foto'] ? 'checked' : '' ?>>
                 Foto
             </label>
 
             <label>
                 <input type="checkbox" class="opcao-item"
-                       name="item_anexo[<?= $key ?>]" value="1"
-                       <?= $i['permite_anexo'] ? 'checked' : '' ?>>
+                    name="item_anexo[<?= $key ?>]" value="1"
+                    <?= $i['permite_anexo'] ? 'checked' : '' ?>>
                 Doc
             </label>
         </div>
@@ -231,6 +231,22 @@ new Sortable(document.getElementById('itens'), {
     animation: 150
 });
 </script>
+<script>
+document.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('opcao-item')) return;
+
+    const container = e.target.closest('.form-opcoes');
+    if (!container) return;
+
+    if (e.target.checked) {
+        container.querySelectorAll('.opcao-item').forEach(cb => {
+            if (cb !== e.target) cb.checked = false;
+        });
+    }
+});
+</script>
+
+
 
 </body>
 </html>
