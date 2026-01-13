@@ -162,7 +162,7 @@ if ($id) {
 
         <button type="button"
                 class="main-btn fundo-vermelho btn-remover"
-                onclick="this.closest('.item').remove()">×</button>
+                onclick="this.closest('.item').remove()"> Remover </button>
     </div>
 </div>
 <?php endforeach; ?>
