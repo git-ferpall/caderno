@@ -50,6 +50,11 @@ $stmt->close();
         .page-content {
             margin-top: 80px; /* altura real do menu */
         }
+        .table-rounded {
+            border-radius: 10px;
+            overflow: hidden; /* ESSENCIAL */
+            background-color: #fff;
+        }
     </style>
   
 </head>
@@ -72,7 +77,7 @@ $stmt->close();
             </div>
         <?php else: ?>
 
-        <table class="table table-striped">
+        <table class="table table-striped table-rounded">
             <thead>
                 <tr>
                     <th>Título</th>
