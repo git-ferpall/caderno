@@ -2,63 +2,46 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
+/*
+ * 🔒 Garante login:
+ * - se não estiver logado → redirect
+ * - se estiver logado → retorna JWT (claims)
+ */
 $user = require_login();
-$user_id = (int)$user->sub;
 
+/* 👤 ID do usuário autenticado */
+$user_id = (int) $user->sub;
+
+/* 📥 Modelo */
 $id        = (int)($_POST['id'] ?? 0);
 $titulo    = trim($_POST['titulo'] ?? '');
 $descricao = trim($_POST['descricao'] ?? '');
 $publico   = isset($_POST['publico']) ? 1 : 0;
 
-$item_desc   = $_POST['item_desc']  ?? [];
-$item_obs    = $_POST['item_obs']   ?? [];
-$item_foto   = $_POST['item_foto']  ?? [];
-$item_anexo  = $_POST['item_anexo'] ?? [];
+$item_desc   = $_POST['item_desc']   ?? [];
+$item_obs    = $_POST['item_obs']    ?? [];
+$item_foto   = $_POST['item_foto']   ?? [];
+$item_anexo  = $_POST['item_anexo']  ?? [];
+
+$criado_por = $publico ? 0 : $user_id;
 
 if ($titulo === '') {
     die('Título obrigatório');
 }
 
-$mysqli->begin_transaction();
+/* ===== MODELO ===== */
+if ($id) {
 
-try {
+    $stmt = $mysqli->prepare("
+        UPDATE checklist_modelos
+        SET titulo = ?, descricao = ?, publico = ?, criado_por = ?
+        WHERE id = ?
+    ");
+    $stmt->bind_param("ssiii", $titulo, $descricao, $publico, $criado_por, $id);
+    $stmt->execute();
+    $stmt->close();
 
-    /* ================= MODELO ================= */
-
-    if ($id > 0) {
-
-        // 🔒 NÃO sobrescreve criado_por em edição
-        $stmt = $mysqli->prepare("
-            UPDATE checklist_modelos
-            SET titulo = ?, descricao = ?, publico = ?
-            WHERE id = ?
-        ");
-        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $id);
-        $stmt->execute();
-        $stmt->close();
-
-    } else {
-
-        $criado_por = $publico ? 0 : $user_id;
-
-        $stmt = $mysqli->prepare("
-            INSERT INTO checklist_modelos
-                (titulo, descricao, publico, criado_por, criado_em, ativo)
-            VALUES (?, ?, ?, ?, NOW(), 1)
-        ");
-        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $criado_por);
-        $stmt->execute();
-
-        $id = $stmt->insert_id;
-        $stmt->close();
-    }
-
-    if (!$id) {
-        throw new Exception('ID do modelo inválido');
-    }
-
-    /* ================= ITENS ================= */
-
+    /* Remove itens antigos (vamos recriar todos respeitando a ordem nova) */
     $stmt = $mysqli->prepare("
         DELETE FROM checklist_modelo_itens
         WHERE modelo_id = ?
@@ -67,53 +50,60 @@ try {
     $stmt->execute();
     $stmt->close();
 
+} else {
+
     $stmt = $mysqli->prepare("
-        INSERT INTO checklist_modelo_itens
-            (modelo_id, descricao, permite_observacao, permite_foto, permite_anexo, ordem)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO checklist_modelos (titulo, descricao, publico, criado_por)
+        VALUES (?, ?, ?, ?)
     ");
+    $stmt->bind_param("ssii", $titulo, $descricao, $publico, $criado_por);
+    $stmt->execute();
+    $id = $stmt->insert_id;
+    $stmt->close();
+}
 
-    $ordem = 1;
+/* ===== ITENS ===== */
+$ordem = 1;
 
-    foreach ($item_desc as $key => $desc) {
+$stmt = $mysqli->prepare("
+    INSERT INTO checklist_modelo_itens
+        (modelo_id, descricao, permite_observacao, permite_foto, permite_anexo, ordem)
+    VALUES (?, ?, ?, ?, ?, ?)
+");
 
-        $desc = trim($desc);
-        if ($desc === '') continue;
+foreach ($item_desc as $key => $desc) {
 
-        $obs    = isset($item_obs[$key])   ? 1 : 0;
-        $foto   = isset($item_foto[$key])  ? 1 : 0;
-        $anexo  = isset($item_anexo[$key]) ? 1 : 0;
+    $desc = trim($desc);
+    if ($desc === '') continue;
 
-        // 🔒 Exclusividade backend
-        if ($foto) {
-            $obs = $anexo = 0;
-        } elseif ($anexo) {
-            $obs = $foto = 0;
-        }
+    $permite_obs   = isset($item_obs[$key])   ? 1 : 0;
+    $permite_foto  = isset($item_foto[$key])  ? 1 : 0;
+    $permite_anexo = isset($item_anexo[$key]) ? 1 : 0;
 
-        $stmt->bind_param(
-            "isiiii",
-            $id,
-            $desc,
-            $obs,
-            $foto,
-            $anexo,
-            $ordem
-        );
-
-        $stmt->execute();
-        $ordem++;
+    /* 🔒 Garantia de exclusividade (backend) */
+    if ($permite_foto) {
+        $permite_obs = 0;
+        $permite_anexo = 0;
+    } elseif ($permite_anexo) {
+        $permite_obs = 0;
+        $permite_foto = 0;
     }
 
-    $stmt->close();
+    $stmt->bind_param(
+        "isiiii",
+        $id,
+        $desc,
+        $permite_obs,
+        $permite_foto,
+        $permite_anexo,
+        $ordem
+    );
 
-    $mysqli->commit();
-
-    header('Location: index.php');
-    exit;
-
-} catch (Throwable $e) {
-
-    $mysqli->rollback();
-    die('Erro ao salvar modelo: ' . $e->getMessage());
+    $stmt->execute();
+    $ordem++;
 }
+
+$stmt->close();
+
+header('Location: index.php');
+exit;
