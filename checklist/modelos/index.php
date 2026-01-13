@@ -49,10 +49,11 @@ $stmt->close();
 </head>
 
 <body class="bg-light">
+    <?php require APP_PATH . '/include/menu.php'; ?>
     <div class="container py-4">
         
         
-        <?php require APP_PATH . '/include/menu.php'; ?>
+        
         <h2 class="mb-3">📋 Modelos de Checklist</h2>
 
         <a href="criar.php" class="btn btn-success mb-3">
