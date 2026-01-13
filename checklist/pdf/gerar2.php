@@ -1,6 +1,7 @@
 <?php
 /**
- * Geração de PDF do checklist FINALIZADO
+ * Geração de PDF do checklist FINALIZADO (PÚBLICO)
+ * - Acesso via HASH (sem login)
  * - Itens preenchidos
  * - Observações
  * - Fotos e documentos
@@ -8,7 +9,6 @@
  * - Hash de integridade
  * - QR Code de validação
  * - Data/hora local e UTC
- * - ID do usuário + IP
  * - Carimbo de documento validado
  * - Numeração de páginas
  */
@@ -23,11 +23,44 @@ use Mpdf\Mpdf;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 
+/* 🔑 HASH público */
+$hash = $_GET['hash'] ?? '';
+if (!$hash || strlen($hash) !== 64) {
+    http_response_code(403);
+    exit('Hash inválido');
+}
 
-/* 🖋 Dados do responsável */
-$responsavel = $user->nome ?? $user->name ?? $user->email ?? 'Responsável não identificado';
+/* 🔎 Checklist (somente finalizado) */
+$stmt = $mysqli->prepare("
+    SELECT *
+    FROM checklists
+    WHERE hash_documento = ?
+      AND concluido = 1
+    LIMIT 1
+");
+$stmt->bind_param("s", $hash);
+$stmt->execute();
+$checklist = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-/* 🌐 IP do usuário */
+if (!$checklist) {
+    http_response_code(404);
+    exit('Checklist não encontrado ou não finalizado');
+}
+
+$checklist_id = (int)$checklist['id'];
+
+/* 🔐 Revalidação criptográfica */
+$hash_atual = gerarHashChecklist($mysqli, $checklist_id);
+if (!hash_equals($checklist['hash_documento'], $hash_atual)) {
+    http_response_code(409);
+    exit('Documento inválido ou adulterado');
+}
+
+/* 🖋 Responsável (sem login – LGPD safe) */
+$responsavel = 'Responsável registrado no sistema';
+
+/* 🌐 IP */
 $ip_usuario = $_SERVER['HTTP_X_FORWARDED_FOR']
     ?? $_SERVER['REMOTE_ADDR']
     ?? 'IP não identificado';
@@ -35,34 +68,6 @@ $ip_usuario = $_SERVER['HTTP_X_FORWARDED_FOR']
 /* 🕒 Datas */
 $dataHoraLocal = date('d/m/Y H:i:s');
 $dataHoraUTC   = gmdate('d/m/Y H:i:s');
-
-/* 📥 Checklist */
-$checklist_id = (int)($_GET['id'] ?? 0);
-if (!$checklist_id) {
-    die('Checklist inválido');
-}
-
-/* 🔐 Checklist finalizado */
-$stmt = $mysqli->prepare("
-    SELECT *
-    FROM checklists
-    WHERE id = ? AND user_id = ? AND concluido = 1
-    LIMIT 1
-");
-$stmt->bind_param("ii", $checklist_id, $user_id);
-$stmt->execute();
-$checklist = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-if (!$checklist) {
-    die('Checklist não encontrado ou não finalizado');
-}
-
-/* 🔐 Hash */
-$hash = $checklist['hash_documento'];
-if (!$hash) {
-    $hash = gerarHashChecklist($mysqli, $checklist_id);
-}
 
 /* 🔎 Itens */
 $stmt = $mysqli->prepare("
@@ -95,8 +100,8 @@ $assinaturaPath = __DIR__ . "/../../uploads/checklists/$checklist_id/assinatura.
 $temAssinatura  = file_exists($assinaturaPath);
 
 /* 🔳 QR Code */
-$url = "https://caderno.frutag.com.br/checklist/validar/index.php?hash=$hash";
-$qrCode = new QrCode($url);
+$urlValidacao = "https://caderno.frutag.com.br/v/$hash";
+$qrCode = new QrCode($urlValidacao);
 $writer = new PngWriter();
 $qrImg  = $writer->write($qrCode)->getDataUri();
 
@@ -109,7 +114,6 @@ $mpdf = new Mpdf([
     'margin_right'  => 15
 ]);
 
-/* 🔢 Numeração */
 $mpdf->SetFooter('{PAGENO} / {nbpg}');
 
 /* 🎨 CSS */
@@ -122,16 +126,8 @@ body { font-family: Arial; font-size: 12px; color:#333; }
 }
 
 .header img {
-    height: 40px;
-    width: auto;
-    display: block;
-    margin: 0 auto 8px auto;
-}
-
-
-.header h1 {
-    font-size:22px;
-    margin:6px 0 0;
+    height:80px;
+    margin-bottom:8px;
 }
 
 .meta {
@@ -217,18 +213,17 @@ $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 $logo = __DIR__ . "/../../img/logo-color.png";
 
 $html = "
-
 <div class='header'>
-    <img src='$logo' style='height:80px;width:auto;display:block;margin:0 auto 8px;'>
-    <h1>{$checklist['titulo']}</h1>
+    <img src='$logo'>
+    <h2>{$checklist['titulo']}</h2>
     <div class='meta'>
-        Checklist #{$checklist['id']}<br>
-        Responsável: <strong>$responsavel</strong><br>
-        Usuário ID: $user_id | IP: $ip_usuario<br>
+        Checklist #{$checklist_id}<br>
         Fechado em {$checklist['fechado_em']}<br>
         Gerado em $dataHoraLocal (UTC $dataHoraUTC)
     </div>
 </div>
+
+<div class='carimbo'>DOCUMENTO VALIDADO</div>
 
 <p class='hash'><strong>Hash de integridade:</strong><br>$hash</p>
 
@@ -273,22 +268,17 @@ foreach ($itens as $i) {
 if ($temAssinatura) {
     $html .= "
     <div class='section'>Validação</div>
-
     <table class='assinatura-qrcode'>
         <tr>
             <td width='50%'>
                 <strong>Assinatura digital</strong><br><br>
                 <img src='$assinaturaPath'><br><br>
-                <strong>$responsavel</strong><br>
-                <small>Usuário ID: $user_id</small><br>
-                <small>IP: $ip_usuario</small><br>
                 <small>Assinado em {$checklist['fechado_em']}</small>
             </td>
-
             <td width='50%'>
                 <strong>QR Code de validação</strong><br><br>
                 <img src='$qrImg'><br>
-                <small>$url</small>
+                <small>$urlValidacao</small>
             </td>
         </tr>
     </table>
@@ -297,7 +287,7 @@ if ($temAssinatura) {
 
 $html .= "
 <div class='footer'>
-Documento assinado eletronicamente por <strong>$responsavel</strong>.<br>
+Documento validado por hash criptográfico.<br>
 Data/hora local: $dataHoraLocal | UTC: $dataHoraUTC
 </div>
 ";
