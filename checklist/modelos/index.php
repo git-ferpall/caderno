@@ -57,6 +57,8 @@ $stmt->close();
 </head>
 
 <body class="bg-light">
+    <?php require '../include/loading.php' ?> 
+    <?php include '../include/popups.php' ?>
     <?php include '../include/menu.php' ?>
     <div class="container py-4 page-content">
         
