@@ -5,35 +5,60 @@ document.addEventListener('DOMContentLoaded', carregarEstados);
 document.addEventListener('DOMContentLoaded', coresApt);
 
 document.onreadystatechange = function () {
-  var state = document.readyState
-  var load = document.getElementById('load');
 
-  const inputs = document.querySelectorAll(".form-tel");
-  inputs.forEach(input => {
-    window.intlTelInput(input, {
-      initialCountry: 'BR',
-      nationalMode: false,
-      separateDialCode: true, // exibe o +55 separado
-      utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
-    });
+  if (document.readyState !== 'interactive' &&
+      document.readyState !== 'complete') {
+    return;
+  }
+
+  const load     = document.getElementById('load');
+  const loadImg  = document.getElementById('load-img');
+  const conteudo = document.getElementById('conteudo');
+  const footer   = document.getElementById('footer');
+
+  /* Telefones */
+  document.querySelectorAll(".form-tel").forEach(input => {
+    if (window.intlTelInput) {
+      window.intlTelInput(input, {
+        initialCountry: 'BR',
+        nationalMode: false,
+        separateDialCode: true,
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+      });
+    }
   });
 
-  document.getElementById('load-img').src = (window.innerWidth > 800) ? "/img/logo-color.png" : "/img/logo-icon.png";
-  (window.innerWidth > 800) ? load.classList.add('fundo-branco') : load.classList.add('fundo-azul-grad');
-
-  if (state == 'interactive') {
-          document.getElementById('conteudo').style.visibility="hidden";
-          document.getElementById('footer').style.visibility="hidden";
-  } else if (state == 'complete') {
-      setTimeout(function(){
-          document.getElementById('interactive');
-          load.classList.add('up');
-          load.style.visibility="hidden";
-          document.getElementById('conteudo').style.visibility="visible";
-          document.getElementById('footer').style.visibility="visible";
-      },1000);
+  /* Logo e fundo */
+  if (loadImg) {
+    loadImg.src = (window.innerWidth > 800)
+      ? "/img/logo-color.png"
+      : "/img/logo-icon.png";
   }
-}
+
+  if (load) {
+    (window.innerWidth > 800)
+      ? load.classList.add('fundo-branco')
+      : load.classList.add('fundo-azul-grad');
+  }
+
+  /* Estados */
+  if (document.readyState === 'interactive') {
+    if (conteudo) conteudo.style.visibility = "hidden";
+    if (footer) footer.style.visibility = "hidden";
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(() => {
+      if (load) {
+        load.classList.add('up');
+        load.style.visibility = "hidden";
+      }
+      if (conteudo) conteudo.style.visibility = "visible";
+      if (footer) footer.style.visibility = "visible";
+    }, 1000);
+  }
+};
+
 
 function validarSenha() {
     senha = document.getElementById('fcpass').value;
