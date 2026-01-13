@@ -1,8 +1,8 @@
 
 <?php
-require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../configuracao/protect.php';
-require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../configuracao/protect.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 // Pega user_id via sessão ou JWT
 $user_id = $_SESSION['user_id'] ?? null;
