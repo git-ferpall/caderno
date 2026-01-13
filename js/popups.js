@@ -5,65 +5,68 @@ const popupFailed = document.getElementById('popup-failed');
 const popupProp = document.getElementById('popup-prop');
 
 function closePopup() {
-    overlay.classList.add('d-none');
-    popupCancel.classList.add('d-none');
-    popupSuccess.classList.add('d-none');
-    popupFailed.classList.add('d-none');
-    popupProp.classList.add('d-none');
+    if (overlay) overlay.classList.add('d-none');
+    if (popupCancel) popupCancel.classList.add('d-none');
+    if (popupSuccess) popupSuccess.classList.add('d-none');
+    if (popupFailed) popupFailed.classList.add('d-none');
+    if (popupProp) popupProp.classList.add('d-none');
 }
 
-document.querySelectorAll('.form-cancel').forEach(function(el) {
-    el.addEventListener('click', function(event) {
-        overlay.classList.remove('d-none');
-        popupCancel.classList.remove('d-none');
+/* Cancelar */
+document.querySelectorAll('.form-cancel').forEach(el => {
+    el.addEventListener('click', () => {
+        if (overlay) overlay.classList.remove('d-none');
+        if (popupCancel) popupCancel.classList.remove('d-none');
     });
 });
 
-document.querySelectorAll('.form-save').forEach(function(el) {
-    el.addEventListener('click', function(event) {
-        const form = event.target.closest('.main-form');
+/* Salvar */
+document.querySelectorAll('.form-save').forEach(el => {
+    el.addEventListener('click', event => {
 
-        // Verifica se todos os campos required estão preenchidos
+        const form = event.target.closest('.main-form');
+        if (!form) return;
+
         const req = form.querySelectorAll('[required]');
         let allFilled = true;
 
         req.forEach(field => {
-            if (!field.value.trim()) {
-                allFilled = false;
-            } 
+            if (!field.value.trim()) allFilled = false;
         });
 
         if (allFilled) {
-            overlay.classList.remove('d-none');
-            popupSuccess.classList.remove('d-none');
 
-            const timeout = setTimeout(() => {
-                form.submit();
-            }, 3000);
+            if (overlay) overlay.classList.remove('d-none');
+            if (popupSuccess) popupSuccess.classList.remove('d-none');
 
-            // Se o usuário clicar em btn-ok, cancela o timeout e submete imediatamente
-            document.getElementById('btn-ok').addEventListener('click', function () {
-                clearTimeout(timeout);
-                form.submit();
-            }, { once: true }); // Garante que o listener será executado só uma vez
+            const timeout = setTimeout(() => form.submit(), 3000);
+
+            const btnOk = document.getElementById('btn-ok');
+            if (btnOk) {
+                btnOk.addEventListener('click', () => {
+                    clearTimeout(timeout);
+                    form.submit();
+                }, { once: true });
+            }
+
         } else {
-            overlay.classList.remove('d-none');
-            popupFailed.classList.remove('d-none');
+            if (overlay) overlay.classList.remove('d-none');
+            if (popupFailed) popupFailed.classList.remove('d-none');
         }
     });
 });
 
 function altProp() {
-    overlay.classList.remove('d-none');
-    popupProp.classList.remove('d-none');
+    if (overlay) overlay.classList.remove('d-none');
+    if (popupProp) popupProp.classList.remove('d-none');
 }
 
 let selectedPropId = null;
 
-// Seleção única com troca de botão
+/* Seleção de propriedade */
 document.querySelectorAll('.select-propriedade').forEach(btn => {
-    btn.addEventListener('click', function() {
-        // resetar todos os botões
+    btn.addEventListener('click', function () {
+
         document.querySelectorAll('.select-propriedade').forEach(b => {
             b.classList.remove('selecionada');
             b.classList.add('fundo-azul');
@@ -71,60 +74,76 @@ document.querySelectorAll('.select-propriedade').forEach(btn => {
             b.disabled = false;
         });
 
-        // aplicar no botão clicado
         this.classList.remove('fundo-azul');
         this.classList.add('selecionada');
         this.textContent = 'Selecionada';
-        this.disabled = true; // opcional
+        this.disabled = true;
 
-        // armazenar ID da propriedade
         const item = this.closest('.item-propriedade');
-        selectedPropId = item.dataset.id;
+        if (item) selectedPropId = item.dataset.id;
     });
 });
 
-// Enviar para o backend ao clicar em "Ativar"
-document.getElementById('btn-ativar').addEventListener('click', function() {
-    if (!selectedPropId) {
-        overlay.classList.remove('d-none');
-        popupFailed.classList.remove('d-none');
-        popupFailed.querySelector('.popup-text').textContent = "Selecione uma propriedade antes de ativar!";
-        return;
-    }
+/* Ativar */
+const btnAtivar = document.getElementById('btn-ativar');
 
-    fetch('/funcoes/ativar_propriedade.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(selectedPropId)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ok) {
-            // fecha popup atual (alterar propriedade)
-            closePopup(); 
+if (btnAtivar) {
+    btnAtivar.addEventListener('click', () => {
 
-            // mostra popup bonito de sucesso (usando id novo)
-            overlay.classList.remove('d-none');
-            const popup = document.getElementById('popup-ativar');
-            popup.classList.remove('d-none');
-            popup.querySelector('.popup-title').textContent = "Propriedade ativada com sucesso!";
-
-            // botão OK fecha e recarrega
-            const btnOk = popup.querySelector('#btn-ok');
-            btnOk.onclick = function() {
-                closePopup();
-                location.reload();
-            };
-
-        } else {
-            overlay.classList.remove('d-none');
-            popupFailed.classList.remove('d-none');
-            popupFailed.querySelector('.popup-text').textContent = data.error || "Erro ao ativar propriedade.";
+        if (!selectedPropId) {
+            if (overlay) overlay.classList.remove('d-none');
+            if (popupFailed) {
+                popupFailed.classList.remove('d-none');
+                const txt = popupFailed.querySelector('.popup-text');
+                if (txt) txt.textContent = "Selecione uma propriedade antes de ativar!";
+            }
+            return;
         }
-    })
-    .catch(err => {
-        overlay.classList.remove('d-none');
-        popupFailed.classList.remove('d-none');
-        popupFailed.querySelector('.popup-text').textContent = "Falha na requisição: " + err;
+
+        fetch('/funcoes/ativar_propriedade.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + encodeURIComponent(selectedPropId)
+        })
+        .then(r => r.json())
+        .then(data => {
+
+            if (data.ok) {
+
+                closePopup();
+                if (overlay) overlay.classList.remove('d-none');
+
+                const popup = document.getElementById('popup-ativar');
+                if (popup) {
+                    popup.classList.remove('d-none');
+                    const title = popup.querySelector('.popup-title');
+                    if (title) title.textContent = "Propriedade ativada com sucesso!";
+
+                    const btnOk = popup.querySelector('#btn-ok');
+                    if (btnOk) {
+                        btnOk.onclick = () => {
+                            closePopup();
+                            location.reload();
+                        };
+                    }
+                }
+
+            } else {
+                if (overlay) overlay.classList.remove('d-none');
+                if (popupFailed) {
+                    popupFailed.classList.remove('d-none');
+                    const txt = popupFailed.querySelector('.popup-text');
+                    if (txt) txt.textContent = data.error || "Erro ao ativar propriedade.";
+                }
+            }
+        })
+        .catch(err => {
+            if (overlay) overlay.classList.remove('d-none');
+            if (popupFailed) {
+                popupFailed.classList.remove('d-none');
+                const txt = popupFailed.querySelector('.popup-text');
+                if (txt) txt.textContent = "Falha na requisição: " + err;
+            }
+        });
     });
-});
+}
