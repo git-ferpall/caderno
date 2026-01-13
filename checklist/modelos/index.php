@@ -93,11 +93,11 @@ $stmt->close();
                     <td><?= $m['criado_por'] ? 'Pessoal' : 'Padrão' ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($m['criado_em'])) ?></td>
                     <td>
-                        <a href="criar.php?id=<?= $m['id'] ?>" class="btn btn-sm btn-primary">
+                        <a href="/checklist/modelos/criar.php?id=<?= $m['id'] ?>" class="btn btn-sm btn-primary">
                             Editar
                         </a>
 
-                        <a href="excluir.php?id=<?= $m['id'] ?>"
+                        <a href="/checklist/modelos/excluir.php?id=<?= $m['id'] ?>"
                         class="btn btn-sm btn-danger"
                         onclick="return confirm('Excluir este modelo?')">
                             Excluir
