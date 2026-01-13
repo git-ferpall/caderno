@@ -214,7 +214,7 @@ $logo = __DIR__ . "/../../img/logo-color.png";
 
 $html = "
 <div class='header'>
-    <img src='$logo'>
+    <img src='$logo' style='height:80px;width:auto;display:block;margin:0 auto 8px;'>
     <h2>{$checklist['titulo']}</h2>
     <div class='meta'>
         Checklist #{$checklist_id}<br>
