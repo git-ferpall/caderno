@@ -184,6 +184,7 @@ if ($id) {
 </div>
 
 <?php require APP_PATH . '/include/footer.php'; ?>
+<?php require APP_PATH . 'include/imports.php'; ?>
 
 <!-- SORTABLE -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
