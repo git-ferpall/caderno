@@ -75,21 +75,27 @@ if ($id) {
         .form-opcoes { display:flex; gap:12px; }
         .btn-remover { padding:4px 10px; }
 
-        .btn-remover-text {
+        .btn-remover-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             border: none;
-            border-radius: 20px;
-            padding: 6px 14px;
-            background: #f44336;
+            background: #e53935;
             color: #fff;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: background .2s ease;
+            transition: all .2s ease;
         }
 
-        .btn-remover-text:hover {
-            background: #d32f2f;
+        .btn-remover-circle:hover {
+            background: #c62828;
+            transform: scale(1.05);
         }
+
 
     </style>
 
@@ -228,9 +234,10 @@ function addItem() {
             </div>
 
             <button type="button"
-                    class="btn-remover-text"
+                    class="btn-remover-circle"
+                    title="Remover item"
                     onclick="this.closest('.item').remove()">
-                🗑 Remover
+                ✕
             </button>
         </div>
     `;
