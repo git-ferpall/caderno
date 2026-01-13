@@ -158,12 +158,6 @@ if ($id) {
                 Foto
             </label>
 
-            <label>
-                <input type="checkbox" class="opcao-item"
-                    name="item_anexo[<?= $key ?>]" value="1"
-                    <?= $i['permite_anexo'] ? 'checked' : '' ?>>
-                Doc
-            </label>
         </div>
 
         <button type="button"
