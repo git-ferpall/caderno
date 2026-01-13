@@ -34,7 +34,7 @@ $hash_atual = gerarHashChecklist($mysqli, (int)$checklist['id']);
 $integro = hash_equals($checklist['hash_documento'], $hash_atual);
 
 /* 📄 PDF */
-$pdfUrl = "/checklist/pdf/gerar.php?id=" . $checklist['id'];
+$pdfUrl = "/checklist/pdf/gerar2.php?id=" . $checklist['id'];
 
 
 /* 🧾 URL curta */
