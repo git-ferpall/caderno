@@ -58,42 +58,59 @@ if ($id) {
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
 
-<title><?= $id ? 'Editar' : 'Criar' ?> Modelo de Checklist</title>
+    <title><?= $id ? 'Editar' : 'Criar' ?> Modelo de Checklist</title>
 
-<link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
 
-<!-- CSS DO SISTEMA -->
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/silo.css">
+    <!-- CSS DO SISTEMA -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/silo.css">
 
-<style>
-.handle { cursor: grab; font-size: 18px; }
-.form-opcoes { display:flex; gap:12px; }
-.btn-remover { padding:4px 10px; }
-</style>
+    <style>
+        .handle { cursor: grab; font-size: 18px; }
+        .form-opcoes { display:flex; gap:12px; }
+        .btn-remover { padding:4px 10px; }
+
+        .btn-remover-text {
+            border: none;
+            border-radius: 20px;
+            padding: 6px 14px;
+            background: #f44336;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+        .btn-remover-text:hover {
+            background: #d32f2f;
+        }
+
+    </style>
 
 </head>
 <body>
 
-<?php require APP_PATH . '/include/loading.php'; ?>
-<?php require APP_PATH . '/include/popups.php'; ?>
+    <?php require APP_PATH . '/include/loading.php'; ?>
+    <?php require APP_PATH . '/include/popups.php'; ?>
 
-<div id="conteudo">
-<?php require APP_PATH . '/include/menu.php'; ?>
+    <div id="conteudo">
+    <?php require APP_PATH . '/include/menu.php'; ?>
 
-<main class="sistema">
+    <main class="sistema">
 <div class="page-title">
     <h2 class="main-title cor-branco">
         ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
     </h2>
 </div>
 
-<form action="salvar.php" method="POST" class="main-form container">
-<input type="hidden" name="id" value="<?= $id ?>">
+    <form action="salvar.php" method="POST" class="main-form container">
+    <input type="hidden" name="id" value="<?= $id ?>">
 
 <!-- TÍTULO -->
 <div class="form-campo">
@@ -211,8 +228,10 @@ function addItem() {
             </div>
 
             <button type="button"
-                    class="main-btn fundo-vermelho btn-remover"
-                    onclick="this.closest('.item').remove()"> Remover </button>
+                    class="btn-remover-text"
+                    onclick="this.closest('.item').remove()">
+                🗑 Remover
+            </button>
         </div>
     `;
 
