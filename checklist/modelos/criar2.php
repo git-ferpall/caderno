@@ -188,7 +188,11 @@ if ($id) {
 <!-- BOTÕES -->
 <div class="form-submit">
     <button type="button" class="main-btn fundo-azul" onclick="addItem()">+ Item</button>
-    <button type="submit" class="main-btn fundo-verde">Salvar</button>
+    <button type="button"
+        class="main-btn fundo-verde"
+        onclick="this.closest('form').submit()">
+    Salvar
+</button>
 </div>
 
 </form>
