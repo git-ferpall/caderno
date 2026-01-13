@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../sso/verify_jwt.php';
-require_once __DIR__ . '/../configuracao/conexao_frutag.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
+require_once __DIR__ . '/../../configuracao/conexao_frutag.php';
 
 $payload = verify_jwt();
 
