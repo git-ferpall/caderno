@@ -83,25 +83,19 @@ if ($id) {
             value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>" required>
     </div>
 
-    <div class="form-campo">
-        <label for="descricao">Descrição</label>
-        <textarea
-            name="descricao"
-            id="descricao"
-            class="form-text"
-            rows="3"
-            placeholder="Descreva aqui..."
-        ><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
+    <div class="mb-3">
+        <label class="form-label">Descrição</label>
+        <textarea name="descricao" class="form-control"
+                rows="3"><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
     </div>
-
 
     <div class="form-check mb-4">
         <input type="checkbox" name="publico" class="form-check-input"
             <?= $modelo['publico'] ? 'checked' : '' ?>>
         <label class="form-check-label">Modelo padrão do sistema</label>
-    </div>
+</div>
 
-    <hr>
+<hr>
 
 <h5>📋 Itens do checklist</h5>
 
