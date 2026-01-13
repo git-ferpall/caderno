@@ -72,36 +72,53 @@ $stmt->close();
             </div>
         <?php else: ?>
 
-        <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Título</th>
-            <th>Tipo</th>
-            <th>Criado em</th>
-            <th width="180">Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($modelos as $m): ?>
-        <tr>
-            <td><?= htmlspecialchars($m['titulo']) ?></td>
-            <td><?= $m['criado_por'] ? 'Pessoal' : 'Padrão' ?></td>
-            <td><?= date('d/m/Y H:i', strtotime($m['criado_em'])) ?></td>
-            <td>
-                <a href="criar.php?id=<?= $m['id'] ?>" class="btn btn-sm btn-primary">
-                    Editar
-                </a>
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Criado em</th>
+                            <th class="text-end" style="width:180px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($modelos as $m): ?>
+                        <tr>
+                            <td class="fw-medium">
+                                <?= htmlspecialchars($m['titulo']) ?>
+                            </td>
 
-                <a href="excluir.php?id=<?= $m['id'] ?>"
-                class="btn btn-sm btn-danger"
-                onclick="return confirm('Excluir este modelo?')">
-                    Excluir
-                </a>
-            </td>
-        </tr>
-        <?php endforeach ?>
-        </tbody>
-        </table>
+                            <td>
+                                <span class="badge <?= $m['criado_por'] ? 'bg-primary' : 'bg-secondary' ?>">
+                                    <?= $m['criado_por'] ? 'Pessoal' : 'Padrão' ?>
+                                </span>
+                            </td>
+
+                            <td class="text-muted">
+                                <?= date('d/m/Y H:i', strtotime($m['criado_em'])) ?>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="criar.php?id=<?= $m['id'] ?>" class="btn btn-outline-primary">
+                                        Editar
+                                    </a>
+                                    <a href="excluir.php?id=<?= $m['id'] ?>"
+                                    class="btn btn-outline-danger"
+                                    onclick="return confirm('Excluir este modelo?')">
+                                        Excluir
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
 
         <?php endif; ?>
 
