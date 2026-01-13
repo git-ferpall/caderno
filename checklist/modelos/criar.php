@@ -219,11 +219,10 @@ if ($id) {
 
                 <!-- Ações -->
                 <div class="d-flex gap-2">
-                    <button type="button"
-                        class="btn btn-success"
-                        onclick="this.closest('form').submit()">
-                    💾 Salvar modelo
-                </button>
+                    <button type="submit" class="btn btn-success">
+                        💾 Salvar modelo
+                    </button>
+
 
                     <a href="/checklist/modelos/index.php" class="btn btn-secondary">
                         Cancelar
