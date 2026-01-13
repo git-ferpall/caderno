@@ -93,8 +93,7 @@ if ($id) {
                 ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
             </h3>
 
-            <form method="post" action="/checklist/modelos/salvar.php">
-
+            <form method="post" action="/checklist/modelos/salvar.php"  novalidate>
                 <input type="hidden" name="id" value="<?= $id ?>">
 
                 <!-- Dados básicos -->
@@ -220,9 +219,11 @@ if ($id) {
 
                 <!-- Ações -->
                 <div class="d-flex gap-2">
-                    <button class="btn btn-success">
-                        💾 Salvar modelo
-                    </button>
+                    <button type="button"
+                        class="btn btn-success"
+                        onclick="this.closest('form').submit()">
+                    💾 Salvar modelo
+                </button>
 
                     <a href="/checklist/modelos/index.php" class="btn btn-secondary">
                         Cancelar
@@ -302,8 +303,9 @@ if ($id) {
     </script>
     <script src="/js/jquery.js"></script>
     <script src="/js/main.js"></script>
-    <script src="/js/popups.js"></script>
-    <script src="/js/script.js"></script>
+    <script src="/js/popups.js" defer></script>
+    <script src="/js/script.js" defer></script>
+
 
 </body>
 </html>
