@@ -23,9 +23,6 @@ use Mpdf\Mpdf;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 
-/* 🔒 Login */
-$user = require_login();
-$user_id = (int)$user->sub;
 
 /* 🖋 Dados do responsável */
 $responsavel = $user->nome ?? $user->name ?? $user->email ?? 'Responsável não identificado';
