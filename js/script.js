@@ -533,18 +533,9 @@ function voltarEstufa(estufa) {
 }
 
 function abrirMenu() {
-  const menu = document.querySelector('.menu-principal');
-  const sistema = document.querySelector('.sistema');
-
-  if (menu) {
-    menu.classList.toggle('active');
-  }
-
-  if (sistema) {
-    sistema.classList.toggle('active');
-  }
+  document.querySelector('.menu-principal').classList.toggle('active');
+  document.querySelector('.sistema').classList.toggle('active');
 }
-
 
 function sair() {
     window.location.href = "../index.php";
