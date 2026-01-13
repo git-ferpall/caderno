@@ -22,9 +22,11 @@ $sql = "
         publico,
         criado_em
     FROM checklist_modelos
-    WHERE publico = 1 OR criado_por = ?
+    WHERE ativo = 1
+      AND (publico = 1 OR criado_por = ?)
     ORDER BY criado_em DESC
 ";
+
 
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $user_id);
@@ -43,9 +45,6 @@ $stmt->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="stylesheet" href="/css/style.css">
-    <div class="container-fluid">
-        
-    </div>
     <style>
         .page-content {
             margin-top: 80px; /* altura real do menu */
@@ -97,10 +96,10 @@ $stmt->close();
                             Editar
                         </a>
 
-                        <a href="/checklist/modelos/excluir.php?id=<?= $m['id'] ?>"
-                        class="btn btn-sm btn-danger"
-                        onclick="return confirm('Excluir este modelo?')">
-                            Excluir
+                        <a href="/checklist/modelos/desabilitar.php?id=<?= $m['id'] ?>"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('Desabilitar este modelo? Ele não aparecerá mais na lista.')">
+                                Desabilitar
                         </a>
                     </td>
                 </tr>
