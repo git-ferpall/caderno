@@ -1,0 +1,109 @@
+<?php
+require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../funcoes/busca_usuario.php';
+require_once __DIR__ . '/../funcoes/busca_propriedade.php';
+
+sec_session_start();
+
+$cod_usuario = isset($_SESSION['cliente_cod']) ? $_SESSION['cliente_cod'] : null;
+$usuario = $cod_usuario ? buscarUsuarioPorCodigo($cod_usuario, $mysqli) : null;
+$propriedade = null;
+if ($cod_usuario) {
+    $propriedade = buscarPropriedadePorUsuario($cod_usuario, $mysqli);
+}
+
+?>
+
+<header class="menu-principal">
+    <nav class="navbar nav-menu">
+        <div class="nav-logo">
+            <a href="home.php"><img src="../img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
+        </div>
+        <div class="nav-items">
+            <button class="nav-menu-btn main-btn" id="btn-menu" name="menu" type="button" onclick="abrirMenu()">Menu</button>
+        </div>
+    </nav>
+
+    <div class="menu-content">
+        <div class="user-settings mobile-only">
+            <div class="user">
+                <h5 class="user-type">
+                    <?= isset($usuario['cli_empresa']) ? htmlspecialchars($usuario['cli_empresa']) : 'Empresa não encontrada'; ?>
+                </h5>
+                <h5 class="user-name">
+                    <?= isset($usuario['cli_razao_social']) ? htmlspecialchars($usuario['cli_razao_social']) : 'Razão Social não Encontrada'; ?>
+                </h5>
+                <h5 class="user-id">
+                    <?= isset($usuario['cli_cnpj_cpf']) ? htmlspecialchars($usuario['cli_cnpj_cpf']) : 'CPF/CNPJ não Encontrado'; ?>
+                </h5>
+                
+            </div>
+            <div class="propriedade">
+                <h5 class="user-type">Propriedade</h5>
+                <?php if ($propriedade): ?>
+                    <h4 class="user-name">
+                        <?= htmlspecialchars($propriedade['propriedade_nome']) ?>
+                        <br>
+                        <?= htmlspecialchars($propriedade['cidade_nome'] ?? '') ?><?= isset($propriedade['uf_sigla']) && $propriedade['uf_sigla'] ? ', ' . htmlspecialchars($propriedade['uf_sigla']) : '' ?>
+                    </h4>
+                <?php else: ?>
+                    <h4 class="user-name">Propriedade não selecionada</h4>
+                <?php endif; ?>
+            </div>
+
+        </div>
+
+        <div class="menu-list">
+            <ul class="menu-links">
+                <button type="button" onclick="novoApontamento()"><li class="menu-link fundo-verde">
+                    <div class="btn-icon icon-plus cor-branco"></div>
+                    <span class="link-title cor-branco">Novo Apontamento</span>
+                </li></button>
+                <a href="./home.php"><li class="menu-link">
+                    <div class="btn-icon icon-home"></div>
+                    <span class="link-title">Tela Inicial</span>
+                </li></a>
+                <a href="./perfil.php"><li class="menu-link">
+                    <div class="btn-icon icon-user"></div>
+                    <span class="link-title">Dados Pessoais</span>
+                </li></a>
+                <a href="./propriedade.php"><li class="menu-link">
+                    <div class="btn-icon icon-pin"></div>
+                    <span class="link-title">Dados da Propriedade</span>
+                </li></a>
+                <a href="./produtos.php"><li class="menu-link">
+                    <div class="btn-icon icon-fruit"></div>
+                    <span class="link-title">Produtos Cultivados</span>
+                </li></a>
+                <a href="./areas.php"><li class="menu-link">
+                    <div class="btn-icon icon-plant"></div>
+                    <span class="link-title">Áreas Cultivadas</span>
+                </li></a>
+                <a href="./maquinas.php"><li class="menu-link">
+                    <div class="btn-icon icon-truck"></div>
+                    <span class="link-title">Relação de Máquinas</span>
+                </li></a>
+                <a href="./hidroponia.php"><li class="menu-link">
+                    <div class="btn-icon icon-water"></div>
+                    <span class="link-title">Hidroponia</span>
+                </li></a>
+                <a href="./relatorios.php"><li class="menu-link">
+                    <div class="btn-icon icon-pen"></div>
+                    <span class="link-title">Relatórios</span>
+                </li></a>
+                <a href="./clientes.php"><li class="menu-link">
+                    <div class="btn-icon icon-people"></div>
+                    <span class="link-title">Painel de Clientes</span>
+                </li></a>
+            </ul>
+        </div>
+
+        <div class="menu-final">
+            <img src="../img/logo-frutag.png" alt="Logo da Frutag" class="menu-logo">
+            <button class="nav-menu-btn main-btn fundo-vermelho" id="btn-sair" type="button" onclick="sair()">
+                <div class="btn-icon icon-exit"></div>
+                <span class="link-title">Sair</span>
+            </button>
+        </div>
+    </div>
+</header>
