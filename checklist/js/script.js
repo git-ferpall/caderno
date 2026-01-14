@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', carregarIcons);
-document.addEventListener('DOMContentLoaded', verCPF);
-document.addEventListener('DOMContentLoaded', verTel);
 document.addEventListener('DOMContentLoaded', carregarEstados);
 document.addEventListener('DOMContentLoaded', coresApt);
 
