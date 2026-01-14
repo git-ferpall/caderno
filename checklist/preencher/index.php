@@ -11,6 +11,9 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 $user = require_login();
 $user_id = (int) $user->sub;
 
+/* 🔒 BASE DO SISTEMA */
+define('APP_PATH', realpath(__DIR__ . '/../../'));
+
 /* 📥 Checklist */
 $checklist_id = (int) ($_GET['id'] ?? 0);
 if (!$checklist_id) {
@@ -52,9 +55,10 @@ $stmt->close();
 <head>
     <meta charset="utf-8">
     <title><?= htmlspecialchars($checklist['titulo']) ?></title>
-
+    <base href="/">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="stylesheet" href="/css/style.css">
     <style>
         .bloqueado {
             pointer-events: none;
@@ -65,92 +69,98 @@ $stmt->close();
 
 <body class="bg-light">
 
-<div class="container py-4">
+    <?php require APP_PATH . '/include/loading.php'; ?>
+    <?php require APP_PATH . '/include/popups.php'; ?>
+    <div id="conteudo">
 
-    <!-- TÍTULO -->
-    <h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo']) ?></h3>
+        <div class="container py-4">
+            <main class="sistema">
 
-    <!-- ALERTA BLOQUEADO -->
-    <?php if ($bloqueado): ?>
-        <div class="alert alert-warning">
-            Checklist finalizado. Apenas visualização.
-        </div>
-    <?php endif; ?>
+                <!-- TÍTULO -->
+                <h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo']) ?></h3>
 
-    <!-- FORMULÁRIO -->
-    <form method="post" action="salvar.php">
-        <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
-
-        <?php foreach ($itens as $i): ?>
-            <div class="card mb-3 <?= $bloqueado ? 'bloqueado' : '' ?>">
-                <div class="card-body">
-
-                    <!-- ✔ CHECK -->
-                    <div class="form-check mb-2">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            name="concluido[<?= $i['id'] ?>]"
-                            value="1"
-                            <?= $i['concluido'] ? 'checked' : '' ?>
-                        >
-                        <label class="form-check-label fw-bold">
-                            <?= htmlspecialchars($i['descricao']) ?>
-                        </label>
+                <!-- ALERTA BLOQUEADO -->
+                <?php if ($bloqueado): ?>
+                    <div class="alert alert-warning">
+                        Checklist finalizado. Apenas visualização.
                     </div>
+                <?php endif; ?>
 
-                    <!-- 📝 OBSERVAÇÃO -->
-                    <?php if ((int) $i['permite_observacao'] === 1): ?>
-                        <textarea
-                            class="form-control mb-2"
-                            name="observacao[<?= $i['id'] ?>]"
-                            placeholder="Observações"
-                        ><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
-                    <?php endif; ?>
+                <!-- FORMULÁRIO -->
+                <form method="post" action="salvar.php">
+                    <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
 
-                    <!-- 📸 FOTO -->
-                    <?php if ((int) $i['permite_foto'] === 1): ?>
-                        <div class="mb-2">
-                            <label class="form-label small">📸 Anexar foto</label>
-                            <input
-                                type="file"
-                                class="form-control upload-foto"
-                                data-item="<?= $i['id'] ?>"
-                                accept="image/*"
-                            >
+                    <?php foreach ($itens as $i): ?>
+                        <div class="card mb-3 <?= $bloqueado ? 'bloqueado' : '' ?>">
+                            <div class="card-body">
+
+                                <!-- ✔ CHECK -->
+                                <div class="form-check mb-2">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="concluido[<?= $i['id'] ?>]"
+                                        value="1"
+                                        <?= $i['concluido'] ? 'checked' : '' ?>
+                                    >
+                                    <label class="form-check-label fw-bold">
+                                        <?= htmlspecialchars($i['descricao']) ?>
+                                    </label>
+                                </div>
+
+                                <!-- 📝 OBSERVAÇÃO -->
+                                <?php if ((int) $i['permite_observacao'] === 1): ?>
+                                    <textarea
+                                        class="form-control mb-2"
+                                        name="observacao[<?= $i['id'] ?>]"
+                                        placeholder="Observações"
+                                    ><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
+                                <?php endif; ?>
+
+                                <!-- 📸 FOTO -->
+                                <?php if ((int) $i['permite_foto'] === 1): ?>
+                                    <div class="mb-2">
+                                        <label class="form-label small">📸 Anexar foto</label>
+                                        <input
+                                            type="file"
+                                            class="form-control upload-foto"
+                                            data-item="<?= $i['id'] ?>"
+                                            accept="image/*"
+                                        >
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- 📄 DOCUMENTO -->
+                                <?php if ((int) $i['permite_anexo'] === 1): ?>
+                                    <div class="mb-2">
+                                        <label class="form-label small">📄 Anexar documento</label>
+                                        <input
+                                            type="file"
+                                            class="form-control upload-doc"
+                                            data-item="<?= $i['id'] ?>"
+                                        >
+                                    </div>
+                                <?php endif; ?>
+
+                            </div>
                         </div>
+                    <?php endforeach; ?>
+
+                    <!-- BOTÕES -->
+                    <?php if (!$bloqueado): ?>
+                        <button class="btn btn-primary" name="acao" value="salvar">
+                            💾 Salvar
+                        </button>
+
+                        <button class="btn btn-danger" name="acao" value="finalizar">
+                            🔒 Salvar e finalizar
+                        </button>
                     <?php endif; ?>
-
-                    <!-- 📄 DOCUMENTO -->
-                    <?php if ((int) $i['permite_anexo'] === 1): ?>
-                        <div class="mb-2">
-                            <label class="form-label small">📄 Anexar documento</label>
-                            <input
-                                type="file"
-                                class="form-control upload-doc"
-                                data-item="<?= $i['id'] ?>"
-                            >
-                        </div>
-                    <?php endif; ?>
-
-                </div>
-            </div>
-        <?php endforeach; ?>
-
-        <!-- BOTÕES -->
-        <?php if (!$bloqueado): ?>
-            <button class="btn btn-primary" name="acao" value="salvar">
-                💾 Salvar
-            </button>
-
-            <button class="btn btn-danger" name="acao" value="finalizar">
-                🔒 Salvar e finalizar
-            </button>
-        <?php endif; ?>
-    </form>
-
-</div>
-
+                </form>
+            </main>            
+        </div>
+        <?php require APP_PATH . '/include/footer.php'; ?>
+    </div>                
 <script>
 document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
 
@@ -198,6 +208,8 @@ document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
 
 });
 </script>
+<script src="/js/popups.js"></script>
+<script src="/js/script.js"></script>   
 
 </body>
 </html>
