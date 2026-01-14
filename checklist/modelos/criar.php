@@ -117,7 +117,8 @@ if ($id) {
 
     <form action="/checklist/modelos/salvar.php" method="POST" class="main-form container">
     <?php if ($id > 0): ?>
-    <input type="hidden" name="id" value="<?= $id ?>">
+    <input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
+
     <?php endif; ?>
 
 

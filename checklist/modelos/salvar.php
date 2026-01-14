@@ -31,7 +31,8 @@ try {
     /* ======================
      * IDENTIFICA EDIÇÃO OU CRIAÇÃO
      * ====================== */
-    $modelo_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    $modelo_id = (int)($_POST['modelo_id'] ?? 0);
+
     $is_edicao = false;
 
     if ($modelo_id > 0) {
