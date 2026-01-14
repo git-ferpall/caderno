@@ -14,10 +14,13 @@ $user_id = (int)$user->sub;
 /* 📥 Modelo */
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+/* 🔒 BASE DO SISTEMA */
+define('APP_PATH', realpath(__DIR__ . '/../../'));
+
 $modelo = [
-    'titulo' => '',
+    'titulo'    => '',
     'descricao' => '',
-    'publico' => 0
+    'publico'   => 0
 ];
 
 $itens = [];
@@ -52,260 +55,214 @@ if ($id) {
     $stmt->close();
 }
 ?>
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <title><?= $id ? 'Editar' : 'Criar' ?> modelo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+
+    <title><?= $id ? 'Editar' : 'Criar' ?> Modelo de Checklist</title>
+
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- CSS DO SISTEMA -->
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/silo.css">
 
     <style>
-    .handle { cursor: grab }
-    .page-content {
-            margin-top: 80px; /* altura real do menu */
+        .handle { cursor: grab; font-size: 18px; }
+        .form-opcoes { display:flex; gap:12px; }
+        .btn-remover { padding:4px 10px; }
+
+        .btn-remover-text {
+            border: none;
+            border-radius: 20px;
+            padding: 6px 14px;
+            background: #f44336;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease;
         }
-    .bg-light-gray {
-        background-color: #f3f4f6; /* cinza suave */
-    }
 
-    .page-content {
-        text-align: left; /* garante tudo à esquerda */
-    }
-    
+        .btn-remover-text:hover {
+            background: #d32f2f;
+        }
+
     </style>
+
 </head>
+<body>
 
-<body class="bg-light">
-    <?php require '../include/loading.php' ?> 
-    <?php include '../include/popups.php' ?>
-    <?php include '../include/menu.php' ?>
+    <?php require APP_PATH . '/include/loading.php'; ?>
+    <?php require APP_PATH . '/include/popups.php'; ?>
 
-    <div class="container py-4 page-content">
-        <div class="bg-light-gray p-4 rounded">
+    <div id="conteudo">
+    <?php require APP_PATH . '/include/menu.php'; ?>
 
-            <!-- Título -->
-            <h3 class="mb-4">
-                ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
-            </h3>
-
-            <form method="post" action="/checklist/modelos/salvar.php"  novalidate>
-                <input type="hidden" name="id" value="<?= $id ?>">
-
-                <!-- Dados básicos -->
-                <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input
-                        type="text"
-                        name="titulo"
-                        class="form-control"
-                        value="<?= htmlspecialchars($modelo['titulo'] ?? '') ?>"
-                        required
-                    >
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Descrição</label>
-                    <textarea
-                        name="descricao"
-                        class="form-control"
-                        rows="3"
-                    ><?= htmlspecialchars($modelo['descricao'] ?? '') ?></textarea>
-                </div>
-
-                <div class="form-check mb-4">
-                    <input
-                        type="checkbox"
-                        name="publico"
-                        class="form-check-input"
-                        <?= !empty($modelo['publico']) ? 'checked' : '' ?>
-                    >
-                    <label class="form-check-label">
-                        Modelo padrão do sistema
-                    </label>
-                </div>
-
-                <hr class="my-4">
-
-                <!-- Itens do checklist -->
-                <h5 class="mb-3">📋 Itens do checklist</h5>
-
-                <div id="itens">
-
-                    <?php foreach ($itens as $i): 
-                        $key = 'id_' . $i['id'];
-                    ?>
-                        <div class="input-group mb-2 item">
-
-                            <!-- Drag handle -->
-                            <span class="input-group-text handle">☰</span>
-
-                            <input type="hidden" name="item_key[]" value="<?= $key ?>">
-
-                            <!-- Descrição -->
-                            <input
-                                type="text"
-                                name="item_desc[<?= $key ?>]"
-                                class="form-control"
-                                value="<?= htmlspecialchars($i['descricao']) ?>"
-                                required
-                            >
-
-                            <!-- Opções -->
-                            <span class="input-group-text" data-grupo="<?= $key ?>">
-                                <div class="form-check form-check-inline mb-0">
-                                    <input
-                                        class="form-check-input opcao-item"
-                                        type="checkbox"
-                                        name="item_obs[<?= $key ?>]"
-                                        value="1"
-                                        <?= !empty($i['permite_observacao']) ? 'checked' : '' ?>
-                                    >
-                                    <small class="ms-1">Obs</small>
-                                </div>
-
-                                <div class="form-check form-check-inline mb-0 ms-2">
-                                    <input
-                                        class="form-check-input opcao-item"
-                                        type="checkbox"
-                                        name="item_foto[<?= $key ?>]"
-                                        value="1"
-                                        <?= !empty($i['permite_foto']) ? 'checked' : '' ?>
-                                    >
-                                    <small class="ms-1">Foto</small>
-                                </div>
-
-                                <div class="form-check form-check-inline mb-0 ms-2">
-                                    <input
-                                        class="form-check-input opcao-item"
-                                        type="checkbox"
-                                        name="item_anexo[<?= $key ?>]"
-                                        value="1"
-                                        <?= !empty($i['permite_anexo']) ? 'checked' : '' ?>
-                                    >
-                                    <small class="ms-1">Doc</small>
-                                </div>
-                            </span>
-
-                            <!-- Remover -->
-                            <button
-                                type="button"
-                                class="btn btn-danger"
-                                title="Remover item"
-                                onclick="this.closest('.item').remove()"
-                            >
-                                ×
-                            </button>
-
-                        </div>
-                    <?php endforeach; ?>
-
-                </div>
-
-                <!-- Adicionar item -->
-                <button
-                    type="button"
-                    class="btn btn-outline-primary mb-4"
-                    onclick="addItem()"
-                >
-                    ➕ Adicionar item
-                </button>
-
-                <hr class="my-4">
-
-                <!-- Ações -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success" onclick="console.log('submit clicado')">
-                        💾 Salvar modelo
-                    </button>
-
-
-                    <a href="/checklist/modelos/index.php" class="btn btn-secondary">
-                        Cancelar
-                    </a>
-                </div>
-
-            </form>
-        </div>                
+    <main class="sistema">
+    <div class="page-title">
+        <h2 class="main-title cor-branco">
+            ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
+        </h2>
     </div>
 
+    <form action="/checklist/modelos/salvar.php" method="POST" class="main-form container">
+    <input type="hidden" name="id" value="<?= $id ?>">
 
+    <!-- TÍTULO -->
+    <div class="form-campo">
+        <label for="titulo">Título</label>
+        <input class="form-text"
+            type="text"
+            name="titulo"
+            id="titulo"
+            placeholder="Título do checklist"
+            required
+            value="<?= htmlspecialchars($modelo['titulo']) ?>">
+    </div>
 
-    <script>
-    function addItem() {
-        const key = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    <!-- DESCRIÇÃO -->
+    <div class="form-campo">
+        <label for="descricao">Descrição</label>
+        <textarea name="descricao"
+                id="descricao"
+                class="form-text"
+                rows="3"
+                placeholder="Descrição opcional"><?= htmlspecialchars($modelo['descricao']) ?></textarea>
+    </div>
 
-        const div = document.createElement('div');
-        div.className = 'input-group mb-2 item';
-        div.innerHTML = `
-            <span class="input-group-text handle">☰</span>
+    <!-- PÚBLICO -->
+    <div class="form-campo">
+        <label>
+            <input type="checkbox" name="publico" value="1" <?= $modelo['publico'] ? 'checked' : '' ?>>
+            Modelo padrão do sistema
+        </label>
+    </div>
+
+    <h2>📋 Itens do checklist</h2>
+
+    <div id="itens">
+    <?php foreach ($itens as $i):
+        $key = 'id_' . $i['id'];
+    ?>
+    <div class="form-campo item" data-key="<?= $key ?>">
+        <div class="form-box">
+            <span class="handle">☰</span>
+
+            <input type="hidden" name="item_key[]" value="<?= $key ?>">
+
+            <input class="form-text"
+                type="text"
+                name="item_desc[<?= $key ?>]"
+                value="<?= htmlspecialchars($i['descricao']) ?>"
+                required>
+
+            <div class="form-opcoes">
+                <label>
+                    <input type="checkbox" class="opcao-item"
+                        name="item_obs[<?= $key ?>]" value="1"
+                        <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                    Obs
+                </label>
+
+                <label>
+                    <input type="checkbox" class="opcao-item"
+                        name="item_foto[<?= $key ?>]" value="1"
+                        <?= $i['permite_foto'] ? 'checked' : '' ?>>
+                    Foto
+                </label>
+
+            </div>
+
+            <button type="button"
+                    class="main-btn fundo-vermelho btn-remover"
+                    onclick="this.closest('.item').remove()"> Remover </button>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+    <!-- BOTÕES -->
+    <div class="form-submit">
+        <button type="button" class="main-btn fundo-azul" onclick="addItem()">+ Item</button>
+        <button type="button"
+            class="main-btn fundo-verde"
+            onclick="this.closest('form').submit()">
+        Salvar
+    </button>
+    </div>
+
+</form>
+</main>
+</div>
+
+<?php require APP_PATH . '/include/footer.php'; ?>
+<script src="/js/jquery.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/popups.js"></script>
+<script src="/js/script.js"></script>
+<!-- SORTABLE -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<script>
+function addItem() {
+    const key = 'new_' + Date.now();
+
+    const div = document.createElement('div');
+    div.className = 'form-campo item';
+    div.dataset.key = key;
+
+    div.innerHTML = `
+        <div class="form-box">
+            <span class="handle">☰</span>
 
             <input type="hidden" name="item_key[]" value="${key}">
 
-            <input type="text" name="item_desc[${key}]" class="form-control" required>
+            <input class="form-text" type="text"
+                   name="item_desc[${key}]"
+                   placeholder="Descrição do item"
+                   required>
 
-            <span class="input-group-text" data-grupo="${key}">
-                <div class="form-check form-check-inline mb-0">
-                    <input class="form-check-input opcao-item"
-                        type="checkbox"
-                        name="item_obs[${key}]"
-                        value="1"
-                        checked>
-                    <small class="ms-1">Obs</small>
-                </div>
+            <div class="form-opcoes">
+                <label><input type="checkbox" class="opcao-item" name="item_obs[${key}]" value="1" checked> Obs</label>
+                <label><input type="checkbox" class="opcao-item" name="item_foto[${key}]" value="1"> Foto</label>
+            </div>
 
-                <div class="form-check form-check-inline mb-0 ms-2">
-                    <input class="form-check-input opcao-item"
-                        type="checkbox"
-                        name="item_foto[${key}]"
-                        value="1">
-                    <small class="ms-1">Foto</small>
-                </div>
+            <button type="button"
+                    class="btn-remover-text"
+                    onclick="this.closest('.item').remove()">
+                🗑 Remover
+            </button>
+        </div>
+    `;
 
-                <div class="form-check form-check-inline mb-0 ms-2">
-                    <input class="form-check-input opcao-item"
-                        type="checkbox"
-                        name="item_anexo[${key}]"
-                        value="1">
-                    <small class="ms-1">Doc</small>
-                </div>
-            </span>
+    document.getElementById('itens').appendChild(div);
+}
 
-            <button type="button" class="btn btn-danger"
-                    onclick="this.closest('.item').remove()">×</button>
-        `;
-        document.getElementById('itens').appendChild(div);
-    }
-
-    new Sortable(document.getElementById('itens'), {
-        handle: '.handle',
-        animation: 150
-    });
-
-    /* 🔒 Exclusividade: apenas 1 opção por item */
-    document.addEventListener('change', function (e) {
-        if (!e.target.classList.contains('opcao-item')) return;
-
-        const grupo = e.target.closest('[data-grupo]');
-        if (!grupo) return;
-
-        if (e.target.checked) {
-            grupo.querySelectorAll('.opcao-item').forEach(cb => {
-                if (cb !== e.target) cb.checked = false;
-            });
-        }
-    });
-    </script>
-    <?php include '../include/imports.php' ?>
-
-
-<script>
-document.querySelector('form').addEventListener('submit', function (e) {
-    console.log('FORM SUBMIT DISPARADO');
+new Sortable(document.getElementById('itens'), {
+    handle: '.handle',
+    animation: 150
 });
 </script>
+<script>
+document.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('opcao-item')) return;
+
+    const container = e.target.closest('.form-opcoes');
+    if (!container) return;
+
+    if (e.target.checked) {
+        container.querySelectorAll('.opcao-item').forEach(cb => {
+            if (cb !== e.target) cb.checked = false;
+        });
+    }
+});
+</script>
+
+
+
 </body>
 </html>
