@@ -3,11 +3,17 @@ require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
 $user = require_login();
+if (!isset($user->sub) || !is_numeric($user->sub)) {
+    die('Sessão inválida: usuário não identificado');
+}
+
 $user_id = (int)$user->sub;
 
-if (!$user_id) {
-    die('Sessão inválida');
-}
+var_dump([
+    'session_user_id' => $user_id,
+    'post_modelo_id'  => $modelo_id
+]);
+exit;
 
 /* 🔐 ID do modelo (edição somente se existir) */
 $modelo_id = isset($_POST['id']) && ctype_digit((string)$_POST['id'])
