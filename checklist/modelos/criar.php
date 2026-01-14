@@ -275,9 +275,8 @@ if ($id) {
                 </div>
             </span>
 
-            <button type="submit" class="btn btn-success" onclick="console.log('submit clicado')">
-                💾 Salvar modelo
-            </button>
+            <button type="button" class="btn btn-danger"
+                    onclick="this.closest('.item').remove()">×</button>
         `;
         document.getElementById('itens').appendChild(div);
     }
