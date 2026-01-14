@@ -110,10 +110,7 @@ $stmt->close();
         <?php endif; ?>
 
     </div>
-    <script src="../js/jquery.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/popups.js"></script>
-    <!--<script src="../js/script.js"></script>-->
+    <?php include '../include/imports.php' ?>
 
 </body>
 </html>

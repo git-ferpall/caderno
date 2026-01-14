@@ -4,6 +4,37 @@ document.addEventListener('DOMContentLoaded', verTel);
 document.addEventListener('DOMContentLoaded', carregarEstados);
 document.addEventListener('DOMContentLoaded', coresApt);
 
+document.onreadystatechange = function () {
+  var state = document.readyState
+  var load = document.getElementById('load');
+
+  const inputs = document.querySelectorAll(".form-tel");
+  inputs.forEach(input => {
+    window.intlTelInput(input, {
+      initialCountry: 'BR',
+      nationalMode: false,
+      separateDialCode: true, // exibe o +55 separado
+      utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+    });
+  });
+
+  document.getElementById('load-img').src = (window.innerWidth > 800) ? "/img/logo-color.png" : "/img/logo-icon.png";
+  (window.innerWidth > 800) ? load.classList.add('fundo-branco') : load.classList.add('fundo-azul-grad');
+
+  if (state == 'interactive') {
+          document.getElementById('conteudo').style.visibility="hidden";
+          document.getElementById('footer').style.visibility="hidden";
+  } else if (state == 'complete') {
+      setTimeout(function(){
+          document.getElementById('interactive');
+          load.classList.add('up');
+          load.style.visibility="hidden";
+          document.getElementById('conteudo').style.visibility="visible";
+          document.getElementById('footer').style.visibility="visible";
+      },1000);
+  }
+}
+
 function validarSenha() {
     senha = document.getElementById('fcpass').value;
     senhaC = document.getElementById('fccpass').value;
@@ -502,19 +533,9 @@ function voltarEstufa(estufa) {
 }
 
 function abrirMenu() {
-  const menu = document.querySelector('.menu-principal');
-  const sistema = document.querySelector('.sistema');
-
-  if (menu) {
-    menu.classList.toggle('active');
-  }
-
-  if (sistema) {
-    sistema.classList.toggle('active');
-  }
+  document.querySelector('.menu-principal').classList.toggle('active');
+  document.querySelector('.sistema').classList.toggle('active');
 }
-
-
 
 function sair() {
     window.location.href = "../index.php";
