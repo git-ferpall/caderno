@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-/* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
@@ -10,12 +9,11 @@ if (!$user_id) {
     die('Sessão inválida');
 }
 
-$mysqli->begin_transaction();
+/* 🔐 ID do modelo (edição somente se existir) */
+$modelo_id = isset($_POST['id']) && ctype_digit((string)$_POST['id'])
+    ? (int)$_POST['id']
+    : 0;
 
-/* ======================
- * DADOS
- * ====================== */
-$modelo_id  = (int)($_POST['id'] ?? 0);
 $titulo     = trim($_POST['titulo'] ?? '');
 $descricao  = trim($_POST['descricao'] ?? '');
 $publico    = isset($_POST['publico']) ? 1 : 0;
@@ -27,9 +25,10 @@ $item_foto  = $_POST['item_foto'] ?? [];
 $item_anexo = $_POST['item_anexo'] ?? [];
 
 if ($titulo === '') {
-    $mysqli->rollback();
     die('Título obrigatório');
 }
+
+$mysqli->begin_transaction();
 
 try {
 
@@ -103,7 +102,6 @@ try {
     ");
 
     foreach ($item_keys as $key) {
-
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
