@@ -98,7 +98,7 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen cor-branco"></div>
                     <span class="link-title cor-branco">Alterar Propriedade</span>
                 </li></button>
-                <a href="./../home.php"><li class="menu-link fundo-preto">
+                <a href="./home.php"><li class="menu-link fundo-preto">
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>

@@ -219,7 +219,7 @@ if ($id) {
 
                 <!-- Ações -->
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success" onclick="console.log('submit clicado')">
                         💾 Salvar modelo
                     </button>
 
@@ -275,8 +275,9 @@ if ($id) {
                 </div>
             </span>
 
-            <button type="button" class="btn btn-danger"
-                    onclick="this.closest('.item').remove()">×</button>
+            <button type="submit" class="btn btn-success" onclick="console.log('submit clicado')">
+                💾 Salvar modelo
+            </button>
         `;
         document.getElementById('itens').appendChild(div);
     }
@@ -305,6 +306,10 @@ if ($id) {
     <script src="/js/popups.js" defer></script>
     <script src="/js/script.js" defer></script>
 
-
+<script>
+document.querySelector('form').addEventListener('submit', function (e) {
+    console.log('FORM SUBMIT DISPARADO');
+});
+</script>
 </body>
 </html>
