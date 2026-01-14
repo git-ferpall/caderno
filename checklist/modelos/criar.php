@@ -68,7 +68,6 @@ if ($id) {
 
     <!-- CSS DO SISTEMA -->
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/silo.css">
 
     <style>
         .handle { cursor: grab; font-size: 18px; }
