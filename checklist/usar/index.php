@@ -11,6 +11,11 @@ $user = require_login();
 
 /* 👤 ID do usuário autenticado */
 $user_id = (int) $user->sub;
+
+
+/* 🔒 BASE DO SISTEMA */
+define('APP_PATH', realpath(__DIR__ . '/../../'));
+
 /* 🔎 Buscar modelos disponíveis */
 $sql = "
     SELECT
@@ -36,70 +41,88 @@ $stmt->close();
 <!doctype html>
 <html lang="pt-br">
 <head>
-<meta charset="utf-8">
-<title>Checklists</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <title>Checklists</title>
+  <base href="/">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
 
 <body class="bg-light">
+    <?php require APP_PATH . '/include/loading.php'; ?>
+    <?php require APP_PATH . '/include/popups.php'; ?>
+    <div id="conteudo">
+      <?php require APP_PATH . '/include/menu.php'; ?>
+      <div class="container py-4">
 
-<div class="container py-4">
+          <!-- TÍTULO -->
+          <h3 class="mb-4">📋 Checklists disponíveis</h3>
 
-<h3 class="mb-4">📋 Checklists disponíveis</h3>
+          <!-- BOTÃO CRIAR MODELO -->
+          <div class="mb-4">
+              <a href="../modelos/criar.php" class="btn btn-success">
+                  ➕ Criar modelo de checklist
+              </a>
+          </div>
 
-<div class="mb-4">
-    <a href="../modelos/criar.php" class="btn btn-success">
-        ➕ Criar modelo de checklist
-    </a>
-</div>
+          <!-- ALERTA: SEM MODELOS -->
+          <?php if (empty($modelos)): ?>
+              <div class="alert alert-warning">
+                  <strong>Nenhum checklist encontrado.</strong><br>
+                  Crie um modelo de checklist para começar.
+              </div>
+          <?php endif; ?>
 
+          <!-- LISTAGEM DE MODELOS -->
+          <div class="row">
+              <?php foreach ($modelos as $m): ?>
+                  <div class="col-md-4 mb-3">
+                      <div class="card h-100 shadow-sm">
+                          <div class="card-body d-flex flex-column">
 
-<?php if (empty($modelos)): ?>
-  <div class="alert alert-warning">
-    <strong>Nenhum checklist encontrado.</strong><br>
-    Crie um modelo de checklist para começar.
-  </div>
-<?php endif; ?>
+                              <!-- TÍTULO -->
+                              <h5 class="card-title">
+                                  <?= htmlspecialchars($m['titulo']) ?>
+                              </h5>
 
+                              <!-- DESCRIÇÃO -->
+                              <?php if (!empty($m['descricao'])): ?>
+                                  <p class="card-text text-muted">
+                                      <?= nl2br(htmlspecialchars($m['descricao'])) ?>
+                                  </p>
+                              <?php endif; ?>
 
-<div class="row">
-<?php foreach ($modelos as $m): ?>
-  <div class="col-md-4">
-    <div class="card mb-3 h-100 shadow-sm">
-      <div class="card-body d-flex flex-column">
+                              <!-- AÇÕES -->
+                              <div class="mt-auto">
 
-        <h5 class="card-title">
-          <?= htmlspecialchars($m['titulo']) ?>
-        </h5>
+                                  <form method="post" action="criar.php">
+                                      <input type="hidden" name="modelo_id" value="<?= $m['id'] ?>">
 
-        <?php if (!empty($m['descricao'])): ?>
-          <p class="card-text text-muted">
-            <?= nl2br(htmlspecialchars($m['descricao'])) ?>
-          </p>
-        <?php endif; ?>
+                                      <button type="submit" class="btn btn-primary w-100">
+                                          Usar este checklist
+                                      </button>
+                                  </form>
 
-        <div class="mt-auto">
-          <form method="post" action="criar.php">
-            <input type="hidden" name="modelo_id" value="<?= $m['id'] ?>">
-            <button class="btn btn-primary w-100">
-              Usar este checklist
-            </button>
-          </form>
+                                  <small class="text-muted d-block mt-2 text-center">
+                                      <?= $m['criado_por'] == $user_id
+                                          ? 'Modelo pessoal'
+                                          : 'Modelo padrão do sistema' ?>
+                                  </small>
 
-          <small class="text-muted d-block mt-2">
-            <?= $m['criado_por'] == $user_id
-                ? 'Modelo pessoal'
-                : 'Modelo padrão do sistema' ?>
-          </small>
-        </div>
+                              </div>
 
+                          </div>
+                      </div>
+                  </div>
+              <?php endforeach; ?>
+          </div>
       </div>
-    </div>
-  </div>
-<?php endforeach; ?>
-</div>
-
-</div>
-
+    </div>  
+    <?php require APP_PATH . '/include/footer.php'; ?>
+  <script src="/js/jquery.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/popups.js"></script>
+  <script src="/js/script.js"></script>                            
 </body>
+
 </html>
