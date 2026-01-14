@@ -94,6 +94,13 @@ if ($id) {
 
 </head>
 <body>
+    <?php
+    echo '<pre>';
+    echo 'ID DO MODELO: ';
+    var_dump($id);
+    echo '</pre>';
+    ?>
+
 
     <?php require APP_PATH . '/include/loading.php'; ?>
     <?php require APP_PATH . '/include/popups.php'; ?>
