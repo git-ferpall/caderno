@@ -1,16 +1,13 @@
 <?php
 /**
- * Salvar MODELO de checklist
- * - Criação e edição
- * - Permissões corretas (público / privado)
- * - Obs / Foto / Doc
- * - Ordem dos itens
+ * Salvar (Criar / Editar) MODELO de checklist
+ * Stack: MySQLi + protect.php
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-/* 🔒 Login */
+/* 🔒 Login obrigatório */
 $user = require_login();
 $user_id = (int)$user->sub;
 
@@ -19,17 +16,12 @@ $mysqli->begin_transaction();
 try {
 
     /* ======================
-     * IDENTIFICA SE É EDIÇÃO OU CRIAÇÃO
-     * ====================== */
-    $modelo_id = (
-        isset($_POST['id']) &&
-        is_numeric($_POST['id']) &&
-        (int)$_POST['id'] > 0
-    ) ? (int)$_POST['id'] : 0;
-
-    /* ======================
      * DADOS BÁSICOS
      * ====================== */
+    $modelo_id = isset($_POST['id']) && is_numeric($_POST['id'])
+        ? (int)$_POST['id']
+        : 0;
+
     $titulo    = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $publico   = isset($_POST['publico']) ? 1 : 0;
@@ -43,25 +35,20 @@ try {
      * ====================== */
     if ($modelo_id > 0) {
 
-        // 🔎 Busca modelo e valida permissão
+        // 🔒 valida existência + permissão
         $stmt = $mysqli->prepare("
-            SELECT id, publico, criado_por
+            SELECT id
             FROM checklist_modelos
             WHERE id = ?
+              AND (publico = 1 OR criado_por = ?)
             LIMIT 1
         ");
-        $stmt->bind_param("i", $modelo_id);
+        $stmt->bind_param("ii", $modelo_id, $user_id);
         $stmt->execute();
         $modelo = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        if (
-            !$modelo ||
-            (
-                (int)$modelo['publico'] === 0 &&
-                (int)$modelo['criado_por'] !== $user_id
-            )
-        ) {
+        if (!$modelo) {
             throw new Exception('Modelo não existe ou sem permissão');
         }
 
@@ -107,12 +94,12 @@ try {
     }
 
     /* ======================
-     * ITENS DO MODELO
+     * ITENS (PARA CRIAR E EDITAR)
      * ====================== */
-    $item_keys  = $_POST['item_key']  ?? [];
-    $item_desc  = $_POST['item_desc'] ?? [];
-    $item_obs   = $_POST['item_obs']  ?? [];
-    $item_foto  = $_POST['item_foto'] ?? [];
+    $item_keys  = $_POST['item_key']   ?? [];
+    $item_desc  = $_POST['item_desc']  ?? [];
+    $item_obs   = $_POST['item_obs']   ?? [];
+    $item_foto  = $_POST['item_foto']  ?? [];
     $item_anexo = $_POST['item_anexo'] ?? [];
 
     $ordem = 1;
@@ -128,17 +115,17 @@ try {
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
-        $obs   = isset($item_obs[$key])   ? 1 : 0;
-        $foto  = isset($item_foto[$key])  ? 1 : 0;
-        $anexo = isset($item_anexo[$key]) ? 1 : 0;
+        $permite_obs   = isset($item_obs[$key])   ? 1 : 0;
+        $permite_foto  = isset($item_foto[$key])  ? 1 : 0;
+        $permite_anexo = isset($item_anexo[$key]) ? 1 : 0;
 
         $stmt->bind_param(
             "isiiii",
             $modelo_id,
             $desc,
-            $obs,
-            $foto,
-            $anexo,
+            $permite_obs,
+            $permite_foto,
+            $permite_anexo,
             $ordem
         );
         $stmt->execute();
@@ -151,7 +138,6 @@ try {
      * FINALIZA
      * ====================== */
     $mysqli->commit();
-
     header('Location: index.php');
     exit;
 
