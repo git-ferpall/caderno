@@ -128,7 +128,7 @@ $stmt->close();
   <script src="/js/jquery.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/popups.js"></script>
-  <!--<script src="/js/script.js"></script>-->                            
+  <script src="/js/script.js"></script>                           
 </body>
 
 </html>
