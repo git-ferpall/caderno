@@ -4,46 +4,6 @@ document.addEventListener('DOMContentLoaded', verTel);
 document.addEventListener('DOMContentLoaded', carregarEstados);
 document.addEventListener('DOMContentLoaded', coresApt);
 
-document.onreadystatechange = function () {
-  if (document.readyState !== 'interactive' && document.readyState !== 'complete') {
-    return;
-  }
-
-  const load = document.getElementById('load');
-  const loadImg = document.getElementById('load-img');
-  const conteudo = document.getElementById('conteudo');
-  const footer = document.getElementById('footer');
-
-  // 🔒 SE NÃO EXISTE LOADER, NÃO EXECUTA NADA
-  if (!load || !loadImg) {
-    return;
-  }
-
-  // 🔒 A PARTIR DAQUI É SEGURO
-  loadImg.src = window.innerWidth > 800
-    ? "/img/logo-color.png"
-    : "/img/logo-icon.png";
-
-  load.classList.add(
-    window.innerWidth > 800 ? 'fundo-branco' : 'fundo-azul-grad'
-  );
-
-  if (document.readyState === 'interactive') {
-    if (conteudo) conteudo.style.visibility = "hidden";
-    if (footer) footer.style.visibility = "hidden";
-  }
-
-  if (document.readyState === 'complete') {
-    setTimeout(() => {
-      load.classList.add('up');
-      load.style.visibility = "hidden";
-      if (conteudo) conteudo.style.visibility = "visible";
-      if (footer) footer.style.visibility = "visible";
-    }, 800);
-  }
-};
-
-
 function validarSenha() {
     senha = document.getElementById('fcpass').value;
     senhaC = document.getElementById('fccpass').value;
