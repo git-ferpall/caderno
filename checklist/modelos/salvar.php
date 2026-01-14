@@ -33,7 +33,7 @@ try {
     /* ======================
      * MODELO
      * ====================== */
-    if ($modelo_id > 0) {
+        if ($modelo_id > 0) {
 
         $stmt = $mysqli->prepare("
             UPDATE checklist_modelos
@@ -43,8 +43,8 @@ try {
         $stmt->bind_param("ssiii", $titulo, $descricao, $publico, $criado_por, $modelo_id);
         $stmt->execute();
 
-        if ($stmt->affected_rows === 0) {
-            throw new Exception('Modelo não encontrado para edição');
+        if ($stmt->errno) {
+            throw new Exception('Erro ao atualizar modelo');
         }
 
         $stmt->close();
