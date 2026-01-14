@@ -19,16 +19,18 @@ define('APP_PATH', realpath(__DIR__ . '/../../'));
 /* 🔎 Buscar modelos disponíveis */
 $sql = "
     SELECT
-    id,
-    titulo,
-    descricao,
-    criado_por,
-    publico,
-    criado_em
-FROM checklist_modelos
-WHERE ativo = 1
-  AND (publico = 1 OR criado_por = ?)
-ORDER BY titulo;"
+        id,
+        titulo,
+        descricao,
+        criado_por,
+        publico,
+        criado_em
+    FROM checklist_modelos
+    WHERE ativo = 1
+      AND (publico = 1 OR criado_por = ?)
+    ORDER BY titulo
+";
+
 
 
 $stmt = $mysqli->prepare($sql);
