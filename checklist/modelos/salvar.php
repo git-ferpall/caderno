@@ -1,23 +1,21 @@
 <?php
 /**
- * Salvar (Criar / Editar) MODELO de checklist
- * Stack: MySQLi + protect.php
+ * Salvar MODELO de checklist (CRIAR ou EDITAR)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-/* 🔒 Login obrigatório */
+/* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
-/* 🔁 Transação */
 $mysqli->begin_transaction();
 
 try {
 
     /* ======================
-     * DADOS BÁSICOS
+     * DADOS
      * ====================== */
     $modelo_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     $titulo    = trim($_POST['titulo'] ?? '');
@@ -29,52 +27,26 @@ try {
     }
 
     /* ======================
-     * DETECTA EDIÇÃO
+     * EDITAR
      * ====================== */
-    $is_edicao = false;
-
     if ($modelo_id > 0) {
 
-        // 🔍 Busca modelo (EXISTÊNCIA define edição)
-        $stmt = $mysqli->prepare("
-            SELECT id, criado_por, publico
-            FROM checklist_modelos
-            WHERE id = ?
-            LIMIT 1
-        ");
-        $stmt->bind_param("i", $modelo_id);
-        $stmt->execute();
-        $modelo = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if (!$modelo) {
-            throw new Exception('Modelo não existe');
-        }
-
-        // 🔒 Permissão
-        if (!$modelo['publico'] && (int)$modelo['criado_por'] !== $user_id) {
-            throw new Exception('Sem permissão para editar este modelo');
-        }
-
-        $is_edicao = true;
-    }
-
-    /* ======================
-     * SALVA MODELO
-     * ====================== */
-    if ($is_edicao) {
-
-        // ✏️ UPDATE
+        // 🔒 Permissão direta (simples)
         $stmt = $mysqli->prepare("
             UPDATE checklist_modelos
             SET titulo = ?, descricao = ?, publico = ?
-            WHERE id = ?
+            WHERE id = ? AND (publico = 1 OR criado_por = ?)
         ");
-        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $modelo_id);
+        $stmt->bind_param("ssiii", $titulo, $descricao, $publico, $modelo_id, $user_id);
         $stmt->execute();
+
+        if ($stmt->affected_rows === 0) {
+            throw new Exception('Modelo não existe ou sem permissão');
+        }
+
         $stmt->close();
 
-        // 🧹 Remove itens antigos
+        // Remove itens antigos
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -85,7 +57,9 @@ try {
 
     } else {
 
-        // ➕ INSERT (CRIAÇÃO)
+        /* ======================
+         * CRIAR
+         * ====================== */
         $stmt = $mysqli->prepare("
             INSERT INTO checklist_modelos
                 (titulo, descricao, publico, criado_por)
@@ -105,10 +79,10 @@ try {
     /* ======================
      * ITENS
      * ====================== */
-    $item_keys  = $_POST['item_key']  ?? [];
-    $item_desc  = $_POST['item_desc'] ?? [];
-    $item_obs   = $_POST['item_obs']  ?? [];
-    $item_foto  = $_POST['item_foto'] ?? [];
+    $item_keys = $_POST['item_key'] ?? [];
+    $item_desc = $_POST['item_desc'] ?? [];
+    $item_obs  = $_POST['item_obs'] ?? [];
+    $item_foto = $_POST['item_foto'] ?? [];
 
     $ordem = 1;
 
@@ -119,33 +93,20 @@ try {
     ");
 
     foreach ($item_keys as $key) {
-
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
-        $permite_obs  = isset($item_obs[$key])  ? 1 : 0;
-        $permite_foto = isset($item_foto[$key]) ? 1 : 0;
+        $obs  = isset($item_obs[$key])  ? 1 : 0;
+        $foto = isset($item_foto[$key]) ? 1 : 0;
 
-        $stmt->bind_param(
-            "isiii",
-            $modelo_id,
-            $desc,
-            $permite_obs,
-            $permite_foto,
-            $ordem
-        );
-
+        $stmt->bind_param("isiii", $modelo_id, $desc, $obs, $foto, $ordem);
         $stmt->execute();
         $ordem++;
     }
 
     $stmt->close();
 
-    /* ======================
-     * FINALIZA
-     * ====================== */
     $mysqli->commit();
-
     header('Location: index.php');
     exit;
 
