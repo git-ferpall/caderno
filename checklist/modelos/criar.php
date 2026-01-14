@@ -182,8 +182,10 @@ if ($modelo_id) {
             </div>
 
             <button type="button"
-                    class="main-btn fundo-vermelho btn-remover"
-                    onclick="this.closest('.item').remove()"> Remover </button>
+                    class="btn-remover-text"
+                    onclick="this.closest('.item').remove()">
+                🗑 Remover
+            </button>
         </div>
     </div>
     <?php endforeach; ?>
