@@ -1,41 +1,35 @@
 <?php
-/**
- * Criar / Editar MODELO de checklist
- * Stack: MySQLi + JWT (protect.php)
- */
-
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-/* 🔒 Login obrigatório */
+/* 🔒 Login */
 $user = require_login();
-$user_id = (int) $user->sub;
+$user_id = (int)$user->sub;
+
+if (!$user_id) {
+    die('Sessão inválida');
+}
+
+$mysqli->begin_transaction();
 
 /* ======================
- * DADOS DO FORM
+ * DADOS
  * ====================== */
-$modelo_id  = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+$modelo_id  = (int)($_POST['id'] ?? 0);
 $titulo     = trim($_POST['titulo'] ?? '');
 $descricao  = trim($_POST['descricao'] ?? '');
 $publico    = isset($_POST['publico']) ? 1 : 0;
 
-$item_keys  = $_POST['item_key']   ?? [];
-$item_desc  = $_POST['item_desc']  ?? [];
-$item_obs   = $_POST['item_obs']   ?? [];
-$item_foto  = $_POST['item_foto']  ?? [];
+$item_keys  = $_POST['item_key']  ?? [];
+$item_desc  = $_POST['item_desc'] ?? [];
+$item_obs   = $_POST['item_obs']  ?? [];
+$item_foto  = $_POST['item_foto'] ?? [];
 $item_anexo = $_POST['item_anexo'] ?? [];
 
 if ($titulo === '') {
+    $mysqli->rollback();
     die('Título obrigatório');
 }
-
-/* 🔒 Regra: criado_por SEMPRE é o usuário logado */
-$criado_por = $user_id;
-
-/* ======================
- * TRANSAÇÃO
- * ====================== */
-$mysqli->begin_transaction();
 
 try {
 
@@ -44,7 +38,6 @@ try {
      * ====================== */
     if ($modelo_id > 0) {
 
-        /* 🔍 Verifica existência + permissão */
         $stmt = $mysqli->prepare("
             SELECT id
             FROM checklist_modelos
@@ -60,7 +53,6 @@ try {
             throw new Exception('Modelo não existe ou sem permissão');
         }
 
-        /* 🔄 Atualiza modelo */
         $stmt = $mysqli->prepare("
             UPDATE checklist_modelos
             SET titulo = ?, descricao = ?, publico = ?
@@ -70,7 +62,6 @@ try {
         $stmt->execute();
         $stmt->close();
 
-        /* 🔥 Remove itens antigos */
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -79,21 +70,20 @@ try {
         $stmt->execute();
         $stmt->close();
 
-    }
-    /* ======================
-     * CRIAÇÃO
-     * ====================== */
-    else {
+    } else {
 
+        /* ======================
+         * CRIAÇÃO
+         * ====================== */
         $stmt = $mysqli->prepare("
             INSERT INTO checklist_modelos
-                (titulo, descricao, publico, criado_por, ativo)
-            VALUES (?, ?, ?, ?, 1)
+                (titulo, descricao, publico, criado_por)
+            VALUES (?, ?, ?, ?)
         ");
-        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $criado_por);
+        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $user_id);
         $stmt->execute();
 
-        $modelo_id = (int) $stmt->insert_id;
+        $modelo_id = (int)$stmt->insert_id;
         $stmt->close();
 
         if ($modelo_id <= 0) {
@@ -104,30 +94,26 @@ try {
     /* ======================
      * ITENS
      * ====================== */
+    $ordem = 1;
+
     $stmt = $mysqli->prepare("
         INSERT INTO checklist_modelo_itens
             (modelo_id, descricao, permite_observacao, permite_foto, permite_anexo, ordem)
         VALUES (?, ?, ?, ?, ?, ?)
     ");
 
-    $ordem = 1;
-
     foreach ($item_keys as $key) {
 
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
-        $permite_obs   = isset($item_obs[$key])   ? 1 : 0;
-        $permite_foto  = isset($item_foto[$key])  ? 1 : 0;
-        $permite_anexo = isset($item_anexo[$key]) ? 1 : 0;
-
         $stmt->bind_param(
             "isiiii",
             $modelo_id,
             $desc,
-            $permite_obs,
-            $permite_foto,
-            $permite_anexo,
+            isset($item_obs[$key]) ? 1 : 0,
+            isset($item_foto[$key]) ? 1 : 0,
+            isset($item_anexo[$key]) ? 1 : 0,
             $ordem
         );
 
@@ -137,14 +123,12 @@ try {
 
     $stmt->close();
 
-    /* ✅ COMMIT */
     $mysqli->commit();
 
     header('Location: index.php');
     exit;
 
 } catch (Throwable $e) {
-
     $mysqli->rollback();
     die('Erro ao salvar modelo: ' . $e->getMessage());
 }
