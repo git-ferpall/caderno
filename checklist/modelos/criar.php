@@ -90,6 +90,17 @@ if ($modelo_id) {
         .btn-remover-text:hover {
             background: #d32f2f;
         }
+        .form-submit-equal {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-submit-equal .main-btn {
+            flex: 1;                 /* 🔥 todos com o mesmo tamanho */
+            text-align: center;
+            justify-content: center;
+        }
+
 
     </style>
 
@@ -192,18 +203,20 @@ if ($modelo_id) {
 </div>
 
     <!-- BOTÕES -->
-    <div class="form-submit">
+    <div class="form-submit form-submit-equal">
         <button type="button" class="main-btn fundo-azul" onclick="addItem()">+ Item</button>
+
         <button type="button"
             class="main-btn fundo-verde"
             onclick="this.closest('form').submit()">
-        Salvar
-    </button>
-    <a href="index.php" class="main-btn fundo-cinza">
-        Cancelar
-    </a>
-    
+            Salvar
+        </button>
+
+        <a href="index.php" class="main-btn fundo-cinza">
+            Cancelar
+        </a>
     </div>
+
 
 </form>
 </main>
