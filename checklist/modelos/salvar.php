@@ -6,6 +6,9 @@
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
+echo '<pre>';
+var_dump($_POST);
+exit;
 
 /* 🔒 Login obrigatório */
 $user = require_login();
