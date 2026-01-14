@@ -6,8 +6,7 @@
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
-$_POST['modelo_id'] ✅ É O CERTO
-exit;
+
 
 /* 🔒 Login obrigatório */
 $user = require_login();
