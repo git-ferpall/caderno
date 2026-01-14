@@ -22,7 +22,8 @@ try {
         isset($_POST['id']) &&
         is_numeric($_POST['id']) &&
         (int)$_POST['id'] > 0
-    ) ? (int) $_POST['id'] : 0;
+    ) ? (int)$_POST['id'] : 0;
+
 
     /* ======================
      * DADOS BÁSICOS
