@@ -18,9 +18,13 @@ try {
     /* ======================
      * DADOS BÁSICOS
      * ====================== */
-    $modelo_id = isset($_POST['id']) && is_numeric($_POST['id'])
-        ? (int)$_POST['id']
-        : 0;
+    $modelo_id = (
+        isset($_POST['id']) &&
+        is_numeric($_POST['id']) &&
+        $_POST['id'] > 0 &&
+        isset($_GET['id']) // ← só aceita edição se veio pela URL
+    ) ? (int) $_POST['id'] : 0;
+
 
     $titulo    = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
