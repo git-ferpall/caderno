@@ -68,9 +68,12 @@ $stmt->close();
 
             <h2 class="mb-3">📋 Modelos de Checklist</h2>
 
-            <a href="/checklist/modelos/criar.php" class="btn btn-success mb-3">
-                ➕ Novo modelo
-            </a>
+            <div class="text-start">
+                <a href="/checklist/modelos/criar.php" class="btn btn-success mb-3">
+                    ➕ Novo modelo
+                </a>
+            </div>
+
 
             <?php if (empty($modelos)): ?>
                 <div class="alert alert-warning">
