@@ -28,7 +28,7 @@ $sql = "
 FROM checklist_modelos
 WHERE ativo = 1
   AND (publico = 1 OR criado_por = ?)
-ORDER BY titulo;
+ORDER BY titulo;"
 
 
 $stmt = $mysqli->prepare($sql);
