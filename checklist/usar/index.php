@@ -59,7 +59,7 @@ $stmt->close();
     <?php require APP_PATH . '/include/popups.php'; ?>
     <div id="conteudo">
       <?php require APP_PATH . '/include/menu.php'; ?>
-      <div class="container py-4">
+      <div class="container py-4 page-content">
 
           <!-- TÍTULO -->
           <h3 class="mb-4">📋 Checklists disponíveis</h3>
