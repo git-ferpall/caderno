@@ -16,14 +16,17 @@ $mysqli->begin_transaction();
 try {
 
     /* ======================
+     * ID DO MODELO (APENAS NA EDIÇÃO)
+     * ====================== */
+    $modelo_id = (
+        isset($_POST['id']) &&
+        is_numeric($_POST['id']) &&
+        (int)$_POST['id'] > 0
+    ) ? (int) $_POST['id'] : 0;
+
+    /* ======================
      * DADOS BÁSICOS
      * ====================== */
-
-    // ID só existe em edição
-    $modelo_id = isset($_POST['id']) && is_numeric($_POST['id'])
-        ? (int) $_POST['id']
-        : 0;
-
     $titulo    = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $publico   = isset($_POST['publico']) ? 1 : 0;
@@ -33,15 +36,16 @@ try {
     }
 
     /* ======================
-     * VALIDA PERMISSÃO (SÓ NA EDIÇÃO)
+     * EDIÇÃO
      * ====================== */
     if ($modelo_id > 0) {
 
+        // 🔒 Verifica se o modelo existe E pertence ao usuário
         $stmt = $mysqli->prepare("
             SELECT id
             FROM checklist_modelos
             WHERE id = ?
-              AND (publico = 1 OR criado_por = ?)
+              AND criado_por = ?
             LIMIT 1
         ");
         $stmt->bind_param("ii", $modelo_id, $user_id);
@@ -140,7 +144,6 @@ try {
     /* ======================
      * FINALIZA
      * ====================== */
-
     $mysqli->commit();
     header('Location: index.php');
     exit;
