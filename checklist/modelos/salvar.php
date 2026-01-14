@@ -1,6 +1,11 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
+var_dump([
+    'session_user_id' => $user_id,
+    'post_modelo_id'  => $_POST['id'] ?? null
+]);
+exit;
 
 $user = require_login();
 $user_id = (int)$user->sub;
