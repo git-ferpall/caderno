@@ -66,8 +66,8 @@ $stmt->close();
 
           <!-- BOTÃO CRIAR MODELO -->
           <div class="mb-4">
-              <a href="../modelos/criar.php" class="btn btn-success">
-                  ➕ Criar modelo de checklist
+              <a href="/checklist/modelos/criar.php" class="btn btn-success mb-3" style="background-color:#E95D24; color:#fff;">
+                    ➕ Novo modelo de checklist
               </a>
           </div>
 
