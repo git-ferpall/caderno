@@ -1,8 +1,4 @@
 <?php
-/**
- * Salvar (Criar / Editar) MODELO de checklist
- */
-
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
@@ -14,13 +10,23 @@ $mysqli->begin_transaction();
 try {
 
     /* ======================
-     * IDENTIFICA AÇÃO
+     * IDENTIFICA CRIAÇÃO OU EDIÇÃO
      * ====================== */
     $modelo_id = (
         isset($_POST['id']) &&
         is_numeric($_POST['id']) &&
         (int)$_POST['id'] > 0
     ) ? (int)$_POST['id'] : 0;
+
+    // 🔍 DEBUG TEMPORÁRIO
+    /*
+    var_dump([
+        'POST' => $_POST,
+        'modelo_id_calculado' => $modelo_id,
+        'user_id' => $user_id
+    ]);
+    exit;
+    */
 
     /* ======================
      * DADOS BÁSICOS
@@ -92,12 +98,7 @@ try {
             throw new Exception('Falha ao criar modelo');
         }
     }
-        var_dump([
-        'POST' => $_POST,
-        'modelo_id_calculado' => $modelo_id,
-        'user_id' => $user_id
-    ]);
-    exit;
+
     /* ======================
      * ITENS
      * ====================== */
@@ -141,6 +142,7 @@ try {
     exit;
 
 } catch (Throwable $e) {
+
     $mysqli->rollback();
     die('Erro ao salvar modelo: ' . $e->getMessage());
 }
