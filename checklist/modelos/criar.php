@@ -6,8 +6,7 @@
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
-/* 🔒 BASE DO SISTEMA */
-define('APP_PATH', realpath(__DIR__ . '/../../'));
+
 /* 🔒 Login obrigatório */
 $user = require_login();
 $user_id = (int)$user->sub;
@@ -83,7 +82,7 @@ if ($id) {
 
 <body class="bg-light">
 
-    <?php require APP_PATH . '/include/menu.php'; ?>
+    <?php include '../include/menu.php' ?>
 
     <div class="container py-4 page-content">
         <div class="bg-light-gray p-4 rounded">
@@ -300,10 +299,7 @@ if ($id) {
         }
     });
     </script>
-    <script src="/js/jquery.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="/js/popups.js" defer></script>
-    <script src="/js/script.js?v=20260114-1"></script>
+    <?php include '../include/imports.php' ?>
 
 
 <script>
