@@ -126,8 +126,8 @@ $stmt->close();
     </div>  
     <?php require APP_PATH . '/include/footer.php'; ?>
   <!--<script src="/js/jquery.js"></script>
-  <script src="/js/main.js"></script>
-  <script src="/js/popups.js"></script>-->
+  <script src="/js/main.js"></script>-->
+  <script src="/js/popups.js"></script>
   <script src="/js/script.js"></script>                           
 </body>
 
