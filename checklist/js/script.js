@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', carregarIcons);
-document.addEventListener('DOMContentLoaded', carregarEstados);
 document.addEventListener('DOMContentLoaded', coresApt);
 
 document.onreadystatechange = function () {
