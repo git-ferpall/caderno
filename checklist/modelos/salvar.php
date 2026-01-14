@@ -1,6 +1,6 @@
 <?php
 /**
- * Salvar MODELO de checklist (CRIAR ou EDITAR)
+ * Salvar MODELO de checklist (CRIAR / EDITAR)
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
@@ -27,26 +27,38 @@ try {
     }
 
     /* ======================
-     * EDITAR
+     * EDIÇÃO
      * ====================== */
     if ($modelo_id > 0) {
 
-        // 🔒 Permissão direta (simples)
+        // 🔒 valida existência e permissão
         $stmt = $mysqli->prepare("
-            UPDATE checklist_modelos
-            SET titulo = ?, descricao = ?, publico = ?
-            WHERE id = ? AND (publico = 1 OR criado_por = ?)
+            SELECT id
+            FROM checklist_modelos
+            WHERE id = ?
+              AND (publico = 1 OR criado_por = ?)
+            LIMIT 1
         ");
-        $stmt->bind_param("ssiii", $titulo, $descricao, $publico, $modelo_id, $user_id);
+        $stmt->bind_param("ii", $modelo_id, $user_id);
         $stmt->execute();
+        $existe = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-        if ($stmt->affected_rows === 0) {
+        if (!$existe) {
             throw new Exception('Modelo não existe ou sem permissão');
         }
 
+        // ✅ atualiza SEM checar affected_rows
+        $stmt = $mysqli->prepare("
+            UPDATE checklist_modelos
+            SET titulo = ?, descricao = ?, publico = ?
+            WHERE id = ?
+        ");
+        $stmt->bind_param("ssii", $titulo, $descricao, $publico, $modelo_id);
+        $stmt->execute();
         $stmt->close();
 
-        // Remove itens antigos
+        // remove itens antigos
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -58,7 +70,7 @@ try {
     } else {
 
         /* ======================
-         * CRIAR
+         * CRIAÇÃO
          * ====================== */
         $stmt = $mysqli->prepare("
             INSERT INTO checklist_modelos
@@ -111,7 +123,6 @@ try {
     exit;
 
 } catch (Throwable $e) {
-
     $mysqli->rollback();
     die('Erro ao salvar modelo: ' . $e->getMessage());
 }
