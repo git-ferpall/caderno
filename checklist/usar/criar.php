@@ -12,8 +12,7 @@ $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Modelo selecionado */
-$modelo_id = isset($_GET['modelo_id']) ? (int)$_GET['modelo_id'] : 0;
-
+$modelo_id = isset($_POST['modelo_id']) ? (int)$_POST['modelo_id'] : 0;
 
 if (!$modelo_id) {
     die('Modelo inválido');

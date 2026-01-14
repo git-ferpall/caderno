@@ -101,7 +101,7 @@ $stmt->close();
                               <!-- AÇÕES -->
                               <div class="mt-auto">
 
-                                  <form method="post" action="/checklist/usar/criar.php">
+                                  <form method="post" action="/checklist/usar/criar.php" novalidadte>
                                       <input type="hidden" name="modelo_id" value="<?= $m['id'] ?>">
 
                                       <button type="submit" class="btn btn-primary w-100">
@@ -125,9 +125,9 @@ $stmt->close();
       </div>
     </div>  
     <?php require APP_PATH . '/include/footer.php'; ?>
-  <script src="/js/jquery.js"></script>
+  <!--<script src="/js/jquery.js"></script>
   <script src="/js/main.js"></script>
-  <script src="/js/popups.js"></script>
+  <script src="/js/popups.js"></script>-->
   <script src="/js/script.js"></script>                           
 </body>
 
