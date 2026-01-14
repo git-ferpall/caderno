@@ -109,7 +109,10 @@ if ($id) {
     </div>
 
     <form action="/checklist/modelos/salvar.php" method="POST" class="main-form container">
+    <?php if ($id > 0): ?>
     <input type="hidden" name="id" value="<?= $id ?>">
+    <?php endif; ?>
+
 
     <!-- TÍTULO -->
     <div class="form-campo">
