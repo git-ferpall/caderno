@@ -69,7 +69,7 @@ $stmt->close();
             <h2 class="mb-3">📋 Modelos de Checklist</h2>
 
             <div class="text-start">
-                <a href="/checklist/modelos/criar.php" class="btn btn-success mb-3" style="background-color:#E95D24; color:#fff;">>
+                <a href="/checklist/modelos/criar.php" class="btn btn-success mb-3" style="background-color:#E95D24; color:#fff;">
                     ➕ Novo modelo
                 </a>
             </div>
