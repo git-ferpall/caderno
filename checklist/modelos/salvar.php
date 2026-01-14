@@ -9,8 +9,9 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 
 /* 🔒 Login obrigatório */
 $user = require_login();
-$user_id = (int) $user->sub;
+$user_id = (int)$user->sub;
 
+/* 🔁 Transação */
 $mysqli->begin_transaction();
 
 try {
@@ -18,6 +19,7 @@ try {
     /* ======================
      * DADOS BÁSICOS
      * ====================== */
+    $modelo_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     $titulo    = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $publico   = isset($_POST['publico']) ? 1 : 0;
@@ -27,29 +29,34 @@ try {
     }
 
     /* ======================
-     * IDENTIFICA EDIÇÃO OU CRIAÇÃO
+     * DETECTA EDIÇÃO
      * ====================== */
-    $modelo_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     $is_edicao = false;
 
     if ($modelo_id > 0) {
 
-        // 🔐 Confirma que o modelo EXISTE e pertence ao usuário
+        // 🔍 Busca modelo (EXISTÊNCIA define edição)
         $stmt = $mysqli->prepare("
-            SELECT id
+            SELECT id, criado_por, publico
             FROM checklist_modelos
             WHERE id = ?
-              AND criado_por = ?
             LIMIT 1
         ");
-        $stmt->bind_param("ii", $modelo_id, $user_id);
+        $stmt->bind_param("i", $modelo_id);
         $stmt->execute();
-        $existe = $stmt->get_result()->fetch_assoc();
+        $modelo = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        if ($existe) {
-            $is_edicao = true;
+        if (!$modelo) {
+            throw new Exception('Modelo não existe');
         }
+
+        // 🔒 Permissão
+        if (!$modelo['publico'] && (int)$modelo['criado_por'] !== $user_id) {
+            throw new Exception('Sem permissão para editar este modelo');
+        }
+
+        $is_edicao = true;
     }
 
     /* ======================
@@ -67,7 +74,7 @@ try {
         $stmt->execute();
         $stmt->close();
 
-        // Remove itens antigos
+        // 🧹 Remove itens antigos
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -87,7 +94,7 @@ try {
         $stmt->bind_param("ssii", $titulo, $descricao, $publico, $user_id);
         $stmt->execute();
 
-        $modelo_id = (int) $stmt->insert_id;
+        $modelo_id = (int)$stmt->insert_id;
         $stmt->close();
 
         if ($modelo_id <= 0) {
@@ -96,20 +103,19 @@ try {
     }
 
     /* ======================
-     * ITENS DO CHECKLIST
+     * ITENS
      * ====================== */
-    $item_keys  = $_POST['item_key']   ?? [];
-    $item_desc  = $_POST['item_desc']  ?? [];
-    $item_obs   = $_POST['item_obs']   ?? [];
-    $item_foto  = $_POST['item_foto']  ?? [];
-    $item_anexo = $_POST['item_anexo'] ?? [];
+    $item_keys  = $_POST['item_key']  ?? [];
+    $item_desc  = $_POST['item_desc'] ?? [];
+    $item_obs   = $_POST['item_obs']  ?? [];
+    $item_foto  = $_POST['item_foto'] ?? [];
 
     $ordem = 1;
 
     $stmt = $mysqli->prepare("
         INSERT INTO checklist_modelo_itens
-            (modelo_id, descricao, permite_observacao, permite_foto, permite_anexo, ordem)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (modelo_id, descricao, permite_observacao, permite_foto, ordem)
+        VALUES (?, ?, ?, ?, ?)
     ");
 
     foreach ($item_keys as $key) {
@@ -117,17 +123,15 @@ try {
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
-        $permite_obs   = isset($item_obs[$key])   ? 1 : 0;
-        $permite_foto  = isset($item_foto[$key])  ? 1 : 0;
-        $permite_anexo = isset($item_anexo[$key]) ? 1 : 0;
+        $permite_obs  = isset($item_obs[$key])  ? 1 : 0;
+        $permite_foto = isset($item_foto[$key]) ? 1 : 0;
 
         $stmt->bind_param(
-            "isiiii",
+            "isiii",
             $modelo_id,
             $desc,
             $permite_obs,
             $permite_foto,
-            $permite_anexo,
             $ordem
         );
 
