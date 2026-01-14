@@ -212,7 +212,7 @@ if ($modelo_id) {
             Salvar
         </button>
 
-        <a href="index.php" class="main-btn" style="background-color:#dc3545; color:#fff;">
+        <a href="/checklist/modelos/index.php" class="main-btn" style="background-color:#dc3545; color:#fff;">
             Cancelar
         </a>
     </div>
