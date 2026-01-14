@@ -35,77 +35,87 @@ document.onreadystatechange = function () {
   }
 }
 
-function validarSenha() {
-    senha = document.getElementById('fcpass').value;
-    senhaC = document.getElementById('fccpass').value;
-  
-    if (senha != senhaC) {
-      senhaC.setCustomValidity("Senhas diferentes!");
-      return false;
-    } else {
-      return true;
-    }
-}
+ 
+function verCPF() {
+  if (document.getElementById('pf-cpf')) {
+    document.getElementById('pf-cpf').addEventListener('input', function (e) {
+      let value = this.value.replace(/\D/g, ''); // Remove tudo que não for número
 
-function carregarEstados() {
-  if (document.getElementById('pf-ender-uf')) {
-    const estadoSelect = document.getElementById('pf-ender-uf');
-    const cidadeSelect = document.getElementById('pf-ender-cid');
+      // Limita a 11 dígitos
+      if (value.length > 11) value = value.slice(0, 11);
 
-    // Carrega estados
-    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
-      .then(response => response.json())
-      .then(estados => {
-        // Preenche estados
-        estados.forEach((estado, index) => {
-          const option = document.createElement('option');
-          option.value = estado.sigla;
-          option.textContent = estado.sigla;
-          estadoSelect.appendChild(option);
-        });
+      // Aplica a máscara
+      if (value.length > 9) {
+        value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+      } else if (value.length > 6) {
+        value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+      } else if (value.length > 3) {
+        value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+      }
 
-        // Seleciona o primeiro estado
-        const primeiroEstado = estados[0];
-        estadoSelect.value = primeiroEstado.sigla;
-
-        // Carrega cidades do primeiro estado
-        carregarCidades(primeiroEstado.sigla);
-      })
-      .catch(error => console.error('Erro ao carregar estados:', error));
-
-    // Função para carregar cidades
-    function carregarCidades(estadoSigla) {
-      cidadeSelect.innerHTML = '';
-
-      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSigla}/municipios`)
-        .then(response => response.json())
-        .then(cidades => {
-          cidades.forEach(cidade => {
-            const option = document.createElement('option');
-            option.value = cidade.nome;
-            option.textContent = cidade.nome;
-            cidadeSelect.appendChild(option);
-          });
-
-          // Seleciona a primeira cidade
-          if (cidades.length > 0) {
-            cidadeSelect.value = cidades[0].nome;
-          }
-        })
-        .catch(error => console.error('Erro ao carregar cidades:', error));
-    }
-
-    // Ao mudar o estado
-    estadoSelect.addEventListener('change', function () {
-      const estadoSigla = this.value;
-      carregarCidades(estadoSigla);
+      this.value = value;
     });
+  }
+
+  if (document.getElementById('pf-cnpj')) {
+    document.getElementById('pf-cnpj').addEventListener('input', function (e) {
+      let value = this.value.replace(/\D/g, ''); // Remove tudo que não for número
+
+      // Limita a 14 dígitos
+      if (value.length > 14) value = value.slice(0, 14);
+
+      // Aplica a máscara
+      if (value.length > 12) {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})/, '$1.$2.$3/$4-$5');
+      } else if (value.length > 8) {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{1,4})/, '$1.$2.$3/$4');
+      } else if (value.length > 5) {
+        value = value.replace(/(\d{2})(\d{3})(\d{1,3})/, '$1.$2.$3');
+      } else if (value.length > 2) {
+        value = value.replace(/(\d{2})(\d{1,3})/, '$1.$2');
+      }
+
+      this.value = value;
+    });
+  }
+
+  if (document.getElementById('pf-tipo')) {
+    const selectTipo = document.getElementById('pf-tipo');
+    const inputCNPJ = document.getElementById('pf-cnpj');
+    const inputCPF = document.getElementById('pf-cpf');
+
+    function atualizarCamposDocumento() {
+      if (selectTipo.value === 'cpf') {
+        inputCPF.classList.remove('d-none');
+        inputCNPJ.classList.add('d-none');
+        inputCNPJ.value = ''; // limpa o outro campo
+      } else {
+        inputCNPJ.classList.remove('d-none');
+        inputCPF.classList.add('d-none');
+        inputCPF.value = ''; // limpa o outro campo
+      }
+    }
+
+    // Executa uma vez ao carregar a página
+    atualizarCamposDocumento();
+
+    // Atualiza ao mudar o select
+    selectTipo.addEventListener('change', atualizarCamposDocumento);
   }
 }
 
+function validaDados() {
+  const user = document.getElementById("fuser").value.trim();
+  const pass = document.getElementById("fpass").value.trim();
+  const form = document.getElementById('flogin');
 
- 
-
+  if (user && pass) {
+    form.action = "/home/home.php";
+    form.submit();
+  } else {
+    alert("Preencha todos os campos antes de entrar.");
+  }
+}
 
 function toggleForm(tipo) {
   const login = document.getElementById('login-form');
@@ -202,7 +212,70 @@ function toggleForm(tipo) {
   }
 }
 
+function enviarRecuperacao() {
+  const recuperacao = document.getElementById("frec").value;
 
+  if(recuperacao.trim() !== '') {
+    const loginBox = document.getElementById('login-box-id');
+    const confirmaBox = document.getElementById('confirma-box-id');
+
+    // Esconde login com animação
+    loginBox.classList.remove('show');
+    loginBox.classList.add('slide-out-up');
+
+    setTimeout(() => {
+      // Após animação de saída
+      loginBox.classList.add('d-none');
+      loginBox.classList.remove('slide-out-up');
+
+      // Mostra confirma com animação de entrada
+      confirmaBox.classList.remove('d-none');
+      void confirmaBox.offsetWidth; // força reflow
+      confirmaBox.classList.add('slide-in-up');
+
+      requestAnimationFrame(() => {
+        confirmaBox.classList.remove('slide-in-up');
+        confirmaBox.classList.add('show');
+      });
+
+      // Aguarda 5 segundos e volta para o login
+      setTimeout(() => {
+        confirmaBox.classList.remove('show');
+        confirmaBox.classList.add('slide-out-up');
+
+        setTimeout(() => {
+          confirmaBox.classList.add('d-none');
+          confirmaBox.classList.remove('slide-out-up');
+
+          loginBox.classList.remove('d-none');
+          void loginBox.offsetWidth; // força reflow
+          loginBox.classList.add('slide-in-up');
+
+          requestAnimationFrame(() => {
+            loginBox.classList.remove('slide-in-up');
+            loginBox.classList.add('show');
+            toggleForm('log');
+          });
+        }, 500); // Tempo da animação de saída
+
+      }, 5000); // Espera 5 segundos com a tela de confirmação
+
+    }, 500); // Tempo da animação de saída do login
+  } else {
+    console.log('Informe o email ou número de telefone para que seja enviada a solicitação de redefinição de senha.');
+  };
+}
+
+function toggleSenha(btn) {
+  const input = btn.closest('.form-senha').querySelector('input');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Ocultar'; // ou use um ícone de olho fechado
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Ver';
+  }
+}
 
 function carregarIcons() {
   const icones = [
@@ -256,6 +329,92 @@ function coresApt() {
   }
 
   style.textContent = css;
+}
+
+function novoApontamento(apt) {
+    const id = '#apt' + apt.id;
+    const idAdd = '#add-apt' + apt.id;
+
+    if ($(id).hasClass('active')) {
+
+      $(id).removeClass('active');
+      $('.apt-button').removeClass('d-none');
+      $(idAdd).addClass('d-none');
+
+    } else {
+
+      $('.apt-button').addClass('d-none');
+      $(id).removeClass('d-none');
+      $(id).addClass('active');
+      $(idAdd).removeClass('d-none');
+
+    }
+}
+
+function selectEstufa(estufa) {
+  const id = '#estufa-' + estufa;
+  const idBtn = '#edit-estufa-' + estufa;
+  const addEstufa = '#add-estufa';
+  const estufaContent = '#estufa-' + estufa + '-box';
+
+  if ($(id).hasClass('active')) {
+
+      $(id).removeClass('active');
+      $('.item-estufa').removeClass('d-none');
+      $(addEstufa).removeClass('d-none');
+      $(estufaContent).addClass('d-none');
+      $(idBtn).text('Selecionar');
+
+  } else {
+
+      $('.item-estufa').addClass('d-none');
+      $(id).removeClass('d-none');
+      $(id).addClass('active');
+      $(addEstufa).addClass('d-none');
+      $(estufaContent).removeClass('d-none');
+      $(idBtn).text('Alterar');
+
+  }
+}
+
+function selectBancada(bancada, estufa) {
+  const id = '#estufa-' + estufa;
+  const header = id + '-box .item-estufa-header';
+  const btn = '#item-bancada-' + String(bancada) + '-estufa-' + String(estufa);
+  const content = '#item-bancada-' + String(bancada) + '-content-estufa-' + String(estufa);
+  const novaBancada = '#add-bancada-estufa-' + String(estufa);
+
+  if ($(btn).hasClass('active')) {
+
+      $('.item-bancada').removeClass('d-none');
+      $(btn).removeClass('active');
+      $('.item-bancada-content').addClass('d-none');
+      $(novaBancada).removeClass('d-none');
+      $(id).removeClass('d-none');
+      $(header).removeClass('d-none');
+
+  } else {
+
+      $('.item-bancada').addClass('d-none');
+      $(btn).removeClass('d-none');
+      $(btn).addClass('active');
+      $(content).removeClass('d-none');
+      $(novaBancada).addClass('d-none');
+      $(id).addClass('d-none');
+      $(header).addClass('d-none');
+
+  }
+}
+
+function voltarEstufa(estufa) {
+  const id = '#estufa-' + estufa;
+  const novaBancada = '#add-bancada-estufa-' + estufa;
+  $('.item-bancada').removeClass('d-none');
+  $('.item-bancada').removeClass('active');
+  $('.item-bancada-content').addClass('d-none');
+  $('.item-estufa-header').removeClass('d-none');
+  $(id).removeClass('d-none');
+  $(novaBancada).removeClass('d-none');
 }
 
 function abrirMenu() {
