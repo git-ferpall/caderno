@@ -303,7 +303,8 @@ if ($id) {
     <script src="/js/jquery.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/popups.js" defer></script>
-    <script src="/js/script.js" defer></script>
+    <script src="/js/script.js?v=20260114-1"></script>
+
 
 <script>
 document.querySelector('form').addEventListener('submit', function (e) {
