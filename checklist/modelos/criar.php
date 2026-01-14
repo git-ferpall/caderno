@@ -12,7 +12,8 @@ $user = require_login();
 $user_id = (int)$user->sub;
 
 /* 📥 Modelo */
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$modelo_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
 
 /* 🔒 BASE DO SISTEMA */
 define('APP_PATH', realpath(__DIR__ . '/../../'));
@@ -25,14 +26,14 @@ $modelo = [
 
 $itens = [];
 
-if ($id) {
+if ($modelo_id) {
     $stmt = $mysqli->prepare("
         SELECT *
         FROM checklist_modelos
         WHERE id = ?
         LIMIT 1
     ");
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("i", $modelo_id);
     $stmt->execute();
     $modelo = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -49,7 +50,7 @@ if ($id) {
         WHERE modelo_id = ?
         ORDER BY ordem
     ");
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("i", $modelo_id);
     $stmt->execute();
     $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
@@ -62,7 +63,7 @@ if ($id) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/">
 
-    <title><?= $id ? 'Editar' : 'Criar' ?> Modelo de Checklist</title>
+    <title><?= $modelo_id ? 'Editar' : 'Criar' ?> Modelo de Checklist</title>
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 
@@ -97,7 +98,7 @@ if ($id) {
     <?php
     echo '<pre>';
     echo 'ID DO MODELO: ';
-    var_dump($id);
+    var_dump($modelo_id);
     echo '</pre>';
     ?>
 
@@ -111,12 +112,12 @@ if ($id) {
     <main class="sistema">
     <div class="page-title">
         <h2 class="main-title cor-branco">
-            ✏️ <?= $id ? 'Editar' : 'Criar' ?> modelo de checklist
+            ✏️ <?= $modelo_id ? 'Editar' : 'Criar' ?> modelo de checklist
         </h2>
     </div>
 
     <form action="/checklist/modelos/salvar.php" method="POST" class="main-form container">
-    <?php if ($id > 0): ?>
+    <?php if ($modelo_id > 0): ?>
     <input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
 
     <?php endif; ?>
