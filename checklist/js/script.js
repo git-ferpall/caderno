@@ -35,7 +35,122 @@ document.onreadystatechange = function () {
   }
 }
 
- 
+function validarSenha() {
+    senha = document.getElementById('fcpass').value;
+    senhaC = document.getElementById('fccpass').value;
+  
+    if (senha != senhaC) {
+      senhaC.setCustomValidity("Senhas diferentes!");
+      return false;
+    } else {
+      return true;
+    }
+}
+
+function carregarEstados() {
+  if (document.getElementById('pf-ender-uf')) {
+    const estadoSelect = document.getElementById('pf-ender-uf');
+    const cidadeSelect = document.getElementById('pf-ender-cid');
+
+    // Carrega estados
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+      .then(response => response.json())
+      .then(estados => {
+        // Preenche estados
+        estados.forEach((estado, index) => {
+          const option = document.createElement('option');
+          option.value = estado.sigla;
+          option.textContent = estado.sigla;
+          estadoSelect.appendChild(option);
+        });
+
+        // Seleciona o primeiro estado
+        const primeiroEstado = estados[0];
+        estadoSelect.value = primeiroEstado.sigla;
+
+        // Carrega cidades do primeiro estado
+        carregarCidades(primeiroEstado.sigla);
+      })
+      .catch(error => console.error('Erro ao carregar estados:', error));
+
+    // Função para carregar cidades
+    function carregarCidades(estadoSigla) {
+      cidadeSelect.innerHTML = '';
+
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSigla}/municipios`)
+        .then(response => response.json())
+        .then(cidades => {
+          cidades.forEach(cidade => {
+            const option = document.createElement('option');
+            option.value = cidade.nome;
+            option.textContent = cidade.nome;
+            cidadeSelect.appendChild(option);
+          });
+
+          // Seleciona a primeira cidade
+          if (cidades.length > 0) {
+            cidadeSelect.value = cidades[0].nome;
+          }
+        })
+        .catch(error => console.error('Erro ao carregar cidades:', error));
+    }
+
+    // Ao mudar o estado
+    estadoSelect.addEventListener('change', function () {
+      const estadoSigla = this.value;
+      carregarCidades(estadoSigla);
+    });
+  }
+}
+
+
+function verTel() {
+  document.querySelectorAll('.form-tel').forEach(input => {
+    input.addEventListener('input', function () {
+      let value = this.value.replace(/\D/g, ''); // Remove tudo que não for número
+
+      // Limita a 11 dígitos (2 DDD + 9 número)
+      if (value.length > 11) value = value.slice(0, 11);
+
+      if (value.length <= 10) {
+        // Formato fixo: (99) 9999-9999
+        value = value.replace(/^(\d{0,2})(\d{0,4})(\d{0,4})/, function (_, ddd, parte1, parte2) {
+          let result = '';
+          if (ddd) result += '(' + ddd;
+          if (ddd && ddd.length === 2) result += ') ';
+          if (parte1) result += parte1;
+          if (parte1 && parte1.length === 4) result += '-';
+          if (parte2) result += parte2;
+          else result += '';
+          return result;
+        });
+      } else {
+        // Formato celular: (99) 99999-9999
+        value = value.replace(/^(\d{0,2})(\d{0,5})(\d{0,4})/, function (_, ddd, parte1, parte2) {
+          let result = '';
+          if (ddd) result += '(' + ddd;
+          if (ddd && ddd.length === 2) result += ') ';
+          if (parte1) result += parte1;
+          if (parte1 && parte1.length === 5) result += '-';
+          if (parte2) result += parte2;
+          return result;
+        });
+      }
+
+      this.value = value;
+    });
+  });
+
+  document.querySelectorAll('.only-num').forEach(input => {
+    // Impede letras ou símbolos
+    input.addEventListener('keypress', function (e) {
+      if (!/[0-9]/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+  });
+}
+
 function verCPF() {
   if (document.getElementById('pf-cpf')) {
     document.getElementById('pf-cpf').addEventListener('input', function (e) {
