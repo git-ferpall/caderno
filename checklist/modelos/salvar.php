@@ -6,9 +6,6 @@
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
-echo '<pre>';
-var_dump($_POST);
-exit;
 
 /* 🔒 Login obrigatório */
 $user = require_login();
@@ -17,15 +14,6 @@ $user_id = (int) $user->sub;
 $mysqli->begin_transaction();
 
 try {
-
-    /* ======================
-     * ID (SÓ VEM NO POST SE FOR EDIÇÃO)
-     * ====================== */
-    $modelo_id = (
-        isset($_POST['id']) &&
-        is_numeric($_POST['id']) &&
-        (int)$_POST['id'] > 0
-    ) ? (int)$_POST['id'] : 0;
 
     /* ======================
      * DADOS BÁSICOS
@@ -39,28 +27,37 @@ try {
     }
 
     /* ======================
-     * EDIÇÃO
+     * IDENTIFICA EDIÇÃO OU CRIAÇÃO
      * ====================== */
+    $modelo_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    $is_edicao = false;
+
     if ($modelo_id > 0) {
 
-        // valida se o modelo existe e pertence ao usuário
+        // 🔐 Confirma que o modelo EXISTE e pertence ao usuário
         $stmt = $mysqli->prepare("
             SELECT id
             FROM checklist_modelos
             WHERE id = ?
-              AND (publico = 1 OR criado_por = ?)
+              AND criado_por = ?
             LIMIT 1
         ");
         $stmt->bind_param("ii", $modelo_id, $user_id);
         $stmt->execute();
-        $modelo = $stmt->get_result()->fetch_assoc();
+        $existe = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        if (!$modelo) {
-            throw new Exception('Modelo não existe ou sem permissão');
+        if ($existe) {
+            $is_edicao = true;
         }
+    }
 
-        // atualiza modelo
+    /* ======================
+     * SALVA MODELO
+     * ====================== */
+    if ($is_edicao) {
+
+        // ✏️ UPDATE
         $stmt = $mysqli->prepare("
             UPDATE checklist_modelos
             SET titulo = ?, descricao = ?, publico = ?
@@ -70,7 +67,7 @@ try {
         $stmt->execute();
         $stmt->close();
 
-        // remove itens antigos
+        // Remove itens antigos
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -81,9 +78,7 @@ try {
 
     } else {
 
-        /* ======================
-         * CRIAÇÃO
-         * ====================== */
+        // ➕ INSERT (CRIAÇÃO)
         $stmt = $mysqli->prepare("
             INSERT INTO checklist_modelos
                 (titulo, descricao, publico, criado_por)
@@ -92,7 +87,7 @@ try {
         $stmt->bind_param("ssii", $titulo, $descricao, $publico, $user_id);
         $stmt->execute();
 
-        $modelo_id = (int)$stmt->insert_id;
+        $modelo_id = (int) $stmt->insert_id;
         $stmt->close();
 
         if ($modelo_id <= 0) {
@@ -101,7 +96,7 @@ try {
     }
 
     /* ======================
-     * ITENS
+     * ITENS DO CHECKLIST
      * ====================== */
     $item_keys  = $_POST['item_key']   ?? [];
     $item_desc  = $_POST['item_desc']  ?? [];
@@ -146,10 +141,12 @@ try {
      * FINALIZA
      * ====================== */
     $mysqli->commit();
+
     header('Location: index.php');
     exit;
 
 } catch (Throwable $e) {
+
     $mysqli->rollback();
     die('Erro ao salvar modelo: ' . $e->getMessage());
 }
