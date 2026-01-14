@@ -199,6 +199,10 @@ if ($modelo_id) {
             onclick="this.closest('form').submit()">
         Salvar
     </button>
+    <a href="index.php" class="main-btn fundo-cinza">
+        Cancelar
+    </a>
+    
     </div>
 
 </form>
