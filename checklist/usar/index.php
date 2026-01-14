@@ -101,7 +101,7 @@ $stmt->close();
                               <!-- AÇÕES -->
                               <div class="mt-auto">
 
-                                  <form method="post" action="criar.php">
+                                  <form method="post" action="/checklist/usar/criar.php">
                                       <input type="hidden" name="modelo_id" value="<?= $m['id'] ?>">
 
                                       <button type="submit" class="btn btn-primary w-100">
