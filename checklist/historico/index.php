@@ -162,7 +162,7 @@ input.addEventListener('input', () => {
 function excluirChecklist(id) {
     if (!confirm('Deseja excluir este checklist? Esta ação é irreversível.')) return;
 
-    fetch('excluir.php', {
+    fetch('checklist/historico/deletar.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
