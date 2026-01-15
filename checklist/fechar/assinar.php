@@ -85,7 +85,7 @@ function salvar() {
     .then(r => r.json())
     .then(resp => {
         if (resp.ok) {
-            window.location.href = '../fechar/index.php?id=<?= $checklist_id ?>';
+            window.location.href = '../fechar/finalizar.php?id=<?= $checklist_id ?>';
         } else {
             alert(resp.erro);
         }
