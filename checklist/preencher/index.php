@@ -91,7 +91,7 @@ $stmt->close();
                 <?php endif; ?>
 
                 <!-- FORMULÁRIO -->
-                <form method="post" action="\checklist\preencher\salvar.php">
+                <form method="post" action="/checklist/preencher/salvar.php">
                     <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
 
                     <?php foreach ($itens as $i): ?>
@@ -309,19 +309,27 @@ document.querySelectorAll('.upload-foto').forEach(input => {
             btnRemove.textContent = '🗑 Remover imagem';
 
             btnRemove.onclick = () => {
+
                 mediaBox.innerHTML = '';
                 input.value = '';
 
-                // 🔐 opcional: remover no backend
                 fetch('/checklist/itens/remover_arquivo.php', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         item_id: itemId,
                         tipo: 'foto'
                     })
+                })
+                .then(r => r.json())
+                .then(resp => {
+                    if (!resp.ok) {
+                        alert(resp.erro || 'Erro ao remover');
+                    }
                 });
             };
+
+
 
             mediaBox.appendChild(img);
             mediaBox.appendChild(btnRemove);
