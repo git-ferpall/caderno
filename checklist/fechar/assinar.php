@@ -85,11 +85,25 @@ function salvar() {
     .then(r => r.json())
     .then(resp => {
         if (resp.ok) {
-            window.location.href = '../fechar/processar.php?id=<?= $checklist_id ?>';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '../fechar/processar.php';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'checklist_id';
+            input.value = <?= $checklist_id ?>;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+
         } else {
             alert(resp.erro);
         }
     });
+
 }
 </script>
 
