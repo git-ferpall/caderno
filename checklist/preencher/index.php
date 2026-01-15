@@ -166,52 +166,161 @@ $stmt->close();
     </div>
     <?php require APP_PATH . '/include/footer.php'; ?>                
 <script>
-document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
+/* =========================================
+ * 🔧 Função: Reduz e converte imagem
+ * ========================================= */
+function reduzirImagem(file, maxLado = 1280, qualidade = 0.7) {
+    return new Promise((resolve, reject) => {
 
-    input.addEventListener('change', () => {
+        const img = new Image();
+        const reader = new FileReader();
 
-        const file = input.files[0];
-        if (!file) return;
+        reader.onload = e => img.src = e.target.result;
+        reader.onerror = reject;
 
+        img.onload = () => {
+
+            let { width, height } = img;
+
+            // Mantém proporção
+            if (width > height && width > maxLado) {
+                height = height * (maxLado / width);
+                width = maxLado;
+            } else if (height > maxLado) {
+                width = width * (maxLado / height);
+                height = maxLado;
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(blob => {
+                if (!blob) {
+                    reject('Erro ao converter imagem');
+                    return;
+                }
+
+                const novoArquivo = new File([blob], file.name, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                resolve(novoArquivo);
+
+            }, 'image/jpeg', qualidade);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+/* =========================================
+ * 📤 Upload com animação
+ * ========================================= */
+document.querySelectorAll('.upload-foto').forEach(input => {
+
+    input.addEventListener('change', async () => {
+
+        const original = input.files[0];
+        if (!original) return;
+
+        /* Container visual */
+        const container = document.createElement('div');
+        container.className = 'mt-3';
+
+        /* 🔄 Spinner de conversão */
+        const converting = document.createElement('div');
+        converting.className = 'd-flex align-items-center gap-2';
+
+        converting.innerHTML = `
+            <div class="spinner-border spinner-border-sm text-primary"></div>
+            <strong>Convertendo imagem...</strong>
+        `;
+
+        container.appendChild(converting);
+        input.closest('.card-body').appendChild(container);
+
+        /* 🔄 CONVERSÃO */
+        let file;
+        try {
+            file = await reduzirImagem(original, 1280, 0.7);
+        } catch (e) {
+            alert('Erro ao converter imagem');
+            container.remove();
+            return;
+        }
+
+        /* Remove spinner */
+        converting.remove();
+
+        /* 📊 Barra de progresso */
+        const progress = document.createElement('div');
+        progress.className = 'progress mb-2';
+
+        const bar = document.createElement('div');
+        bar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        bar.style.width = '0%';
+        bar.textContent = '0%';
+
+        progress.appendChild(bar);
+        container.appendChild(progress);
+
+        /* 📤 Upload */
         const form = new FormData();
         form.append('item_id', input.dataset.item);
-        form.append(
-            'tipo',
-            input.classList.contains('upload-foto') ? 'foto' : 'documento'
-        );
+        form.append('tipo', 'foto');
         form.append('arquivo', file);
 
-        fetch('/checklist/itens/upload.php', {
-            method: 'POST',
-            body: form
-        })
-        .then(r => r.json())
-        .then(resp => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/checklist/itens/upload.php', true);
+
+        xhr.upload.onprogress = e => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                bar.style.width = percent + '%';
+                bar.textContent = percent + '%';
+            }
+        };
+
+        xhr.onload = () => {
+
+            if (xhr.status !== 200) {
+                bar.classList.add('bg-danger');
+                bar.textContent = 'Erro';
+                return;
+            }
+
+            const resp = JSON.parse(xhr.responseText);
 
             if (!resp.ok) {
+                bar.classList.add('bg-danger');
+                bar.textContent = 'Erro';
                 alert(resp.erro || 'Erro no upload');
                 return;
             }
 
-            const box = document.createElement('div');
-            box.className = 'mt-2';
+            /* Remove barra */
+            progress.remove();
 
-            if (resp.tipo === 'foto') {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                img.className = 'img-thumbnail';
-                img.style.maxWidth = '200px';
-                box.appendChild(img);
-            } else {
-                box.textContent = '📄 ' + file.name;
-            }
+            /* 🖼 Preview final */
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'img-thumbnail';
+            img.style.maxWidth = '200px';
 
-            input.closest('.card-body').appendChild(box);
-        });
+            container.appendChild(img);
+        };
+
+        xhr.send(form);
     });
 
 });
 </script>
+
 <script src="/js/popups.js"></script>
 <script src="/js/script.js"></script>   
 
