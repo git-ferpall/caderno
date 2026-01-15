@@ -208,50 +208,31 @@ if ($modelo_id) {
 
                                 <!-- OPÇÕES -->
                                 <div class="form-opcoes">
-
-                                    <!-- OBS -->
                                     <label>
-                                        <input type="checkbox"
-                                            class="opcao-item"
-                                            name="item_obs[<?= $key ?>]"
-                                            value="1"
-                                            <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                                        <input type="checkbox" class="opcao-unica opcao-obs"
+                                            name="item_obs[<?= $key ?>]" value="1">
                                         Obs
                                     </label>
 
-                                    <!-- FOTO -->
                                     <label>
-                                        <input type="checkbox"
-                                            class="opcao-item"
-                                            name="item_foto[<?= $key ?>]"
-                                            value="1"
-                                            <?= $i['permite_foto'] ? 'checked' : '' ?>>
+                                        <input type="checkbox" class="opcao-unica opcao-foto"
+                                            name="item_foto[<?= $key ?>]" value="1">
                                         Foto
                                     </label>
 
-                                    <!-- DATA -->
                                     <label>
-                                        <input type="checkbox"
-                                            class="tipo-data"
-                                            <?= $i['tipo'] === 'data' ? 'checked' : '' ?>
-                                            onchange="setTipo(this, 'data')">
+                                        <input type="checkbox" class="opcao-unica opcao-data">
                                         Data
                                     </label>
 
-                                    <!-- MULTIPLA -->
                                     <label>
-                                        <input type="checkbox"
-                                            class="tipo-multipla"
-                                            <?= $i['tipo'] === 'multipla' ? 'checked' : '' ?>
-                                            onchange="setTipo(this, 'multipla')">
+                                        <input type="checkbox" class="opcao-unica opcao-multipla">
                                         Múltipla
                                     </label>
-
                                 </div>
 
-                                <input type="hidden"
-                                    name="item_tipo[<?= $key ?>]"
-                                    value="<?= $i['tipo'] ?? 'texto' ?>">
+                                <input type="hidden" name="item_tipo[<?= $key ?>]" value="texto">
+
 
                                 <div class="config-multipla"
                                     style="display: <?= $i['tipo'] === 'multipla' ? 'block' : 'none' ?>">
@@ -383,18 +364,35 @@ if ($modelo_id) {
 
 <script>
 document.addEventListener('change', function (e) {
-    if (!e.target.classList.contains('opcao-item')) return;
+    if (!e.target.classList.contains('opcao-unica')) return;
 
-    const container = e.target.closest('.form-opcoes');
-    if (!container) return;
+    const item = e.target.closest('.item');
+    if (!item) return;
 
-    if (e.target.checked) {
-        container.querySelectorAll('.opcao-item').forEach(cb => {
-            if (cb !== e.target) cb.checked = false;
-        });
+    const hiddenTipo = item.querySelector('input[name^="item_tipo"]');
+
+    // Desmarca todas as outras opções
+    item.querySelectorAll('.opcao-unica').forEach(cb => {
+        if (cb !== e.target) cb.checked = false;
+    });
+
+    // Define o tipo
+    if (e.target.classList.contains('opcao-data')) {
+        hiddenTipo.value = 'data';
+    } else if (e.target.classList.contains('opcao-multipla')) {
+        hiddenTipo.value = 'multipla';
+    } else {
+        hiddenTipo.value = 'texto';
+    }
+
+    // Exibe configuração da múltipla somente se necessário
+    const cfg = item.querySelector('.config-multipla');
+    if (cfg) {
+        cfg.style.display = (hiddenTipo.value === 'multipla') ? 'block' : 'none';
     }
 });
 </script>
+
 <script>
 function setTipo(cb, tipo) {
     const item = cb.closest('.item');
