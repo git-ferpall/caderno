@@ -4,7 +4,8 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 
 $user = require_login();
 $user_id = (int)$user->sub;
-
+/* 🔒 BASE DO SISTEMA */
+define('APP_PATH', realpath(__DIR__ . '/../../'));
 /* 🔎 Filtro */
 $filtro = $_GET['status'] ?? 'todos';
 
@@ -40,30 +41,30 @@ $stmt->close();
 <!doctype html>
 <html lang="pt-br">
 <head>
-<meta charset="utf-8">
-<title>Histórico de Checklists</title>
-<base href="/">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="icon" type="image/png" href="/img/logo-icon.png">
-<link rel="stylesheet" href="/css/style.css">
-<style>
-.page-content { margin-top: 80px; }
-main.sistema {
-    background: rgba(255,255,255,.9);
-    border-radius: 18px;
-    padding: 28px;
-    box-shadow: 0 12px 30px rgba(0,0,0,.15);
-}
-</style>
+    <meta charset="utf-8">
+    <title>Histórico de Checklists</title>
+    <base href="/">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+    .page-content { margin-top: 80px; }
+    main.sistema {
+        background: rgba(255,255,255,.9);
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.15);
+    }
+    </style>
 </head>
 
 <body class="bg-light">
 
-<?php require __DIR__ . '/../../include/loading.php'; ?>
-<?php require __DIR__ . '/../../include/popups.php'; ?>
+<?php require APP_PATH . '/include/loading.php'; ?>
+<?php require APP_PATH . '/include/popups.php'; ?>
 
 <div id="conteudo">
-<?php require __DIR__ . '/../../include/menu.php'; ?>
+    <?php require APP_PATH . '/include/menu.php'; ?>
 
 <div class="container py-4 page-content">
 <main class="sistema">
@@ -139,6 +140,8 @@ main.sistema {
 </main>
 </div>
 </div>
+<script src="/js/popups.js"></script>
+<script src="/js/script.js"></script>
 
 <?php require __DIR__ . '/../../include/footer.php'; ?>
 
