@@ -246,7 +246,7 @@ if ($modelo_id) {
                                         <label>
                                             <input type="checkbox" class="opcao-unica opcao-obs"
                                                 name="item_obs[<?= $key ?>]" value="1"
-                                                <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                                                <?= ($i['tipo'] === 'texto' && $i['permite_observacao']) ? 'checked' : '' ?>>
                                             Obs
                                         </label>
 
@@ -348,17 +348,20 @@ if ($modelo_id) {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    document.querySelectorAll('.item').forEach(item => {
-        const hiddenTipo = item.querySelector('input[name^="item_tipo"]');
-        const cfg = item.querySelector('.config-multipla');
+    const container = document.getElementById('itens');
+    if (!container) return;
 
-        if (hiddenTipo && cfg) {
-            cfg.style.display = (hiddenTipo.value === 'multipla') ? 'block' : 'none';
-        }
+    new Sortable(container, {
+        handle: '.handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        filter: 'input, textarea, label, button',
+        preventOnFilter: false
     });
 
 });
 </script>
+
 
 
 <script>
