@@ -51,6 +51,20 @@ $stmt->close();
     <a href="?status=aberto" class="btn btn-outline-primary <?= $status==='aberto'?'active':'' ?>">Abertos</a>
     <a href="?status=finalizado" class="btn btn-outline-primary <?= $status==='finalizado'?'active':'' ?>">Finalizados</a>
 </div>
+<div class="mb-3 position-relative">
+    <input
+        type="text"
+        id="buscaChecklist"
+        class="form-control"
+        placeholder="🔍 Buscar checklist pelo título..."
+        autocomplete="off"
+    >
+    <div id="resultadoBusca"
+         class="list-group position-absolute w-100"
+         style="z-index:1000; display:none;">
+    </div>
+</div>
+
 
 <table class="table table-bordered table-hover">
 <thead>
