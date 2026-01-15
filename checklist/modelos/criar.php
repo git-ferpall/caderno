@@ -335,45 +335,52 @@ if ($modelo_id) {
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
 <script>
-function addItem() {
-    const key = 'new_' + Date.now();
+    function addItem() {
+        const key = 'new_' + Date.now();
 
-    const div = document.createElement('div');
-    div.className = 'form-campo item';
-    div.dataset.key = key;
+        const div = document.createElement('div');
+        div.className = 'form-campo item';
+        div.dataset.key = key;
 
-    div.innerHTML = `
-        <div class="form-box">
-            <span class="handle">☰</span>
+        div.innerHTML = `
+            <div class="form-box">
+                <span class="handle">☰</span>
 
-            <input type="hidden" name="item_key[]" value="${key}">
+                <input type="hidden" name="item_key[]" value="${key}">
+                <input type="hidden" name="item_tipo[${key}]" value="texto">
 
-            <input class="form-text" type="text"
-                   name="item_desc[${key}]"
-                   placeholder="Descrição do item"
-                   required>
+                <input class="form-text" type="text"
+                    name="item_desc[${key}]"
+                    placeholder="Descrição do item"
+                    required>
 
-            <div class="form-opcoes">
-                <label><input type="checkbox" class="opcao-item" name="item_obs[${key}]" value="1" checked> Obs</label>
-                <label><input type="checkbox" class="opcao-item" name="item_foto[${key}]" value="1"> Foto</label>
+                <div class="form-opcoes">
+                    <label><input type="checkbox" name="item_obs[${key}]" value="1" checked> Obs</label>
+                    <label><input type="checkbox" name="item_foto[${key}]" value="1"> Foto</label>
+                    <label><input type="checkbox" class="tipo-data" onchange="setTipo(this,'data')"> Data</label>
+                    <label><input type="checkbox" class="tipo-multipla" onchange="setTipo(this,'multipla')"> Múltipla</label>
+                </div>
+
+                <div class="config-multipla" style="display:none">
+                    <label>Opções (uma por linha)</label>
+                    <textarea class="form-text" rows="3" name="item_opcoes[${key}]"></textarea>
+
+                    <label>Quantas opções podem ser selecionadas?</label>
+                    <input type="number" min="1" class="form-text" name="item_max[${key}]" value="1">
+                </div>
+
+                <button type="button"
+                        class="btn-remover-text"
+                        onclick="this.closest('.item').remove()">
+                    🗑 Remover
+                </button>
             </div>
+        `;
 
-            <button type="button"
-                    class="btn-remover-text"
-                    onclick="this.closest('.item').remove()">
-                🗑 Remover
-            </button>
-        </div>
-    `;
-
-    document.getElementById('itens').appendChild(div);
-}
-
-new Sortable(document.getElementById('itens'), {
-    handle: '.handle',
-    animation: 150
-});
+        document.getElementById('itens').appendChild(div);
+    }
 </script>
+
 <script>
 document.addEventListener('change', function (e) {
     if (!e.target.classList.contains('opcao-item')) return;
