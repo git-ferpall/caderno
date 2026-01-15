@@ -127,7 +127,7 @@ $stmt->close();
     <td class="d-flex gap-1">
 
         <?php if ($c['concluido'] && $c['hash_documento']): ?>
-            <a href="/checklist/pdf/gerar_publico.php?hash=<?= $c['hash_documento'] ?>"
+            <a href="/checklist/pdf/gerar2.php?hash=<?= $c['hash_documento'] ?>"
                target="_blank"
                class="btn btn-sm btn-outline-primary">
                📄 PDF
