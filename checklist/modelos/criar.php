@@ -314,6 +314,20 @@ if ($modelo_id) {
 <script src="/js/script.js"></script>
 <!-- SORTABLE -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const container = document.getElementById('itens');
+    if (!container) return;
+
+    new Sortable(container, {
+        handle: '.handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost'
+    });
+
+});
+</script>
 
 <script>
     function addItem() {
