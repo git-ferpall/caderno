@@ -72,7 +72,7 @@ $stmt->close();
     <?php require APP_PATH . '/include/loading.php'; ?>
     <?php require APP_PATH . '/include/popups.php'; ?>
     <div id="conteudo">
-
+        <?php require APP_PATH . '/include/menu.php'; ?>
         <div class="container py-4">
             <main class="sistema">
 
@@ -159,8 +159,8 @@ $stmt->close();
                 </form>
             </main>            
         </div>
-        <?php require APP_PATH . '/include/footer.php'; ?>
-    </div>                
+    </div>
+    <?php require APP_PATH . '/include/footer.php'; ?>                
 <script>
 document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
 
