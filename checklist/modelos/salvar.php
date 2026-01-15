@@ -7,10 +7,9 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
-
 /* 🔒 Login obrigatório */
 $user = require_login();
-$user_id = (int) $user->sub;
+$user_id = (int)$user->sub;
 
 $mysqli->begin_transaction();
 
@@ -28,30 +27,22 @@ try {
     }
 
     /* ======================
-     * IDENTIFICA EDIÇÃO OU CRIAÇÃO
+     * IDENTIFICA EDIÇÃO
      * ====================== */
     $modelo_id = (int)($_POST['modelo_id'] ?? 0);
-
     $is_edicao = false;
 
     if ($modelo_id > 0) {
-
-        // 🔐 Confirma que o modelo EXISTE e pertence ao usuário
         $stmt = $mysqli->prepare("
             SELECT id
             FROM checklist_modelos
-            WHERE id = ?
-              AND criado_por = ?
+            WHERE id = ? AND criado_por = ?
             LIMIT 1
         ");
         $stmt->bind_param("ii", $modelo_id, $user_id);
         $stmt->execute();
-        $existe = $stmt->get_result()->fetch_assoc();
+        $is_edicao = (bool)$stmt->get_result()->fetch_assoc();
         $stmt->close();
-
-        if ($existe) {
-            $is_edicao = true;
-        }
     }
 
     /* ======================
@@ -59,7 +50,6 @@ try {
      * ====================== */
     if ($is_edicao) {
 
-        // ✏️ UPDATE
         $stmt = $mysqli->prepare("
             UPDATE checklist_modelos
             SET titulo = ?, descricao = ?, publico = ?
@@ -69,7 +59,7 @@ try {
         $stmt->execute();
         $stmt->close();
 
-        // Remove itens antigos
+        // Remove itens antigos (estratégia simples e segura)
         $stmt = $mysqli->prepare("
             DELETE FROM checklist_modelo_itens
             WHERE modelo_id = ?
@@ -80,7 +70,6 @@ try {
 
     } else {
 
-        // ➕ INSERT (CRIAÇÃO)
         $stmt = $mysqli->prepare("
             INSERT INTO checklist_modelos
                 (titulo, descricao, publico, criado_por)
@@ -88,8 +77,7 @@ try {
         ");
         $stmt->bind_param("ssii", $titulo, $descricao, $publico, $user_id);
         $stmt->execute();
-
-        $modelo_id = (int) $stmt->insert_id;
+        $modelo_id = (int)$stmt->insert_id;
         $stmt->close();
 
         if ($modelo_id <= 0) {
@@ -100,18 +88,21 @@ try {
     /* ======================
      * ITENS DO CHECKLIST
      * ====================== */
-    $item_keys  = $_POST['item_key']   ?? [];
-    $item_desc  = $_POST['item_desc']  ?? [];
-    $item_obs   = $_POST['item_obs']   ?? [];
-    $item_foto  = $_POST['item_foto']  ?? [];
-    $item_anexo = $_POST['item_anexo'] ?? [];
+    $item_keys  = $_POST['item_key']  ?? [];
+    $item_desc  = $_POST['item_desc'] ?? [];
+    $item_obs   = $_POST['item_obs']  ?? [];
+    $item_foto  = $_POST['item_foto'] ?? [];
+    $item_tipo  = $_POST['item_tipo'] ?? [];
+    $item_opc   = $_POST['item_opcoes'] ?? [];
+    $item_max   = $_POST['item_max'] ?? [];
 
     $ordem = 1;
 
     $stmt = $mysqli->prepare("
         INSERT INTO checklist_modelo_itens
-            (modelo_id, descricao, permite_observacao, permite_foto, permite_anexo, ordem)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (modelo_id, descricao, tipo, opcoes, max_selecoes,
+             permite_observacao, permite_foto, ordem)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($item_keys as $key) {
@@ -119,17 +110,38 @@ try {
         $desc = trim($item_desc[$key] ?? '');
         if ($desc === '') continue;
 
-        $permite_obs   = isset($item_obs[$key])   ? 1 : 0;
-        $permite_foto  = isset($item_foto[$key])  ? 1 : 0;
-        $permite_anexo = isset($item_anexo[$key]) ? 1 : 0;
+        // Tipo (segurança no backend)
+        $tipo = $item_tipo[$key] ?? 'texto';
+        if (!in_array($tipo, ['texto', 'data', 'multipla'], true)) {
+            $tipo = 'texto';
+        }
+
+        $opcoes = null;
+        $max = 1;
+
+        if ($tipo === 'multipla') {
+            $opcoes = trim($item_opc[$key] ?? '');
+            $max = max(1, (int)($item_max[$key] ?? 1));
+        }
+
+        $permite_obs  = isset($item_obs[$key])  ? 1 : 0;
+        $permite_foto = isset($item_foto[$key]) ? 1 : 0;
+
+        // Regra de exclusividade (backend manda)
+        if ($tipo !== 'texto') {
+            $permite_obs = 0;
+            $permite_foto = 0;
+        }
 
         $stmt->bind_param(
-            "isiiii",
+            "isssiiii",
             $modelo_id,
             $desc,
+            $tipo,
+            $opcoes,
+            $max,
             $permite_obs,
             $permite_foto,
-            $permite_anexo,
             $ordem
         );
 
