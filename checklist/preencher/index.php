@@ -67,6 +67,14 @@ $stmt->close();
         .page-content {
             margin-top: 80px;
         }
+        main.sistema {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 18px;
+        padding: 28px;
+
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(4px);
+    }
     </style>
 </head>
 
