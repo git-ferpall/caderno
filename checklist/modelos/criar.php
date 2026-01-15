@@ -101,7 +101,7 @@ if ($modelo_id) {
             justify-content: center;
         }
         main.sistema {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.25);
             border-radius: 18px;
             padding: 28px;
 
