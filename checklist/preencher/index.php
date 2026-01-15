@@ -130,7 +130,10 @@ $stmt->close();
                                             class="form-control upload-foto"
                                             data-item="<?= $i['id'] ?>"
                                             accept="image/*"
-                                        >
+                                        />
+
+                                        <div class="item-media mt-2" data-item="<?= $i['id'] ?>"></div>
+
                                     </div>
                                 <?php endif; ?>
 
@@ -166,9 +169,9 @@ $stmt->close();
     </div>
     <?php require APP_PATH . '/include/footer.php'; ?>                
 <script>
-/* =========================================
- * 🔧 Função: Reduz e converte imagem
- * ========================================= */
+/* =====================================================
+ * 🔧 Reduz e converte imagem (canvas)
+ * ===================================================== */
 function reduzirImagem(file, maxLado = 1280, qualidade = 0.7) {
     return new Promise((resolve, reject) => {
 
@@ -182,12 +185,11 @@ function reduzirImagem(file, maxLado = 1280, qualidade = 0.7) {
 
             let { width, height } = img;
 
-            // Mantém proporção
             if (width > height && width > maxLado) {
-                height = height * (maxLado / width);
+                height *= maxLado / width;
                 width = maxLado;
             } else if (height > maxLado) {
-                width = width * (maxLado / height);
+                width *= maxLado / height;
                 height = maxLado;
             }
 
@@ -195,21 +197,15 @@ function reduzirImagem(file, maxLado = 1280, qualidade = 0.7) {
             canvas.width = width;
             canvas.height = height;
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 
             canvas.toBlob(blob => {
-                if (!blob) {
-                    reject('Erro ao converter imagem');
-                    return;
-                }
+                if (!blob) return reject();
 
-                const novoArquivo = new File([blob], file.name, {
+                resolve(new File([blob], file.name, {
                     type: 'image/jpeg',
                     lastModified: Date.now()
-                });
-
-                resolve(novoArquivo);
+                }));
 
             }, 'image/jpeg', qualidade);
         };
@@ -218,43 +214,42 @@ function reduzirImagem(file, maxLado = 1280, qualidade = 0.7) {
     });
 }
 
-/* =========================================
- * 📤 Upload com animação
- * ========================================= */
+/* =====================================================
+ * 📸 Upload de imagem (1 por item)
+ * ===================================================== */
 document.querySelectorAll('.upload-foto').forEach(input => {
 
     input.addEventListener('change', async () => {
 
+        const itemId = input.dataset.item;
         const original = input.files[0];
         if (!original) return;
 
-        /* Container visual */
-        const container = document.createElement('div');
-        container.className = 'mt-3';
+        const mediaBox = document.querySelector(
+            `.item-media[data-item="${itemId}"]`
+        );
 
-        /* 🔄 Spinner de conversão */
+        // 🔥 Remove imagem anterior (1 por item)
+        mediaBox.innerHTML = '';
+
+        /* 🔄 Animação de conversão */
         const converting = document.createElement('div');
         converting.className = 'd-flex align-items-center gap-2';
-
         converting.innerHTML = `
             <div class="spinner-border spinner-border-sm text-primary"></div>
             <strong>Convertendo imagem...</strong>
         `;
+        mediaBox.appendChild(converting);
 
-        container.appendChild(converting);
-        input.closest('.card-body').appendChild(container);
-
-        /* 🔄 CONVERSÃO */
         let file;
         try {
-            file = await reduzirImagem(original, 1280, 0.7);
-        } catch (e) {
+            file = await reduzirImagem(original);
+        } catch {
+            mediaBox.innerHTML = '';
             alert('Erro ao converter imagem');
-            container.remove();
             return;
         }
 
-        /* Remove spinner */
         converting.remove();
 
         /* 📊 Barra de progresso */
@@ -267,11 +262,11 @@ document.querySelectorAll('.upload-foto').forEach(input => {
         bar.textContent = '0%';
 
         progress.appendChild(bar);
-        container.appendChild(progress);
+        mediaBox.appendChild(progress);
 
         /* 📤 Upload */
         const form = new FormData();
-        form.append('item_id', input.dataset.item);
+        form.append('item_id', itemId);
         form.append('tipo', 'foto');
         form.append('arquivo', file);
 
@@ -280,14 +275,13 @@ document.querySelectorAll('.upload-foto').forEach(input => {
 
         xhr.upload.onprogress = e => {
             if (e.lengthComputable) {
-                const percent = Math.round((e.loaded / e.total) * 100);
-                bar.style.width = percent + '%';
-                bar.textContent = percent + '%';
+                const p = Math.round((e.loaded / e.total) * 100);
+                bar.style.width = p + '%';
+                bar.textContent = p + '%';
             }
         };
 
         xhr.onload = () => {
-
             if (xhr.status !== 200) {
                 bar.classList.add('bg-danger');
                 bar.textContent = 'Erro';
@@ -295,24 +289,42 @@ document.querySelectorAll('.upload-foto').forEach(input => {
             }
 
             const resp = JSON.parse(xhr.responseText);
-
             if (!resp.ok) {
-                bar.classList.add('bg-danger');
-                bar.textContent = 'Erro';
                 alert(resp.erro || 'Erro no upload');
+                mediaBox.innerHTML = '';
                 return;
             }
 
-            /* Remove barra */
-            progress.remove();
+            /* ✅ Preview final + botão remover */
+            mediaBox.innerHTML = '';
 
-            /* 🖼 Preview final */
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
-            img.className = 'img-thumbnail';
+            img.className = 'img-thumbnail mb-2';
             img.style.maxWidth = '200px';
 
-            container.appendChild(img);
+            const btnRemove = document.createElement('button');
+            btnRemove.type = 'button';
+            btnRemove.className = 'btn btn-sm btn-outline-danger';
+            btnRemove.textContent = '🗑 Remover imagem';
+
+            btnRemove.onclick = () => {
+                mediaBox.innerHTML = '';
+                input.value = '';
+
+                // 🔐 opcional: remover no backend
+                fetch('/checklist/itens/remover_arquivo.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        item_id: itemId,
+                        tipo: 'foto'
+                    })
+                });
+            };
+
+            mediaBox.appendChild(img);
+            mediaBox.appendChild(btnRemove);
         };
 
         xhr.send(form);
@@ -320,6 +332,7 @@ document.querySelectorAll('.upload-foto').forEach(input => {
 
 });
 </script>
+
 
 <script src="/js/popups.js"></script>
 <script src="/js/script.js"></script>   
