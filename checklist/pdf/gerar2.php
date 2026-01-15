@@ -233,33 +233,72 @@ $html = "
 /* 📋 ITENS */
 foreach ($itens as $i) {
 
-    $statusClass = $i['concluido'] ? 'ok' : 'no';
-    $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
+    $html .= "<div class='item'>";
+    $html .= "<div class='item-header'><span>{$i['descricao']}</span></div>";
 
-    $html .= "
-    <div class='item'>
-        <div class='item-header'>
-            <span>{$i['descricao']}</span>
-            <span class='$statusClass'>$statusTexto</span>
-        </div>
-    ";
+    switch ($i['tipo']) {
 
-    if (!empty($i['observacao'])) {
-        $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
+        /* ==========================
+         * TEXTO
+         * ========================== */
+        case 'texto':
+
+            $temStatus = (
+                (int)$i['permite_observacao'] === 1
+                || (int)$i['permite_foto'] === 0
+            );
+
+            if ($temStatus) {
+                $statusClass = $i['concluido'] ? 'ok' : 'no';
+                $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
+                $html .= "<div class='$statusClass'><strong>$statusTexto</strong></div>";
+            }
+
+            if (!empty($i['observacao'])) {
+                $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
+            }
+
+            break;
+
+
+        /* ==========================
+         * DATA
+         * ========================== */
+        case 'data':
+
+            if (!empty($i['valor_data'])) {
+                $data = date('d/m/Y', strtotime($i['valor_data']));
+                $html .= "<div><strong>Data:</strong> $data</div>";
+            } else {
+                $html .= "<div class='no'>Data não informada</div>";
+            }
+
+            break;
+
+        /* ==========================
+         * MÚLTIPLA ESCOLHA
+         * ========================== */
+        case 'multipla':
+
+            if (!empty($i['valor_multipla'])) {
+
+                $selecionadas = json_decode($i['valor_multipla'], true);
+
+                if (is_array($selecionadas) && count($selecionadas)) {
+                    $html .= "<ul>";
+                    foreach ($selecionadas as $opcao) {
+                        $html .= "<li>" . htmlspecialchars($opcao) . "</li>";
+                    }
+                    $html .= "</ul>";
+                }
+
+            } else {
+                $html .= "<div class='no'>Nenhuma opção selecionada</div>";
+            }
+
+            break;
     }
 
-    foreach ($arquivos as $a) {
-        if ($a['checklist_item_id'] != $i['id']) continue;
-
-        $path = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}/{$a['arquivo']}";
-        if (!file_exists($path)) continue;
-
-        if ($a['tipo'] === 'foto') {
-            $html .= "<div><img src='$path'></div>";
-        } else {
-            $html .= "<div>📄 Documento: {$a['arquivo']}</div>";
-        }
-    }
 
     $html .= "</div>";
 }
@@ -268,17 +307,22 @@ foreach ($itens as $i) {
 if ($temAssinatura) {
     $html .= "
     <div class='section'>Validação</div>
+
     <table class='assinatura-qrcode'>
         <tr>
             <td width='50%'>
                 <strong>Assinatura digital</strong><br><br>
                 <img src='$assinaturaPath'><br><br>
+                <strong>$responsavel</strong><br>
+                <small>Usuário ID: $user_id</small><br>
+                <small>IP: $ip_usuario</small><br>
                 <small>Assinado em {$checklist['fechado_em']}</small>
             </td>
+
             <td width='50%'>
                 <strong>QR Code de validação</strong><br><br>
                 <img src='$qrImg'><br>
-                <small>$urlValidacao</small>
+                <small>$url</small>
             </td>
         </tr>
     </table>
@@ -287,7 +331,7 @@ if ($temAssinatura) {
 
 $html .= "
 <div class='footer'>
-Documento validado por hash criptográfico.<br>
+Documento assinado eletronicamente por <strong>$responsavel</strong>.<br>
 Data/hora local: $dataHoraLocal | UTC: $dataHoraUTC
 </div>
 ";
