@@ -230,47 +230,53 @@ if ($modelo_id) {
                         <div class="form-campo item" data-key="<?= $key ?>">
                             <div class="form-box">
 
-                                <!-- DRAG -->
-                                <span class="handle">☰</span>
+                                <div class="item-main">
 
-                                <input type="hidden" name="item_key[]" value="<?= $key ?>">
+                                    <span class="handle">☰</span>
 
-                                <!-- DESCRIÇÃO DO ITEM -->
-                                <input
-                                    class="form-text"
-                                    type="text"
-                                    name="item_desc[<?= $key ?>]"
-                                    value="<?= htmlspecialchars($i['descricao']) ?>"
-                                    required
-                                >
+                                    <input type="hidden" name="item_key[]" value="<?= $key ?>">
+                                    <input type="hidden" name="item_tipo[<?= $key ?>]" value="<?= $i['tipo'] ?>">
 
-                                <!-- OPÇÕES -->
-                                <div class="form-opcoes">
-                                    <label>
-                                        <input type="checkbox" class="opcao-unica opcao-obs"
-                                            name="item_obs[<?= $key ?>]" value="1">
-                                        Obs
-                                    </label>
+                                    <input class="form-text item-desc" type="text"
+                                        name="item_desc[<?= $key ?>]"
+                                        value="<?= htmlspecialchars($i['descricao']) ?>"
+                                        required>
 
-                                    <label>
-                                        <input type="checkbox" class="opcao-unica opcao-foto"
-                                            name="item_foto[<?= $key ?>]" value="1">
-                                        Foto
-                                    </label>
+                                    <div class="form-opcoes">
+                                        <label>
+                                            <input type="checkbox" class="opcao-unica opcao-obs"
+                                                name="item_obs[<?= $key ?>]" value="1"
+                                                <?= $i['permite_observacao'] ? 'checked' : '' ?>>
+                                            Obs
+                                        </label>
 
-                                    <label>
-                                        <input type="checkbox" class="opcao-unica opcao-data">
-                                        Data
-                                    </label>
+                                        <label>
+                                            <input type="checkbox" class="opcao-unica opcao-foto"
+                                                name="item_foto[<?= $key ?>]" value="1"
+                                                <?= $i['permite_foto'] ? 'checked' : '' ?>>
+                                            Foto
+                                        </label>
 
-                                    <label>
-                                        <input type="checkbox" class="opcao-unica opcao-multipla">
-                                        Múltipla
-                                    </label>
+                                        <label>
+                                            <input type="checkbox" class="opcao-unica opcao-data"
+                                                <?= $i['tipo'] === 'data' ? 'checked' : '' ?>>
+                                            Data
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" class="opcao-unica opcao-multipla"
+                                                <?= $i['tipo'] === 'multipla' ? 'checked' : '' ?>>
+                                            Múltipla
+                                        </label>
+                                    </div>
+
+                                    <button type="button"
+                                            class="btn-remover-text"
+                                            onclick="this.closest('.item').remove()">
+                                        🗑 Remover
+                                    </button>
+
                                 </div>
-
-                                <input type="hidden" name="item_tipo[<?= $key ?>]" value="texto">
-
 
                                 <div class="config-multipla"
                                     style="display: <?= $i['tipo'] === 'multipla' ? 'block' : 'none' ?>">
@@ -279,12 +285,7 @@ if ($modelo_id) {
                                     <textarea
                                         name="item_opcoes[<?= $key ?>]"
                                         class="form-text"
-                                        rows="3"
-                                        placeholder="Ex:
-                                        Conforme
-                                        Não conforme
-                                        Não se aplica"
-                                    ><?= htmlspecialchars($i['opcoes'] ?? '') ?></textarea>
+                                        rows="3"><?= htmlspecialchars($i['opcoes'] ?? '') ?></textarea>
 
                                     <label>Quantas opções podem ser selecionadas?</label>
                                     <input
@@ -294,18 +295,10 @@ if ($modelo_id) {
                                         class="form-text"
                                         value="<?= (int)($i['max_selecoes'] ?? 1) ?>">
                                 </div>
-    
-                                <!-- REMOVER ITEM -->
-                                <button
-                                    type="button"
-                                    class="btn-remover-text"
-                                    onclick="this.closest('.item').remove()"
-                                >
-                                    🗑 Remover
-                                </button>
 
                             </div>
                         </div>
+
 
                     <?php endforeach; ?>
 
@@ -378,7 +371,6 @@ function addItem() {
     div.innerHTML = `
         <div class="form-box">
 
-            <!-- LINHA PRINCIPAL -->
             <div class="item-main">
 
                 <span class="handle">☰</span>
@@ -423,7 +415,6 @@ function addItem() {
 
             </div>
 
-            <!-- CONFIGURAÇÃO (EMBAIXO) -->
             <div class="config-multipla" style="display:none">
                 <label>Opções (uma por linha)</label>
                 <textarea class="form-text" rows="3"
@@ -437,6 +428,7 @@ function addItem() {
             </div>
 
         </div>
+
     `;
 
     document.getElementById('itens').appendChild(div);
