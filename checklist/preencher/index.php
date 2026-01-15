@@ -151,7 +151,7 @@ $stmt->close();
                                             <div class="item-media mt-2" data-item="<?= $i['id'] ?>"></div>
                                         <?php endif; ?>
 
-                                    <?php break; ?>
+                                    <?php break;
 
 
                                     /* ======================
