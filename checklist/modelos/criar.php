@@ -167,7 +167,7 @@ if ($modelo_id) {
                         placeholder="Descrição opcional"
                     ><?= htmlspecialchars($modelo['descricao']) ?></textarea>
                 </div>
-
+                    
                 <!-- PÚBLICO -->
                 <div class="form-campo">
                     <label>
@@ -208,29 +208,74 @@ if ($modelo_id) {
 
                                 <!-- OPÇÕES -->
                                 <div class="form-opcoes">
+
+                                    <!-- OBS -->
                                     <label>
-                                        <input
-                                            type="checkbox"
+                                        <input type="checkbox"
                                             class="opcao-item"
                                             name="item_obs[<?= $key ?>]"
                                             value="1"
-                                            <?= $i['permite_observacao'] ? 'checked' : '' ?>
-                                        >
+                                            <?= $i['permite_observacao'] ? 'checked' : '' ?>>
                                         Obs
                                     </label>
 
+                                    <!-- FOTO -->
                                     <label>
-                                        <input
-                                            type="checkbox"
+                                        <input type="checkbox"
                                             class="opcao-item"
                                             name="item_foto[<?= $key ?>]"
                                             value="1"
-                                            <?= $i['permite_foto'] ? 'checked' : '' ?>
-                                        >
+                                            <?= $i['permite_foto'] ? 'checked' : '' ?>>
                                         Foto
                                     </label>
+
+                                    <!-- DATA -->
+                                    <label>
+                                        <input type="checkbox"
+                                            class="tipo-data"
+                                            <?= $i['tipo'] === 'data' ? 'checked' : '' ?>
+                                            onchange="setTipo(this, 'data')">
+                                        Data
+                                    </label>
+
+                                    <!-- MULTIPLA -->
+                                    <label>
+                                        <input type="checkbox"
+                                            class="tipo-multipla"
+                                            <?= $i['tipo'] === 'multipla' ? 'checked' : '' ?>
+                                            onchange="setTipo(this, 'multipla')">
+                                        Múltipla
+                                    </label>
+
                                 </div>
 
+                                <input type="hidden"
+                                    name="item_tipo[<?= $key ?>]"
+                                    value="<?= $i['tipo'] ?? 'texto' ?>">
+
+                                <div class="config-multipla"
+                                    style="display: <?= $i['tipo'] === 'multipla' ? 'block' : 'none' ?>">
+
+                                    <label>Opções (uma por linha)</label>
+                                    <textarea
+                                        name="item_opcoes[<?= $key ?>]"
+                                        class="form-text"
+                                        rows="3"
+                                        placeholder="Ex:
+                                        Conforme
+                                        Não conforme
+                                        Não se aplica"
+                                    ><?= htmlspecialchars($i['opcoes'] ?? '') ?></textarea>
+
+                                    <label>Quantas opções podem ser selecionadas?</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        name="item_max[<?= $key ?>]"
+                                        class="form-text"
+                                        value="<?= (int)($i['max_selecoes'] ?? 1) ?>">
+                                </div>
+    
                                 <!-- REMOVER ITEM -->
                                 <button
                                     type="button"
@@ -343,7 +388,31 @@ document.addEventListener('change', function (e) {
     }
 });
 </script>
+<script>
+function setTipo(cb, tipo) {
+    const item = cb.closest('.item');
+    const hidden = item.querySelector('input[name^="item_tipo"]');
 
+    const dataCb = item.querySelector('.tipo-data');
+    const multCb = item.querySelector('.tipo-multipla');
+
+    if (cb.checked) {
+        if (tipo === 'data') multCb.checked = false;
+        if (tipo === 'multipla') dataCb.checked = false;
+        hidden.value = tipo;
+    } else {
+        hidden.value = 'texto';
+    }
+
+    toggleMultiplaUI(item, hidden.value);
+}
+
+function toggleMultiplaUI(item, tipo) {
+    const cfg = item.querySelector('.config-multipla');
+    if (!cfg) return;
+    cfg.style.display = (tipo === 'multipla') ? 'block' : 'none';
+}
+</script>
 
 
 </body>
