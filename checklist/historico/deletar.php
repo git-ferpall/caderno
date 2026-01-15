@@ -1,64 +1,90 @@
 <?php
+/**
+ * Excluir checklist + mídias
+ * Retorno SEMPRE em JSON
+ */
+
+header('Content-Type: application/json; charset=utf-8');
+
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../configuracao/protect.php';
 
+/* 🔒 Login */
 $user = require_login();
 $user_id = (int)$user->sub;
 
-$checklist_id = (int)($_GET['id'] ?? 0);
-if (!$checklist_id) die('ID inválido');
+/* 📥 JSON */
+$data = json_decode(file_get_contents('php://input'), true);
 
-/* 🔎 Checklist */
+$checklist_id = (int)($data['id'] ?? 0);
+
+if (!$checklist_id) {
+    echo json_encode([
+        'ok'   => false,
+        'erro' => 'ID inválido'
+    ]);
+    exit;
+}
+
+/* 🔎 Verifica checklist */
 $stmt = $mysqli->prepare("
-    SELECT c.titulo, m.publico
-    FROM checklists c
-    JOIN checklist_modelos m ON m.id = c.modelo_id
-    WHERE c.id = ? AND c.user_id = ?
+    SELECT id, concluido
+    FROM checklists
+    WHERE id = ? AND user_id = ?
+    LIMIT 1
 ");
 $stmt->bind_param("ii", $checklist_id, $user_id);
 $stmt->execute();
 $chk = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$chk) die('Checklist não encontrado');
-if ((int)$chk['publico'] === 1) die('Modelo público não pode ser excluído');
+if (!$chk) {
+    echo json_encode([
+        'ok'   => false,
+        'erro' => 'Checklist não encontrado ou sem permissão'
+    ]);
+    exit;
+}
 
-/* 🧾 Auditoria */
-$stmt = $mysqli->prepare("
-    INSERT INTO checklist_auditoria
-        (checklist_id, usuario_id, acao, ip, user_agent, dados_json)
-    VALUES (?, ?, 'delete', ?, ?, ?)
-");
-$stmt->bind_param(
-    "iisss",
-    $checklist_id,
-    $user_id,
-    $_SERVER['REMOTE_ADDR'],
-    $_SERVER['HTTP_USER_AGENT'],
-    json_encode(['titulo'=>$chk['titulo']], JSON_UNESCAPED_UNICODE)
-);
-$stmt->execute();
-$stmt->close();
+/* 🔥 Remove arquivos físicos */
+$basePath = __DIR__ . "/../../uploads/checklists/$checklist_id";
 
-/* 🧹 Remove mídia */
-$dir = __DIR__ . "/../../uploads/checklists/$checklist_id";
-function apagarDir($dir) {
+function removerPasta($dir) {
     if (!is_dir($dir)) return;
-    foreach (scandir($dir) as $f) {
-        if ($f === '.' || $f === '..') continue;
-        $p = "$dir/$f";
-        is_dir($p) ? apagarDir($p) : unlink($p);
+    foreach (scandir($dir) as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = "$dir/$item";
+        is_dir($path) ? removerPasta($path) : unlink($path);
     }
     rmdir($dir);
 }
-apagarDir($dir);
 
-/* 🗑 Exclui banco */
-$mysqli->query("DELETE FROM checklist_item_arquivos WHERE checklist_item_id IN (
-    SELECT id FROM checklist_itens WHERE checklist_id = $checklist_id
-)");
-$mysqli->query("DELETE FROM checklist_itens WHERE checklist_id = $checklist_id");
-$mysqli->query("DELETE FROM checklists WHERE id = $checklist_id");
+removerPasta($basePath);
 
-header('Location: index.php');
+/* 🔥 Remove arquivos do banco */
+$mysqli->query("
+    DELETE FROM checklist_item_arquivos
+    WHERE checklist_item_id IN (
+        SELECT id FROM checklist_itens WHERE checklist_id = $checklist_id
+    )
+");
+
+/* 🔥 Remove itens */
+$stmt = $mysqli->prepare("
+    DELETE FROM checklist_itens WHERE checklist_id = ?
+");
+$stmt->bind_param("i", $checklist_id);
+$stmt->execute();
+$stmt->close();
+
+/* 🔥 Remove checklist */
+$stmt = $mysqli->prepare("
+    DELETE FROM checklists WHERE id = ?
+");
+$stmt->bind_param("i", $checklist_id);
+$stmt->execute();
+$stmt->close();
+
+/* ✅ OK */
+echo json_encode(['ok' => true]);
 exit;

@@ -159,21 +159,28 @@ input.addEventListener('input', () => {
     });
 });
 
-/* 🗑 EXCLUSÃO */
 function excluirChecklist(id) {
     if (!confirm('Deseja excluir este checklist? Esta ação é irreversível.')) return;
 
-    fetch('/checklist/historico/deletar.php', {
+    fetch('excluir.php', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
     })
     .then(r => r.json())
     .then(resp => {
-        if (resp.ok) location.reload();
-        else alert(resp.erro);
+        if (resp.ok) {
+            location.reload();
+        } else {
+            alert(resp.erro);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Erro inesperado');
     });
 }
+
 </script>
 
 </body>
