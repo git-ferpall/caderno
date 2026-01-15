@@ -75,6 +75,44 @@ $stmt->close();
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         backdrop-filter: blur(4px);
     }
+
+    /* ===== CHECKLIST - ALINHAMENTO À ESQUERDA ===== */
+
+    .card-body {
+        text-align: left;
+    }
+
+    /* Título do item */
+    .card-body > label {
+        text-align: left;
+        font-weight: 600;
+    }
+
+    /* Inputs gerais */
+    .card-body input,
+    .card-body textarea,
+    .card-body select {
+        text-align: left;
+    }
+
+    /* Grupo de opções (checkbox / radio) */
+    .card-body .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Label do checkbox / radio */
+    .card-body .form-check-label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    /* Remove qualquer centralização herdada */
+    .card-body * {
+        justify-content: flex-start !important;
+    }
+
     </style>
 </head>
 
