@@ -252,16 +252,23 @@ foreach ($itens as $i) {
          * ========================== */
         case 'texto':
 
-            $statusClass = $i['concluido'] ? 'ok' : 'no';
-            $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
+            $temStatus = (
+                (int)$i['permite_observacao'] === 1
+                || (int)$i['permite_foto'] === 0
+            );
 
-            $html .= "<div class='$statusClass'><strong>$statusTexto</strong></div>";
+            if ($temStatus) {
+                $statusClass = $i['concluido'] ? 'ok' : 'no';
+                $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
+                $html .= "<div class='$statusClass'><strong>$statusTexto</strong></div>";
+            }
 
             if (!empty($i['observacao'])) {
                 $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
             }
 
             break;
+
 
         /* ==========================
          * DATA
