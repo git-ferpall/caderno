@@ -80,19 +80,6 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 🔎 Arquivos */
-$stmt = $mysqli->prepare("
-    SELECT *
-    FROM checklist_item_arquivos
-    WHERE checklist_item_id IN (
-        SELECT id FROM checklist_itens WHERE checklist_id = ?
-    )
-    ORDER BY checklist_item_id, criado_em
-");
-$stmt->bind_param("i", $checklist_id);
-$stmt->execute();
-$arquivos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
 
 /* ✍️ Assinatura */
 $assinaturaPath = __DIR__ . "/../../uploads/checklists/$checklist_id/assinatura.png";
@@ -245,69 +232,74 @@ foreach ($itens as $i) {
     $html .= "<div class='item'>";
     $html .= "<div class='item-header'><span>{$i['descricao']}</span></div>";
 
-    switch ($i['tipo']) {
+    /* ==========================
+     * TEXTO
+     * ========================== */
+    if ($i['tipo'] === 'texto') {
 
-        /* ==========================
-         * TEXTO
-         * ========================== */
-        case 'texto':
+        // Status visual (somente se fizer sentido)
+        if ((int)$i['permite_observacao'] === 1 || (int)$i['permite_foto'] === 0) {
+            $statusClass = $i['concluido'] ? 'ok' : 'no';
+            $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
+            $html .= "<div class='$statusClass'><strong>$statusTexto</strong></div>";
+        }
 
-            $temStatus = (
-                (int)$i['permite_observacao'] === 1
-                || (int)$i['permite_foto'] === 0
-            );
+        if (!empty($i['observacao'])) {
+            $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
+        }
 
-            if ($temStatus) {
-                $statusClass = $i['concluido'] ? 'ok' : 'no';
-                $statusTexto = $i['concluido'] ? '✔ OK' : '✖ Não';
-                $html .= "<div class='$statusClass'><strong>$statusTexto</strong></div>";
-            }
+        /* 📸 FOTO — filesystem é a verdade */
+        if ((int)$i['permite_foto'] === 1) {
 
-            if (!empty($i['observacao'])) {
-                $html .= "<div class='obs'>Obs: {$i['observacao']}</div>";
-            }
+            $dirItem = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}";
 
-            break;
+            if (is_dir($dirItem)) {
+                $files = glob($dirItem . '/*');
 
+                foreach ($files as $file) {
+                    if (!is_file($file)) continue;
 
-        /* ==========================
-         * DATA
-         * ========================== */
-        case 'data':
-
-            if (!empty($i['valor_data'])) {
-                $data = date('d/m/Y', strtotime($i['valor_data']));
-                $html .= "<div><strong>Data:</strong> $data</div>";
-            } else {
-                $html .= "<div class='no'>Data não informada</div>";
-            }
-
-            break;
-
-        /* ==========================
-         * MÚLTIPLA ESCOLHA
-         * ========================== */
-        case 'multipla':
-
-            if (!empty($i['valor_multipla'])) {
-
-                $selecionadas = json_decode($i['valor_multipla'], true);
-
-                if (is_array($selecionadas) && count($selecionadas)) {
-                    $html .= "<ul>";
-                    foreach ($selecionadas as $opcao) {
-                        $html .= "<li>" . htmlspecialchars($opcao) . "</li>";
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                    if (in_array($ext, ['jpg','jpeg','png','webp'])) {
+                        $html .= "<div><img src='$file'></div>";
                     }
-                    $html .= "</ul>";
                 }
-
-            } else {
-                $html .= "<div class='no'>Nenhuma opção selecionada</div>";
             }
-
-            break;
+        }
     }
 
+    /* ==========================
+     * DATA
+     * ========================== */
+    if ($i['tipo'] === 'data') {
+
+        if (!empty($i['valor_data'])) {
+            $data = date('d/m/Y', strtotime($i['valor_data']));
+            $html .= "<div><strong>Data:</strong> $data</div>";
+        } else {
+            $html .= "<div class='no'>Data não informada</div>";
+        }
+    }
+
+    /* ==========================
+     * MÚLTIPLA ESCOLHA
+     * ========================== */
+    if ($i['tipo'] === 'multipla') {
+
+        if (!empty($i['valor_multipla'])) {
+
+            $selecionadas = json_decode($i['valor_multipla'], true);
+
+            if (is_array($selecionadas) && count($selecionadas)) {
+                $html .= "<div><strong>Selecionado:</strong> "
+                       . htmlspecialchars(implode(', ', $selecionadas))
+                       . "</div>";
+            }
+
+        } else {
+            $html .= "<div class='no'>Nenhuma opção selecionada</div>";
+        }
+    }
 
     $html .= "</div>";
 }
