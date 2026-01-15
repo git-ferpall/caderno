@@ -91,7 +91,7 @@ $stmt->close();
                 <?php endif; ?>
 
                 <!-- FORMULÁRIO -->
-                <form method="post" action="salvar.php">
+                <form method="post" action="\checklist\preencher\salvar.php">
                     <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
 
                     <?php foreach ($itens as $i): ?>
