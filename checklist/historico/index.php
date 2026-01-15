@@ -113,6 +113,58 @@ $stmt->close();
 </tbody>
 </table>
 </div>
+<script>
+const input = document.getElementById('buscaChecklist');
+const box   = document.getElementById('resultadoBusca');
+
+let timer = null;
+
+input.addEventListener('input', () => {
+    clearTimeout(timer);
+
+    const q = input.value.trim();
+    if (q.length < 2) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+    }
+
+    timer = setTimeout(() => {
+        fetch(`/checklist/historico/buscar.php?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => {
+
+                box.innerHTML = '';
+                if (!data.length) {
+                    box.style.display = 'none';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const a = document.createElement('a');
+                    a.href = `/checklist/preencher/index.php?id=${item.id}`;
+                    a.className = 'list-group-item list-group-item-action';
+                    a.innerHTML = `
+                        <strong>${item.titulo}</strong>
+                        <small class="text-muted d-block">
+                            ${item.concluido ? '✔ Finalizado' : '⏳ Aberto'}
+                        </small>
+                    `;
+                    box.appendChild(a);
+                });
+
+                box.style.display = 'block';
+            });
+    }, 300); // debounce
+});
+
+/* Fecha ao clicar fora */
+document.addEventListener('click', e => {
+    if (!e.target.closest('#buscaChecklist')) {
+        box.style.display = 'none';
+    }
+});
+</script>
 
 </body>
 </html>
