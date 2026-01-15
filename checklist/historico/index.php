@@ -73,9 +73,20 @@ $stmt->close();
 
 <!-- FILTROS -->
 <div class="d-flex gap-2 mb-3">
-    <a href="?status=todos" class="btn btn-outline-secondary <?= $filtro==='todos'?'active':'' ?>">Todos</a>
-    <a href="?status=abertos" class="btn btn-outline-warning <?= $filtro==='abertos'?'active':'' ?>">Abertos</a>
-    <a href="?status=finalizados" class="btn btn-outline-success <?= $filtro==='finalizados'?'active':'' ?>">Finalizados</a>
+    <a href="/checklist/historico/index.php?status=todos"
+        class="btn btn-outline-secondary <?= $filtro==='todos'?'active':'' ?>">
+        Todos
+        </a>
+
+        <a href="/checklist/historico/index.php?status=abertos"
+        class="btn btn-outline-warning <?= $filtro==='abertos'?'active':'' ?>">
+        Abertos
+        </a>
+
+        <a href="/checklist/historico/index.php?status=finalizados"
+        class="btn btn-outline-success <?= $filtro==='finalizados'?'active':'' ?>">
+        Finalizados
+        </a>
 </div>
 
 <!-- BUSCA -->
