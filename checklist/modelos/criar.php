@@ -112,6 +112,34 @@ if ($modelo_id) {
         .page-content {
             margin-top: 80px;
         }
+
+        /* Garante que o item não "estoure" ao arrastar */
+        #itens .item {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Caixa interna do item */
+        #itens .form-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        /* Campo descrição NÃO pode crescer além do esperado */
+        #itens .form-box > input.form-text {
+            flex: 1 1 auto;
+            max-width: 100%;
+            min-width: 0; /* 🔥 ESSENCIAL no flex */
+        }
+
+        /* Área de opções não empurra o input */
+        #itens .form-opcoes,
+        #itens .config-multipla {
+            flex-shrink: 0;
+        }
+
     </style>
 
 </head>
