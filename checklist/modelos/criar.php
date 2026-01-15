@@ -336,11 +336,29 @@ if ($modelo_id) {
                     required>
 
                 <div class="form-opcoes">
-                    <label><input type="checkbox" name="item_obs[${key}]" value="1" checked> Obs</label>
-                    <label><input type="checkbox" name="item_foto[${key}]" value="1"> Foto</label>
-                    <label><input type="checkbox" class="tipo-data" onchange="setTipo(this,'data')"> Data</label>
-                    <label><input type="checkbox" class="tipo-multipla" onchange="setTipo(this,'multipla')"> Múltipla</label>
+                    <label>
+                        <input type="checkbox" class="opcao-unica opcao-obs"
+                            name="item_obs[${key}]" value="1" checked>
+                        Obs
+                    </label>
+
+                    <label>
+                        <input type="checkbox" class="opcao-unica opcao-foto"
+                            name="item_foto[${key}]" value="1">
+                        Foto
+                    </label>
+
+                    <label>
+                        <input type="checkbox" class="opcao-unica opcao-data">
+                        Data
+                    </label>
+
+                    <label>
+                        <input type="checkbox" class="opcao-unica opcao-multipla">
+                        Múltipla
+                    </label>
                 </div>
+
 
                 <div class="config-multipla" style="display:none">
                     <label>Opções (uma por linha)</label>
@@ -363,61 +381,38 @@ if ($modelo_id) {
 </script>
 
 <script>
-document.addEventListener('change', function (e) {
-    if (!e.target.classList.contains('opcao-unica')) return;
+    document.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('opcao-unica')) return;
 
-    const item = e.target.closest('.item');
-    if (!item) return;
+        const item = e.target.closest('.item');
+        if (!item) return;
 
-    const hiddenTipo = item.querySelector('input[name^="item_tipo"]');
+        const hiddenTipo = item.querySelector('input[name^="item_tipo"]');
 
-    // Desmarca todas as outras opções
-    item.querySelectorAll('.opcao-unica').forEach(cb => {
-        if (cb !== e.target) cb.checked = false;
+        // Desmarca todas as outras opções
+        item.querySelectorAll('.opcao-unica').forEach(cb => {
+            if (cb !== e.target) cb.checked = false;
+        });
+
+        // Define o tipo
+        if (e.target.classList.contains('opcao-data')) {
+            hiddenTipo.value = 'data';
+        } else if (e.target.classList.contains('opcao-multipla')) {
+            hiddenTipo.value = 'multipla';
+        } else {
+            hiddenTipo.value = 'texto';
+        }
+
+        // Exibe configuração da múltipla somente se necessário
+        const cfg = item.querySelector('.config-multipla');
+        if (cfg) {
+            cfg.style.display = (hiddenTipo.value === 'multipla') ? 'block' : 'none';
+        }
     });
-
-    // Define o tipo
-    if (e.target.classList.contains('opcao-data')) {
-        hiddenTipo.value = 'data';
-    } else if (e.target.classList.contains('opcao-multipla')) {
-        hiddenTipo.value = 'multipla';
-    } else {
-        hiddenTipo.value = 'texto';
-    }
-
-    // Exibe configuração da múltipla somente se necessário
-    const cfg = item.querySelector('.config-multipla');
-    if (cfg) {
-        cfg.style.display = (hiddenTipo.value === 'multipla') ? 'block' : 'none';
-    }
-});
 </script>
 
-<script>
-function setTipo(cb, tipo) {
-    const item = cb.closest('.item');
-    const hidden = item.querySelector('input[name^="item_tipo"]');
 
-    const dataCb = item.querySelector('.tipo-data');
-    const multCb = item.querySelector('.tipo-multipla');
 
-    if (cb.checked) {
-        if (tipo === 'data') multCb.checked = false;
-        if (tipo === 'multipla') dataCb.checked = false;
-        hidden.value = tipo;
-    } else {
-        hidden.value = 'texto';
-    }
-
-    toggleMultiplaUI(item, hidden.value);
-}
-
-function toggleMultiplaUI(item, tipo) {
-    const cfg = item.querySelector('.config-multipla');
-    if (!cfg) return;
-    cfg.style.display = (tipo === 'multipla') ? 'block' : 'none';
-}
-</script>
 
 
 </body>
