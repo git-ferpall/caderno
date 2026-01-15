@@ -113,32 +113,42 @@ if ($modelo_id) {
             margin-top: 80px;
         }
 
-        /* Garante que o item não "estoure" ao arrastar */
-        #itens .item {
+        .form-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             width: 100%;
-            box-sizing: border-box;
         }
 
-        /* Caixa interna do item */
-        #itens .form-box {
+        .item-main {
             display: flex;
             align-items: center;
             gap: 12px;
             width: 100%;
         }
 
-        /* Campo descrição NÃO pode crescer além do esperado */
-        #itens .form-box > input.form-text {
-            flex: 1 1 auto;
-            max-width: 100%;
-            min-width: 0; /* 🔥 ESSENCIAL no flex */
+        .item-desc {
+            flex: 1;
+            min-width: 0; /* ESSENCIAL */
         }
 
-        /* Área de opções não empurra o input */
-        #itens .form-opcoes,
-        #itens .config-multipla {
+        .form-opcoes,
+        .btn-remover-text {
             flex-shrink: 0;
         }
+
+        .config-multipla {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+        }
+
+        .config-multipla textarea,
+        .config-multipla input {
+            width: 100%;
+        }
+
 
     </style>
 
