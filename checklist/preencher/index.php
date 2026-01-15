@@ -121,18 +121,20 @@ $stmt->close();
                                     * ====================== */
                                     case 'texto': ?>
 
-                                        <div class="form-check mb-2">
-                                            <input
-                                                class="form-check-input"
-                                                type="checkbox"
-                                                name="concluido[<?= $i['id'] ?>]"
-                                                value="1"
-                                                <?= $i['concluido'] ? 'checked' : '' ?>
-                                            >
-                                            <label class="form-check-label">
-                                                Concluído
-                                            </label>
-                                        </div>
+                                        <?php if ((int)$i['permite_foto'] === 0): ?>
+                                            <div class="form-check mb-2">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="concluido[<?= $i['id'] ?>]"
+                                                    value="1"
+                                                    <?= $i['concluido'] ? 'checked' : '' ?>
+                                                >
+                                                <label class="form-check-label">
+                                                    Concluído
+                                                </label>
+                                            </div>
+                                        <?php endif; ?>
 
                                         <?php if ((int)$i['permite_observacao'] === 1): ?>
                                             <textarea
@@ -149,7 +151,8 @@ $stmt->close();
                                             <div class="item-media mt-2" data-item="<?= $i['id'] ?>"></div>
                                         <?php endif; ?>
 
-                                    <?php break;
+                                    <?php break; ?>
+
 
                                     /* ======================
                                     * DATA
