@@ -181,7 +181,7 @@ document.querySelectorAll('.upload-foto, .upload-doc').forEach(input => {
         );
         form.append('arquivo', file);
 
-        fetch('../itens/upload.php', {
+        fetch('/checklist/itens/upload.php', {
             method: 'POST',
             body: form
         })
