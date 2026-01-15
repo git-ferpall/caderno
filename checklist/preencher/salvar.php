@@ -142,19 +142,10 @@ $stmt->close();
 
 /* 🔒 Finalizar checklist */
 if ($acao === 'finalizar') {
-
-    $stmt = $mysqli->prepare("
-        UPDATE checklists
-        SET concluido = 1
-        WHERE id = ? AND user_id = ?
-    ");
-    $stmt->bind_param("ii", $checklist_id, $user_id);
-    $stmt->execute();
-    $stmt->close();
-
     header("Location: ../fechar/assinar.php?id=$checklist_id");
     exit;
 }
+
 
 /* 🔁 Apenas salvar */
 header("Location: index.php?id=$checklist_id");
