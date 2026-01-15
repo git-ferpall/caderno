@@ -253,7 +253,7 @@ if ($modelo_id) {
                                         <label>
                                             <input type="checkbox" class="opcao-unica opcao-foto"
                                                 name="item_foto[<?= $key ?>]" value="1"
-                                                <?= $i['permite_foto'] ? 'checked' : '' ?>>
+                                                <?= ($i['tipo'] === 'texto' && $i['permite_foto']) ? 'checked' : '' ?>>
                                             Foto
                                         </label>
 
@@ -348,17 +348,18 @@ if ($modelo_id) {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const container = document.getElementById('itens');
-    if (!container) return;
+    document.querySelectorAll('.item').forEach(item => {
+        const hiddenTipo = item.querySelector('input[name^="item_tipo"]');
+        const cfg = item.querySelector('.config-multipla');
 
-    new Sortable(container, {
-        handle: '.handle',
-        animation: 150,
-        ghostClass: 'sortable-ghost'
+        if (hiddenTipo && cfg) {
+            cfg.style.display = (hiddenTipo.value === 'multipla') ? 'block' : 'none';
+        }
     });
 
 });
 </script>
+
 
 <script>
 function addItem() {
