@@ -260,7 +260,6 @@ foreach ($itens as $i) {
 
             break;
 
-
         /* ==========================
          * DATA
          * ========================== */
@@ -299,42 +298,23 @@ foreach ($itens as $i) {
             break;
     }
 
+    /* 📎 Arquivos */
+    foreach ($arquivos as $a) {
+        if ($a['checklist_item_id'] != $i['id']) continue;
+
+        $path = __DIR__ . "/../../uploads/checklists/$checklist_id/item_{$i['id']}/{$a['arquivo']}";
+        if (!file_exists($path)) continue;
+
+        if ($a['tipo'] === 'foto') {
+            $html .= "<div><img src='$path'></div>";
+        } else {
+            $html .= "<div>📄 Documento: {$a['arquivo']}</div>";
+        }
+    }
 
     $html .= "</div>";
 }
 
-/* ✍️ ASSINATURA + QR */
-if ($temAssinatura) {
-    $html .= "
-    <div class='section'>Validação</div>
-
-    <table class='assinatura-qrcode'>
-        <tr>
-            <td width='50%'>
-                <strong>Assinatura digital</strong><br><br>
-                <img src='$assinaturaPath'><br><br>
-                <strong>$responsavel</strong><br>
-                <small>Usuário ID: $user_id</small><br>
-                <small>IP: $ip_usuario</small><br>
-                <small>Assinado em {$checklist['fechado_em']}</small>
-            </td>
-
-            <td width='50%'>
-                <strong>QR Code de validação</strong><br><br>
-                <img src='$qrImg'><br>
-                <small>$url</small>
-            </td>
-        </tr>
-    </table>
-    ";
-}
-
-$html .= "
-<div class='footer'>
-Documento assinado eletronicamente por <strong>$responsavel</strong>.<br>
-Data/hora local: $dataHoraLocal | UTC: $dataHoraUTC
-</div>
-";
 
 $mpdf->WriteHTML($html);
 $mpdf->Output("checklist_$checklist_id.pdf", 'I');
