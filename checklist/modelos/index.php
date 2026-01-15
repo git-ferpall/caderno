@@ -71,8 +71,9 @@ $stmt->close();
 
     <?php require APP_PATH . '/include/menu.php'; ?>
 
-    <main class="sistema">
-        <div class="container py-4 page-content">
+    
+    <div class="container py-4 page-content">
+            <main class="sistema">
 
             <h2 class="mb-3">📋 Modelos de Checklist</h2>
 
@@ -122,9 +123,9 @@ $stmt->close();
                 </table>
 
             <?php endif; ?>
-
-        </div>
-    </main>
+        </main>                        
+    </div>
+        
 
     <?php require APP_PATH . '/include/footer.php'; ?>
 
