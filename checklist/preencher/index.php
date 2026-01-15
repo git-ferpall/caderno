@@ -251,10 +251,14 @@ $stmt->close();
                             💾 Salvar
                         </button>
 
-                        <a href="/checklist/fechar/assinar.php?id=<?= $checklist_id ?>"
+                        <button
+                            type="submit"
+                            name="acao"
+                            value="finalizar"
                             class="btn btn-danger">
                             ✍️ Assinar e finalizar
-                            </a>
+                        </button>
+
 
                     <?php endif; ?>
                 </form>
