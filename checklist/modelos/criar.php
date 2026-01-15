@@ -109,7 +109,9 @@ if ($modelo_id) {
             backdrop-filter: blur(4px);
         }
 
-
+        .page-content {
+            margin-top: 80px;
+        }
     </style>
 
 </head>
