@@ -103,62 +103,105 @@ $stmt->close();
                     <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
 
                     <?php foreach ($itens as $i): ?>
+                        <?php
+                        $tipo = $i['tipo'] ?? 'texto';
+                        ?>
+
                         <div class="card mb-3 <?= $bloqueado ? 'bloqueado' : '' ?>">
                             <div class="card-body">
 
-                                <!-- ✔ CHECK -->
-                                <div class="form-check mb-2">
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="concluido[<?= $i['id'] ?>]"
-                                        value="1"
-                                        <?= $i['concluido'] ? 'checked' : '' ?>
-                                    >
-                                    <label class="form-check-label fw-bold">
-                                        <?= htmlspecialchars($i['descricao']) ?>
-                                    </label>
-                                </div>
+                                <label class="fw-bold mb-2 d-block">
+                                    <?= htmlspecialchars($i['descricao']) ?>
+                                </label>
 
-                                <!-- 📝 OBSERVAÇÃO -->
-                                <?php if ((int) $i['permite_observacao'] === 1): ?>
-                                    <textarea
-                                        class="form-control mb-2"
-                                        name="observacao[<?= $i['id'] ?>]"
-                                        placeholder="Observações"
-                                    ><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
-                                <?php endif; ?>
+                                <?php switch ($tipo):
 
-                                <!-- 📸 FOTO -->
-                                <?php if ((int) $i['permite_foto'] === 1): ?>
-                                    <div class="mb-2">
-                                        <label class="form-label small">📸 Anexar foto</label>
+                                    /* ======================
+                                    * TEXTO (PADRÃO)
+                                    * ====================== */
+                                    case 'texto': ?>
+
+                                        <div class="form-check mb-2">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="concluido[<?= $i['id'] ?>]"
+                                                value="1"
+                                                <?= $i['concluido'] ? 'checked' : '' ?>
+                                            >
+                                            <label class="form-check-label">
+                                                Concluído
+                                            </label>
+                                        </div>
+
+                                        <?php if ((int)$i['permite_observacao'] === 1): ?>
+                                            <textarea
+                                                class="form-control mb-2"
+                                                name="observacao[<?= $i['id'] ?>]"
+                                                placeholder="Observações"><?= htmlspecialchars($i['observacao'] ?? '') ?></textarea>
+                                        <?php endif; ?>
+
+                                        <?php if ((int)$i['permite_foto'] === 1): ?>
+                                            <input type="file"
+                                                class="form-control upload-foto mb-2"
+                                                data-item="<?= $i['id'] ?>"
+                                                accept="image/*">
+                                            <div class="item-media mt-2" data-item="<?= $i['id'] ?>"></div>
+                                        <?php endif; ?>
+
+                                    <?php break;
+
+                                    /* ======================
+                                    * DATA
+                                    * ====================== */
+                                    case 'data': ?>
+
                                         <input
-                                            type="file"
-                                            class="form-control upload-foto"
-                                            data-item="<?= $i['id'] ?>"
-                                            accept="image/*"
-                                        />
-
-                                        <div class="item-media mt-2" data-item="<?= $i['id'] ?>"></div>
-
-                                    </div>
-                                <?php endif; ?>
-
-                                <!-- 📄 DOCUMENTO -->
-                                <?php if ((int) $i['permite_anexo'] === 1): ?>
-                                    <div class="mb-2">
-                                        <label class="form-label small">📄 Anexar documento</label>
-                                        <input
-                                            type="file"
-                                            class="form-control upload-doc"
-                                            data-item="<?= $i['id'] ?>"
+                                            type="date"
+                                            class="form-control"
+                                            name="data[<?= $i['id'] ?>]"
+                                            value="<?= htmlspecialchars($i['valor_data'] ?? '') ?>"
                                         >
-                                    </div>
-                                <?php endif; ?>
+
+                                    <?php break;
+
+                                    /* ======================
+                                    * MÚLTIPLA ESCOLHA
+                                    * ====================== */
+                                    case 'multipla':
+
+                                        $opcoes = array_filter(array_map('trim', explode("\n", $i['opcoes'] ?? '')));
+                                        $max = (int)($i['max_selecoes'] ?? 1);
+                                        $isRadio = $max === 1;
+                                    ?>
+
+                                        <?php foreach ($opcoes as $idx => $op): ?>
+                                            <div class="form-check">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="<?= $isRadio ? 'radio' : 'checkbox' ?>"
+                                                    name="multipla[<?= $i['id'] ?>]<?= $isRadio ? '' : '[]' ?>"
+                                                    value="<?= htmlspecialchars($op) ?>"
+                                                >
+                                                <label class="form-check-label">
+                                                    <?= htmlspecialchars($op) ?>
+                                                </label>
+                                            </div>
+                                        <?php endforeach; ?>
+
+                                        <?php if ($max > 1): ?>
+                                            <small class="text-muted">
+                                                Pode selecionar até <?= $max ?> opções
+                                            </small>
+                                        <?php endif; ?>
+
+                                    <?php break;
+
+                                endswitch; ?>
 
                             </div>
                         </div>
+
                     <?php endforeach; ?>
 
                     <!-- BOTÕES -->
