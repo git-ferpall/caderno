@@ -60,11 +60,12 @@ $stmt->close();
             backdrop-filter: blur(4px);
         }
         .table-rounded {
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.15); /* preto transparente */
             border-radius: 10px;
             overflow: hidden;
             background-color: #fff;
         }
+
 
     </style>
 </head>
