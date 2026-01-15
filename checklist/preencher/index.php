@@ -64,6 +64,9 @@ $stmt->close();
             pointer-events: none;
             opacity: .65;
         }
+        .page-content {
+            margin-top: 80px;
+        }
     </style>
 </head>
 
@@ -73,8 +76,9 @@ $stmt->close();
     <?php require APP_PATH . '/include/popups.php'; ?>
     <div id="conteudo">
         <?php require APP_PATH . '/include/menu.php'; ?>
-        <div class="container py-4">
+        <div class="container py-4 page-content">
             <main class="sistema">
+
 
                 <!-- TÍTULO -->
                 <h3 class="mb-4">📋 <?= htmlspecialchars($checklist['titulo']) ?></h3>
