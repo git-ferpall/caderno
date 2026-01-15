@@ -114,121 +114,169 @@ if ($modelo_id) {
 
 </head>
 <body>
- 
-    <?php require APP_PATH . '/include/loading.php'; ?>
-    <?php require APP_PATH . '/include/popups.php'; ?>
 
-    <div id="conteudo">
+<?php require APP_PATH . '/include/loading.php'; ?>
+<?php require APP_PATH . '/include/popups.php'; ?>
+
+<div id="conteudo">
+
     <?php require APP_PATH . '/include/menu.php'; ?>
 
     <main class="sistema">
-    <div class="page-title">
-        <h2 class="main-title cor-branco">
-            ✏️ <?= $modelo_id ? 'Editar' : 'Criar' ?> modelo de checklist
-        </h2>
-    </div>
 
-    <form action="/checklist/modelos/salvar.php" method="POST" class="main-form container">
-    <?php if ($modelo_id > 0): ?>
-    <input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
+        <!-- TÍTULO DA PÁGINA -->
+        <div class="page-title">
+            <h2 class="main-title cor-branco">
+                ✏️ <?= $modelo_id ? 'Editar' : 'Criar' ?> modelo de checklist
+            </h2>
+        </div>
 
-    <?php endif; ?>
+        <!-- FORMULÁRIO -->
+        <form action="/checklist/modelos/salvar.php"
+              method="POST"
+              class="main-form container">
 
+            <?php if ($modelo_id > 0): ?>
+                <input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
+            <?php endif; ?>
 
-    <!-- TÍTULO -->
-    <div class="form-campo">
-        <label for="titulo">Título</label>
-        <input class="form-text"
-            type="text"
-            name="titulo"
-            id="titulo"
-            placeholder="Título do checklist"
-            required
-            value="<?= htmlspecialchars($modelo['titulo']) ?>">
-    </div>
+            <!-- TÍTULO -->
+            <div class="form-campo">
+                <label for="titulo">Título</label>
+                <input
+                    class="form-text"
+                    type="text"
+                    name="titulo"
+                    id="titulo"
+                    placeholder="Título do checklist"
+                    required
+                    value="<?= htmlspecialchars($modelo['titulo']) ?>"
+                >
+            </div>
 
-    <!-- DESCRIÇÃO -->
-    <div class="form-campo">
-        <label for="descricao">Descrição</label>
-        <textarea name="descricao"
-                id="descricao"
-                class="form-text"
-                rows="3"
-                placeholder="Descrição opcional"><?= htmlspecialchars($modelo['descricao']) ?></textarea>
-    </div>
+            <!-- DESCRIÇÃO -->
+            <div class="form-campo">
+                <label for="descricao">Descrição</label>
+                <textarea
+                    name="descricao"
+                    id="descricao"
+                    class="form-text"
+                    rows="3"
+                    placeholder="Descrição opcional"
+                ><?= htmlspecialchars($modelo['descricao']) ?></textarea>
+            </div>
 
-    <!-- PÚBLICO -->
-    <div class="form-campo">
-        <label>
-            <input type="checkbox" name="publico" value="1" <?= $modelo['publico'] ? 'checked' : '' ?>>
-            Modelo padrão do sistema
-        </label>
-    </div>
-
-    <h2>📋 Itens do checklist</h2>
-
-    <div id="itens">
-    <?php foreach ($itens as $i):
-        $key = 'id_' . $i['id'];
-    ?>
-    <div class="form-campo item" data-key="<?= $key ?>">
-        <div class="form-box">
-            <span class="handle">☰</span>
-
-            <input type="hidden" name="item_key[]" value="<?= $key ?>">
-
-            <input class="form-text"
-                type="text"
-                name="item_desc[<?= $key ?>]"
-                value="<?= htmlspecialchars($i['descricao']) ?>"
-                required>
-
-            <div class="form-opcoes">
+            <!-- PÚBLICO -->
+            <div class="form-campo">
                 <label>
-                    <input type="checkbox" class="opcao-item"
-                        name="item_obs[<?= $key ?>]" value="1"
-                        <?= $i['permite_observacao'] ? 'checked' : '' ?>>
-                    Obs
+                    <input
+                        type="checkbox"
+                        name="publico"
+                        value="1"
+                        <?= $modelo['publico'] ? 'checked' : '' ?>
+                    >
+                    Modelo padrão do sistema
                 </label>
+            </div>
 
-                <label>
-                    <input type="checkbox" class="opcao-item"
-                        name="item_foto[<?= $key ?>]" value="1"
-                        <?= $i['permite_foto'] ? 'checked' : '' ?>>
-                    Foto
-                </label>
+            <!-- ITENS -->
+            <h2 class="mt-4">📋 Itens do checklist</h2>
+
+            <div id="itens">
+
+                <?php foreach ($itens as $i): ?>
+                    <?php $key = 'id_' . $i['id']; ?>
+
+                    <div class="form-campo item" data-key="<?= $key ?>">
+                        <div class="form-box">
+
+                            <!-- DRAG -->
+                            <span class="handle">☰</span>
+
+                            <input type="hidden" name="item_key[]" value="<?= $key ?>">
+
+                            <!-- DESCRIÇÃO DO ITEM -->
+                            <input
+                                class="form-text"
+                                type="text"
+                                name="item_desc[<?= $key ?>]"
+                                value="<?= htmlspecialchars($i['descricao']) ?>"
+                                required
+                            >
+
+                            <!-- OPÇÕES -->
+                            <div class="form-opcoes">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        class="opcao-item"
+                                        name="item_obs[<?= $key ?>]"
+                                        value="1"
+                                        <?= $i['permite_observacao'] ? 'checked' : '' ?>
+                                    >
+                                    Obs
+                                </label>
+
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        class="opcao-item"
+                                        name="item_foto[<?= $key ?>]"
+                                        value="1"
+                                        <?= $i['permite_foto'] ? 'checked' : '' ?>
+                                    >
+                                    Foto
+                                </label>
+                            </div>
+
+                            <!-- REMOVER ITEM -->
+                            <button
+                                type="button"
+                                class="btn-remover-text"
+                                onclick="this.closest('.item').remove()"
+                            >
+                                🗑 Remover
+                            </button>
+
+                        </div>
+                    </div>
+
+                <?php endforeach; ?>
 
             </div>
 
-            <button type="button"
-                    class="btn-remover-text"
-                    onclick="this.closest('.item').remove()">
-                🗑 Remover
-            </button>
-        </div>
-    </div>
-    <?php endforeach; ?>
+            <!-- BOTÕES -->
+            <div class="form-submit form-submit-equal mt-4">
+
+                <button
+                    type="button"
+                    class="main-btn fundo-azul"
+                    onclick="addItem()"
+                >
+                    + Item
+                </button>
+
+                <button
+                    type="submit"
+                    class="main-btn fundo-verde"
+                >
+                    Salvar
+                </button>
+
+                <a
+                    href="/checklist/modelos/index.php"
+                    class="main-btn"
+                    style="background-color:#dc3545; color:#fff;"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+    </main>
 </div>
 
-    <!-- BOTÕES -->
-    <div class="form-submit form-submit-equal">
-        <button type="button" class="main-btn fundo-azul" onclick="addItem()">+ Item</button>
-
-        <button type="button"
-            class="main-btn fundo-verde"
-            onclick="this.closest('form').submit()">
-            Salvar
-        </button>
-
-        <a href="/checklist/modelos/index.php" class="main-btn" style="background-color:#dc3545; color:#fff;">
-            Cancelar
-        </a>
-    </div>
-
-
-</form>
-</main>
-</div>
 
 <?php require APP_PATH . '/include/footer.php'; ?>
 <script src="/js/jquery.js"></script>
