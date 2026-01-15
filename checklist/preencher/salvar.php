@@ -45,9 +45,9 @@ $observacoes = $_POST['observacao']  ?? [];
 $datas       = $_POST['data']         ?? [];
 $multipla    = $_POST['multipla']     ?? [];
 
-/* 🔎 Busca TODOS os itens do checklist */
+/* 🔎 Busca TODOS os itens com TIPO */
 $stmt = $mysqli->prepare("
-    SELECT id
+    SELECT id, tipo
     FROM checklist_itens
     WHERE checklist_id = ?
 ");
@@ -56,7 +56,7 @@ $stmt->execute();
 $itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* 💾 Atualiza itens */
+/* 💾 Atualização preparada */
 $stmt = $mysqli->prepare("
     UPDATE checklist_itens
     SET
@@ -67,37 +67,62 @@ $stmt = $mysqli->prepare("
     WHERE id = ? AND checklist_id = ?
 ");
 
+/* 🔁 Processa item por item */
 foreach ($itens as $item) {
 
     $item_id = (int)$item['id'];
+    $tipo    = $item['tipo'];
 
-    /* ✔ Concluído */
-    $done = isset($concluidos[$item_id]) ? 1 : 0;
+    $done  = 0;
+    $obs   = null;
+    $data  = null;
+    $multi = null;
 
     /* 📝 Observação */
-    $obs = trim($observacoes[$item_id] ?? '');
-    $obs = $obs !== '' ? $obs : null;
-
-    /* 📅 Data */
-    $data = $datas[$item_id] ?? null;
-    if ($data === '') {
-        $data = null;
+    if (isset($observacoes[$item_id])) {
+        $obs = trim($observacoes[$item_id]);
+        if ($obs === '') {
+            $obs = null;
+        }
     }
 
-    /* 🔢 Múltipla escolha (JSON) */
-    if (isset($multipla[$item_id])) {
+    switch ($tipo) {
 
-        $valor = $multipla[$item_id];
+        /* ======================
+         * TEXTO
+         * ====================== */
+        case 'texto':
+            $done = isset($concluidos[$item_id]) ? 1 : 0;
+            break;
 
-        if (is_array($valor)) {
-            $multi = json_encode($valor, JSON_UNESCAPED_UNICODE);
-        } else {
-            // radio → string
-            $multi = json_encode([$valor], JSON_UNESCAPED_UNICODE);
-        }
+        /* ======================
+         * DATA
+         * ====================== */
+        case 'data':
+            if (!empty($datas[$item_id])) {
+                $data = $datas[$item_id];
+                $done = 1; // data preenchida = concluído
+            }
+            break;
 
-    } else {
-        $multi = null;
+        /* ======================
+         * MÚLTIPLA ESCOLHA
+         * ====================== */
+        case 'multipla':
+            if (isset($multipla[$item_id])) {
+
+                $valor = $multipla[$item_id];
+
+                if (is_array($valor)) {
+                    $multi = json_encode($valor, JSON_UNESCAPED_UNICODE);
+                } else {
+                    // radio → valor único
+                    $multi = json_encode([$valor], JSON_UNESCAPED_UNICODE);
+                }
+
+                $done = 1; // opção escolhida = concluído
+            }
+            break;
     }
 
     $stmt->bind_param(
@@ -115,7 +140,21 @@ foreach ($itens as $item) {
 
 $stmt->close();
 
+/* 🔒 Finalizar checklist */
+if ($acao === 'finalizar') {
 
+    $stmt = $mysqli->prepare("
+        UPDATE checklists
+        SET concluido = 1
+        WHERE id = ? AND user_id = ?
+    ");
+    $stmt->bind_param("ii", $checklist_id, $user_id);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: ../fechar/assinar.php?id=$checklist_id");
+    exit;
+}
 
 /* 🔁 Apenas salvar */
 header("Location: index.php?id=$checklist_id");
