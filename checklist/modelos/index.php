@@ -127,9 +127,10 @@ $stmt->close();
     </div>
         
 
-    <?php require APP_PATH . '/include/footer.php'; ?>
+    
 
 </div>
+<?php require APP_PATH . '/include/footer.php'; ?>
 
 <!-- JS -->
 <script src="/js/jquery.js"></script>
