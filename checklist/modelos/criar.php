@@ -139,37 +139,38 @@ if ($modelo_id) {
                name="item_desc[<?= $key ?>]"
                value="<?= htmlspecialchars($i['descricao']) ?>"
                placeholder="Nome da sessão">
+
+        <button type="button"
+                class="btn-remover-text"
+                onclick="this.closest('.sessao-card').remove()">
+            🗑 Remover sessão
+        </button>
     </div>
 
 <?php else: ?>
 
-    <!-- CARD DE PERGUNTA -->
-    <div class="item-card"
-        data-key="<?= $key ?>"
-        data-tipo="<?= $i['tipo'] ?>">
+    <!-- PERGUNTA -->
+    <div class="item-card" data-key="<?= $key ?>">
 
         <input type="hidden" name="item_key[]" value="<?= $key ?>">
 
-        <!-- fallback defensivo -->
-        <input type="hidden"
-            name="item_tipo[<?= $key ?>]"
-            value="<?= $i['tipo'] ?>">
-
-        <div class="item-header">
-
+        <div class="item-move">
             <span class="handle">☰</span>
+        </div>
+
+        <div class="item-body">
 
             <input type="text"
-                class="item-title"
-                name="item_desc[<?= $key ?>]"
-                value="<?= htmlspecialchars($i['descricao']) ?>"
-                placeholder="Digite a pergunta"
-                required>
+                   class="item-title"
+                   name="item_desc[<?= $key ?>]"
+                   value="<?= htmlspecialchars($i['descricao']) ?>"
+                   placeholder="Digite a pergunta"
+                   required>
 
             <select name="item_tipo[<?= $key ?>]"
                     class="item-tipo">
-                <option value="texto_longo" <?= $i['tipo']=='texto_longo'?'selected':'' ?>>Texto longo</option>
                 <option value="texto_curto" <?= $i['tipo']=='texto_curto'?'selected':'' ?>>Texto curto</option>
+                <option value="texto_longo" <?= $i['tipo']=='texto_longo'?'selected':'' ?>>Texto longo</option>
                 <option value="data" <?= $i['tipo']=='data'?'selected':'' ?>>Data</option>
                 <option value="unica" <?= $i['tipo']=='unica'?'selected':'' ?>>Única escolha</option>
                 <option value="multipla" <?= $i['tipo']=='multipla'?'selected':'' ?>>Múltipla escolha</option>
@@ -177,14 +178,18 @@ if ($modelo_id) {
                 <option value="nota_0_10" <?= $i['tipo']=='nota_0_10'?'selected':'' ?>>Nota 0–10</option>
             </select>
 
-            <button type="button"
-                    class="btn-remover-text"
-                    onclick="this.closest('.item-card').remove()">🗑</button>
+            <!-- aqui entram campos extras conforme tipo -->
         </div>
 
-        <div class="item-body"></div>
-    </div>
+        <div class="item-actions">
+            <button type="button"
+                    class="btn-remover-text"
+                    onclick="this.closest('.item-card').remove()">
+                🗑 Excluir pergunta
+            </button>
+        </div>
 
+    </div>
 
 <?php endif; ?>
 <?php endforeach; ?>
