@@ -119,7 +119,7 @@ if ($modelo_id) {
 
 <hr>
 
-<h3>📋 Estrutura do checklist</h3>
+<h3 class="editor-section-title">📋 Estrutura do checklist</h3>
 
 <div id="itens">
 
@@ -128,51 +128,61 @@ if ($modelo_id) {
 
 <?php if ($i['tipo'] === 'sessao'): ?>
 
-<div class="sessao-card" data-key="<?= $key ?>">
-    <span class="handle">☰</span>
+    <!-- SESSÃO -->
+    <div class="sessao-card" data-key="<?= $key ?>">
+        <span class="handle">☰</span>
 
-    <input type="hidden" name="item_key[]" value="<?= $key ?>">
-    <input type="hidden" name="item_tipo[<?= $key ?>]" value="sessao">
+        <input type="hidden" name="item_key[]" value="<?= $key ?>">
+        <input type="hidden" name="item_tipo[<?= $key ?>]" value="sessao">
 
-    <input type="text"
-           name="item_desc[<?= $key ?>]"
-           value="<?= htmlspecialchars($i['descricao']) ?>"
-           placeholder="Nome da sessão">
-</div>
+        <input type="text"
+               name="item_desc[<?= $key ?>]"
+               value="<?= htmlspecialchars($i['descricao']) ?>"
+               placeholder="Nome da sessão">
+    </div>
 
 <?php else: ?>
 
-<div class="item-card" data-key="<?= $key ?>">
+    <!-- CARD DE PERGUNTA -->
+    <div class="item-card"
+         data-key="<?= $key ?>"
+         data-tipo="<?= $i['tipo'] ?>">
 
-    <span class="handle">☰</span>
+        <span class="handle">☰</span>
 
-    <input type="hidden" name="item_key[]" value="<?= $key ?>">
+        <input type="hidden" name="item_key[]" value="<?= $key ?>">
 
-    <div class="item-header">
-        <input type="text"
-               class="item-title"
-               name="item_desc[<?= $key ?>]"
-               value="<?= htmlspecialchars($i['descricao']) ?>"
-               required>
+        <!-- fallback defensivo -->
+        <input type="hidden"
+               name="item_tipo[<?= $key ?>]"
+               value="<?= $i['tipo'] ?>">
 
-        <select name="item_tipo[<?= $key ?>]"
-                class="item-tipo">
-            <option value="texto_longo" <?= $i['tipo']=='texto_longo'?'selected':'' ?>>Texto longo</option>
-            <option value="texto_curto" <?= $i['tipo']=='texto_curto'?'selected':'' ?>>Texto curto</option>
-            <option value="data" <?= $i['tipo']=='data'?'selected':'' ?>>Data</option>
-            <option value="unica" <?= $i['tipo']=='unica'?'selected':'' ?>>Única escolha</option>
-            <option value="multipla" <?= $i['tipo']=='multipla'?'selected':'' ?>>Múltipla escolha</option>
-            <option value="nota_estrela" <?= $i['tipo']=='nota_estrela'?'selected':'' ?>>Nota ⭐</option>
-            <option value="nota_0_10" <?= $i['tipo']=='nota_0_10'?'selected':'' ?>>Nota 0–10</option>
-        </select>
+        <div class="item-header">
+            <input type="text"
+                   class="item-title"
+                   name="item_desc[<?= $key ?>]"
+                   value="<?= htmlspecialchars($i['descricao']) ?>"
+                   placeholder="Digite a pergunta"
+                   required>
 
-        <button type="button"
-                class="btn-remover-text"
-                onclick="this.closest('.item-card').remove()">🗑</button>
+            <select name="item_tipo[<?= $key ?>]"
+                    class="item-tipo">
+                <option value="texto_longo" <?= $i['tipo']=='texto_longo'?'selected':'' ?>>Texto longo</option>
+                <option value="texto_curto" <?= $i['tipo']=='texto_curto'?'selected':'' ?>>Texto curto</option>
+                <option value="data" <?= $i['tipo']=='data'?'selected':'' ?>>Data</option>
+                <option value="unica" <?= $i['tipo']=='unica'?'selected':'' ?>>Única escolha</option>
+                <option value="multipla" <?= $i['tipo']=='multipla'?'selected':'' ?>>Múltipla escolha</option>
+                <option value="nota_estrela" <?= $i['tipo']=='nota_estrela'?'selected':'' ?>>Nota ⭐</option>
+                <option value="nota_0_10" <?= $i['tipo']=='nota_0_10'?'selected':'' ?>>Nota 0–10</option>
+            </select>
+
+            <button type="button"
+                    class="btn-remover-text"
+                    onclick="this.closest('.item-card').remove()">🗑</button>
+        </div>
+
+        <div class="item-body"></div>
     </div>
-
-    <div class="item-body"></div>
-</div>
 
 <?php endif; ?>
 <?php endforeach; ?>
@@ -212,6 +222,7 @@ if ($modelo_id) {
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="/js/popups.js"></script>
 <script src="/js/script.js"></script>
+
 <script src="/checklist/modelos/assets/js/editor.js"></script>
 <script src="/checklist/modelos/assets/js/editor-add.js"></script>
 <script src="/checklist/modelos/assets/js/editor-sortable.js"></script>
