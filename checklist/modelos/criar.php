@@ -210,7 +210,8 @@ if ($modelo_id) {
 
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-
+<script src="/js/popups.js"></script>
+<script src="/js/script.js"></script>
 <script src="/checklist/modelos/assets/js/editor.js"></script>
 <script src="/checklist/modelos/assets/js/editor-add.js"></script>
 <script src="/checklist/modelos/assets/js/editor-sortable.js"></script>
