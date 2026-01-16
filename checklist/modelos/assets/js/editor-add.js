@@ -4,12 +4,14 @@ function addPergunta() {
     const div = document.createElement('div');
     div.className = 'item-card';
     div.dataset.key = key;
+    div.dataset.tipo = 'texto_longo';
 
     div.innerHTML = `
-        <span class="handle">☰</span>
         <input type="hidden" name="item_key[]" value="${key}">
 
         <div class="item-header">
+            <span class="handle">☰</span>
+
             <input type="text"
                    class="item-title"
                    name="item_desc[${key}]"
@@ -46,6 +48,7 @@ function addSessao() {
 
     div.innerHTML = `
         <span class="handle">☰</span>
+
         <input type="hidden" name="item_key[]" value="${key}">
         <input type="hidden" name="item_tipo[${key}]" value="sessao">
 

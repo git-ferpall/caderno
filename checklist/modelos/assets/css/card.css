@@ -1,22 +1,11 @@
-/* ===========================
-   CARD DE PERGUNTA
-=========================== */
-
 .item-card {
-    background: #fdfefe;
+    background: #fff;
     border-radius: 18px;
     padding: 18px 20px;
-
-    box-shadow:
-        0 8px 20px rgba(0,0,0,.10),
-        inset 0 1px 0 rgba(255,255,255,.6);
-
-    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,.1);
+    transition: transform .15s ease;
 }
 
 .item-card:hover {
     transform: translateY(-1px);
-    box-shadow:
-        0 12px 28px rgba(0,0,0,.14),
-        inset 0 1px 0 rgba(255,255,255,.7);
 }

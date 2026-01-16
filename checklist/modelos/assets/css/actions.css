@@ -1,19 +1,10 @@
 .btn-remover-text {
     border: none;
     background: transparent;
-    color: #9aa3af;
-
-    font-size: 16px;
     cursor: pointer;
-    transition: color .2s ease, transform .1s ease;
+    font-size: 16px;
+    color: #999;
 }
-
 .btn-remover-text:hover {
     color: #e53935;
-    transform: scale(1.05);
-}
-
-.preview-stars {
-    font-size: 22px;
-    color: #fbc02d;
 }

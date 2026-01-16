@@ -1,60 +1,17 @@
-/* ===========================
-   CAMPOS DO CARD
-=========================== */
-
 .item-title {
     height: 38px;
     padding: 8px 12px;
     width: 100%;
-
     font-size: 15px;
     font-weight: 600;
-
     border-radius: 8px;
     border: 1px solid #d6dce4;
-    background: #fff;
-}
-
-.item-title:focus,
-.item-body input:focus,
-.item-body textarea:focus {
-    outline: none;
-    border-color: #4c7cf3;
-    box-shadow: 0 0 0 3px rgba(76,124,243,.15);
 }
 
 .item-tipo {
     height: 38px;
     padding: 6px 10px;
-
     border-radius: 8px;
     border: 1px solid #d6dce4;
     background: #f8fafc;
-
-    font-weight: 500;
-}
-
-/* ===========================
-   CAMPOS DO BODY
-=========================== */
-
-.item-body label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #4b5563;
-}
-
-.item-body input,
-.item-body textarea {
-    width: 100%;
-    padding: 8px 10px;
-
-    border-radius: 8px;
-    border: 1px solid #d6dce4;
-    font-size: 14px;
-}
-
-.item-body textarea {
-    resize: vertical;
-    min-height: 70px;
 }
