@@ -4,7 +4,13 @@
 
 .item-header {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) 180px 36px;
+    grid-template-columns: 
+        28px          /* handle ☰ */
+        34px          /* checkbox / input pequeno */
+        minmax(0,1fr) /* campo pergunta */
+        180px         /* select tipo */
+        36px;         /* remover */
+
     align-items: center;
     gap: 12px;
 
