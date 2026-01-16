@@ -4,23 +4,17 @@
 
 .item-header {
     display: grid;
-    grid-template-columns: 
-        28px          /* handle ☰ */
-        34px          /* checkbox / input pequeno */
-        minmax(0,1fr) /* campo pergunta */
-        180px         /* select tipo */
-        36px;         /* remover */
-
+    grid-template-columns: 28px 1fr 160px 36px;
     align-items: center;
     gap: 12px;
 
     width: 100%;
+    min-width: 0;
 }
 
 .item-header > * {
     min-width: 0;
 }
-
 
 /* ===========================
    CORPO DO CARD
@@ -59,15 +53,14 @@
 
 #itens {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 340px);
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
     align-items: start;
-    justify-content: start;
 
     width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
 }
-
 
 /* CARD DE PERGUNTA */
 .item-card {
@@ -83,35 +76,8 @@
    MOBILE PEQUENO
 =========================== */
 
-@media (max-width: 768px) {
-    #itens {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        justify-content: center;
-    }
-}
-
 @media (max-width: 420px) {
     #itens {
         grid-template-columns: 1fr;
     }
-}
-@keyframes cardEnter {
-    from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.item-card,
-.sessao-card {
-    animation: cardEnter .25s ease-out;
-}
-
-.sortable-ghost,
-.sortable-drag {
-    animation: none !important;
 }
