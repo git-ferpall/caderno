@@ -145,25 +145,26 @@ if ($modelo_id) {
 
     <!-- CARD DE PERGUNTA -->
     <div class="item-card"
-         data-key="<?= $key ?>"
-         data-tipo="<?= $i['tipo'] ?>">
-
-        <span class="handle">☰</span>
+        data-key="<?= $key ?>"
+        data-tipo="<?= $i['tipo'] ?>">
 
         <input type="hidden" name="item_key[]" value="<?= $key ?>">
 
         <!-- fallback defensivo -->
         <input type="hidden"
-               name="item_tipo[<?= $key ?>]"
-               value="<?= $i['tipo'] ?>">
+            name="item_tipo[<?= $key ?>]"
+            value="<?= $i['tipo'] ?>">
 
         <div class="item-header">
+
+            <span class="handle">☰</span>
+
             <input type="text"
-                   class="item-title"
-                   name="item_desc[<?= $key ?>]"
-                   value="<?= htmlspecialchars($i['descricao']) ?>"
-                   placeholder="Digite a pergunta"
-                   required>
+                class="item-title"
+                name="item_desc[<?= $key ?>]"
+                value="<?= htmlspecialchars($i['descricao']) ?>"
+                placeholder="Digite a pergunta"
+                required>
 
             <select name="item_tipo[<?= $key ?>]"
                     class="item-tipo">
@@ -183,6 +184,7 @@ if ($modelo_id) {
 
         <div class="item-body"></div>
     </div>
+
 
 <?php endif; ?>
 <?php endforeach; ?>
