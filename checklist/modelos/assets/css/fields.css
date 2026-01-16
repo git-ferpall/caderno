@@ -15,3 +15,96 @@
     border: 1px solid #d6dce4;
     background: #f8fafc;
 }
+/* ===========================
+   BODY DO CARD (REFINO)
+=========================== */
+
+.item-body {
+    margin-top: 24px;          /* 🔥 mais respiro */
+    padding: 20px 24px;
+    border-radius: 14px;
+
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+/* ===========================
+   LABELS
+=========================== */
+
+.item-body label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* ===========================
+   INPUTS / TEXTAREA
+=========================== */
+
+.item-body input,
+.item-body textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.item-body textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+/* ===========================
+   FOCO
+=========================== */
+
+.item-body input:focus,
+.item-body textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+}
+
+/* ===========================
+   GRUPO MÍN / MÁX
+=========================== */
+
+.item-body .range-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ===========================
+   INPUT NUMBER MAIS BONITO
+=========================== */
+
+.item-body input[type="number"] {
+    height: 42px;
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width: 768px) {
+    .item-body {
+        padding: 18px;
+    }
+
+    .item-body .range-group {
+        grid-template-columns: 1fr;
+    }
+}
