@@ -1,6 +1,6 @@
 .item-header {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: 28px minmax(320px, 1fr) 200px 36px;
     align-items: center;
     gap: 12px;
 }
