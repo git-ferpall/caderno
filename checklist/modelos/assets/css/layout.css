@@ -27,3 +27,41 @@
         padding-left: 0;
     }
 }
+/* GRID PRINCIPAL */
+#itens {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* CARD DE PERGUNTA */
+.item-card {
+    grid-column: span 1;
+}
+
+/* SESSÃO OCUPA LINHA INTEIRA */
+.sessao-card {
+    grid-column: 1 / -1;
+}
+
+/* TABLET */
+@media (max-width: 1024px) {
+    #itens {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    #itens {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* MOBILE PEQUENO */
+@media (max-width: 420px) {
+    #itens {
+        grid-template-columns: 1fr;
+    }
+}

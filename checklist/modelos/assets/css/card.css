@@ -9,3 +9,17 @@
 .item-card:hover {
     transform: translateY(-1px);
 }
+.sessao-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sessao-card .btn-remover-text {
+    margin-left: auto;
+    color: rgba(255,255,255,.8);
+}
+
+.sessao-card .btn-remover-text:hover {
+    color: #fff;
+}

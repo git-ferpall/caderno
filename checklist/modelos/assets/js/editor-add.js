@@ -55,7 +55,14 @@ function addSessao() {
         <input type="text"
                name="item_desc[${key}]"
                placeholder="Nome da sessão">
+
+        <button type="button"
+                class="btn-remover-text"
+                onclick="this.closest('.sessao-card').remove()">
+            🗑
+        </button>
     `;
 
     document.getElementById('itens').appendChild(div);
 }
+
