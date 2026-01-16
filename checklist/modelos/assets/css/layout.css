@@ -4,17 +4,17 @@
 
 .item-header {
     display: grid;
-    grid-template-columns: 28px 1fr 160px 36px;
+    grid-template-columns: 28px minmax(0, 1fr) 180px 36px;
     align-items: center;
     gap: 12px;
 
     width: 100%;
-    min-width: 0;
 }
 
 .item-header > * {
     min-width: 0;
 }
+
 
 /* ===========================
    CORPO DO CARD
