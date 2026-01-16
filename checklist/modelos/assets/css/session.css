@@ -1,0 +1,32 @@
+.sessao-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 16px 20px;
+    border-radius: 14px;
+
+    background: linear-gradient(135deg, #2f5ec4, #1e3c8a);
+    color: #fff;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    box-shadow: 0 10px 26px rgba(0,0,0,.25);
+}
+
+.sessao-card input {
+    background: transparent;
+    border: none;
+    outline: none;
+
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+
+    width: 100%;
+}
+
+.sessao-card input::placeholder {
+    color: rgba(255,255,255,.7);
+}

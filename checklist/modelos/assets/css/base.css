@@ -1,0 +1,15 @@
+#itens {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.handle {
+    cursor: grab;
+    opacity: 0.6;
+    transition: opacity .2s ease;
+}
+
+.handle:hover {
+    opacity: 1;
+}
