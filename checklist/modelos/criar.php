@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 $user = require_login();
 $user_id = (int)$user->sub;
 
-$modelo_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$modelo_id = isset($_GET['id']) ? (int)$user_id = (int)$_GET['id'] : 0;
 
 define('APP_PATH', realpath(__DIR__ . '/../../'));
 
@@ -60,8 +60,6 @@ if ($modelo_id) {
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="stylesheet" href="/css/style.css">
-
-    <!-- CSS DO EDITOR -->
     <link rel="stylesheet" href="/checklist/modelos/assets/css/editor.css">
 </head>
 
@@ -80,9 +78,7 @@ if ($modelo_id) {
     ✏️ <?= $modelo_id ? 'Editar' : 'Criar' ?> modelo de checklist
 </h2>
 
-<form action="/checklist/modelos/salvar.php"
-      method="POST"
-      class="main-form">
+<form action="/checklist/modelos/salvar.php" method="POST" class="main-form">
 
 <?php if ($modelo_id): ?>
 <input type="hidden" name="modelo_id" value="<?= $modelo_id ?>">
@@ -143,32 +139,23 @@ if ($modelo_id) {
         <button type="button"
                 class="btn-remover-text"
                 onclick="this.closest('.sessao-card').remove()">
-            🗑 Remover sessão
+            🗑
         </button>
     </div>
 
 <?php else: ?>
 
-    <!-- PERGUNTA -->
+    <!-- CARD DE PERGUNTA -->
     <div class="item-card" data-key="<?= $key ?>">
 
         <input type="hidden" name="item_key[]" value="<?= $key ?>">
+        <input type="hidden" name="item_tipo[<?= $key ?>]" value="<?= $i['tipo'] ?>">
 
-        <div class="item-move">
+        <!-- CONTROLES -->
+        <div class="item-top">
             <span class="handle">☰</span>
-        </div>
 
-        <div class="item-body">
-
-            <input type="text"
-                   class="item-title"
-                   name="item_desc[<?= $key ?>]"
-                   value="<?= htmlspecialchars($i['descricao']) ?>"
-                   placeholder="Digite a pergunta"
-                   required>
-
-            <select name="item_tipo[<?= $key ?>]"
-                    class="item-tipo">
+            <select name="item_tipo[<?= $key ?>]" class="item-tipo">
                 <option value="texto_curto" <?= $i['tipo']=='texto_curto'?'selected':'' ?>>Texto curto</option>
                 <option value="texto_longo" <?= $i['tipo']=='texto_longo'?'selected':'' ?>>Texto longo</option>
                 <option value="data" <?= $i['tipo']=='data'?'selected':'' ?>>Data</option>
@@ -178,15 +165,22 @@ if ($modelo_id) {
                 <option value="nota_0_10" <?= $i['tipo']=='nota_0_10'?'selected':'' ?>>Nota 0–10</option>
             </select>
 
-            <!-- aqui entram campos extras conforme tipo -->
-        </div>
-
-        <div class="item-actions">
             <button type="button"
                     class="btn-remover-text"
-                    onclick="this.closest('.item-card').remove()">
-                🗑 Excluir pergunta
-            </button>
+                    onclick="this.closest('.item-card').remove()">🗑</button>
+        </div>
+
+        <!-- PERGUNTA -->
+        <input type="text"
+               class="item-title item-title-main"
+               name="item_desc[<?= $key ?>]"
+               value="<?= htmlspecialchars($i['descricao']) ?>"
+               placeholder="Digite a pergunta"
+               required>
+
+        <!-- CONFIGURAÇÕES -->
+        <div class="item-body">
+            <!-- JS injeta campos aqui -->
         </div>
 
     </div>
@@ -199,20 +193,15 @@ if ($modelo_id) {
 <!-- BOTÕES -->
 <div class="form-submit form-submit-equal mt-4">
 
-    <button type="button"
-            class="main-btn fundo-azul"
-            onclick="addPergunta()">
+    <button type="button" class="main-btn fundo-azul" onclick="addPergunta()">
         + Pergunta
     </button>
 
-    <button type="button"
-            class="main-btn fundo-roxo"
-            onclick="addSessao()">
+    <button type="button" class="main-btn fundo-roxo" onclick="addSessao()">
         + Sessão
     </button>
 
-    <button type="submit"
-            class="main-btn fundo-verde">
+    <button type="submit" class="main-btn fundo-verde">
         Salvar
     </button>
 
@@ -225,12 +214,9 @@ if ($modelo_id) {
 
 <?php require APP_PATH . '/include/footer.php'; ?>
 
-<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="/js/popups.js"></script>
 <script src="/js/script.js"></script>
-
-<script src="/checklist/modelos/assets/js/editor.js"></script>
 <script src="/checklist/modelos/assets/js/editor-add.js"></script>
 <script src="/checklist/modelos/assets/js/editor-sortable.js"></script>
 

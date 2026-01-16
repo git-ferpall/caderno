@@ -4,23 +4,17 @@ function addPergunta() {
     const div = document.createElement('div');
     div.className = 'item-card';
     div.dataset.key = key;
-    div.dataset.tipo = 'texto_longo';
 
     div.innerHTML = `
         <input type="hidden" name="item_key[]" value="${key}">
+        <input type="hidden" name="item_tipo[${key}]" value="texto_longo">
 
-        <div class="item-header">
+        <div class="item-top">
             <span class="handle">☰</span>
 
-            <input type="text"
-                   class="item-title"
-                   name="item_desc[${key}]"
-                   placeholder="Digite a pergunta"
-                   required>
-
             <select name="item_tipo[${key}]" class="item-tipo">
-                <option value="texto_longo">Texto longo</option>
                 <option value="texto_curto">Texto curto</option>
+                <option value="texto_longo" selected>Texto longo</option>
                 <option value="data">Data</option>
                 <option value="unica">Única escolha</option>
                 <option value="multipla">Múltipla escolha</option>
@@ -32,6 +26,12 @@ function addPergunta() {
                     class="btn-remover-text"
                     onclick="this.closest('.item-card').remove()">🗑</button>
         </div>
+
+        <input type="text"
+               class="item-title item-title-main"
+               name="item_desc[${key}]"
+               placeholder="Digite a pergunta"
+               required>
 
         <div class="item-body"></div>
     `;
@@ -48,21 +48,13 @@ function addSessao() {
 
     div.innerHTML = `
         <span class="handle">☰</span>
-
         <input type="hidden" name="item_key[]" value="${key}">
         <input type="hidden" name="item_tipo[${key}]" value="sessao">
 
         <input type="text"
                name="item_desc[${key}]"
                placeholder="Nome da sessão">
-
-        <button type="button"
-                class="btn-remover-text"
-                onclick="this.closest('.sessao-card').remove()">
-            🗑
-        </button>
     `;
 
     document.getElementById('itens').appendChild(div);
 }
-

@@ -1,45 +1,175 @@
 /* ===========================
-   CORPO DO CARD
-=========================== */
-
-.item-body {
-    margin-top: 12px;
-
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* ===========================
    GRID PRINCIPAL
 =========================== */
 
 #itens {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
+    gap: 24px;
     align-items: start;
-
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-/* CARD DE PERGUNTA */
-.item-card {
-    grid-column: span 1;
-}
-
-/* SESSÃO OCUPA LINHA INTEIRA */
-.sessao-card {
-    grid-column: 1 / -1;
 }
 
 /* ===========================
-   MOBILE PEQUENO
+   CARD BASE
 =========================== */
 
-@media (max-width: 420px) {
+.item-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.1);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0,0,0,.14);
+}
+
+/* ===========================
+   HEADER / CONTROLES
+=========================== */
+
+.item-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.handle {
+    cursor: grab;
+    opacity: .5;
+    font-size: 18px;
+}
+
+.item-top .item-tipo {
+    margin-left: auto;
+    height: 34px;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+}
+
+.btn-remover-text {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: .5;
+    transition: opacity .2s ease, color .2s ease;
+}
+
+.btn-remover-text:hover {
+    opacity: 1;
+    color: #e11d48;
+}
+
+/* ===========================
+   PERGUNTA (FOCO)
+=========================== */
+
+.item-title-main {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    margin-bottom: 18px;
+}
+
+.item-title-main::placeholder {
+    color: #9ca3af;
+}
+
+.item-title-main:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+}
+
+/* ===========================
+   CORPO / CONFIGURAÇÃO
+=========================== */
+
+.item-body {
+    background: #f9fafb;
+    border: 1px dashed #e5e7eb;
+    padding: 16px;
+    border-radius: 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ===========================
+   INPUTS INTERNOS
+=========================== */
+
+.item-body label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.item-body input,
+.item-body textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.item-body textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.item-body input:focus,
+.item-body textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+}
+
+/* ===========================
+   SESSÃO
+=========================== */
+
+.sessao-card {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #2f5ec4, #1e3c8a);
+    color: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sessao-card input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    width: 100%;
+}
+
+.sessao-card input::placeholder {
+    color: rgba(255,255,255,.7);
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width: 768px) {
     #itens {
         grid-template-columns: 1fr;
     }
