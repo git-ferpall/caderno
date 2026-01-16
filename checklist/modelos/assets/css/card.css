@@ -1,22 +1,131 @@
+/* =========================
+   CARD BASE
+========================= */
+
 .item-card {
     background: #fff;
     border-radius: 18px;
-    padding: 18px 20px;
+    padding: 16px 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
     box-shadow: 0 8px 20px rgba(0,0,0,.1);
-    transition: transform .15s ease;
+    transition: transform .15s ease, box-shadow .15s ease;
 }
 
 .item-card:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0,0,0,.14);
 }
+
+/* =========================
+   MOVE
+========================= */
+
+.item-move {
+    display: flex;
+    align-items: center;
+}
+
+.handle {
+    cursor: grab;
+    font-size: 18px;
+    opacity: .6;
+}
+
+.handle:hover {
+    opacity: 1;
+}
+
+/* =========================
+   BODY
+========================= */
+
+.item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-title {
+    width: 100%;
+    padding: 12px 14px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    border-radius: 10px;
+    border: 1px solid #d6dce4;
+}
+
+.item-tipo {
+    width: 100%;
+    padding: 10px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #d6dce4;
+    background: #f8fafc;
+}
+
+.item-title:focus,
+.item-tipo:focus {
+    outline: none;
+    border-color: #4c7cf3;
+    box-shadow: 0 0 0 3px rgba(76,124,243,.15);
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.item-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-remover-text {
+    border: none;
+    background: transparent;
+    color: #9aa3af;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-remover-text:hover {
+    color: #e53935;
+}
+
+/* =========================
+   SESSÃO
+========================= */
+
 .sessao-card {
     display: flex;
     align-items: center;
     gap: 14px;
+
+    padding: 16px 20px;
+    border-radius: 16px;
+
+    background: linear-gradient(135deg, #3f51b5, #283593);
+    color: #fff;
+
+    box-shadow: 0 10px 26px rgba(0,0,0,.25);
+}
+
+.sessao-card input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
 }
 
 .sessao-card .btn-remover-text {
-    margin-left: auto;
     color: rgba(255,255,255,.8);
 }
 

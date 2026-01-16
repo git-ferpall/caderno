@@ -1,50 +1,13 @@
 /* ===========================
-   HEADER DO CARD
-=========================== */
-
-.item-header {
-    display: grid;
-    grid-template-columns: 28px 1fr 160px 36px;
-    align-items: center;
-    gap: 12px;
-
-    width: 100%;
-    min-width: 0;
-}
-
-.item-header > * {
-    min-width: 0;
-}
-
-/* ===========================
    CORPO DO CARD
 =========================== */
 
 .item-body {
-    margin-top: 16px;
-    padding-left: 40px;
-    display: grid;
-    gap: 14px;
-}
+    margin-top: 12px;
 
-/* ===========================
-   MOBILE (HEADER)
-=========================== */
-
-@media (max-width: 768px) {
-    .item-header {
-        grid-template-columns: 28px 1fr;
-        grid-template-rows: auto auto auto;
-    }
-
-    .item-title,
-    .item-tipo {
-        grid-column: 1 / -1;
-    }
-
-    .item-body {
-        padding-left: 0;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* ===========================
