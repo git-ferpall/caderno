@@ -23,20 +23,26 @@ async function moverItem(id) {
     document.body.appendChild(overlay);
 
     // ===========================
-    // 📂 Busca lista de pastas disponíveis
+    // 📂 Busca lista de pastas disponíveis (somente raiz por enquanto)
     // ===========================
-    const res = await fetch("../funcoes/silo/listar_arquivos.php?parent_id=0");
+    const res = await fetch("../funcoes/silo/listar_arquivos.php?parent_id=0", {
+      credentials: "include"
+    });
+
     const j = await res.json();
 
     if (j.ok && Array.isArray(j.arquivos)) {
       const select = overlay.querySelector("#moverDestino");
+
       j.arquivos
-        .filter(a => a.tipo === "pasta" || a.tipo_arquivo === "folder" || a.is_folder)
+        .filter(a => a.is_folder === true)
         .forEach(pasta => {
           const opt = document.createElement("option");
-          opt.value = pasta.caminho_arquivo || pasta.nome_arquivo;
-          const nomeVisivel = (pasta.nome_arquivo || "").replace(/^silo\/\d+\//, "").trim();
-          opt.textContent = "📁 " + (nomeVisivel || pasta.nome_arquivo);
+
+          // ✅ Agora usamos o ID real da pasta
+          opt.value = pasta.id;
+
+          opt.textContent = "📁 " + pasta.nome_arquivo;
           select.appendChild(opt);
         });
     }
@@ -46,63 +52,53 @@ async function moverItem(id) {
 
     // ✅ Confirmar
     overlay.querySelector("#btnMoverConfirmar").onclick = async () => {
-      const destino = overlay.querySelector("#moverDestino").value;
+
+      const destinoId = overlay.querySelector("#moverDestino").value;
 
       const fd = new FormData();
       fd.append("id", id);
-      fd.append("destino", destino);
+      fd.append("destino_id", destinoId);
 
       try {
         const res = await fetch("../funcoes/silo/mover_arquivo.php", {
           method: "POST",
           body: fd,
+          credentials: "include"
         });
 
         const text = await res.text();
         console.log("📦 Retorno mover_arquivo.php:", text);
 
-        let j;
+        let json;
         try {
-          j = JSON.parse(text);
+          json = JSON.parse(text);
         } catch {
           abrirPopup("❌ Erro", "Resposta inválida do servidor.");
           overlay.remove();
           return;
         }
 
-        if (j.ok) {
-          abrirPopup("📦 Sucesso", j.msg || "Item movido com sucesso!");
+        if (json.ok) {
+          abrirPopup("📦 Sucesso", json.msg || "Item movido com sucesso!");
           overlay.remove();
 
-          // ===========================
-          // 🔄 Atualiza a visualização corretamente
-          // ===========================
-          setTimeout(async () => {
-            const pastaAtual = window.siloPastaAtual || "0";
-            const pastaDestino = (j.destino || "0").replace(/^silo\/\d+\//, "").trim();
+          // 🔄 Atualiza a visualização
+          if (typeof atualizarLista === "function") {
+            await atualizarLista();
+          }
 
-            console.log("📂 Atualização pós-movimento → atual:", pastaAtual, "| destino:", pastaDestino);
-
-            // Se o destino for diferente, apenas recarrega a pasta atual (para remover o item)
-            if (pastaAtual !== pastaDestino) {
-              console.log("🗂️ Item movido para outra pasta. Atualizando pasta atual...");
-              if (typeof atualizarLista === "function") await atualizarLista();
-            } else {
-              // Se for a mesma pasta (renomeio interno), atualiza totalmente
-              console.log("🗂️ Atualizando pasta destino (mesma aberta)...");
-              if (typeof atualizarLista === "function") await atualizarLista();
-            }
-          }, 300);
         } else {
-          abrirPopup("❌ Erro", j.err || "Falha ao mover o item.");
+          abrirPopup("❌ Erro", json.err || "Falha ao mover o item.");
         }
+
       } catch (err) {
         console.error("Erro ao mover item:", err);
         abrirPopup("❌ Erro", "Falha inesperada ao tentar mover o item.");
       }
     };
+
   } catch (err) {
-    console.error("Erro ao mover item:", err);
+    console.error("Erro ao abrir mover:", err);
     abrirPopup("❌ Erro", "Erro inesperado ao abrir a janela de mover.");
   }
 }
