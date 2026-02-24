@@ -480,3 +480,18 @@
   font-size: 14px;
   opacity: 0.85;
 }
+/* Remove o espaçamento gigante do topo */
+#silo .main-title {
+  padding-top: 0 !important;
+  margin: 0;
+}
+
+/* Reduz o padding interno do container */
+#silo .sistema-main {
+  padding-top: 10px !important;
+}
+
+/* Reduz espaço acima e abaixo do bloco de uso */
+#silo .silo-uso-wrapper {
+  margin: 10px 0 !important;
+}
