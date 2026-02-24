@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.pastaAtual = ultima ? parseInt(ultima) : 0;
 
   atualizarLista();
-  atualizarUso();
   atualizarBreadcrumb();
 });
 
@@ -193,21 +192,7 @@ async function excluirArquivo(id) {
   }
 }
 
-// ===================================
-// 📊 Atualiza uso de espaço
-// ===================================
-async function atualizarUso() {
-  const res = await fetch('../funcoes/silo/get_uso.php');
-  const j = await res.json();
-  if (j.ok) {
-    const usado = parseFloat(j.usado).toFixed(2);
-    const limite = parseFloat(j.limite).toFixed(2);
-    document.querySelector('.silo-info-title').innerText =
-      `${j.percent}% utilizado (${usado} GB de ${limite} GB)`;
-    document.querySelector('.silo-info-bar').style.background =
-      `linear-gradient(to right, var(--verde) ${j.percent}%, transparent ${j.percent}%)`;
-  }
-}
+
 
 // ===================================
 // 🧭 Breadcrumb

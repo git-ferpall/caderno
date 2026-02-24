@@ -21,21 +21,57 @@ async function carregarUsoSilo() {
 
     const txt = document.getElementById("silo-uso-txt");
     const bar = document.getElementById("silo-uso-bar");
+    const circle = document.querySelector(".silo-uso-circular");
+    const percentLabel = document.getElementById("silo-uso-percent");
 
-    if (!txt || !bar) return;
+    if (!txt) return;
 
-    txt.textContent =
-      `${formatBytes(usado)} de ${formatBytes(limite)} usados (${percentual}%)`;
+    const restante = limite - usado;
 
-    bar.style.width = percentual + "%";
+    txt.innerHTML = `
+      <strong>${formatBytes(usado)}</strong> usados de 
+      <strong>${formatBytes(limite)}</strong><br>
+      <span style="opacity:0.7;">
+        ${formatBytes(restante)} disponíveis (${percentual}% utilizado)
+      </span>
+    `;
 
-    // 🔴 Muda cor se estiver perto do limite
-    if (percentual >= 90) {
-      bar.style.backgroundColor = "#e74c3c";
-    } else if (percentual >= 70) {
-      bar.style.backgroundColor = "#f39c12";
-    } else {
-      bar.style.backgroundColor = "#2ecc71";
+    // ===============================
+    // 📊 BARRA LINEAR (se existir)
+    // ===============================
+    if (bar) {
+      bar.style.width = percentual + "%";
+
+      if (percentual >= 90) {
+        bar.style.backgroundColor = "#e74c3c";
+      } else if (percentual >= 70) {
+        bar.style.backgroundColor = "#f39c12";
+      } else {
+        bar.style.backgroundColor = "#2ecc71";
+      }
+    }
+
+    // ===============================
+    // ⭕ CÍRCULO (se existir)
+    // ===============================
+    if (circle && percentLabel) {
+      const graus = (percentual / 100) * 360;
+
+      const cor =
+        percentual >= 90
+          ? "#e74c3c"
+          : percentual >= 70
+          ? "#f39c12"
+          : "#2ecc71";
+
+      circle.style.background = `
+        conic-gradient(
+          ${cor} ${graus}deg,
+          #ecf0f1 ${graus}deg
+        )
+      `;
+
+      percentLabel.textContent = percentual + "%";
     }
 
   } catch (err) {
@@ -60,26 +96,10 @@ function formatBytes(bytes) {
 // ===============================
 // 🚀 Carrega ao abrir página
 // ===============================
-document.addEventListener("DOMContentLoaded", () => {
-  carregarUsoSilo();
-});
+document.addEventListener("DOMContentLoaded", carregarUsoSilo);
 
 
 // ===============================
 // 🔄 Permite atualizar manualmente
 // ===============================
 window.atualizarUsoSilo = carregarUsoSilo;
-
-const circle = document.querySelector(".silo-uso-circular");
-const percentLabel = document.getElementById("silo-uso-percent");
-
-const graus = (percentual / 100) * 360;
-
-circle.style.background = `
-  conic-gradient(
-    ${percentual >= 90 ? "#e74c3c" : percentual >= 70 ? "#f39c12" : "#2ecc71"} ${graus}deg,
-    #ecf0f1 ${graus}deg
-  )
-`;
-
-percentLabel.textContent = percentual + "%";
