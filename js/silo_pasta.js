@@ -241,10 +241,17 @@ window.abrirPopup = abrirPopup;
 // 🧭 Atualiza lista
 // ================================
 async function atualizarLista() {
+  const box = document.querySelector(".silo-arquivos");
+
+  if (!box) {
+    console.warn("⚠️ .silo-arquivos não encontrado no DOM.");
+    return;
+  }
+
   try {
     const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
     const j = await res.json();
-    const box = document.querySelector(".silo-arquivos");
+
     box.innerHTML = "";
 
     if (!j.ok || !Array.isArray(j.arquivos)) {
@@ -259,19 +266,17 @@ async function atualizarLista() {
     }
 
     j.arquivos.forEach((a) => {
-      const isFolder = a.tipo === "pasta" || a.tipo_arquivo === "folder";
+      const isFolder = a.is_folder === true;
       const icon = getIconClass(a.tipo_arquivo || "", isFolder);
 
       const div = document.createElement("div");
       div.className = "silo-item-box";
       div.dataset.id = a.id;
-      div.dataset.nome = a.nome_arquivo;
-      div.dataset.tipo = a.tipo_arquivo;
 
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-title">${a.nome_arquivo}</span>
+          <span class="silo-item-title">${a.nome_exibicao}</span>
         </div>
       `;
 
@@ -289,9 +294,9 @@ async function atualizarLista() {
 
       box.appendChild(div);
     });
+
   } catch (err) {
     console.error("Erro ao atualizar lista:", err);
-    document.querySelector(".silo-arquivos").innerHTML =
-      "<p>❌ Falha ao comunicar com o servidor.</p>";
+    box.innerHTML = "<p>❌ Falha ao comunicar com o servidor.</p>";
   }
 }
