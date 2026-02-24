@@ -26,7 +26,7 @@
 }
 
 body {
-    background: transparent;
+    background: var(--grad-azul);
     display: flex;
     flex-direction: column;
     font-family: 'Roboto', sans-serif !important;
