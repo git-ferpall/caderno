@@ -91,7 +91,7 @@ try {
     } else {
         // mover para raiz
         $destino_abs = $base;
-        $novo_parent_id = null;
+        $novo_parent_id = 0;
         $novo_caminho_rel = basename($caminho_rel);
     }
 
