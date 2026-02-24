@@ -22,11 +22,11 @@ try {
         throw new Exception('ID inválido.');
     }
 
-    // 📁 Caminho base real dentro do container
+    // 📁 Caminho base físico real
     $base = "/var/www/html/uploads/silo/$user_id";
 
     if (!is_dir($base)) {
-        throw new Exception('Diretório base do usuário não encontrado.');
+        throw new Exception('Diretório base não encontrado.');
     }
 
     // ===============================
@@ -34,8 +34,8 @@ try {
     // ===============================
 
     $stmt = $mysqli->prepare("
-        SELECT id, nome_arquivo, caminho_arquivo, tipo 
-        FROM silo_arquivos 
+        SELECT id, nome_arquivo, caminho_arquivo, tipo
+        FROM silo_arquivos
         WHERE id = ? AND user_id = ?
         LIMIT 1
     ");
@@ -48,28 +48,24 @@ try {
         throw new Exception('Item não encontrado.');
     }
 
-    // ===============================
-    // 📂 CAMINHO ORIGEM REAL
-    // ===============================
+    // Remove prefixo silo/USER_ID/
+    $caminho_rel = preg_replace('#^silo/' . $user_id . '/#', '', $item['caminho_arquivo']);
 
-    // Sempre usar apenas o nome físico
-    $nome_fisico = basename($item['caminho_arquivo']);
-    $origem_abs = $base . '/' . $nome_fisico;
+    $origem_abs = $base . '/' . $caminho_rel;
 
     if (!file_exists($origem_abs)) {
         throw new Exception('Arquivo físico não encontrado: ' . $origem_abs);
     }
 
     // ===============================
-    // 📁 DESTINO
+    // 📂 DESTINO
     // ===============================
 
     if ($destino_id > 0) {
 
-        // Busca pasta destino
         $stmt = $mysqli->prepare("
-            SELECT nome_arquivo 
-            FROM silo_arquivos 
+            SELECT nome_arquivo
+            FROM silo_arquivos
             WHERE id = ? AND user_id = ? AND tipo = 'pasta'
             LIMIT 1
         ");
@@ -90,13 +86,16 @@ try {
 
         $novo_parent_id = $destino_id;
 
+        $novo_caminho_rel = $dest['nome_arquivo'] . '/' . basename($caminho_rel);
+
     } else {
-        // Raiz
+        // mover para raiz
         $destino_abs = $base;
         $novo_parent_id = null;
+        $novo_caminho_rel = basename($caminho_rel);
     }
 
-    $novo_abs = $destino_abs . '/' . $nome_fisico;
+    $novo_abs = $destino_abs . '/' . basename($caminho_rel);
 
     // 🚫 Mesmo local
     if (realpath($origem_abs) === realpath($novo_abs)) {
@@ -120,12 +119,14 @@ try {
     // 💾 ATUALIZA BANCO
     // ===============================
 
+    $novo_caminho_banco = "silo/$user_id/" . $novo_caminho_rel;
+
     $stmt = $mysqli->prepare("
         UPDATE silo_arquivos
-        SET parent_id = ?, atualizado_em = NOW()
+        SET caminho_arquivo = ?, parent_id = ?, atualizado_em = NOW()
         WHERE id = ? AND user_id = ?
     ");
-    $stmt->bind_param("iii", $novo_parent_id, $id, $user_id);
+    $stmt->bind_param("siii", $novo_caminho_banco, $novo_parent_id, $id, $user_id);
     $stmt->execute();
     $stmt->close();
 
