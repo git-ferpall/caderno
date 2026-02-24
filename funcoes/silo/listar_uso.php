@@ -1,26 +1,24 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
+
+session_start();
 
 try {
 
-    // 🔒 Autenticação
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+    $user_id = $_SESSION['user_id'] ?? null;
 
     if (!$user_id) {
-        throw new Exception('unauthorized');
+        http_response_code(401);
+        echo json_encode(['ok'=>false,'err'=>'not_logged']);
+        exit;
     }
 
-    // 🔹 Pega limite do JWT (em GB)
-    $limite_gb = (float)($payload['armazenamento'] ?? 5.00);
+    // limite 5GB
+    $limite_gb = 5.00;
     $limite_bytes = $limite_gb * 1024 * 1024 * 1024;
 
-    // 📦 Soma arquivos do usuário
     $stmt = $mysqli->prepare("
         SELECT SUM(tamanho_bytes) AS total
         FROM silo_arquivos
@@ -33,7 +31,6 @@ try {
 
     $usado_bytes = intval($res['total'] ?? 0);
 
-    // 🧮 Percentual
     $percentual = $limite_bytes > 0
         ? ($usado_bytes / $limite_bytes) * 100
         : 0;
@@ -49,9 +46,5 @@ try {
     ]);
 
 } catch (Throwable $e) {
-
-    echo json_encode([
-        'ok' => false,
-        'err' => $e->getMessage()
-    ]);
+    echo json_encode(['ok'=>false,'err'=>$e->getMessage()]);
 }
