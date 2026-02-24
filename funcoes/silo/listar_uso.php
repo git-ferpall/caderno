@@ -2,12 +2,11 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 
 header('Content-Type: application/json; charset=utf-8');
-
 session_start();
 
 try {
 
-    $user_id = $_SESSION['user_id'] ?? null;
+    $user_id = $_SESSION['usuario_id'] ?? null;
 
     if (!$user_id) {
         http_response_code(401);
@@ -15,10 +14,29 @@ try {
         exit;
     }
 
-    // limite 5GB
-    $limite_gb = 5.00;
-    $limite_bytes = $limite_gb * 1024 * 1024 * 1024;
+    // 🔹 Limite global padrão = 1GB
+    $limite_padrao_mb = 1024;
 
+    // 🔹 Verifica se existe limite personalizado
+    $stmt = $mysqli->prepare("
+        SELECT limite_mb
+        FROM silo_limites
+        WHERE user_id = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $row = $res->fetch_assoc();
+    $stmt->close();
+
+    $limite_mb = isset($row['limite_mb'])
+        ? (int)$row['limite_mb']
+        : $limite_padrao_mb;
+
+    $limite_bytes = $limite_mb * 1024 * 1024;
+
+    // 🔹 Soma arquivos do usuário
     $stmt = $mysqli->prepare("
         SELECT SUM(tamanho_bytes) AS total
         FROM silo_arquivos
