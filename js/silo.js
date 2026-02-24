@@ -261,33 +261,3 @@ function fecharMenuArquivo() {
   const menu = document.querySelector('.silo-menu-arquivo');
   if (menu) menu.remove();
 }
-async function carregarUsoSilo() {
-  try {
-    const res = await fetch("../funcoes/silo/get_uso.php", {
-      credentials: "include"
-    });
-
-    const j = await res.json();
-    if (!j.ok) return;
-
-    const txt = document.getElementById("silo-uso-txt");
-    const bar = document.getElementById("silo-uso-bar");
-
-    txt.textContent = `${formatBytes(j.usado_bytes)} de ${formatBytes(j.limite_bytes)} usados (${j.percentual}%)`;
-
-    bar.style.width = j.percentual + "%";
-    bar.style.background = j.percentual > 80 ? "#e74c3c" : "#2ecc71";
-
-  } catch (err) {
-    console.error("Erro ao carregar uso do silo:", err);
-  }
-}
-
-function formatBytes(bytes) {
-  if (!bytes || bytes <= 0) return "0 B";
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
-}
-
-document.addEventListener("DOMContentLoaded", carregarUsoSilo);
