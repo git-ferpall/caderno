@@ -34,7 +34,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         
         ?>
 
-        <main id="silo" class="sistema">
+        <main id="silo" class="sistema fundo-img">
         <div class="page-title">
             <h2 class="main-title cor-branco"></h2>
         </div>
