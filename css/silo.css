@@ -427,11 +427,24 @@
 
 
 /* ===========================
+   Wrapper do bloco de uso
+=========================== */
+.silo-uso-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* centraliza horizontal */
+  gap: 30px;
+  margin: 60px auto 30px auto;  /* controla topo e base */
+  max-width: 900px;
+}
+
+
+/* ===========================
    Círculo de uso
 =========================== */
 .silo-uso-circular {
-  width: 130px;
-  height: 130px;
+  width: 120px;   /* um pouco menor */
+  height: 120px;
   border-radius: 50%;
   background: conic-gradient(#2ecc71 0deg, #ecf0f1 0deg);
 
@@ -445,8 +458,8 @@
 
 .silo-uso-circular::after {
   content: "";
-  width: 95px;
-  height: 95px;
+  width: 85px;
+  height: 85px;
   background: #ffffff;
   border-radius: 50%;
   position: absolute;
@@ -455,7 +468,7 @@
 #silo-uso-percent {
   position: relative;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   z-index: 2;
   color: #2c3e50;
 }
@@ -470,28 +483,13 @@
 
 .silo-uso-text h4 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
 }
 
 .silo-uso-text small {
   display: block;
-  margin-top: 6px;
-  font-size: 14px;
+  margin-top: 4px;
+  font-size: 13px;
   opacity: 0.85;
-}
-/* Remove o espaçamento gigante do topo */
-#silo .main-title {
-  padding-top: 5px; 
-  margin: 0;
-}
-
-/* Reduz o padding interno do container */
-#silo .sistema-main {
-  padding-top: 10px !important;
-}
-
-/* Reduz espaço acima e abaixo do bloco de uso */
-#silo .silo-uso-wrapper {
-  margin: 10px 0 !important;
 }
