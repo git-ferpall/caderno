@@ -4,7 +4,7 @@
 
 async function carregarUsoSilo() {
   try {
-    const res = await fetch("../funcoes/silo/get_uso.php", {
+    const res = await fetch("../funcoes/silo/listar_uso.php", {
       credentials: "include"
     });
 
