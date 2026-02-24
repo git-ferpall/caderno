@@ -404,36 +404,79 @@
     gap: 6px;
   }
 }
+/* ===========================
+   Wrapper centralizado
+=========================== */
 .silo-uso-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
+  max-width: 900px;
+  margin: 40px auto 30px auto; /* centraliza */
+  padding: 25px 35px;
 
-.silo-uso-circular {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: conic-gradient(#2ecc71 0deg, #ecf0f1 0deg);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 35px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  border-radius: 18px;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  color: #fff;
+}
+
+
+/* ===========================
+   Círculo de uso
+=========================== */
+.silo-uso-circular {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: conic-gradient(#2ecc71 0deg, #ecf0f1 0deg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   position: relative;
   transition: all 0.4s ease;
 }
 
 .silo-uso-circular::after {
   content: "";
-  width: 80px;
-  height: 80px;
-  background: white;
+  width: 95px;
+  height: 95px;
+  background: #ffffff;
   border-radius: 50%;
   position: absolute;
 }
 
 #silo-uso-percent {
   position: relative;
-  font-weight: bold;
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 20px;
   z-index: 2;
+  color: #2c3e50;
+}
+
+
+/* ===========================
+   Texto ao lado
+=========================== */
+.silo-uso-text {
+  text-align: left;
+}
+
+.silo-uso-text h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.silo-uso-text small {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.85;
 }
