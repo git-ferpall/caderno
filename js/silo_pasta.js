@@ -250,7 +250,9 @@ async function atualizarLista() {
 
   try {
     const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
-    const j = await res.json();
+    const text = await res.text();
+    console.log("RETORNO BRUTO LISTAR:", text);
+    return;
 
     box.innerHTML = "";
 
