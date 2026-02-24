@@ -69,3 +69,17 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🔄 Permite atualizar manualmente
 // ===============================
 window.atualizarUsoSilo = carregarUsoSilo;
+
+const circle = document.querySelector(".silo-uso-circular");
+const percentLabel = document.getElementById("silo-uso-percent");
+
+const graus = (percentual / 100) * 360;
+
+circle.style.background = `
+  conic-gradient(
+    ${percentual >= 90 ? "#e74c3c" : percentual >= 70 ? "#f39c12" : "#2ecc71"} ${graus}deg,
+    #ecf0f1 ${graus}deg
+  )
+`;
+
+percentLabel.textContent = percentual + "%";
