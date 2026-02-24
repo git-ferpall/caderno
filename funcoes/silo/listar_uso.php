@@ -1,12 +1,14 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
-session_start();
 
 try {
 
-    $user_id = $_SESSION['usuario_id'] ?? null;
+    // 🔐 Usa JWT (igual resto do sistema)
+    $payload = verify_jwt();
+    $user_id = $payload['sub'] ?? null;
 
     if (!$user_id) {
         http_response_code(401);
@@ -14,10 +16,10 @@ try {
         exit;
     }
 
-    // 🔹 Limite global padrão = 1GB
+    // 🔹 Limite padrão global = 1GB
     $limite_padrao_mb = 1024;
 
-    // 🔹 Verifica se existe limite personalizado
+    // 🔹 Verifica limite customizado
     $stmt = $mysqli->prepare("
         SELECT limite_mb
         FROM silo_limites
@@ -36,7 +38,7 @@ try {
 
     $limite_bytes = $limite_mb * 1024 * 1024;
 
-    // 🔹 Soma arquivos do usuário
+    // 🔹 Soma arquivos
     $stmt = $mysqli->prepare("
         SELECT SUM(tamanho_bytes) AS total
         FROM silo_arquivos
@@ -64,5 +66,6 @@ try {
     ]);
 
 } catch (Throwable $e) {
+    http_response_code(401);
     echo json_encode(['ok'=>false,'err'=>$e->getMessage()]);
 }
