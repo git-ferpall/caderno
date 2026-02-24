@@ -5,11 +5,6 @@ header('Content-Type: application/json; charset=utf-8');
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-/**
- * 📦 mover_arquivo.php
- * Move arquivos ou pastas dentro do silo do usuário
- */
-
 try {
 
     // 🔒 Autenticação
@@ -21,13 +16,13 @@ try {
     }
 
     $id = intval($_POST['id'] ?? 0);
-    $destino = trim($_POST['destino'] ?? '');
+    $destino_id = intval($_POST['destino_id'] ?? 0);
 
     if ($id <= 0) {
-        throw new Exception('Parâmetro ID inválido.');
+        throw new Exception('ID inválido.');
     }
 
-    // 📁 Caminho base do usuário
+    // 📁 Caminho base real dentro do container
     $base = "/var/www/html/uploads/silo/$user_id";
 
     if (!is_dir($base)) {
@@ -35,53 +30,13 @@ try {
     }
 
     // ===============================
-    // 🏠 DESTINO
-    // ===============================
-
-    if ($destino === '' || $destino === '0' || strtolower($destino) === 'raiz') {
-
-        $destino_abs = $base;
-        $destino_rel = "silo/$user_id";
-        $novo_parent_id = null;
-
-    } else {
-
-        // Remove prefixos redundantes
-        $destino = preg_replace('#^silo/' . $user_id . '/?#', '', $destino);
-        $destino = trim($destino, '/');
-
-        $destino_rel = "silo/$user_id/$destino";
-        $destino_abs = "/var/www/html/uploads/$destino_rel";
-
-        if (!is_dir($destino_abs)) {
-            throw new Exception("Destino inválido ou inexistente.");
-        }
-
-        // Descobre parent_id da pasta destino
-        $stmt = $mysqli->prepare("
-            SELECT id 
-            FROM silo_arquivos 
-            WHERE caminho_arquivo = ? 
-              AND user_id = ? 
-              AND tipo = 'pasta' 
-            LIMIT 1
-        ");
-        $stmt->bind_param("si", $destino_rel, $user_id);
-        $stmt->execute();
-        $res = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        $novo_parent_id = $res['id'] ?? null;
-    }
-
-    // ===============================
-    // 🔎 BUSCA ITEM
+    // 🔎 BUSCA ITEM NO BANCO
     // ===============================
 
     $stmt = $mysqli->prepare("
         SELECT id, nome_arquivo, caminho_arquivo, tipo 
         FROM silo_arquivos 
-        WHERE id = ? AND user_id = ? 
+        WHERE id = ? AND user_id = ?
         LIMIT 1
     ");
     $stmt->bind_param("ii", $id, $user_id);
@@ -94,45 +49,71 @@ try {
     }
 
     // ===============================
-    // 📂 CAMINHO ORIGEM (BLINDADO)
+    // 📂 CAMINHO ORIGEM REAL
     // ===============================
 
-    // Primeiro tenta caminho completo
-    $origem_abs = "/var/www/html/uploads/" . ltrim($item['caminho_arquivo'], '/');
-
-    // Se não existir, tenta fallback (caso banco tenha salvo só nome)
-    if (!file_exists($origem_abs)) {
-        $origem_abs = $base . '/' . basename($item['caminho_arquivo']);
-    }
+    // Sempre usar apenas o nome físico
+    $nome_fisico = basename($item['caminho_arquivo']);
+    $origem_abs = $base . '/' . $nome_fisico;
 
     if (!file_exists($origem_abs)) {
-        throw new Exception('Arquivo/pasta física não encontrada.');
+        throw new Exception('Arquivo físico não encontrado: ' . $origem_abs);
     }
 
     // ===============================
-    // 🆕 MONTA NOVO CAMINHO
+    // 📁 DESTINO
     // ===============================
 
-    $novo_nome = basename($item['caminho_arquivo']);
-    $novo_caminho_rel = rtrim($destino_rel, '/') . '/' . $novo_nome;
-    $novo_abs = "/var/www/html/uploads/" . $novo_caminho_rel;
+    if ($destino_id > 0) {
 
-    // 🚫 Evita mover para o mesmo local
+        // Busca pasta destino
+        $stmt = $mysqli->prepare("
+            SELECT nome_arquivo 
+            FROM silo_arquivos 
+            WHERE id = ? AND user_id = ? AND tipo = 'pasta'
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $destino_id, $user_id);
+        $stmt->execute();
+        $dest = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$dest) {
+            throw new Exception('Pasta destino não encontrada.');
+        }
+
+        $destino_abs = $base . '/' . $dest['nome_arquivo'];
+
+        if (!is_dir($destino_abs)) {
+            throw new Exception('Diretório físico da pasta destino não existe.');
+        }
+
+        $novo_parent_id = $destino_id;
+
+    } else {
+        // Raiz
+        $destino_abs = $base;
+        $novo_parent_id = null;
+    }
+
+    $novo_abs = $destino_abs . '/' . $nome_fisico;
+
+    // 🚫 Mesmo local
     if (realpath($origem_abs) === realpath($novo_abs)) {
         throw new Exception('O item já está nesse local.');
     }
 
     // 🚫 Evita sobrescrever
     if (file_exists($novo_abs)) {
-        throw new Exception('Já existe um item com esse nome no destino.');
+        throw new Exception('Já existe um arquivo com esse nome no destino.');
     }
 
     // ===============================
     // 🚚 MOVE FÍSICO
     // ===============================
 
-    if (!@rename($origem_abs, $novo_abs)) {
-        throw new Exception('Erro ao mover o item no sistema de arquivos.');
+    if (!rename($origem_abs, $novo_abs)) {
+        throw new Exception('Erro ao mover o arquivo.');
     }
 
     // ===============================
@@ -140,22 +121,17 @@ try {
     // ===============================
 
     $stmt = $mysqli->prepare("
-        UPDATE silo_arquivos 
-        SET caminho_arquivo = ?, 
-            parent_id = ?, 
-            atualizado_em = NOW()
+        UPDATE silo_arquivos
+        SET parent_id = ?, atualizado_em = NOW()
         WHERE id = ? AND user_id = ?
     ");
-
-    $stmt->bind_param("siii", $novo_caminho_rel, $novo_parent_id, $id, $user_id);
+    $stmt->bind_param("iii", $novo_parent_id, $id, $user_id);
     $stmt->execute();
     $stmt->close();
 
     echo json_encode([
         'ok' => true,
-        'msg' => '📦 Item movido com sucesso!',
-        'novo_caminho' => $novo_caminho_rel,
-        'novo_parent_id' => $novo_parent_id
+        'msg' => '📦 Item movido com sucesso!'
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
