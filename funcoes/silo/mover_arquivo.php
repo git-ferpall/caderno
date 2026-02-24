@@ -17,7 +17,8 @@ try {
 
     $id = intval($_POST['id'] ?? 0);
     $destino_id = intval($_POST['destino_id'] ?? 0);
-
+    var_dump($_POST);
+    exit;
     if ($id <= 0) {
         throw new Exception('ID inválido.');
     }
