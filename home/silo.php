@@ -34,19 +34,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
         
         ?>
 
-        <main id="silo" class="sistema">
-  <div class="page-title">
-      <h2 class="main-title cor-branco"></h2>
-  </div>
-    <div class="sistema-main silo">
-        <div class="silo-uso-wrapper">
-            <div class="silo-uso-circular">
-                <span id="silo-uso-percent">0%</span>
-            </div>
-            <div class="silo-uso-text">
-                <h4 id="silo-uso-txt">Carregando...</h4>
-            </div>
+        <main id="silo" class="sistema fundo-img">
+        <div class="page-title">
+            <h2 class="main-title cor-branco"></h2>
         </div>
+        <div class="sistema-main silo">
+            <div class="silo-uso-wrapper">
+                <div class="silo-uso-circular">
+                    <span id="silo-uso-percent">0%</span>
+                </div>
+                <div class="silo-uso-text">
+                    <h4 id="silo-uso-txt">Carregando...</h4>
+                </div>
+            </div>
         
 
         <div class="silo-dados">
