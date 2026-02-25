@@ -1,4 +1,7 @@
 <?php
+echo "<pre>";
+print_r($_POST);
+die;
 require_once __DIR__ . '/../configuracao/protect.php';
 ?>
 <!DOCTYPE html>
