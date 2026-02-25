@@ -502,3 +502,42 @@
 #silo .silo-uso-wrapper {
   margin: 20px auto !important;
 }
+@media (max-width: 768px) {
+
+  .silo-uso-wrapper {
+    flex-direction: column; /* empilha */
+    text-align: center;
+    gap: 15px;
+  }
+
+  .silo-uso-circular {
+    width: 90px;
+    height: 90px;
+  }
+
+  .silo-uso-circular::after {
+    width: 65px;
+    height: 65px;
+  }
+
+  #silo-uso-percent {
+    font-size: 14px;
+  }
+
+  .silo-uso-text h4 {
+    font-size: 15px;
+  }
+
+  .silo-uso-text small {
+    font-size: 12px;
+  }
+}
+@media (max-width: 768px) {
+  .silo-uso-wrapper {
+    padding: 15px;
+  }
+
+  .silo-uso-circular {
+    margin-bottom: 5px;
+  }
+}
