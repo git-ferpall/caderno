@@ -67,12 +67,20 @@ try {
             AND ad_prod.campo = 'produto_id'
         LEFT JOIN produtos p ON p.id = ad_prod.valor
         LEFT JOIN propriedades prop ON prop.id = a.propriedade_id
-        WHERE a.data BETWEEN ? AND ?
+        WHERE (
+            (a.status = 'concluido' AND a.data_conclusao BETWEEN ? AND ?)
+            OR
+            (a.status <> 'concluido' AND a.data BETWEEN ? AND ?)
+        )
         AND a.propriedade_id IN ($placeholders)
     ";
 
-    $params = [$data_ini, $data_fim];
-    $types  = "ss";
+    $params = [
+    $data_ini, $data_fim,
+    $data_ini, $data_fim
+    ];
+
+    $types = "ssss";
 
     foreach ($propriedades as $pid) {
         $params[] = $pid;
