@@ -21,12 +21,12 @@ try {
     if (!$user_id) throw new Exception("Usuário não autenticado.");
 
     // === Filtros ===
-    $propriedades = $_POST['propriedades'] ?? [];
-    $cultivo = $_POST['cultivo'] ?? '';
-    $area = $_POST['area'] ?? '';
-    $manejo = $_POST['manejo'] ?? '';
-    $data_ini = $_POST['data_ini'] ?? date('Y-m-01');
-    $data_fim = $_POST['data_fim'] ?? date('Y-m-t');
+    $propriedades = $_POST['pfpropriedades'] ?? [];
+    $cultivo = $_POST['pfcult'] ?? '';
+    $area = $_POST['pfarea'] ?? '';
+    $manejo = $_POST['pfmane'] ?? '';
+    $data_ini = $_POST['pfini'] ?? date('Y-m-01');
+    $data_fim = $_POST['pffin'] ?? date('Y-m-t');
 
     // === Pega todas as propriedades se nada foi selecionado ===
     if (empty($propriedades)) {
