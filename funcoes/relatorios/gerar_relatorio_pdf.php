@@ -50,6 +50,7 @@ try {
 
     // === Query principal ===
     $placeholders = implode(',', array_fill(0, count($propriedades), '?'));
+
     $sql = "
         SELECT 
             a.id, a.tipo, a.data, a.status, a.observacoes,
@@ -57,19 +58,49 @@ try {
             p.nome AS produto_nome,
             prop.nome_razao AS propriedade_nome
         FROM apontamentos a
-        LEFT JOIN apontamento_detalhes ad_area ON ad_area.apontamento_id = a.id AND ad_area.campo = 'area_id'
+        LEFT JOIN apontamento_detalhes ad_area 
+            ON ad_area.apontamento_id = a.id 
+            AND ad_area.campo = 'area_id'
         LEFT JOIN areas ar ON ar.id = ad_area.valor
-        LEFT JOIN apontamento_detalhes ad_prod ON ad_prod.apontamento_id = a.id AND ad_prod.campo = 'produto_id'
+        LEFT JOIN apontamento_detalhes ad_prod 
+            ON ad_prod.apontamento_id = a.id 
+            AND ad_prod.campo = 'produto_id'
         LEFT JOIN produtos p ON p.id = ad_prod.valor
         LEFT JOIN propriedades prop ON prop.id = a.propriedade_id
         WHERE a.data BETWEEN ? AND ?
-          AND a.propriedade_id IN ($placeholders)
-        ORDER BY a.data DESC
+        AND a.propriedade_id IN ($placeholders)
     ";
 
     $params = [$data_ini, $data_fim];
-    $types = "ss";
-    foreach ($propriedades as $pid) { $params[] = $pid; $types .= "i"; }
+    $types  = "ss";
+
+    foreach ($propriedades as $pid) {
+        $params[] = $pid;
+        $types   .= "i";
+    }
+
+    // 🔹 FILTRO CULTIVO
+    if (!empty($cultivo)) {
+        $sql .= " AND p.nome = ?";
+        $params[] = $cultivo;
+        $types   .= "s";
+    }
+
+    // 🔹 FILTRO ÁREA
+    if (!empty($area)) {
+        $sql .= " AND ar.nome = ?";
+        $params[] = $area;
+        $types   .= "s";
+    }
+
+    // 🔹 FILTRO MANEJO
+    if (!empty($manejo)) {
+        $sql .= " AND a.tipo = ?";
+        $params[] = $manejo;
+        $types   .= "s";
+    }
+
+    $sql .= " ORDER BY a.data DESC";
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param($types, ...$params);
