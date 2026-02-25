@@ -4,7 +4,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 // 🧾 Grava debug local (para entender o que chega do JS)
-file_put_contents(__DIR__ . "/debug_bancada.txt", print_r($_POST, true) . "\n---\n", FILE_APPEND);
+//file_put_contents(__DIR__ . "/debug_bancada.txt", print_r($_POST, true) . "\n---\n", FILE_APPEND);
 
 // 🔐 Identifica usuário logado
 $user_id = $_SESSION['user_id'] ?? null;
