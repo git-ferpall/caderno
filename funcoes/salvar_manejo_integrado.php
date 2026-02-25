@@ -92,7 +92,7 @@ try {
     // === Inserir produtos ===
     $stmtProd = $mysqli->prepare("
         INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
-        VALUES (?, 'produto', ?)
+        VALUES (?, 'produto_id', ?)
     ");
     foreach ($produtos as $p) {
         $valor = (string)$p;
