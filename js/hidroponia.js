@@ -70,7 +70,10 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
                 })
             });
 
-            const data = await res.json();
+            const text = await res.text();
+            console.log("Resposta bruta:", text);
+
+            const data = JSON.parse(text);
             if (data && data.ok) {
                 location.reload();
             } else {
