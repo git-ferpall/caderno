@@ -53,7 +53,7 @@ try {
 
     $sql = "
         SELECT 
-            a.id, a.tipo, a.data, a.status, a.observacoes,
+            a.id, a.tipo, a.data, a.status, a.observacoes, a.data_conclusao,
             ar.nome AS area_nome,
             p.nome AS produto_nome,
             prop.nome_razao AS propriedade_nome
@@ -221,22 +221,54 @@ try {
     // === Monta as tabelas ===
     function montarTabela($titulo, $dados, $classe = '') {
         if (empty($dados)) return '';
-        $html = '<h2>' . $titulo . '</h2><table><thead>
-                    <tr><th>Data</th><th>Propriedade</th><th>Área</th><th>Produto</th><th>Tipo</th><th>Status</th><th>Observações</th></tr>
-                </thead><tbody>';
+
+        $html = '<h2>' . $titulo . '</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Propriedade</th>
+                    <th>Área</th>
+                    <th>Produto</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Observações</th>
+                </tr>
+            </thead>
+            <tbody>';
+
         foreach ($dados as $d) {
-            $extra = ($classe && strtotime($d['data']) < strtotime(date('Y-m-d')) && $d['status'] != 'concluido') ? ' class="' . $classe . '"' : '';
+
+            // 🔹 Define qual data mostrar
+            $dataExibida = (
+                $d['status'] === 'concluido' 
+                && !empty($d['data_conclusao'])
+            )
+            ? $d['data_conclusao']
+            : $d['data'];
+
+            // 🔹 Define classe de atraso (apenas para não concluídos)
+            $extra = (
+                $classe 
+                && strtotime($d['data']) < strtotime(date('Y-m-d')) 
+                && $d['status'] !== 'concluido'
+            )
+            ? ' class="' . $classe . '"'
+            : '';
+
             $html .= '<tr' . $extra . '>
-                        <td>' . date('d/m/Y', strtotime($d['data'])) . '</td>
-                        <td>' . htmlspecialchars($d['propriedade_nome'] ?? '—') . '</td>
-                        <td>' . htmlspecialchars($d['area_nome'] ?? '—') . '</td>
-                        <td>' . htmlspecialchars($d['produto_nome'] ?? '—') . '</td>
-                        <td>' . ucfirst($d['tipo'] ?? '—') . '</td>
-                        <td>' . ucfirst($d['status'] ?? '—') . '</td>
-                        <td>' . htmlspecialchars($d['observacoes'] ?? '—') . '</td>
-                    </tr>';
+                <td>' . date('d/m/Y', strtotime($dataExibida)) . '</td>
+                <td>' . htmlspecialchars($d['propriedade_nome'] ?? '—') . '</td>
+                <td>' . htmlspecialchars($d['area_nome'] ?? '—') . '</td>
+                <td>' . htmlspecialchars($d['produto_nome'] ?? '—') . '</td>
+                <td>' . ucfirst($d['tipo'] ?? '—') . '</td>
+                <td>' . ucfirst($d['status'] ?? '—') . '</td>
+                <td>' . htmlspecialchars($d['observacoes'] ?? '—') . '</td>
+            </tr>';
         }
+
         $html .= '</tbody></table>';
+
         return $html;
     }
 
