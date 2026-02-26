@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Submit principal ===
+  // === Submit principal ===
   const form = document.getElementById("form-controle-agua");
   if (form) {
     form.addEventListener("submit", e => {
@@ -35,7 +36,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           if (res.ok) {
             showPopup("success", res.msg || "Controle de água registrado com sucesso!");
-            form.reset();
+
+            setTimeout(() => {
+              window.location.href = "/apontamento.php";
+            }, 1200);
+
           } else {
             showPopup("failed", res.err || "Erro ao salvar controle de água.");
           }
@@ -54,19 +59,13 @@ function showPopup(tipo, mensagem) {
   const popupFailed = document.getElementById("popup-failed");
 
   document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-  overlay.classList.remove("d-none");
+  overlay?.classList.remove("d-none");
 
   if (tipo === "success") {
-    popupSuccess.classList.remove("d-none");
+    popupSuccess?.classList.remove("d-none");
     popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
-    popupFailed.classList.remove("d-none");
-    popupFailed.querySelector(".popup-text").textContent = mensagem;
+    popupFailed?.classList.remove("d-none");
+    popupFailed.querySelector(".popup-title").textContent = mensagem;
   }
-
-  setTimeout(() => {
-    overlay.classList.add("d-none");
-    popupSuccess?.classList.add("d-none");
-    popupFailed?.classList.add("d-none");
-  }, 4000);
 }
