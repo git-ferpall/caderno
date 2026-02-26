@@ -12,7 +12,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
-<body>
+<body class="page-apontamento">
     <?php require '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?>
     
