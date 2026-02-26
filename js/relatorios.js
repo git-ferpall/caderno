@@ -120,22 +120,21 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", () => {
 document.getElementById('form-pdf-relatorio')
 .addEventListener('click', function() {
 
-    // 🔹 Mostra overlay de loading
-    const loading = document.getElementById('loading');
-    if (loading) {
-        loading.style.display = 'flex';
-    }
+    const form = document.getElementById('rel-form');
 
-    // 🔹 Opcional: muda texto
-    this.querySelector('.main-btn-text').innerText = 'Gerando relatório...';
-
-    // 🔹 Envia o form
-    document.getElementById('rel-form').submit();
-});
-document.getElementById('form-pdf-relatorio')
-.addEventListener('click', function() {
-
+    // 🔹 Mostra loading
     document.getElementById('loading-overlay').style.display = 'flex';
 
-    document.getElementById('rel-form').submit();
+    // 🔹 Cria nova aba
+    const newTab = window.open('', '_blank');
+
+    // 🔹 Envia form para nova aba
+    form.target = newTab.name;
+
+    form.submit();
+
+    // 🔹 Remove loading depois de pequeno tempo (ajuste se quiser)
+    setTimeout(() => {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }, 2000);
 });
