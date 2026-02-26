@@ -38,33 +38,37 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const dados = new FormData(form);
+
       try {
         const resp = await fetch("../funcoes/salvar_visita_tecnica.php", {
           method: "POST",
           body: dados,
         });
+
         const data = await resp.json();
+
         if (data.ok) {
-          showPopup("success", data.msg || "Dados salvos com sucesso!");
+          showPopup("success", data.msg || "Visita técnica salva com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "apontamento.php";
+            window.location.href = "/apontamento.php";
           }, 1200);
+
         } else {
-          showPopup("erro", data.msg);
+          showPopup("failed", data.msg || "Erro ao salvar visita.");
         }
+
       } catch (err) {
-        showPopup("erro", "Erro inesperado ao salvar visita.");
+        showPopup("failed", "Erro inesperado ao salvar visita.");
       }
     });
   }
-});
 
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
-  const popup = tipo === "success" ? popupSuccess : popupFailed;
+  const popup = tipo === "sucesso" ? popupSuccess : popupFailed;
 
   if (overlay && popup) {
     overlay.classList.remove("d-none");
