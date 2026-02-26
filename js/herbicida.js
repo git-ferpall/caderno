@@ -95,9 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           if (res.ok) {
             showPopup("success", res.msg || "Herbicida salvo com sucesso!");
-            form.reset();
-            carregarAreas();
-            carregarHerbicidas();
+
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
+
           } else {
             showPopup("failed", res.err || "Erro ao salvar herbicida.");
           }
