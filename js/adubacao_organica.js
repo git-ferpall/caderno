@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const form = document.getElementById("form-adubacao-organica");
+
   if (form) {
     form.addEventListener("submit", e => {
       e.preventDefault();
@@ -102,16 +103,18 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           if (res.ok) {
             showPopup("success", res.msg || "Adubação orgânica registrada com sucesso!");
-            form.reset();
-            document.querySelectorAll("#lista-areas .form-box-area:not(:first-child)").forEach(el => el.remove());
-            document.querySelectorAll("#lista-produtos .form-box-produto:not(:first-child)").forEach(el => el.remove());
-            carregarAreas();
-            carregarProdutos();
+
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
+
           } else {
             showPopup("failed", res.err || "Erro ao salvar adubação orgânica.");
           }
         })
-        .catch(() => showPopup("failed", "Falha na comunicação com o servidor."));
+        .catch(() => {
+          showPopup("failed", "Falha na comunicação com o servidor.");
+        });
     });
   }
 });
