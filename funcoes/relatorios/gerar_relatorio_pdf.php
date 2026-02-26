@@ -240,7 +240,8 @@ try {
         <table>
             <thead>
                 <tr>
-                    <th>Data</th>
+                    <th>Data Prevista</th>
+                    <th>Data Conclusão</th>
                     <th>Propriedade</th>
                     <th>Área</th>
                     <th>Produto</th>
@@ -271,7 +272,8 @@ try {
             : '';
 
             $html .= '<tr' . $extra . '>
-                <td>' . date('d/m/Y', strtotime($dataExibida)) . '</td>
+                <td>' . (!empty($d['data']) ? date('d/m/Y', strtotime($d['data'])) : '—') . '</td>
+                <td>' . (!empty($d['data_conclusao']) ? date('d/m/Y', strtotime($d['data_conclusao'])) : '—') . '</td>
                 <td>' . htmlspecialchars($d['propriedade_nome'] ?? '—') . '</td>
                 <td>' . htmlspecialchars($d['area_nome'] ?? '—') . '</td>
                 <td>' . htmlspecialchars($d['produto_nome'] ?? '—') . '</td>
