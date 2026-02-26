@@ -112,7 +112,7 @@ carregarFungicidas();
             showPopup("success", res.msg || "Fungicida salvo com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "/apontamento.php";
+              window.location.href = "apontamento.php";
             }, 1200);
 
           } else {
