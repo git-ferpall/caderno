@@ -117,24 +117,3 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", () => {
       console.error(err);
     });
 });
-document.getElementById('form-pdf-relatorio')
-.addEventListener('click', function() {
-
-    const form = document.getElementById('rel-form');
-
-    // 🔹 Mostra loading
-    document.getElementById('loading-overlay').style.display = 'flex';
-
-    // 🔹 Cria nova aba
-    const newTab = window.open('', '_blank');
-
-    // 🔹 Envia form para nova aba
-    form.target = newTab.name;
-
-    form.submit();
-
-    // 🔹 Remove loading depois de pequeno tempo (ajuste se quiser)
-    setTimeout(() => {
-        document.getElementById('loading-overlay').style.display = 'none';
-    }, 2000);
-});
