@@ -19,7 +19,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <main id="apontamento" class="sistema">
+        <main id="apontamento" class="sistema fundo-img">
             <div class="page-title">
                 <h2 class="main-title cor-branco"></h2>
             </div>
