@@ -121,16 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Adubação registrada com sucesso!");
-            form.reset();
+            showPopup("success", res.msg || "✅ Fertilizante salvo com sucesso!");
 
-            // Recarrega selects
-            carregarAreas();
-            carregarProdutos();
-
-            // Remove selects extras após salvar
-            document.querySelectorAll("#lista-areas .form-box-area:not(:first-child)").forEach(el => el.remove());
-            document.querySelectorAll("#lista-produtos .form-box-produto:not(:first-child)").forEach(el => el.remove());
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar adubação.");
           }
