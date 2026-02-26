@@ -23,12 +23,13 @@
     -webkit-backdrop-filter: blur(10px);
 
     padding: 40px;
-    flex: 1;
 
     border-radius: 30px;
-    margin: 40px;
 
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18);
+    max-width: 1300px;
+    width: 100%;
+
+    margin: 60px auto; /* centraliza horizontalmente */
 }
 
 .sistema .page-title {
@@ -230,4 +231,10 @@
 .sistema .prop-box .item .item-edit .edit.btn {
     padding: 4px 10px;
     font-size: 12px;
+}
+
+.sistema {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* centraliza vertical também */
 }
