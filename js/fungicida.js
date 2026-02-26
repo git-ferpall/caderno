@@ -82,42 +82,39 @@ document.addEventListener("DOMContentLoaded", () => {
 carregarFungicidas();
 
   // === Submit do formulário principal ===
-  const form = document.getElementById("form-fungicida");
-  if (form) {
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const dados = new FormData(form);
+    const form = document.getElementById("form-fungicida");
+    if (form) {
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const dados = new FormData(form);
 
-      // ✅ Se escolheu "outro", envia o texto digitado
-      const fungicidaSelect = document.getElementById("fungicida");
-      const fungicidaOutro = document.getElementById("fungicida_outro");
+        // ✅ Se o usuário escolheu "outro", envia o texto digitado no lugar
+        const fungicidaSelect = document.getElementById("fungicida");
+        const fungicidaOutro = document.getElementById("fungicida_outro");
+        if (fungicidaSelect && fungicidaOutro && fungicidaSelect.value === "outro") {
+          dados.set("fungicida", fungicidaOutro.value.trim());
+        }
 
-      if (fungicidaSelect && fungicidaOutro && fungicidaSelect.value === "outro") {
-        dados.set("fungicida", fungicidaOutro.value.trim());
-      }
-
-      fetch("../funcoes/salvar_fungicida.php", {
-        method: "POST",
-        body: dados
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok) {
-            showPopup("success", res.msg || "Fungicida salvo com sucesso!");
-
-            setTimeout(() => {
-              window.location.href = "apontamento.php";
-            }, 1200);
-
-          } else {
-            showPopup("failed", res.err || "Erro ao salvar o fungicida.");
-          }
+        fetch("../funcoes/salvar_fungicida.php", {
+          method: "POST",
+          body: dados
         })
-        .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
-        });
-    });
-  }
+          .then(r => r.json())
+          .then(res => {
+            if (res.ok) {
+              showPopup("success", res.msg || "Fungicida salvo com sucesso!");
+              form.reset();
+              carregarAreas();
+              carregarFungicidas();
+            } else {
+              showPopup("failed", res.err || "Erro ao salvar o fungicida.");
+            }
+          })
+          .catch(err => {
+            showPopup("failed", "Falha na comunicação: " + err);
+          });
+      });
+    }
 
 
   // === Envio do formulário de solicitação de FUNGICIDA ===
