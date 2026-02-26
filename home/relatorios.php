@@ -34,35 +34,18 @@ require_once __DIR__ . '/../configuracao/protect.php';
     background-color: #4caf50;
     color: #fff;
     }
-    #loading-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    }
-
-    .loading-box {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-    }
-
     .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #eee;
-        border-top: 4px solid #4caf50;
-        border-radius: 50%;
-        margin: 0 auto 15px;
-        animation: spin 1s linear infinite;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ddd;
+    border-top: 5px solid #4caf50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
     }
 
     @keyframes spin {
-        to { transform: rotate(360deg); }
+    100% { transform: rotate(360deg); }
     }
 </style>    
 </head>
@@ -70,9 +53,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?> 
     <div id="loading-overlay">
-        <div class="loading-box">
-            <div class="spinner"></div>
-            <p>Gerando relatório, aguarde...</p>
+        <div id="pdf-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
+            <div style="text-align:center">
+                <div class="spinner">
+                </div>
+                <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+                Gerando relatório, aguarde...
+                </p>
         </div>
     </div>
     <div id="conteudo">

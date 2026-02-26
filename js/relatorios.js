@@ -96,24 +96,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
-document.getElementById("form-pdf-relatorio").addEventListener("click", () => {
-  const form = document.getElementById("rel-form");
-  const formData = new FormData(form);
+document.getElementById("form-pdf-relatorio").addEventListener("click", async (e) => {
+  e.preventDefault();
 
-  fetch("../funcoes/relatorios/gerar_relatorio_pdf.php", {
-    method: "POST",
-    body: formData
-  })
-    .then(resp => {
-      if (!resp.ok) throw new Error("Erro ao gerar PDF");
-      return resp.blob();
-    })
-    .then(blob => {
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-    })
-    .catch(err => {
-      alert("❌ Falha ao gerar PDF: " + err.message);
-      console.error(err);
+  const btn = document.getElementById("form-pdf-relatorio");
+  const form = document.getElementById("rel-form");
+  const loading = document.getElementById("pdf-loading");
+
+  if (btn.disabled) return; // evita duplo clique
+
+  try {
+    btn.disabled = true;
+    btn.style.opacity = "0.6";
+    btn.style.cursor = "not-allowed";
+
+    loading.style.display = "flex";
+
+    const formData = new FormData(form);
+
+    const resp = await fetch("../funcoes/relatorios/gerar_relatorio_pdf.php", {
+      method: "POST",
+      body: formData
     });
+
+    if (!resp.ok) throw new Error("Erro ao gerar PDF");
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+
+  } catch (err) {
+    alert("❌ Falha ao gerar PDF: " + err.message);
+    console.error(err);
+  } finally {
+    loading.style.display = "none";
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  }
 });
