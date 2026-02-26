@@ -18,11 +18,17 @@
 }
 
 .sistema .sistema-main {
-    background-color: var(--branco);
-    padding: 20px 10px 10px;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    padding: 40px;
     flex: 1;
-    height: 100%;
-    width: 100%;
+
+    border-radius: 30px;
+    margin: 40px;
+
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18);
 }
 
 .sistema .page-title {
