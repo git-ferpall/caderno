@@ -18,18 +18,11 @@
 }
 
 .sistema .sistema-main {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    padding: 40px;
-
-    border-radius: 30px;
-
-    max-width: 1300px;
+    background-color: var(--branco);
+    padding: 20px 10px 10px;
+    flex: 1;
+    height: 100%;
     width: 100%;
-
-    margin: 60px auto; /* centraliza horizontalmente */
 }
 
 .sistema .page-title {
@@ -39,7 +32,7 @@
 .sistema .main-title {
     font-weight: bold;
     font-size: 28px;
-    padding-top: 60px;
+    padding-top: 100px;
 }
 
 .sistema .menu-links {
@@ -231,10 +224,4 @@
 .sistema .prop-box .item .item-edit .edit.btn {
     padding: 4px 10px;
     font-size: 12px;
-}
-
-.sistema {
-    display: flex;
-    justify-content: center;
-    align-items: center; /* centraliza vertical também */
 }
