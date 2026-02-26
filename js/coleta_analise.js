@@ -51,9 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
           body: dados,
         });
 
-        // se a resposta não for JSON válida, força leitura de texto
         const text = await resp.text();
         let data;
+
         try {
           data = JSON.parse(text);
         } catch {
@@ -62,13 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (data.ok) {
-          showPopup("sucesso", data.msg);
-          form.reset();
+          showPopup("success", data.msg || "Coleta registrada com sucesso!");
+
+          setTimeout(() => {
+            window.location.href = "/apontamento.php";
+          }, 1200);
+
         } else {
-          showPopup("erro", data.msg);
+          showPopup("failed", data.msg || "Erro ao salvar coleta.");
         }
+
       } catch (err) {
-        showPopup("erro", "Erro inesperado ao salvar coleta.");
+        showPopup("failed", "Erro inesperado ao salvar coleta.");
       }
     });
   }
