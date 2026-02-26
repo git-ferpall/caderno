@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", res.msg || "Apontamento de pragas/doenças salvo com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "/apontamento.php";
+            window.location.href = "apontamento.php";
           }, 1200);
 
         } else {
