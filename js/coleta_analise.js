@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", data.msg || "Coleta registrada com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "/apontamento.php";
+            window.location.href = "apontamento.php";
           }, 1200);
 
         } else {
@@ -85,23 +85,14 @@ function showPopup(tipo, mensagem) {
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  let popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  overlay?.classList.remove("d-none");
 
-  if (overlay && popup) {
-    overlay.classList.remove("d-none");
-    popup.classList.remove("d-none");
-
-    const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
-    if (msgBox) msgBox.textContent = mensagem;
-
-    const btnOk = popup.querySelector(".popup-btn");
-    if (btnOk) {
-      btnOk.onclick = () => {
-        overlay.classList.add("d-none");
-        popup.classList.add("d-none");
-      };
-    }
+  if (tipo === "success") {
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
-    alert(mensagem);
+    popupFailed?.classList.remove("d-none");
+    popupFailed.querySelector(".popup-title").textContent = mensagem;
   }
 }
