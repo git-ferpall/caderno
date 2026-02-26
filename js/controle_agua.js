@@ -34,12 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-          showPopup("success", res.msg || "Dados salvos com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento.php";
-          }, 1200);
-        } else {
+            showPopup("success", res.msg || "Controle de água registrado com sucesso!");
+            form.reset();
+          } else {
             showPopup("failed", res.err || "Erro ao salvar controle de água.");
           }
         })

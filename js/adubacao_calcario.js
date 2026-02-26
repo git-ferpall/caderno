@@ -121,10 +121,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Dados salvos com sucesso!");
+            showPopup("success", res.msg || "Adubação registrada com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "/apontamento.php";
             }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar adubação.");

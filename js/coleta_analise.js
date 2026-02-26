@@ -62,11 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (data.ok) {
-          showPopup("success", data.msg || "Dados Salvos com Sucesso");
-
-          setTimeout(() => {
-            window.location.href = "apontamento.php";
-          }, 1200);
+          showPopup("sucesso", data.msg);
+          form.reset();
         } else {
           showPopup("erro", data.msg);
         }

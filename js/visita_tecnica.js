@@ -38,28 +38,20 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const dados = new FormData(form);
-
       try {
         const resp = await fetch("../funcoes/salvar_visita_tecnica.php", {
           method: "POST",
           body: dados,
         });
-
         const data = await resp.json();
-
         if (data.ok) {
-          showPopup("success", data.msg || "Visita técnica salva com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "/apontamento.php";
-          }, 1200);
-
+          showPopup("sucesso", data.msg);
+          form.reset();
         } else {
-          showPopup("failed", data.msg || "Erro ao salvar visita.");
+          showPopup("erro", data.msg);
         }
-
       } catch (err) {
-        showPopup("failed", "Erro inesperado ao salvar visita.");
+        showPopup("erro", "Erro inesperado ao salvar visita.");
       }
     });
   }
