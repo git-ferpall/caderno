@@ -170,3 +170,20 @@ footer .ferpall {
         width: 100%;
     }
 }
+.glass-layout .sistema-main {
+    background: rgba(255, 255, 255, 0.82);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+
+    box-shadow: 
+        0 10px 35px rgba(0, 0, 0, 0.15);
+
+    padding: 40px;
+
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
