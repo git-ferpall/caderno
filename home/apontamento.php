@@ -21,7 +21,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="apontamento" class="sistema">
             <div class="page-title">
-                
+                <h2 class="main-title cor-branco"></h2>
             </div>
 
             <div class="sistema-main container">
