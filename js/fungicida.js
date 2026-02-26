@@ -68,6 +68,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 carregarFungicidas();
 
+  // 👇 ADICIONE AQUI
+  const fungicidaSelect = document.getElementById("fungicida");
+  const fungicidaOutro = document.getElementById("fungicida_outro");
+
+  if (fungicidaSelect && fungicidaOutro) {
+    fungicidaSelect.addEventListener("change", () => {
+      if (fungicidaSelect.value === "outro") {
+        fungicidaOutro.style.display = "block";
+        fungicidaOutro.required = true;
+        fungicidaOutro.focus();
+      } else {
+        fungicidaOutro.style.display = "none";
+        fungicidaOutro.required = false;
+        fungicidaOutro.value = "";
+      }
+    });
+  }
+
+  
+
   // === Submit do formulário principal ===
     const form = document.getElementById("form-fungicida");
     if (form) {
