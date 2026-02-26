@@ -40,44 +40,49 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Carregar FUNGICIDAS ===
   function carregarFungicidas() {
-    fetch("../funcoes/buscar_fungicidas.php")
-      .then(r => r.json())
-      .then(data => {
-        const sel = document.getElementById("fungicida");
-        const outroInput = document.getElementById("fungicida_outro");
-        if (!sel) return;
+  fetch("../funcoes/buscar_fungicidas.php")
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById("fungicida");
+      const outroInput = document.getElementById("fungicida_outro");
+      if (!sel) return;
 
-        sel.innerHTML = '<option value="">Selecione o fungicida</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = item.nome;
-          sel.appendChild(opt);
-        });
+      sel.innerHTML = '<option value="">Selecione o fungicida</option>';
 
-        // Adiciona a opção “Outro”
-        const outro = document.createElement("option");
-        outro.value = "outro";
-        outro.textContent = "Outro (digitar manualmente)";
-        sel.appendChild(outro);
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        sel.appendChild(opt);
+      });
 
-        // Mostrar/ocultar campo manual
-        sel.addEventListener("change", () => {
-          if (sel.value === "outro") {
-            outroInput.style.display = "block";
-            outroInput.required = true;
-            outroInput.focus();
-          } else {
-            outroInput.style.display = "none";
-            outroInput.required = false;
-            outroInput.value = "";
-          }
-        });
-      })
-      .catch(err => console.error("Erro ao carregar fungicidas:", err));
+      // adiciona "Outro"
+      const outro = document.createElement("option");
+      outro.value = "outro";
+      outro.textContent = "Outro (digitar manualmente)";
+      sel.appendChild(outro);
+    })
+    .catch(err => console.error("Erro ao carregar fungicidas:", err));
+}
+
+// 👇 REGISTRA O CHANGE FORA DO FETCH
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.id === "fungicida") {
+    const sel = e.target;
+    const outroInput = document.getElementById("fungicida_outro");
+
+    if (sel.value === "outro") {
+      outroInput.style.display = "block";
+      outroInput.required = true;
+      outroInput.focus();
+    } else {
+      outroInput.style.display = "none";
+      outroInput.required = false;
+      outroInput.value = "";
+    }
   }
+});
 
 carregarFungicidas();
 
@@ -88,9 +93,10 @@ carregarFungicidas();
         e.preventDefault();
         const dados = new FormData(form);
 
-        // ✅ Se o usuário escolheu "outro", envia o texto digitado no lugar
+        // ✅ Se escolheu "outro", envia o texto digitado
         const fungicidaSelect = document.getElementById("fungicida");
         const fungicidaOutro = document.getElementById("fungicida_outro");
+
         if (fungicidaSelect && fungicidaOutro && fungicidaSelect.value === "outro") {
           dados.set("fungicida", fungicidaOutro.value.trim());
         }
@@ -103,9 +109,11 @@ carregarFungicidas();
           .then(res => {
             if (res.ok) {
               showPopup("success", res.msg || "Fungicida salvo com sucesso!");
-              form.reset();
-              carregarAreas();
-              carregarFungicidas();
+
+              setTimeout(() => {
+                window.location.href = "/apontamento.php";
+              }, 1200);
+
             } else {
               showPopup("failed", res.err || "Erro ao salvar o fungicida.");
             }

@@ -63,7 +63,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <label for="fungicida">Fungicida</label>
           <select id="fungicida" name="fungicida" class="form-select form-text" required>
             <option value="">Selecione o fungicida</option>
-            <option value="outro">Outro (digitar manualmente)</option>
           </select>
 
           <input type="text" id="fungicida_outro" name="fungicida_outro"
