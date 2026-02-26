@@ -122,46 +122,40 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "POST",
           body: formData
         });
+
         const data = await resp.json();
 
         if (data.ok) {
-          showPopup("sucesso", data.msg);
-          form.reset();
-          carregarAreas();
-          carregarProdutos();
+          showPopup("success", data.msg || "Registro salvo com sucesso!");
+
+          setTimeout(() => {
+            window.location.href = "apontamento.php";
+          }, 1200);
+
         } else {
-          showPopup("erro", data.msg);
+          showPopup("failed", data.msg || "Erro ao salvar apontamento.");
         }
+
       } catch (err) {
-        showPopup("erro", "Erro inesperado ao salvar apontamento.");
+        showPopup("failed", "Erro inesperado ao salvar apontamento.");
       }
     });
   }
 });
 
-// === Função de popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  let popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  overlay?.classList.remove("d-none");
 
-  if (overlay && popup) {
-    overlay.classList.remove("d-none");
-    popup.classList.remove("d-none");
-
-    const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
-    if (msgBox) msgBox.textContent = mensagem;
-
-    const btnOk = popup.querySelector(".popup-btn");
-    if (btnOk) {
-      btnOk.onclick = () => {
-        overlay.classList.add("d-none");
-        popup.classList.add("d-none");
-      };
-    }
+  if (tipo === "success") {
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
-    alert(mensagem);
+    popupFailed?.classList.remove("d-none");
+    popupFailed.querySelector(".popup-title").textContent = mensagem;
   }
 }
