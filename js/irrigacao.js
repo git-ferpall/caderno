@@ -95,10 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r => r.json())
         .then(res => {
           if (res.ok) {
-            showPopup("success", res.msg || "Irrigação salva com sucesso!");
-            form.reset();
-            carregarAreas();
-            carregarProdutos();
+            showPopup("success", res.msg || "Dados salvos com sucesso!");
+
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar irrigação.");
           }

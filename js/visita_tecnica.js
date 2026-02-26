@@ -45,8 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         const data = await resp.json();
         if (data.ok) {
-          showPopup("sucesso", data.msg);
-          form.reset();
+          showPopup("success", data.msg || "Dados salvos com sucesso!");
+
+          setTimeout(() => {
+            window.location.href = "apontamento.php";
+          }, 1200);
         } else {
           showPopup("erro", data.msg);
         }

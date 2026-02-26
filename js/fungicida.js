@@ -102,7 +102,7 @@ carregarFungicidas();
           .then(r => r.json())
           .then(res => {
             if (res.ok) {
-              showPopup("success", res.msg || "✅ Fertilizante salvo com sucesso!");
+              showPopup("success", res.msg || "Dados salvos com sucesso!");
 
               setTimeout(() => {
                 window.location.href = "apontamento.php";

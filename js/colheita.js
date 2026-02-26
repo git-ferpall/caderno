@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await resp.json();
 
         if (data.ok) {
-          showPopup("success", data.msg || "Transplantio salvo com sucesso!");
+          showPopup("success", data.msg || "Dados salvos com sucesso!");
 
           setTimeout(() => {
             window.location.href = "apontamento.php";

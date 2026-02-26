@@ -108,10 +108,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await resp.json();
 
         if (res.ok) {
-          showPopup("sucesso", res.msg);
-          form.reset();
-          carregarAreas();
-          carregarProdutos();
+          showPopup("success", res.msg || "Dados salvos com sucesso!");
+
+          setTimeout(() => {
+            window.location.href = "apontamento.php";
+          }, 1200);
         } else {
           showPopup("erro", res.msg || "Erro ao salvar erradicação.");
         }
