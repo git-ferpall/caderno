@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", res.msg || "Manejo integrado registrado com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "/apontamento.php";
+            window.location.href = "apontamento.php";
           }, 1200);
 
         } else {
