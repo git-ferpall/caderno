@@ -155,8 +155,14 @@ try {
 
     echo json_encode(['ok' => true, 'msg' => '✅ Apontamento de plantio salvo com sucesso!']);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $mysqli->rollback();
     http_response_code(500);
-    echo json_encode(['ok' => false, 'err' => 'exception', 'msg' => $e->getMessage()]);
+    echo json_encode([
+        'ok' => false,
+        'err' => 'exception',
+        'msg' => $e->getMessage(),
+        'line' => $e->getLine(),
+        'file' => $e->getFile()
+    ]);
 }
