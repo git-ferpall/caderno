@@ -64,7 +64,7 @@ function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
-  const popup = tipo === "sucesso" ? popupSuccess : popupFailed;
+  const popup = tipo === "success" ? popupSuccess : popupFailed;
 
   if (overlay && popup) {
     overlay.classList.remove("d-none");
