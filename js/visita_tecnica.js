@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", data.msg || "Visita técnica salva com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "/apontamento.php";
+            window.location.href = "apontamento.php";
           }, 1200);
 
         } else {
