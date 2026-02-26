@@ -121,9 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           if (res.ok) {
             showPopup("success", res.msg || "Plantio salvo com sucesso!");
-            form.reset();
-            carregarAreas();
-            carregarProdutos();
+
+            // Pequeno delay só para o usuário ver o popup
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar o plantio.");
           }
