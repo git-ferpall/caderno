@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", res.msg || "Erradicação registrada com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "/apontamento.php";
+            window.location.href = "apontamento.php";
           }, 1200);
 
         } else {
