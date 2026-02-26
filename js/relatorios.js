@@ -117,3 +117,25 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", () => {
       console.error(err);
     });
 });
+document.getElementById('form-pdf-relatorio')
+.addEventListener('click', function() {
+
+    // 🔹 Mostra overlay de loading
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.style.display = 'flex';
+    }
+
+    // 🔹 Opcional: muda texto
+    this.querySelector('.main-btn-text').innerText = 'Gerando relatório...';
+
+    // 🔹 Envia o form
+    document.getElementById('rel-form').submit();
+});
+document.getElementById('form-pdf-relatorio')
+.addEventListener('click', function() {
+
+    document.getElementById('loading-overlay').style.display = 'flex';
+
+    document.getElementById('rel-form').submit();
+});

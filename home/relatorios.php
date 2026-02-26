@@ -14,33 +14,67 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
     #pf-propriedades {
-  height: auto;
-  min-height: 48px;
-  max-height: 140px; /* define altura visível */
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f8f8f8;
-  font-size: 15px;
-  overflow-y: auto;
-  cursor: pointer;
-}
+    height: auto;
+    min-height: 48px;
+    max-height: 140px; /* define altura visível */
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    font-size: 15px;
+    overflow-y: auto;
+    cursor: pointer;
+    }
 
-#pf-propriedades option {
-  padding: 6px;
-}
+    #pf-propriedades option {
+    padding: 6px;
+    }
 
-#pf-propriedades option:checked {
-  background-color: #4caf50;
-  color: #fff;
-}
+    #pf-propriedades option:checked {
+    background-color: #4caf50;
+    color: #fff;
+    }
+    #loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
 
+    .loading-box {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #eee;
+        border-top: 4px solid #4caf50;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?> 
-
+    <div id="loading-overlay">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <p>Gerando relatório, aguarde...</p>
+        </div>
+    </div>
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
