@@ -114,9 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.ok) {
           showPopup("success", data.msg || "Transplantio salvo com sucesso!");
-          form.reset();
-          carregarAreas();
-          carregarProdutos();
+
+          setTimeout(() => {
+            window.location.href = "apontamento.php";
+          }, 1200);
         } else {
           showPopup("failed", data.err || "Erro ao salvar o transplantio.");
         }
