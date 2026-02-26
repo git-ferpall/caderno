@@ -105,43 +105,41 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "POST",
           body: dados
         });
+
         const res = await resp.json();
 
         if (res.ok) {
-          showPopup("sucesso", res.msg);
-          form.reset();
-          carregarAreas();
-          carregarProdutos();
+          showPopup("success", res.msg || "Erradicação registrada com sucesso!");
+
+          setTimeout(() => {
+            window.location.href = "/apontamento.php";
+          }, 1200);
+
         } else {
-          showPopup("erro", res.msg || "Erro ao salvar erradicação.");
+          showPopup("failed", res.msg || "Erro ao salvar erradicação.");
         }
+
       } catch (err) {
         console.error("Erro:", err);
-        showPopup("erro", "Erro inesperado ao salvar apontamento.");
+        showPopup("failed", "Erro inesperado ao salvar apontamento.");
       }
     });
   }
 });
 
-// === Popup padrão ===
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  const popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  overlay?.classList.remove("d-none");
 
-  overlay.classList.remove("d-none");
-  popup.classList.remove("d-none");
-
-  const msgBox = popup.querySelector(".popup-text") || popup.querySelector(".popup-title");
-  msgBox.textContent = mensagem;
-
-  const btnOk = popup.querySelector(".popup-btn");
-  if (btnOk) {
-    btnOk.onclick = () => {
-      overlay.classList.add("d-none");
-      popup.classList.add("d-none");
-    };
+  if (tipo === "success") {
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
+  } else {
+    popupFailed?.classList.remove("d-none");
+    popupFailed.querySelector(".popup-title").textContent = mensagem;
   }
 }
