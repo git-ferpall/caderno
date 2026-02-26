@@ -52,7 +52,7 @@ try {
     $placeholders = implode(',', array_fill(0, count($propriedades), '?'));
 
     $sql = "
-        SELECT 
+    SELECT 
             a.id, a.tipo, a.data, a.status, a.observacoes, a.data_conclusao,
             ar.nome AS area_nome,
             p.nome AS produto_nome,
@@ -67,25 +67,23 @@ try {
             AND ad_prod.campo = 'produto_id'
         LEFT JOIN produtos p ON p.id = ad_prod.valor
         LEFT JOIN propriedades prop ON prop.id = a.propriedade_id
-        WHERE (
-            (a.status = 'concluido' AND a.data_conclusao BETWEEN ? AND ?)
-            OR
-            (a.status <> 'concluido' AND a.data BETWEEN ? AND ?)
-        )
-        AND a.propriedade_id IN ($placeholders)
+        WHERE a.propriedade_id IN ($placeholders)
+        AND COALESCE(a.data_conclusao, a.data) BETWEEN ? AND ?
     ";
 
-    $params = [
-    $data_ini, $data_fim,
-    $data_ini, $data_fim
-    ];
+    $params = [];
+    $types  = "";
 
-    $types = "ssss";
-
+    // 🔹 Primeiro vêm os IDs (porque estão primeiro na query)
     foreach ($propriedades as $pid) {
         $params[] = $pid;
         $types   .= "i";
     }
+
+    // 🔹 Depois vêm as datas
+    $params[] = $data_ini;
+    $params[] = $data_fim;
+    $types   .= "ss";
 
     // 🔹 FILTRO CULTIVO
     if (!empty($cultivo)) {
@@ -121,11 +119,19 @@ try {
     $hoje = strtotime(date('Y-m-d'));
 
     while ($row = $res->fetch_assoc()) {
-        $data_item = strtotime($row['data']);
-        if ($row['status'] == 'concluido') {
+
+        $data_base = !empty($row['data_conclusao']) 
+            ? $row['data_conclusao'] 
+            : $row['data'];
+
+        $data_item = strtotime($data_base);
+
+        if (strtolower($row['status']) === 'concluido') {
             $concluidos[] = $row;
         } else {
-            if ($data_item < $hoje) $atrasados[] = $row;
+            if ($data_item < $hoje) {
+                $atrasados[] = $row;
+            }
             $pendentes[] = $row;
         }
     }
@@ -249,7 +255,7 @@ try {
 
             // 🔹 Define qual data mostrar
             $dataExibida = (
-                $d['status'] === 'concluido' 
+                strtolower($d['status']) === 'concluido'
                 && !empty($d['data_conclusao'])
             )
             ? $d['data_conclusao']
