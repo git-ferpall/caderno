@@ -103,7 +103,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
           <div class="form-submit">
-            <button type="reset" class="main-btn fundo-vermelho">
+            <button type="button" 
+                    class="main-btn fundo-vermelho"
+                    onclick="window.location.href='apontamento.php'">
               <span class="main-btn-text">Cancelar</span>
             </button>
             <button type="submit" class="main-btn fundo-verde">
