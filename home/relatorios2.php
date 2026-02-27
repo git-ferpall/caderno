@@ -13,25 +13,55 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-   .relatorios-grid {
+   .relatorios-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 30px 20px 40px;
+    }
+
+    .relatorios-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
     }
 
     .card-relatorio {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        transition: 0.2s;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
         text-decoration: none;
         color: #333;
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .card-relatorio:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-icon {
+        font-size: 28px;
+    }
+
+    .card-relatorio h3 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .card-relatorio p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
     }
 </style>    
 </head>
@@ -56,30 +86,45 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="relatorios" class="sistema">
 
-            <main class="sistema">
-                <div class="page-title">
-                    <h2 class="main-title cor-branco">Central de Relatórios</h2>
-                </div>
+    <div class="page-title">
+        <h2 class="main-title cor-branco">Central de Relatórios</h2>
+    </div>
 
-                <div class="sistema-main relatorios-grid">
+    <div class="sistema-main">
+            <div class="relatorios-wrapper">
+
+                <div class="relatorios-grid">
 
                     <a href="relatorio_manejos.php" class="card-relatorio">
-                        <h3>📊 Relatório de Manejos</h3>
+                        <div class="card-header">
+                            <span class="card-icon">📊</span>
+                            <h3>Relatório de Manejos</h3>
+                        </div>
                         <p>Aplicações, defensivos e operações realizadas.</p>
                     </a>
 
                     <a href="relatorio_visita.php" class="card-relatorio">
-                        <h3>🧑‍🌾 Relatório de Visita Técnica</h3>
+                        <div class="card-header">
+                            <span class="card-icon">🧑‍🌾</span>
+                            <h3>Relatório de Visita Técnica</h3>
+                        </div>
                         <p>Registros de visitas e recomendações técnicas.</p>
                     </a>
 
                     <a href="relatorio_producao.php" class="card-relatorio">
-                        <h3>📦 Relatório de Produção</h3>
+                        <div class="card-header">
+                            <span class="card-icon">📦</span>
+                            <h3>Relatório de Produção</h3>
+                        </div>
                         <p>Resumo de colheita e produtividade.</p>
                     </a>
 
                 </div>
-            </main>
+
+            </div>
+        </div>
+
+    </main>
 
         <?php include '../include/imports.php' ?>
         
