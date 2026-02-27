@@ -13,56 +13,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-   .relatorios-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 30px 20px 40px;
-    }
-
-    .relatorios-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-    }
-
-    .card-relatorio {
-        background: #ffffff;
-        padding: 30px;
-        border-radius: 18px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-        text-decoration: none;
-        color: #333;
-        transition: all 0.25s ease;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .card-relatorio:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.15);
-    }
-
-    .card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .card-icon {
-        font-size: 28px;
-    }
-
-    .card-relatorio h3 {
-        margin: 0;
-        font-size: 20px;
-    }
-
-    .card-relatorio p {
-        margin: 0;
-        color: #666;
-        font-size: 14px;
-    }
+   
 </style>    
 </head>
 <body>
@@ -71,62 +22,53 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <?php
-        date_default_timezone_set("America/Sao_Paulo");
 
-        // Aqui vai uma função pra pegar as informações do sistema que, caso possua algum dado cadastrado, esse valor já é colocado automaticamente no campo passível de edição
 
-        $cultivos = [];
-        $areas = [];
-        $manejos = [];
+        <main id="relatorios" class="sistema fundo-img">
 
-        $dt_ini = date("Y-m-01");
-        $dt_fin = date("Y-m-t");
-        ?>
+            <div class="overlay-conteudo">
 
-        <main id="relatorios" class="sistema">
+                <div class="page-title">
+                    <h2 class="main-title cor-branco">Central de Relatórios</h2>
+                </div>
 
-    
+                <div class="sistema-main">
+                    <div class="relatorios-wrapper">
 
-    <main id="home" class="sistema fundo-img">
+                        <div class="relatorios-grid">
 
-            <div class="page-title">
-                <h2 class="main-title cor-branco">Central de Relatórios</h2>
-            </div>    
-            <div class="relatorios-wrapper">
+                            <a href="relatorio_manejos.php" class="card-relatorio">
+                                <div class="card-header">
+                                    <span class="card-icon">📊</span>
+                                    <h3>Relatório de Manejos</h3>
+                                </div>
+                                <p>Aplicações, defensivos e operações realizadas.</p>
+                            </a>
 
-                <div class="relatorios-grid">
+                            <a href="relatorio_visita.php" class="card-relatorio">
+                                <div class="card-header">
+                                    <span class="card-icon">🧑‍🌾</span>
+                                    <h3>Relatório de Visita Técnica</h3>
+                                </div>
+                                <p>Registros de visitas e recomendações técnicas.</p>
+                            </a>
 
-                    <a href="relatorio_manejos.php" class="card-relatorio">
-                        <div class="card-header">
-                            <span class="card-icon">📊</span>
-                            <h3>Relatório de Manejos</h3>
+                            <a href="relatorio_producao.php" class="card-relatorio">
+                                <div class="card-header">
+                                    <span class="card-icon">📦</span>
+                                    <h3>Relatório de Produção</h3>
+                                </div>
+                                <p>Resumo de colheita e produtividade.</p>
+                            </a>
+
                         </div>
-                        <p>Aplicações, defensivos e operações realizadas.</p>
-                    </a>
 
-                    <a href="relatorio_visita.php" class="card-relatorio">
-                        <div class="card-header">
-                            <span class="card-icon">🧑‍🌾</span>
-                            <h3>Relatório de Visita Técnica</h3>
-                        </div>
-                        <p>Registros de visitas e recomendações técnicas.</p>
-                    </a>
-
-                    <a href="relatorio_producao.php" class="card-relatorio">
-                        <div class="card-header">
-                            <span class="card-icon">📦</span>
-                            <h3>Relatório de Produção</h3>
-                        </div>
-                        <p>Resumo de colheita e produtividade.</p>
-                    </a>
-
+                    </div>
                 </div>
 
             </div>
-        </div>
 
-    </main>
+        </main>
 
         <?php include '../include/imports.php' ?>
         
