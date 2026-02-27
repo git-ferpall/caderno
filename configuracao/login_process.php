@@ -145,6 +145,7 @@ $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERV
 $cookieOptions = [
     'expires'  => time() + 3600,
     'path'     => '/',
+    'domain'   => '.frutag.com.br',   // 🔥 ESSENCIAL
     'httponly' => true,
     'samesite' => 'Lax',
     'secure'   => $isHttps,

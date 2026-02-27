@@ -35,6 +35,7 @@ $jwt = JWT::encode($payload, $SECRET, 'HS256');
 setcookie('AUTH_COOKIE', $jwt, [
     'expires'  => time() + 3600,
     'path'     => '/',
+    'domain'   => '.frutag.com.br',  // 🔥 ESSENCIAL
     'secure'   => true,
     'httponly' => true,
     'samesite' => 'Lax'
