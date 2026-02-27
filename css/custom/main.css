@@ -119,27 +119,23 @@ button {
     padding: 2px 0px 0px 0px;
 }
 
-footer {
-    position: relative;
+#footer {
+    margin-top: 60px;
+    padding: 12px 0;
+
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
     text-align: center;
-    padding: 10px;
-    background-color: var(--branco);
-    width: 100%;
+
+    border-top: 1px solid rgba(255,255,255,0.08);
 }
 
-footer .ferpall {
-    align-items: center;
-    color: var(--branco);
-    background-color: var(--preto);
-    border-radius: 15px;
-    display: inline-block;
-    font-size: 10px;
-    margin: 0px;
-    max-width: 400px;
-    min-width: 300px;
-    padding: 6px 0px;
-    text-align: center;
-    width: 100%;
+#footer .ferpall {
+    margin: 0;
+    letter-spacing: 0.3px;
 }
 
 .show {
@@ -188,22 +184,4 @@ footer .ferpall {
     margin: 60px auto;
 
     position: relative;
-}
-/* ===== Footer moderno ===== */
-#footer {
-    margin-top: 80px;
-    padding: 25px 0;
-
-    background: linear-gradient(135deg, #0f2d33, #14434b);
-    color: rgba(255,255,255,0.85);
-
-    border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-#footer .ferpall {
-    margin: 0;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-    opacity: 0.8;
 }
