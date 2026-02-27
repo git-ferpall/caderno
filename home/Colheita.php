@@ -24,6 +24,27 @@ require_once __DIR__ . '/../configuracao/protect.php';
     #lista-produtos .form-box-produto {
       margin-bottom: 5px;
     }
+    .linha-quantidade {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* remove width 100% herdado */
+    .linha-quantidade .form-text {
+      width: auto;
+    }
+
+    /* input cresce */
+    .linha-quantidade input {
+      flex: 1;
+    }
+
+    /* select fixo */
+    .linha-quantidade select {
+      width: 150px;
+      flex-shrink: 0;
+    }
 
   </style>  
 </head>
@@ -80,8 +101,24 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 
         <div class="form-campo">
-          <label for="quantidade">Quantidade Colhida</label>
-          <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 1500 kg">
+          <label>Quantidade Colhida</label>
+
+          <div class="linha-quantidade">
+            <input type="number" step="0.01"
+                  name="quantidade"
+                  class="form-text"
+                  placeholder="Ex: 1500"
+                  required>
+
+            <select name="unidade"
+                    class="form-select form-text"
+                    required>
+              <option value="kg">Kg</option>
+              <option value="caixas">Caixas</option>
+              <option value="sacas">Sacas</option>
+              <option value="bandejas">Bandejas</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-campo">
