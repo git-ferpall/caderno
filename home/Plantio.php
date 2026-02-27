@@ -125,6 +125,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 <option value="kg">Kg</option>
                 <option value="caixas">Caixas</option>
                 <option value="bandejas">Bandejas</option>
+                <option value="bandejas">Sacas</option>
               </select>
             </div>
           </div>
