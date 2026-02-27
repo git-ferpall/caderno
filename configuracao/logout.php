@@ -15,11 +15,11 @@ if (ini_get('session.use_cookies')) {
     ]);
 }
 
-// remove AUTH_COOKIE com os mesmos parâmetros da criação
+// 🔥 remove AUTH_COOKIE GLOBAL
 setcookie('AUTH_COOKIE', '', [
     'expires'  => time() - 3600,
     'path'     => '/',
-    'domain'   => 'caderno.frutag.com.br',
+    'domain'   => '.frutag.com.br',
     'secure'   => true,
     'httponly' => true,
     'samesite' => 'Lax'
@@ -29,6 +29,6 @@ unset($_COOKIE['AUTH_COOKIE']);
 
 session_destroy();
 
-// agora chama logout do frutag
+// chama logout do frutag
 header("Location: https://frutag.com.br/login/logout.php");
 exit;
