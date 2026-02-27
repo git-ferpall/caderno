@@ -80,30 +80,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         from { transform: scale(0.9); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
         }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-        }
-
-        .content-login {
-            width: 100%;
-            max-width: 1200px;
-            padding-top: 80px; /* controla distância do topo */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header-login {
-            margin-bottom: 30px; /* 👈 aproxima do formulário */
-        }
-
-        .login {
-            display: flex;
-            justify-content: center;
-        }
+        
 
 </style>
 </head>
