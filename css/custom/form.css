@@ -415,6 +415,9 @@
     flex: 1;
 }
 
+.sistema {
+    padding-bottom: 80px;
+}
 .main-form.form-bancada {
     padding: 0px;
 }
