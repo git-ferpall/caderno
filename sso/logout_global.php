@@ -2,9 +2,9 @@
 declare(strict_types=1);
 session_start();
 
-// Limpa sessão local do caderno
 $_SESSION = [];
 
+// Remove cookie sessão frutag
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', [
@@ -17,7 +17,7 @@ if (ini_get('session.use_cookies')) {
     ]);
 }
 
-// Remove AUTH_COOKIE global
+// Remove AUTH_COOKIE compartilhado
 setcookie('AUTH_COOKIE', '', [
     'expires'  => time() - 3600,
     'path'     => '/',
@@ -31,6 +31,6 @@ unset($_COOKIE['AUTH_COOKIE']);
 
 session_destroy();
 
-// 🔥 Agora chama logout do frutag
+// 🔥 IMPORTANTE: vá para login, não para o caderno
 header("Location: https://frutag.com.br/login/logout.php");
 exit;
