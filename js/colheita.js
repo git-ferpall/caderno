@@ -133,7 +133,13 @@ function showPopup(tipo, mensagem) {
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  let popup = (tipo === "sucesso") ? popupSuccess : popupFailed;
+  let popup;
+
+  if (tipo === "sucesso" || tipo === "success") {
+    popup = popupSuccess;
+  } else {
+    popup = popupFailed;
+  }
 
   if (overlay && popup) {
     overlay.classList.remove("d-none");
