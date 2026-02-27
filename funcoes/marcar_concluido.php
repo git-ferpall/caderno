@@ -1,33 +1,110 @@
 <?php
+
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
-$id = $_POST['id'] ?? null;
+$id         = $_POST['id'] ?? null;
+$quantidade = $_POST['quantidade'] ?? null;
+$unidade    = $_POST['unidade'] ?? null;
 
 if (!$id || !is_numeric($id)) {
     echo json_encode(['ok' => false, 'msg' => 'ID inválido']);
     exit;
 }
 
+$mysqli->begin_transaction();
+
 try {
-    // Atualiza o status e grava a data de conclusão
+
+    // 🔎 Primeiro buscamos o tipo do apontamento
     $stmt = $mysqli->prepare("
-        UPDATE apontamentos
-        SET status = 'concluido',
-            data_conclusao = NOW()
+        SELECT tipo 
+        FROM apontamentos 
         WHERE id = ?
     ");
     $stmt->bind_param("i", $id);
     $stmt->execute();
+    $res = $stmt->get_result();
+    $row = $res->fetch_assoc();
+    $stmt->close();
 
-    if ($stmt->affected_rows > 0) {
-        echo json_encode(['ok' => true, 'msg' => 'Manejo marcado como concluído com sucesso']);
+    if (!$row) {
+        echo json_encode(['ok' => false, 'msg' => 'Apontamento não encontrado']);
+        exit;
+    }
+
+    $tipo = $row['tipo'];
+
+    // ==========================================================
+    // 🌽 SE FOR COLHEITA → EXIGE QUANTIDADE
+    // ==========================================================
+
+    if ($tipo === 'colheita') {
+
+        if ($quantidade === null || $quantidade === '' || !is_numeric($quantidade)) {
+            echo json_encode(['ok' => false, 'msg' => 'Informe a quantidade colhida']);
+            exit;
+        }
+
+        $quantidade = floatval($quantidade);
+
+        $stmt = $mysqli->prepare("
+            UPDATE apontamentos
+            SET status = 'concluido',
+                quantidade = ?,
+                unidade = ?,
+                data_conclusao = NOW()
+            WHERE id = ?
+        ");
+        $stmt->bind_param("dsi", $quantidade, $unidade, $id);
+    }
+
+    // ==========================================================
+    // 🌱 OUTROS TIPOS
+    // ==========================================================
+
+    else {
+
+        $stmt = $mysqli->prepare("
+            UPDATE apontamentos
+            SET status = 'concluido',
+                data_conclusao = NOW()
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $id);
+    }
+
+    $stmt->execute();
+
+    if ($stmt->affected_rows >= 0) {
+
+        $mysqli->commit();
+
+        echo json_encode([
+            'ok'  => true,
+            'msg' => 'Manejo marcado como concluído com sucesso'
+        ]);
+
     } else {
-        echo json_encode(['ok' => false, 'msg' => 'Nenhum registro atualizado — ID incorreto ou já concluído']);
+
+        $mysqli->rollback();
+
+        echo json_encode([
+            'ok'  => false,
+            'msg' => 'Nenhum registro atualizado'
+        ]);
     }
 
     $stmt->close();
+
 } catch (Throwable $e) {
-    echo json_encode(['ok' => false, 'msg' => 'Erro no servidor: ' . $e->getMessage()]);
+
+    $mysqli->rollback();
+
+    echo json_encode([
+        'ok'  => false,
+        'msg' => 'Erro no servidor'
+    ]);
 }

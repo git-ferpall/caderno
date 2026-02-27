@@ -244,6 +244,20 @@ if ($user_id) {
         <label>Detalhes:</label>
         <div id="manejo-detalhes-extra" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;font-size:0.9rem;"></div>
         </div>
+        <div id="bloco-colheita" class="d-none" style="margin-top:15px;">
+            <label>Quantidade colhida</label>
+
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="colheita-quantidade" step="0.01" class="form-text">
+
+                <select id="colheita-unidade" class="form-text">
+                <option value="kg">Kg</option>
+                <option value="sacas">Sacas</option>
+                <option value="caixas">Caixas</option>
+                <option value="bandejas">Bandejas</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="popup-actions">
