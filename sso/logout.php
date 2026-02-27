@@ -41,5 +41,11 @@ unset($_COOKIE['token']);
 
 session_destroy();
 
-header("Location: https://frutag.com.br/index.php?logout=1");
+$from = $_GET['from'] ?? '';
+
+if ($from === 'caderno') {
+    header("Location: https://caderno.frutag.com.br/index.php?logout=1");
+} else {
+    header("Location: https://frutag.com.br/login/index.php?logout=1");
+}
 exit;
