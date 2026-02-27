@@ -80,36 +80,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         from { transform: scale(0.9); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
         }
-        /* ===== FUNDO TELA INTEIRA ===== */
-            body {
-                margin: 0;
-                min-height: 100vh;
-
-                background: url('img/sua-imagem.jpg') no-repeat center center;
-                background-size: cover;
-
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            /* ===== BLOCO CENTRAL ===== */
-            .content-login {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            /* ===== HEADER ===== */
-            .header-login {
-                margin-bottom: 30px; /* aproxima do formulário */
-            }
-
-            /* ===== FORM ===== */
-            .login {
-                display: flex;
-                justify-content: center;
-            }
+        
 
 </style>
 </head>
