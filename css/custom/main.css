@@ -189,3 +189,21 @@ footer .ferpall {
 
     position: relative;
 }
+/* ===== Footer moderno ===== */
+#footer {
+    margin-top: 80px;
+    padding: 25px 0;
+
+    background: linear-gradient(135deg, #0f2d33, #14434b);
+    color: rgba(255,255,255,0.85);
+
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+#footer .ferpall {
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    opacity: 0.8;
+}
