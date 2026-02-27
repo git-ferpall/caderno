@@ -87,26 +87,29 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             flex-direction: column;
         }
 
+        /* container geral */
         .content-login {
-            flex: 1;
+            position: relative;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .login {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center; /* 👈 CENTRALIZA VERTICAL */
-            padding: 40px 20px;
-        }
+        /* HEADER flutuando */
         .header-login {
-            position: relative;
+            position: absolute;
+            top: 40px; /* controla distância do topo */
             width: 100%;
-            margin-top: 40px;
-            margin-bottom: 40px;
             display: flex;
             justify-content: center;
+        }
+
+        /* LOGIN centralizado real */
+        .login {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
 </style>
