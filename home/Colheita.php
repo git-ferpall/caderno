@@ -8,6 +8,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Colheita - Caderno de Campo</title>
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" type="image/png" href="/img/logo-icon.png">
   <style>
     .linha {
       display: flex;
@@ -52,7 +53,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
   <?php include '../include/loading.php'; ?> 
   <?php include '../include/popups.php'; ?>
   <?php include '../include/menu.php'; ?>
-
+<div id="conteudo">
   <main class="sistema">
     <div class="page-title">
       <h2 class="main-title cor-branco">Apontamento - Colheita</h2>
@@ -137,6 +138,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
       </form>
     </div>
   </main>
+</div>  
   <?php include '../include/imports.php'; ?>
   <?php include '../include/footer.php'; ?>
   <script src="../js/colheita.js"></script>
