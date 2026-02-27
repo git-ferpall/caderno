@@ -27,13 +27,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .lista-produtos .form-box-produto {
       margin-bottom: 5px; /* espaço entre selects empilhados */
     }
-    .linha input {
-      flex: 2;   /* ocupa mais espaço */
+    .linha-quantidade {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .linha select {
-      flex: 1;   /* menor que o input */
-      max-width: 140px;
+    .linha-quantidade input {
+      flex: 1;
+    }
+
+    .linha-quantidade select {
+      width: 140px;
+      flex-shrink: 0;
     }
 </style>  
 <body>
@@ -98,15 +104,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
           <div class="form-campo">
             <label>Quantidade</label>
 
-            <div class="linha">
-              <input type="number" step="0.01" 
-                    name="quantidade" 
-                    class="form-text" 
+            <div class="linha-quantidade">
+              <input type="number" step="0.01"
+                    name="quantidade"
+                    class="form-text"
                     placeholder="Ex: 2000"
                     required>
 
-              <select name="unidade" 
-                      class="form-select form-text" 
+              <select name="unidade"
+                      class="form-select form-text"
                       required>
                 <option value="mudas">Mudas</option>
                 <option value="kg">Kg</option>
@@ -128,10 +134,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <div class="form-submit">
             <button type="button" 
-                    class="main-btn fundo-vermelho"
-                    onclick="window.location.href='apontamento.php'">
-              <span class="main-btn-text">Cancelar</span>
-            </button>
+                  class="main-btn fundo-vermelho"
+                  onclick="window.location.href='apontamento.php'">
+            <span class="main-btn-text">Cancelar</span>
+          </button>
             <button type="submit" class="main-btn fundo-verde">
               <span class="main-btn-text">Salvar</span>
             </button>
