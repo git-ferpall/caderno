@@ -86,11 +86,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <main id="relatorios" class="sistema">
 
-    <div class="page-title">
-        <h2 class="main-title cor-branco">Central de Relatórios</h2>
-    </div>
+    
 
     <main id="home" class="sistema fundo-img">
+
+            <div class="page-title">
+                <h2 class="main-title cor-branco">Central de Relatórios</h2>
+            </div>    
             <div class="relatorios-wrapper">
 
                 <div class="relatorios-grid">
