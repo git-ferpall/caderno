@@ -119,23 +119,27 @@ button {
     padding: 2px 0px 0px 0px;
 }
 
-#footer {
-    margin-top: 60px;
-    padding: 12px 0;
-
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(6px);
-
-    color: rgba(255,255,255,0.7);
-    font-size: 12px;
+footer {
+    position: relative;
     text-align: center;
-
-    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 10px;
+    background-color: var(--branco);
+    width: 100%;
 }
 
-#footer .ferpall {
-    margin: 0;
-    letter-spacing: 0.3px;
+footer .ferpall {
+    align-items: center;
+    color: var(--branco);
+    background-color: var(--preto);
+    border-radius: 15px;
+    display: inline-block;
+    font-size: 10px;
+    margin: 0px;
+    max-width: 400px;
+    min-width: 300px;
+    padding: 6px 0px;
+    text-align: center;
+    width: 100%;
 }
 
 .show {
