@@ -100,6 +100,14 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             align-items: center; /* 👈 CENTRALIZA VERTICAL */
             padding: 40px 20px;
         }
+        .header-login {
+            position: relative;
+            width: 100%;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
 
 </style>
 </head>
