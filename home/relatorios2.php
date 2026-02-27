@@ -24,15 +24,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
         background-attachment: fixed;
     }
 
-    /* ============================= */
-    /* OVERLAY PARA CONTRASTE */
-    /* ============================= */
-
-    .overlay-conteudo {
-        background: rgba(255, 255, 255, 0.88);
-        min-height: 100vh;
-        padding-bottom: 50px;
-    }
 
     /* ============================= */
     /* WRAPPER CENTRALIZADO */
