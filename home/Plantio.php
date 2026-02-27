@@ -87,7 +87,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 
 
-          <div class="linha">
+          <div class="form-campo">
             <input type="number" step="0.01" name="quantidade" class="form-text" required>
 
             <select name="unidade" class="form-select form-text" required>
