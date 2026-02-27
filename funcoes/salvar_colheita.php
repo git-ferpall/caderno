@@ -22,6 +22,7 @@ $data        = $_POST['data'] ?? null;
 $areas       = $_POST['area'] ?? [];     // array de áreas
 $produtos    = $_POST['produto'] ?? [];  // array de produtos
 $quantidade  = $_POST['quantidade'] ?? null;
+$unidade    = $_POST['unidade'] ?? null;
 $obs         = $_POST['obs'] ?? null;
 
 if (!$data || empty($areas) || empty($produtos)) {
@@ -54,10 +55,20 @@ try {
     // 1. Insere o apontamento de colheita
     $tipo = "colheita";
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO apontamentos 
+        (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issdss", $propriedade_id, $tipo, $data, $quantidade, $obs, $status);
+    $stmt->bind_param(
+        "issdsss",
+        $propriedade_id,
+        $tipo,
+        $data,
+        $quantidade,
+        $unidade,
+        $obs,
+        $status
+    );
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
