@@ -23,7 +23,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
     /* overlay ocupa tela toda */
     .overlay-conteudo {
         min-height: 100vh;
-        background: rgba(255,255,255,0.65); /* mais leve */
         padding: 60px 20px;
     }
 
