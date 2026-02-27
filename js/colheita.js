@@ -113,16 +113,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await resp.json();
 
         if (data.ok) {
-          showPopup("success", data.msg || "Dados salvos com sucesso!");
+          showPopup("success", data.msg || "Dados Salvos Com Sucesso!");
 
           setTimeout(() => {
             window.location.href = "apontamento.php";
           }, 1200);
+
         } else {
-          showPopup("erro", data.msg);
+          showPopup("failed", data.msg || "Erro ao salvar visita.");
         }
+
       } catch (err) {
-        showPopup("erro", "Erro inesperado ao salvar colheita.");
+        showPopup("failed", "Erro inesperado ao salvar visita.");
       }
     });
   }
