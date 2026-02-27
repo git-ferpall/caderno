@@ -50,6 +50,7 @@ $data         = $_POST['data'] ?? null;
 $areas        = array_filter($_POST['area'] ?? []);
 $produtos     = array_filter($_POST['produto'] ?? []);
 $quantidade   = isset($_POST['quantidade']) ? floatval($_POST['quantidade']) : null;
+$unidade = $_POST['unidade'] ?? null;
 $previsaoDias = $_POST['previsao'] ?? null;
 $obs          = $_POST['obs'] ?? null;
 $incluir_colheita = $_POST['incluir_colheita'] ?? 0;
@@ -95,16 +96,17 @@ try {
 
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos 
-        (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?)
+        (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "issdss",
+        "issdsss",
         $propriedade_id,
         $tipo,
         $data,
         $quantidade,
+        $unidade,
         $obs,
         $status
     );
