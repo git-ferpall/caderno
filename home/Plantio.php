@@ -33,10 +33,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
       gap: 10px;
     }
 
+    /* Input ocupa o espaço disponível */
     .linha-quantidade input {
       flex: 1;
+      width: auto; /* sobrescreve o 100% */
     }
 
+    /* Select fica fixo */
     .linha-quantidade select {
       width: 140px;
       flex-shrink: 0;
