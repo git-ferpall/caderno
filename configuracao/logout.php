@@ -1,19 +1,21 @@
 <?php
 session_start();
 
+// limpa sessão
 $_SESSION = [];
 
+// remove PHPSESSID
 if (ini_get('session.use_cookies')) {
     setcookie(session_name(), '', [
-        'expires' => time() - 3600,
-        'path'    => '/',
-        'secure'  => true,
-        'httponly'=> true,
-        'samesite'=> 'Lax'
+        'expires'  => time() - 3600,
+        'path'     => '/',
+        'secure'   => true,
+        'httponly' => true,
+        'samesite' => 'Lax'
     ]);
 }
 
-// REMOVE AUTH_COOKIE DO CADERNO (igual foi criado)
+// remove AUTH_COOKIE com os mesmos parâmetros da criação
 setcookie('AUTH_COOKIE', '', [
     'expires'  => time() - 3600,
     'path'     => '/',
@@ -27,6 +29,6 @@ unset($_COOKIE['AUTH_COOKIE']);
 
 session_destroy();
 
-// depois chama logout do frutag
+// agora chama logout do frutag
 header("Location: https://frutag.com.br/login/logout.php");
 exit;
