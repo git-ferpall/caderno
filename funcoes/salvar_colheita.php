@@ -1,11 +1,19 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
+// 🔒 Nunca exibir erro em retorno JSON
+ini_set('display_errors', 0);
+error_reporting(0);
 
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+// 🔥 Limpa qualquer saída anterior
+if (ob_get_length()) {
+    ob_clean();
+}
+
 session_start();
 
 /* ==========================
@@ -28,14 +36,14 @@ if (!$user_id) {
    📥 DADOS DO FORM
 ========================== */
 
-$data        = $_POST['data'] ?? null;
-$areas       = $_POST['area'] ?? [];
-$produtos    = $_POST['produto'] ?? [];
-$quantidade  = isset($_POST['quantidade']) && $_POST['quantidade'] !== ''
-               ? floatval($_POST['quantidade'])
-               : null;
-$unidade     = $_POST['unidade'] ?? null;
-$obs         = $_POST['obs'] ?? null;
+$data       = $_POST['data'] ?? null;
+$areas      = $_POST['area'] ?? [];
+$produtos   = $_POST['produto'] ?? [];
+$quantidade = isset($_POST['quantidade']) && $_POST['quantidade'] !== ''
+              ? floatval($_POST['quantidade'])
+              : null;
+$unidade    = $_POST['unidade'] ?? null;
+$obs        = $_POST['obs'] ?? null;
 
 /* ==========================
    ✅ VALIDAÇÃO
@@ -96,10 +104,6 @@ $mysqli->begin_transaction();
 
 try {
 
-    /* ==========================
-       1️⃣ INSERE COLHEITA
-    ========================== */
-
     $tipo = "colheita";
 
     $stmt = $mysqli->prepare("
@@ -123,20 +127,14 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-
-    /* ==========================
-       2️⃣ INSERE ÁREAS
-    ========================== */
-
+    // 🔁 ÁREAS
     foreach ($areas as $area_id) {
         if (!empty($area_id)) {
-
             $stmt = $mysqli->prepare("
                 INSERT INTO apontamento_detalhes
                 (apontamento_id, campo, valor)
                 VALUES (?, ?, ?)
             ");
-
             $campo = "area_id";
             $valor = (string)(int)$area_id;
 
@@ -146,20 +144,14 @@ try {
         }
     }
 
-
-    /* ==========================
-       3️⃣ INSERE PRODUTOS
-    ========================== */
-
+    // 🔁 PRODUTOS
     foreach ($produtos as $produto_id) {
         if (!empty($produto_id)) {
-
             $stmt = $mysqli->prepare("
                 INSERT INTO apontamento_detalhes
                 (apontamento_id, campo, valor)
                 VALUES (?, ?, ?)
             ");
-
             $campo = "produto_id";
             $valor = (string)(int)$produto_id;
 
@@ -169,26 +161,21 @@ try {
         }
     }
 
-    /* ==========================
-       ✅ COMMIT
-    ========================== */
-
     $mysqli->commit();
 
     echo json_encode([
         'ok'  => true,
-        'msg' => '✅ Apontamento de colheita salvo com sucesso!'
+        'msg' => 'Apontamento de colheita salvo com sucesso!'
     ]);
+    exit;
 
 } catch (Throwable $e) {
 
     $mysqli->rollback();
 
-    http_response_code(500);
-
     echo json_encode([
-        'ok'   => false,
-        'msg'  => 'Erro ao salvar colheita.',
-        'erro' => $e->getMessage()
+        'ok'  => false,
+        'msg' => 'Erro ao salvar colheita.'
     ]);
+    exit;
 }
