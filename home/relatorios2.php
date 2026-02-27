@@ -90,7 +90,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <h2 class="main-title cor-branco">Central de Relatórios</h2>
     </div>
 
-    <div class="sistema-main">
+    <main id="home" class="sistema fundo-img">
             <div class="relatorios-wrapper">
 
                 <div class="relatorios-grid">
