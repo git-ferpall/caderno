@@ -80,6 +80,26 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         from { transform: scale(0.9); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
         }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-login {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 👈 CENTRALIZA VERTICAL */
+            padding: 40px 20px;
+        }
 
 </style>
 </head>
