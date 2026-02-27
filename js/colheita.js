@@ -133,29 +133,14 @@ function showPopup(tipo, mensagem) {
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  let popup;
+  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  overlay?.classList.remove("d-none");
 
-  if (tipo === "sucesso" || tipo === "success") {
-    popup = popupSuccess;
+  if (tipo === "success") {
+    popupSuccess?.classList.remove("d-none");
+    popupSuccess.querySelector(".popup-title").textContent = mensagem;
   } else {
-    popup = popupFailed;
-  }
-
-  if (overlay && popup) {
-    overlay.classList.remove("d-none");
-    popup.classList.remove("d-none");
-
-    const msgBox = popup.querySelector(".popup-text");
-    if (msgBox) msgBox.textContent = mensagem;
-
-    const btnOk = popup.querySelector(".popup-btn");
-    if (btnOk) {
-      btnOk.onclick = () => {
-        overlay.classList.add("d-none");
-        popup.classList.add("d-none");
-      };
-    }
-  } else {
-    alert(mensagem);
+    popupFailed?.classList.remove("d-none");
+    popupFailed.querySelector(".popup-title").textContent = mensagem;
   }
 }
