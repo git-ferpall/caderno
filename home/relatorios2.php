@@ -13,42 +13,27 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-   /* ============================= */
-    /* FUNDO COM IMAGEM */
-    /* ============================= */
-
-    .fundo-img {
-        background-image: url("../img/bg-sistema.jpg"); /* ajuste o caminho */
+.fundo-img {
+        background-image: url("../img/bg-sistema.jpg");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }
 
-    /* ============================= */
-    /* CONTAINER CENTRALIZADO */
-    /* ============================= */
-
-    .relatorios-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 40px 20px;
-    }
-
-    /* ============================= */
-    /* CARD GRANDE CENTRAL (overlay) */
-    /* ============================= */
-
+    /* overlay ocupa tela toda */
     .overlay-conteudo {
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 25px;
-        padding: 50px 40px 60px;
-        box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        min-height: 100vh;
+        background: rgba(255,255,255,0.65); /* mais leve */
+        padding: 60px 20px;
     }
 
-    /* ============================= */
-    /* GRID */
-    /* ============================= */
+    /* agora limitamos só o conteúdo */
+    .relatorios-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
+    /* grid */
     .relatorios-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -56,10 +41,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         margin-top: 40px;
     }
 
-    /* ============================= */
-    /* CARDS */
-    /* ============================= */
-
+    /* cards */
     .card-relatorio {
         background: #ffffff;
         padding: 30px;
@@ -67,36 +49,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
         box-shadow: 0 12px 30px rgba(0,0,0,0.08);
         text-decoration: none;
         color: #333;
-        transition: all 0.25s ease;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        transition: 0.25s ease;
     }
 
     .card-relatorio:hover {
         transform: translateY(-6px);
         box-shadow: 0 18px 40px rgba(0,0,0,0.15);
-    }
-
-    .card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .card-icon {
-        font-size: 26px;
-    }
-
-    .card-relatorio h3 {
-        margin: 0;
-        font-size: 20px;
-    }
-
-    .card-relatorio p {
-        margin: 0;
-        color: #666;
-        font-size: 14px;
     }
 </style>    
 </head>
@@ -107,43 +65,39 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <?php include '../include/menu.php' ?>
         <main id="relatorios" class="sistema fundo-img">
 
-            <div class="relatorios-container">
+            <div class="overlay-conteudo">
 
-                <div class="overlay-conteudo">
+                <div class="page-title">
+                    <h2 class="main-title cor-branco">Central de Relatórios</h2>
+                </div>
 
-                    <div class="page-title">
-                        <h2 class="main-title cor-branco">Central de Relatórios</h2>
-                    </div>
+                <div class="relatorios-wrapper">
 
-                    <div class="relatorios-wrapper">
+                    <div class="relatorios-grid">
 
-                        <div class="relatorios-grid">
+                        <a href="relatorio_manejos.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">📊</span>
+                                <h3>Relatório de Manejos</h3>
+                            </div>
+                            <p>Aplicações, defensivos e operações realizadas.</p>
+                        </a>
 
-                            <a href="relatorio_manejos.php" class="card-relatorio">
-                                <div class="card-header">
-                                    <span class="card-icon">📊</span>
-                                    <h3>Relatório de Manejos</h3>
-                                </div>
-                                <p>Aplicações, defensivos e operações realizadas.</p>
-                            </a>
+                        <a href="relatorio_visita.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">🧑‍🌾</span>
+                                <h3>Relatório de Visita Técnica</h3>
+                            </div>
+                            <p>Registros de visitas e recomendações técnicas.</p>
+                        </a>
 
-                            <a href="relatorio_visita.php" class="card-relatorio">
-                                <div class="card-header">
-                                    <span class="card-icon">🧑‍🌾</span>
-                                    <h3>Relatório de Visita Técnica</h3>
-                                </div>
-                                <p>Registros de visitas e recomendações técnicas.</p>
-                            </a>
-
-                            <a href="relatorio_producao.php" class="card-relatorio">
-                                <div class="card-header">
-                                    <span class="card-icon">📦</span>
-                                    <h3>Relatório de Produção</h3>
-                                </div>
-                                <p>Resumo de colheita e produtividade.</p>
-                            </a>
-
-                        </div>
+                        <a href="relatorio_producao.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">📦</span>
+                                <h3>Relatório de Produção</h3>
+                            </div>
+                            <p>Resumo de colheita e produtividade.</p>
+                        </a>
 
                     </div>
 
