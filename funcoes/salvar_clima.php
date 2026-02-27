@@ -47,10 +47,12 @@ try {
 
   // Inserir apontamento
   $stmt = $mysqli->prepare("
-    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-    VALUES (?, 'clima', ?, NULL, ?, 'registro')
+    INSERT INTO apontamentos 
+    (propriedade_id, tipo, data, data_conclusao, quantidade, observacoes, status)
+    VALUES (?, 'clima', ?, ?, NULL, ?, 'concluido')
   ");
-  $stmt->bind_param("iss", $propriedade_id, $data, $obs);
+
+  $stmt->bind_param("isss", $propriedade_id, $data, $data, $obs);
   $stmt->execute();
   $apontamento_id = $stmt->insert_id;
   $stmt->close();
