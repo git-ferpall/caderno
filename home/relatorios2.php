@@ -55,9 +55,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
         ?>
 
         <main id="relatorios" class="sistema">
-            <div class="page-title">
-                <h2 class="main-title cor-branco">Relatórios</h2>
-            </div>
 
             <main class="sistema">
                 <div class="page-title">
