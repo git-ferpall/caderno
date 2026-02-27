@@ -2,10 +2,14 @@
 declare(strict_types=1);
 session_start();
 
-// 1️⃣ Limpa sessão
+// ===============================
+// 1️⃣ Limpa sessão local
+// ===============================
 $_SESSION = [];
 
+// ===============================
 // 2️⃣ Remove cookie PHPSESSID
+// ===============================
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
 
@@ -19,7 +23,9 @@ if (ini_get('session.use_cookies')) {
     ]);
 }
 
-// 3️⃣ Remove cookie token (ESSENCIAL)
+// ===============================
+// 3️⃣ Remove token antigo (se existir)
+// ===============================
 setcookie('token', '', [
     'expires'  => time() - 3600,
     'path'     => '/',
@@ -27,13 +33,27 @@ setcookie('token', '', [
 
 unset($_COOKIE['token']);
 
-// 4️⃣ Destrói sessão
+// ===============================
+// 4️⃣ Remove AUTH_COOKIE global
+// ===============================
+setcookie('AUTH_COOKIE', '', [
+    'expires'  => time() - 3600,
+    'path'     => '/',
+    'domain'   => '.frutag.com.br',
+    'secure'   => true,
+    'httponly' => true,
+    'samesite' => 'None'
+]);
+
+unset($_COOKIE['AUTH_COOKIE']);
+
+// ===============================
+// 5️⃣ Destrói sessão
+// ===============================
 session_destroy();
 
-// 5️⃣ Evita cache
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-header('Pragma: no-cache');
-
-// 6️⃣ Redireciona
-header("Location: /index.php?logout=ok&_=" . time());
+// ===============================
+// 6️⃣ Redireciona para logout central
+// ===============================
+header("Location: https://frutag.com.br/logout_global.php");
 exit;
