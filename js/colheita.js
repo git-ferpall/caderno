@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         const data = await resp.json();
 
-        if (data.ok) {
+        if (data && data.ok === true) {
           showPopup("success", data.msg || "Dados Salvos Com Sucesso!");
 
           setTimeout(() => {
