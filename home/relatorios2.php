@@ -18,35 +18,46 @@ require_once __DIR__ . '/../configuracao/protect.php';
     /* ============================= */
 
     .fundo-img {
-        background-image: url("../img/bg-sistema.jpg"); /* ajuste se necessário */
+        background-image: url("../img/bg-sistema.jpg"); /* ajuste o caminho */
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }
 
-
     /* ============================= */
-    /* WRAPPER CENTRALIZADO */
+    /* CONTAINER CENTRALIZADO */
     /* ============================= */
 
-    .relatorios-wrapper {
-        max-width: 1100px;
+    .relatorios-container {
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 30px 20px 40px;
+        padding: 40px 20px;
     }
 
     /* ============================= */
-    /* GRID RESPONSIVO */
+    /* CARD GRANDE CENTRAL (overlay) */
+    /* ============================= */
+
+    .overlay-conteudo {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 25px;
+        padding: 50px 40px 60px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+    }
+
+    /* ============================= */
+    /* GRID */
     /* ============================= */
 
     .relatorios-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 30px;
+        margin-top: 40px;
     }
 
     /* ============================= */
-    /* CARD RELATÓRIO */
+    /* CARDS */
     /* ============================= */
 
     .card-relatorio {
@@ -66,8 +77,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
         transform: translateY(-6px);
         box-shadow: 0 18px 40px rgba(0,0,0,0.15);
     }
-
-    /* HEADER DO CARD */
 
     .card-header {
         display: flex;
@@ -96,18 +105,16 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <?php include '../include/popups.php' ?> 
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
-
-
-
         <main id="relatorios" class="sistema fundo-img">
 
-            <div class="overlay-conteudo">
+            <div class="relatorios-container">
 
-                <div class="page-title">
-                    <h2 class="main-title cor-branco">Central de Relatórios</h2>
-                </div>
+                <div class="overlay-conteudo">
 
-                <div class="sistema-main">
+                    <div class="page-title">
+                        <h2 class="main-title cor-branco">Central de Relatórios</h2>
+                    </div>
+
                     <div class="relatorios-wrapper">
 
                         <div class="relatorios-grid">
@@ -139,6 +146,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         </div>
 
                     </div>
+
                 </div>
 
             </div>
