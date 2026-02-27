@@ -13,7 +13,91 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-   
+   /* ============================= */
+    /* FUNDO COM IMAGEM */
+    /* ============================= */
+
+    .fundo-img {
+        background-image: url("../img/bg-sistema.jpg"); /* ajuste se necessário */
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    /* ============================= */
+    /* OVERLAY PARA CONTRASTE */
+    /* ============================= */
+
+    .overlay-conteudo {
+        background: rgba(255, 255, 255, 0.88);
+        min-height: 100vh;
+        padding-bottom: 50px;
+    }
+
+    /* ============================= */
+    /* WRAPPER CENTRALIZADO */
+    /* ============================= */
+
+    .relatorios-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 30px 20px 40px;
+    }
+
+    /* ============================= */
+    /* GRID RESPONSIVO */
+    /* ============================= */
+
+    .relatorios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
+
+    /* ============================= */
+    /* CARD RELATÓRIO */
+    /* ============================= */
+
+    .card-relatorio {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        text-decoration: none;
+        color: #333;
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .card-relatorio:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    }
+
+    /* HEADER DO CARD */
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-icon {
+        font-size: 26px;
+    }
+
+    .card-relatorio h3 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .card-relatorio p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
 </style>    
 </head>
 <body>
