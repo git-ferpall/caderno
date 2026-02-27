@@ -1,10 +1,16 @@
 .content-login {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   /* centraliza vertical */
+    align-items: center;       /* centraliza horizontal */
+    
+    min-height: 100vh;
+
     background-image: url("../../img/login/bg.png");
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    background-position: 50% 50%;
+    background-position: center;
 }
 
 .header-login {
@@ -35,13 +41,9 @@
 
 .login {
     display: flex;
-    flex-direction: line;
-    flex: 1;
     justify-content: center;
-    text-align: center;
-    padding: 0px 10px 10px;
+    align-items: center;
     width: 100%;
-    height: 100%;
 }
 
 .login .login-box {
