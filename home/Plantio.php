@@ -87,9 +87,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 
 
-          <div class="form-campo">
-            <label for="quantidade">Quantidade</label>
-            <input type="text" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 2000 mudas" required>
+          <div class="linha">
+            <input type="number" step="0.01" name="quantidade" class="form-text" required>
+
+            <select name="unidade" class="form-select form-text" required>
+              <option value="mudas">Mudas</option>
+              <option value="kg">Kg</option>
+              <option value="caixas">Caixas</option>
+              <option value="bandejas">Bandejas</option>
+            </select>
           </div>
 
           <div class="form-campo">
