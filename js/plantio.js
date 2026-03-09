@@ -36,43 +36,92 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Erro ao carregar produtos:", err));
   }
 
-  // === Botão adicionar ÁREA ===
-  document.querySelector(".add-area").addEventListener("click", () => {
-    const lista = document.getElementById("lista-areas");
-    const original = lista.querySelector("select");
-    const novo = original.cloneNode(true);
+  /* ===============================
+ADICIONAR ÁREA
+=============================== */
+document.querySelector(".add-area").addEventListener("click", () => {
 
-    novo.value = "";
-    novo.removeAttribute("id");
-    novo.name = "area[]";
-    novo.classList.add("area-select");
+  const lista = document.getElementById("lista-areas");
+  const original = lista.querySelector("select");
+  const novo = original.cloneNode(true);
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "form-box form-box-area";
-    wrapper.appendChild(novo);
+  novo.value = "";
+  novo.removeAttribute("id");
+  novo.name = "area[]";
+  novo.classList.add("area-select");
 
-    lista.appendChild(wrapper);
-    carregarAreas(); // popula o novo select
-  });
+  const wrapper = document.createElement("div");
+  wrapper.className = "form-box form-box-area linha";
 
-  // === Botão adicionar PRODUTO ===
-  document.querySelector(".add-produto").addEventListener("click", () => {
-    const lista = document.getElementById("lista-produtos");
-    const original = lista.querySelector("select");
-    const novo = original.cloneNode(true);
+  const btnRemover = document.createElement("button");
+  btnRemover.type = "button";
+  btnRemover.className = "remove-btn";
+  btnRemover.innerHTML = "−";
 
-    novo.value = "";
-    novo.removeAttribute("id");
-    novo.name = "produto[]";
-    novo.classList.add("produto-select");
+  btnRemover.onclick = () => {
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "form-box form-box-produto";
-    wrapper.appendChild(novo);
+    const total = document.querySelectorAll(".form-box-area").length;
 
-    lista.appendChild(wrapper);
-    carregarProdutos(); // popula o novo select
-  });
+    if (total > 1) {
+      wrapper.remove();
+    } else {
+      alert("É necessário manter pelo menos uma área.");
+    }
+
+  };
+
+  wrapper.appendChild(novo);
+  wrapper.appendChild(btnRemover);
+
+  lista.appendChild(wrapper);
+
+  carregarAreas();
+
+});
+
+
+/* ===============================
+ADICIONAR PRODUTO
+=============================== */
+document.querySelector(".add-produto").addEventListener("click", () => {
+
+  const lista = document.getElementById("lista-produtos");
+  const original = lista.querySelector("select");
+  const novo = original.cloneNode(true);
+
+  novo.value = "";
+  novo.removeAttribute("id");
+  novo.name = "produto[]";
+  novo.classList.add("produto-select");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "form-box form-box-produto linha";
+
+  const btnRemover = document.createElement("button");
+  btnRemover.type = "button";
+  btnRemover.className = "remove-btn";
+  btnRemover.innerHTML = "−";
+
+  btnRemover.onclick = () => {
+
+    const total = document.querySelectorAll(".form-box-produto").length;
+
+    if (total > 1) {
+      wrapper.remove();
+    } else {
+      alert("É necessário manter pelo menos um produto.");
+    }
+
+  };
+
+  wrapper.appendChild(novo);
+  wrapper.appendChild(btnRemover);
+
+  lista.appendChild(wrapper);
+
+  carregarProdutos();
+
+});
 
   // === Carregar selects iniciais ===
   carregarAreas();

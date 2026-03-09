@@ -48,6 +48,24 @@ require_once __DIR__ . '/../configuracao/protect.php';
       width: 150px;
       flex-shrink: 0;
     }
+
+    .remove-btn{
+      width:35px;
+      height:35px;
+      border:none;
+      border-radius:6px;
+      background:#d9534f;
+      color:white;
+      font-size:20px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .remove-btn:hover{
+      background:#c9302c;
+    }
 </style>  
 <body>
   <?php include '../include/loading.php'; ?> 
