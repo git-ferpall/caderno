@@ -1,33 +1,33 @@
 document.addEventListener("DOMContentLoaded", function(){
 
-    const propriedadeSelect = document.getElementById("pf-propriedade");
-    const areaSelect = document.getElementById("pf-area");
-    const produtoSelect = document.getElementById("pf-produto");
+    const propriedade = document.getElementById("pf-propriedade");
+    const area = document.getElementById("pf-area");
+    const produto = document.getElementById("pf-produto");
 
 
-    /* =============================
+    /* =========================
        CARREGAR FILTROS
-    ============================= */
+    ========================= */
 
-    function carregarFiltros(propriedade_id = ""){
+    function carregarFiltros(prop_id = ""){
 
         let url = "../funcoes/relatorios/buscar_filtros_produtividade.php";
 
-        if(propriedade_id){
-            url += "?propriedade_id=" + propriedade_id;
+        if(prop_id){
+            url += "?propriedade_id=" + prop_id;
         }
 
         fetch(url)
-        .then(r => r.json())
+        .then(res => res.json())
         .then(data => {
 
             if(!data.ok) return;
 
             /* PROPRIEDADES */
 
-            if(propriedadeSelect.options.length <= 1){
+            if(propriedade.options.length <= 1){
 
-                propriedadeSelect.innerHTML = '<option value="">Selecione</option>';
+                propriedade.innerHTML = '<option value="">Selecione</option>';
 
                 data.propriedades.forEach(p => {
 
@@ -36,15 +36,18 @@ document.addEventListener("DOMContentLoaded", function(){
                     opt.value = p.id;
                     opt.textContent = p.nome_razao;
 
-                    propriedadeSelect.appendChild(opt);
+                    propriedade.appendChild(opt);
 
                 });
 
+                $('#pf-propriedade').trigger('change.select2');
+
             }
+
 
             /* AREAS */
 
-            areaSelect.innerHTML = '<option value="">Todas as áreas</option>';
+            area.innerHTML = '<option value="">Todas as áreas</option>';
 
             data.areas.forEach(a => {
 
@@ -53,14 +56,14 @@ document.addEventListener("DOMContentLoaded", function(){
                 opt.value = a.id;
                 opt.textContent = a.nome;
 
-                areaSelect.appendChild(opt);
+                area.appendChild(opt);
 
             });
 
 
             /* PRODUTOS */
 
-            produtoSelect.innerHTML = '<option value="">Todos os produtos</option>';
+            produto.innerHTML = '<option value="">Todos os produtos</option>';
 
             data.produtos.forEach(p => {
 
@@ -69,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 opt.value = p.id;
                 opt.textContent = p.nome;
 
-                produtoSelect.appendChild(opt);
+                produto.appendChild(opt);
 
             });
 
@@ -78,15 +81,15 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
 
-    /* =============================
-       AO TROCAR PROPRIEDADE
-    ============================= */
+    /* =========================
+       TROCA PROPRIEDADE
+    ========================= */
 
-    propriedadeSelect.addEventListener("change", function(){
+    $('#pf-propriedade').on('change', function(){
 
-        const prop_id = this.value;
+        const prop_id = $(this).val();
 
-        areaSelect.innerHTML = '<option value="">Todas as áreas</option>';
+        area.innerHTML = '<option value="">Todas as áreas</option>';
 
         if(!prop_id) return;
 
@@ -95,9 +98,9 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
 
-    /* =============================
+    /* =========================
        INICIO
-    ============================= */
+    ========================= */
 
     carregarFiltros();
 
