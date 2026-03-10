@@ -1,23 +1,52 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // === Adicionar nova fonte ===
+  /* ===============================
+  ADICIONAR FONTE
+  =============================== */
+
   const btnAddFonte = document.querySelector(".add-fonte");
+
   if (btnAddFonte) {
+
     btnAddFonte.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-fontes");
-      const original = lista.querySelector("select");
+      const original = lista.querySelector(".fonte-select");
+
       if (!original) return;
 
       const novo = original.cloneNode(true);
+
       novo.value = "";
       novo.name = "fonte[]";
 
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-fonte";
+      wrapper.className = "form-box form-box-fonte linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-fontes .form-box-fonte").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma fonte.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
+
     });
+
   }
 
   // === Submit principal ===
