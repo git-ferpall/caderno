@@ -1,26 +1,30 @@
 <?php
-
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+session_start();
 
 try {
 
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
+    /* =========================
+    AUTENTICAÇÃO
+    ========================= */
+
+    $user_id = $_SESSION['user_id'] ?? null;
 
     if (!$user_id) {
-        throw new Exception("Usuário não autenticado");
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
     }
 
-    $propriedade = $_POST['propriedade'] ?? null;
+    if (!$user_id) {
+        throw new Exception('Usuário não autenticado');
+    }
 
-    /* ===============================
-       PROPRIEDADES
-    =============================== */
-
-    $propriedades = [];
+    /* =========================
+    BUSCAR PROPRIEDADES
+    ========================= */
 
     $stmt = $mysqli->prepare("
         SELECT id, nome_razao
@@ -31,97 +35,58 @@ try {
 
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
-    $res = $stmt->get_result();
 
-    while ($row = $res->fetch_assoc()) {
-        $propriedades[] = $row;
-    }
+    $propriedades = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     $stmt->close();
 
-    /* ===============================
-       ÁREAS
-    =============================== */
 
-    $areas = [];
+    /* =========================
+    SE NÃO SELECIONOU PROPRIEDADE
+    ========================= */
 
-    if ($propriedade) {
+    if (empty($_GET['propriedade_id'])) {
 
-        // áreas filtradas pela propriedade
+        echo json_encode([
+            "ok" => true,
+            "propriedades" => $propriedades,
+            "areas" => []
+        ]);
 
-        $stmt = $mysqli->prepare("
-            SELECT id, nome
-            FROM areas
-            WHERE propriedade_id = ?
-            ORDER BY nome
-        ");
-
-        $stmt->bind_param("i", $propriedade);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        while ($row = $res->fetch_assoc()) {
-            $areas[] = $row;
-        }
-
-        $stmt->close();
-
-    } else {
-
-        // todas as áreas do usuário
-
-        $stmt = $mysqli->prepare("
-            SELECT a.id, a.nome
-            FROM areas a
-            JOIN propriedades p ON p.id = a.propriedade_id
-            WHERE p.user_id = ?
-            ORDER BY a.nome
-        ");
-
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        while ($row = $res->fetch_assoc()) {
-            $areas[] = $row;
-        }
-
-        $stmt->close();
-
+        exit;
     }
 
-    /* ===============================
-       PRODUTOS
-    =============================== */
+    /* =========================
+    BUSCAR AREAS DA PROPRIEDADE
+    ========================= */
 
-    $produtos = [];
+    $prop_id = intval($_GET['propriedade_id']);
 
-    $res = $mysqli->query("
+    $stmt = $mysqli->prepare("
         SELECT id, nome
-        FROM produtos
+        FROM areas
+        WHERE propriedade_id = ?
         ORDER BY nome
     ");
 
-    while ($row = $res->fetch_assoc()) {
-        $produtos[] = $row;
-    }
+    $stmt->bind_param("i", $prop_id);
+    $stmt->execute();
 
-    /* ===============================
-       RETORNO
-    =============================== */
+    $areas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $stmt->close();
 
     echo json_encode([
         "ok" => true,
         "propriedades" => $propriedades,
-        "areas" => $areas,
-        "produtos" => $produtos
+        "areas" => $areas
     ]);
 
 } catch (Exception $e) {
 
     echo json_encode([
         "ok" => false,
-        "err" => $e->getMessage()
+        "erro" => $e->getMessage()
     ]);
 
 }

@@ -1,117 +1,93 @@
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-  const selectProp = document.getElementById("pf-propriedade");
-  const selectArea = document.getElementById("pf-area");
-  const selectProd = document.getElementById("pf-produto");
+    const pfPropriedade = document.getElementById("pf-propriedade");
+    const pfArea = document.getElementById("pf-area");
 
-  async function carregarFiltros(propriedade = null) {
+    /* ===============================
+    CARREGAR PROPRIEDADES
+    =============================== */
 
-    try {
+    function carregarPropriedades() {
 
-      const params = new URLSearchParams();
+        fetch("../funcoes/relatorios/buscar_filtros_produtividade.php")
+        .then(res => res.json())
+        .then(data => {
 
-      if (propriedade) {
-        params.append("propriedades[]", propriedade);
-      }
+            if(!data.ok) return;
 
-      const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: params.toString()
-      });
+            pfPropriedade.innerHTML =
+                '<option value="">Selecione</option>';
 
-      const data = await resp.json();
+            data.propriedades.forEach(prop => {
 
-      if (!data.ok) throw new Error(data.err);
+                const opt = document.createElement("option");
 
-      /* =====================
-         PROPRIEDADES
-      ===================== */
+                opt.value = prop.id;
+                opt.textContent = prop.nome_razao;
 
-      if (!propriedade) {
+                pfPropriedade.appendChild(opt);
 
-        selectProp.innerHTML = "<option value=''>Selecione</option>";
-
-        data.propriedades.forEach(p => {
-
-          const opt = document.createElement("option");
-
-          opt.value = p.id;
-          opt.textContent = p.nome_razao;
-
-          selectProp.appendChild(opt);
+            });
 
         });
 
-      }
+    }
 
-      /* =====================
-         AREAS
-      ===================== */
+    /* ===============================
+    CARREGAR AREAS
+    =============================== */
 
-      selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
+    function carregarAreas(propriedadeId) {
 
-      (data.areas || []).forEach(a => {
+        pfArea.innerHTML =
+            '<option value="">Carregando...</option>';
 
-        const opt = document.createElement("option");
+        fetch("../funcoes/relatorios/buscar_filtros_produtividade.php?propriedade_id="+propriedadeId)
 
-        opt.value = a.id;
-        opt.textContent = a.nome;
+        .then(res => res.json())
 
-        selectArea.appendChild(opt);
+        .then(data => {
 
-      });
+            pfArea.innerHTML =
+                '<option value="">Todas as áreas</option>';
 
-      /* =====================
-         PRODUTOS
-      ===================== */
+            if(!data.areas) return;
 
-      selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
+            data.areas.forEach(area => {
 
-      (data.produtos || []).forEach(p => {
+                const opt = document.createElement("option");
 
-        const opt = document.createElement("option");
+                opt.value = area.id;
+                opt.textContent = area.nome;
 
-        opt.value = p.id;
-        opt.textContent = p.nome;
+                pfArea.appendChild(opt);
 
-        selectProd.appendChild(opt);
+            });
 
-      });
-
-    } catch (err) {
-
-      console.error("Erro filtros:", err);
+        });
 
     }
 
-  }
+    /* ===============================
+    AO TROCAR PROPRIEDADE
+    =============================== */
 
-  /* =====================
-     CARREGAMENTO INICIAL
-  ===================== */
+    pfPropriedade.addEventListener("change", function(){
 
-  await carregarFiltros();
+        const propId = this.value;
 
-  /* =====================
-     TROCA PROPRIEDADE
-  ===================== */
+        /* limpa áreas antigas */
 
-  selectProp.addEventListener("change", function () {
+        pfArea.innerHTML =
+            '<option value="">Todas as áreas</option>';
 
-    const propriedade = this.value;
+        if(!propId) return;
 
-    /* limpa sempre */
+        carregarAreas(propId);
 
-    selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
-    selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
+    });
 
-    if (!propriedade) return;
 
-    carregarFiltros(propriedade);
-
-  });
+    carregarPropriedades();
 
 });
