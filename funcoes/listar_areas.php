@@ -23,7 +23,17 @@ if ($user_id) {
         $propriedade_id = $prop['id'];
 
         // Pegar somente áreas dessa propriedade
-        $stmt = $mysqli->prepare("SELECT * FROM areas WHERE user_id = ? AND propriedade_id = ? ORDER BY created_at DESC");
+        $stmt = $mysqli->prepare("
+            SELECT 
+                id,
+                nome,
+                tipo,
+                tamanho
+            FROM areas
+            WHERE user_id = ?
+            AND propriedade_id = ?
+            ORDER BY created_at DESC
+        ");
         $stmt->bind_param("ii", $user_id, $propriedade_id);
         $stmt->execute();
         $areas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
