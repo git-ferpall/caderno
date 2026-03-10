@@ -1,6 +1,6 @@
 /**
  * RELATORIO PRODUTIVIDADE
- * Funciona igual ao relatorios.js
+ * Carrega propriedades, áreas e produtos dinamicamente
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectProp = document.getElementById("pf-propriedade");
   const selectArea = document.getElementById("pf-area");
   const selectProd = document.getElementById("pf-produto");
+
+  /* =========================================
+     FUNÇÃO PRINCIPAL
+  ========================================= */
 
   async function carregarFiltros(propriedadesSelecionadas = []) {
 
@@ -19,23 +23,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         params.append("propriedades[]", id);
       });
 
-      console.log("🧾 propriedades enviadas:", propriedadesSelecionadas);
+      console.log("🧾 Enviando propriedades:", propriedadesSelecionadas);
 
       const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
         body: params.toString()
       });
 
+      if (!resp.ok) {
+        throw new Error("Erro na requisição");
+      }
+
       const data = await resp.json();
 
-      console.log("📦 retorno:", data);
+      console.log("📦 Retorno:", data);
 
-      if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros");
+      if (!data.ok) {
+        throw new Error(data.err || "Erro ao carregar filtros");
+      }
 
-      /* =========================
+      /* =========================================
          PROPRIEDADES
-      ========================= */
+      ========================================= */
 
       if (!propriedadesSelecionadas.length && data.propriedades) {
 
@@ -44,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         data.propriedades.forEach(p => {
 
           const opt = document.createElement("option");
+
           opt.value = p.id;
           opt.textContent = p.nome_razao;
 
@@ -53,9 +66,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       }
 
-      /* =========================
+      /* =========================================
          AREAS
-      ========================= */
+      ========================================= */
 
       selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
 
@@ -63,21 +76,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const opt = document.createElement("option");
 
-        if (typeof a === "object") {
-          opt.value = a.id;
-          opt.textContent = a.nome;
-        } else {
-          opt.value = a;
-          opt.textContent = a;
-        }
+        opt.value = a.id;
+        opt.textContent = a.nome;
 
         selectArea.appendChild(opt);
 
       });
 
-      /* =========================
+      if (!data.areas || !data.areas.length) {
+
+        const opt = document.createElement("option");
+
+        opt.disabled = true;
+        opt.textContent = "Nenhuma área encontrada";
+
+        selectArea.appendChild(opt);
+
+      }
+
+      /* =========================================
          PRODUTOS
-      ========================= */
+      ========================================= */
 
       selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
 
@@ -85,13 +104,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const opt = document.createElement("option");
 
-        if (typeof p === "object") {
-          opt.value = p.id;
-          opt.textContent = p.nome;
-        } else {
-          opt.value = p;
-          opt.textContent = p;
-        }
+        opt.value = p.id;
+        opt.textContent = p.nome;
 
         selectProd.appendChild(opt);
 
@@ -99,39 +113,105 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (err) {
 
-      console.error("❌ erro:", err);
+      console.error("❌ Erro ao carregar filtros:", err);
 
     }
 
   }
 
-  /* =========================
+  /* =========================================
      CARREGAMENTO INICIAL
-  ========================= */
+  ========================================= */
 
   await carregarFiltros();
 
-  /* =========================
-     MUDANÇA DE PROPRIEDADE
-  ========================= */
+  /* =========================================
+     FILTRO POR PROPRIEDADE
+  ========================================= */
 
   if (selectProp) {
 
     selectProp.addEventListener("change", function () {
 
-      const selecionada = this.value;
+      const propriedade = this.value;
 
-      console.log("🎯 propriedade selecionada:", selecionada);
+      console.log("🎯 Propriedade selecionada:", propriedade);
 
-      if (selecionada) {
-        carregarFiltros([selecionada]);
+      if (propriedade) {
+
+        carregarFiltros([propriedade]);
+
       } else {
+
         selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
         selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
+
       }
 
     });
 
   }
+
+});
+
+
+/* =====================================================
+   GERAR RELATORIO PDF
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const btn = document.getElementById("form-pdf-relatorio");
+  const form = document.getElementById("rel-form");
+  const loading = document.getElementById("pdf-loading");
+
+  if (!btn || !form) return;
+
+  btn.addEventListener("click", async (e) => {
+
+    e.preventDefault();
+
+    if (btn.disabled) return;
+
+    try {
+
+      btn.disabled = true;
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+
+      if (loading) loading.style.display = "flex";
+
+      const formData = new FormData(form);
+
+      const resp = await fetch("../funcoes/relatorios/relatorio_safra_pdf.php", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!resp.ok) {
+        throw new Error("Erro ao gerar PDF");
+      }
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, "_blank");
+
+    } catch (err) {
+
+      console.error(err);
+      alert("❌ Falha ao gerar relatório: " + err.message);
+
+    } finally {
+
+      if (loading) loading.style.display = "none";
+
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+
+    }
+
+  });
 
 });
