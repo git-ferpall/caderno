@@ -39,21 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   carregarAreas();
 
-  const btnAddArea = document.querySelector(".add-area");
-  if (btnAddArea) {
-    btnAddArea.addEventListener("click", () => {
-      const lista = document.getElementById("lista-areas");
-      const original = lista.querySelector("select");
-      const novo = original.cloneNode(true);
-      novo.value = "";
-      novo.name = "area[]";
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
-      wrapper.appendChild(novo);
-      lista.appendChild(wrapper);
-      carregarAreas();
-    });
-  }
+  
 
   function carregarProdutos() {
     fetch("../funcoes/buscar_produtos.php")
@@ -72,20 +58,103 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   carregarProdutos();
 
+  /* =========================
+  ADICIONAR PRODUTO
+  ========================= */
+
   const btnAddProduto = document.querySelector(".add-produto");
+
   if (btnAddProduto) {
+
     btnAddProduto.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-produtos");
-      const original = lista.querySelector("select");
+      const original = lista.querySelector(".produto-select");
+
       const novo = original.cloneNode(true);
+
       novo.value = "";
       novo.name = "produto[]";
+
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-produto";
+      wrapper.className = "form-box form-box-produto linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-produtos .form-box-produto").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos um produto.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
+
       lista.appendChild(wrapper);
+
       carregarProdutos();
+
     });
+
+  }
+
+
+  /* =========================
+  ADICIONAR ÁREA
+  ========================= */
+
+  const btnAddArea = document.querySelector(".add-area");
+
+  if (btnAddArea) {
+
+    btnAddArea.addEventListener("click", () => {
+
+      const lista = document.getElementById("lista-areas");
+      const original = lista.querySelector(".area-select");
+
+      const novo = original.cloneNode(true);
+
+      novo.value = "";
+      novo.name = "area[]";
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "form-box form-box-area linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
+      wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
+
+      lista.appendChild(wrapper);
+
+      carregarAreas();
+
+    });
+
   }
 
   const form = document.getElementById("form-adubacao-organica");
