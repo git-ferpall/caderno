@@ -55,13 +55,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <div id="loading-overlay">
         <div id="pdf-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
             <div style="text-align:center">
-                <div class="spinner">
-                </div>
-                <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+            <div class="spinner"></div>
+            <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
                 Gerando relatório, aguarde...
-                </p>
+            </p>
+            </div>
         </div>
-    </div>
+        </div>
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
@@ -134,13 +134,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-    $('#pf-propriedades').select2({
-        placeholder: "Selecione uma ou mais propriedades",
-        width: '100%',
-        language: "pt-BR"
-    });
-    });
+        document.addEventListener("DOMContentLoaded", () => {
+        $('#pf-propriedade').select2({
+            placeholder: "Selecione uma propriedade",
+            width: '100%',
+            language: "pt-BR"
+        });
+        });
     </script>
 
         
