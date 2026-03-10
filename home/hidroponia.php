@@ -338,6 +338,29 @@ if (!headers_sent()) {
                                             <label class="item-label" for="b-nome">Número/Nome da Bancada</label>
                                             <input type="text" class="form-text" name="enome" id="b-nome" placeholder="Ex: 01, 02..." required>
                                         </div>
+                                        
+                                        
+                                        <div class="form-campo">
+                                            <label class="item-label" for="b-area">Área da bancada</label>
+
+                                            <div style="display:flex; gap:10px;">
+
+                                                <input
+                                                    type="number"
+                                                    class="form-text"
+                                                    name="barea"
+                                                    id="b-area"
+                                                    step="0.01"
+                                                    placeholder="Ex: 12"
+                                                >
+
+                                                <select name="barea_unidade" class="form-text" style="max-width:120px;">
+                                                    <option value="m2">m²</option>
+                                                    <option value="ha">hectares</option>
+                                                </select>
+
+                                            </div>
+                                        </div>
 
                                         <div class="form-campo">
                                             <label class="item-label" for="b-produto">Cultura/Produto</label>
