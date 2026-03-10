@@ -25,6 +25,23 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .lista-produtos .form-box-produto {
       margin-bottom: 5px; /* espaço entre selects empilhados */
     }
+    .remove-btn{
+      width:35px;
+      height:35px;
+      border:none;
+      border-radius:6px;
+      background:#d9534f;
+      color:white;
+      font-size:18px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .remove-btn:hover{
+      background:#c9302c;
+    }
 </style>  
 </head>
 
