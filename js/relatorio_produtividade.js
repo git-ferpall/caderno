@@ -1,55 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   const selectProp = document.getElementById("pf-propriedade");
   const selectArea = document.getElementById("pf-area");
   const selectProd = document.getElementById("pf-produto");
 
-  /* =====================================
-     CARREGA PROPRIEDADES
-  ===================================== */
-
-  async function carregarPropriedades() {
-
-    try {
-
-      const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
-        method: "POST"
-      });
-
-      const data = await resp.json();
-
-      if (!data.ok) throw new Error(data.err);
-
-      selectProp.innerHTML = "<option value=''>Selecione</option>";
-
-      data.propriedades.forEach(p => {
-
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.nome_razao;
-
-        selectProp.appendChild(opt);
-
-      });
-
-    } catch (err) {
-
-      console.error("Erro propriedades:", err);
-
-    }
-
-  }
-
-  /* =====================================
-     CARREGA FILTROS DA PROPRIEDADE
-  ===================================== */
-
-  async function carregarFiltros(propriedade) {
+  async function carregarFiltros(propriedade = null) {
 
     try {
 
       const params = new URLSearchParams();
-      params.append("propriedades[]", propriedade);
+
+      if (propriedade) {
+        params.append("propriedades[]", propriedade);
+      }
 
       const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
         method: "POST",
@@ -63,16 +26,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!data.ok) throw new Error(data.err);
 
-      /* limpa selects */
+      /* =====================
+         PROPRIEDADES
+      ===================== */
+
+      if (!propriedade) {
+
+        selectProp.innerHTML = "<option value=''>Selecione</option>";
+
+        data.propriedades.forEach(p => {
+
+          const opt = document.createElement("option");
+
+          opt.value = p.id;
+          opt.textContent = p.nome_razao;
+
+          selectProp.appendChild(opt);
+
+        });
+
+      }
+
+      /* =====================
+         AREAS
+      ===================== */
 
       selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
-      selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
-
-      /* AREAS */
 
       (data.areas || []).forEach(a => {
 
         const opt = document.createElement("option");
+
         opt.value = a.id;
         opt.textContent = a.nome;
 
@@ -80,11 +64,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       });
 
-      /* PRODUTOS */
+      /* =====================
+         PRODUTOS
+      ===================== */
+
+      selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
 
       (data.produtos || []).forEach(p => {
 
         const opt = document.createElement("option");
+
         opt.value = p.id;
         opt.textContent = p.nome;
 
@@ -100,9 +89,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  /* =====================================
-     EVENTO PROPRIEDADE
-  ===================================== */
+  /* =====================
+     CARREGAMENTO INICIAL
+  ===================== */
+
+  await carregarFiltros();
+
+  /* =====================
+     TROCA PROPRIEDADE
+  ===================== */
 
   selectProp.addEventListener("change", function () {
 
@@ -118,11 +113,5 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarFiltros(propriedade);
 
   });
-
-  /* =====================================
-     INICIO
-  ===================================== */
-
-  carregarPropriedades();
 
 });
