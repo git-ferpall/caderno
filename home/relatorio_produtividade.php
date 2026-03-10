@@ -50,6 +50,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
 </style>    
 </head>
 <body>
+    <div id="loading" style="display:none;"></div>
+    <div id="loading-screen" style="display:none;"></div>
+    <div id="loading-overlay" style="display:none;"></div>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?> 
     <div id="loading-overlay">
