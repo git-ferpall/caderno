@@ -144,6 +144,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
     </script>
 
         
-    <?php include '../include/footer.php' ?>
+    
 </body>
 </html>
