@@ -84,7 +84,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             </div>
 
             <div class="sistema-main">
-                <form action="relatorios.php" class="main-form container" id="rel-form">
+                <form action="../funcoes/relatorios/relatorio_safra_pdf.php" method="POST">
 
                     <div class="form-campo">
                         <label for="pf-propriedades">Propriedades</label>
