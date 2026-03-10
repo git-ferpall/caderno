@@ -57,10 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // === Botão adicionar área ===
+  /* ===============================
+  ADICIONAR ÁREA
+  =============================== */
+
   document.querySelector(".add-area").addEventListener("click", () => {
+
     const lista = document.getElementById("lista-areas");
     const original = lista.querySelector("select");
+
     const novo = original.cloneNode(true);
 
     novo.value = "";
@@ -69,17 +74,44 @@ document.addEventListener("DOMContentLoaded", () => {
     novo.classList.add("area-select");
 
     const wrapper = document.createElement("div");
-    wrapper.className = "form-box form-box-area";
+    wrapper.className = "form-box form-box-area linha";
+
+    const btnRemover = document.createElement("button");
+    btnRemover.type = "button";
+    btnRemover.className = "remove-btn";
+    btnRemover.innerHTML = "−";
+
+    btnRemover.onclick = () => {
+
+      const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+      if (total > 1) {
+        wrapper.remove();
+      } else {
+        alert("É necessário manter pelo menos uma área.");
+      }
+
+    };
+
     wrapper.appendChild(novo);
+    wrapper.appendChild(btnRemover);
 
     lista.appendChild(wrapper);
+
     carregarAreas();
+
   });
 
-  // === Botão adicionar produto ===
+
+  /* ===============================
+  ADICIONAR PRODUTO
+  =============================== */
+
   document.querySelector(".add-produto").addEventListener("click", () => {
+
     const lista = document.getElementById("lista-produtos");
     const original = lista.querySelector("select");
+
     const novo = original.cloneNode(true);
 
     novo.value = "";
@@ -88,11 +120,32 @@ document.addEventListener("DOMContentLoaded", () => {
     novo.classList.add("produto-select");
 
     const wrapper = document.createElement("div");
-    wrapper.className = "form-box form-box-produto";
+    wrapper.className = "form-box form-box-produto linha";
+
+    const btnRemover = document.createElement("button");
+    btnRemover.type = "button";
+    btnRemover.className = "remove-btn";
+    btnRemover.innerHTML = "−";
+
+    btnRemover.onclick = () => {
+
+      const total = document.querySelectorAll("#lista-produtos .form-box-produto").length;
+
+      if (total > 1) {
+        wrapper.remove();
+      } else {
+        alert("É necessário manter pelo menos um produto.");
+      }
+
+    };
+
     wrapper.appendChild(novo);
+    wrapper.appendChild(btnRemover);
 
     lista.appendChild(wrapper);
+
     carregarProdutos();
+
   });
 
   // === Carregar selects iniciais ===
