@@ -42,7 +42,6 @@ $estufa_id  = isset($_POST['estufa_id']) ? (int)$_POST['estufa_id'] : 0;
 $nome       = isset($_POST['nome']) ? trim($_POST['nome']) : '';
 $produto_id = isset($_POST['produto_id']) ? (int)$_POST['produto_id'] : 0;
 $obs        = isset($_POST['obs']) ? trim($_POST['obs']) : '';
-
 $barea = isset($_POST['barea']) ? (float)$_POST['barea'] : 0;
 $barea_unidade = isset($_POST['barea_unidade']) ? $_POST['barea_unidade'] : 'm2';
 
@@ -50,6 +49,7 @@ $barea_unidade = isset($_POST['barea_unidade']) ? $_POST['barea_unidade'] : 'm2'
 if ($barea_unidade === 'ha') {
     $barea = $barea * 10000;
 }
+
 
 if ($estufa_id <= 0) {
     echo json_encode(['ok' => false, 'err' => 'Estufa não identificada']);
@@ -81,8 +81,8 @@ try {
 
     // 🌱 1️⃣ Cria uma nova área vinculada
     $stmt3 = $mysqli->prepare("
-        INSERT INTO areas (user_id, propriedade_id, nome, tipo, tamanho)
-        VALUES (?, ?, ?, ?, ?)
+    INSERT INTO areas (user_id, propriedade_id, nome, tipo, tamanho)
+    VALUES (?, ?, ?, ?, ?)
     ");
 
     $stmt3->bind_param(
@@ -93,7 +93,6 @@ try {
         $tipo_area,
         $barea
     );
-    $stmt3->bind_param("iiss", $user_id, $propriedade_id, $nome_area, $tipo_area);
     $stmt3->execute();
     $area_id = $stmt3->insert_id;
     $stmt3->close();
