@@ -15,8 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const params = new URLSearchParams();
 
-      if (propriedade)
+      if (propriedade) {
         params.append("propriedade", propriedade);
+      }
 
       const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
         method: "POST",
@@ -26,12 +27,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: params.toString()
       });
 
+      if (!resp.ok) {
+        throw new Error("Erro na requisição");
+      }
+
       const data = await resp.json();
 
-      if (!data.ok)
+      if (!data.ok) {
         throw new Error(data.err || "Erro ao carregar filtros");
+      }
 
-      /* PROPRIEDADES */
+      /* ==============================
+         PROPRIEDADES
+      ============================== */
 
       if (selectProp && !propriedade) {
 
@@ -40,7 +48,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         data.propriedades.forEach(p => {
 
           const opt = document.createElement("option");
-
           opt.value = p.id;
           opt.textContent = p.nome_razao;
 
@@ -48,9 +55,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         });
 
+        // atualiza Select2
+        if (window.jQuery && $(selectProp).hasClass("select2-hidden-accessible")) {
+          $(selectProp).trigger('change.select2');
+        }
+
       }
 
-      /* AREAS */
+      /* ==============================
+         AREAS
+      ============================== */
 
       if (selectArea) {
 
@@ -59,7 +73,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         data.areas.forEach(a => {
 
           const opt = document.createElement("option");
-
           opt.value = a.id;
           opt.textContent = a.nome;
 
@@ -69,7 +82,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       }
 
-      /* PRODUTOS */
+      /* ==============================
+         PRODUTOS
+      ============================== */
 
       if (selectProd) {
 
@@ -78,7 +93,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         data.produtos.forEach(p => {
 
           const opt = document.createElement("option");
-
           opt.value = p.id;
           opt.textContent = p.nome;
 
@@ -96,17 +110,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
 
-  /* carregamento inicial */
+  /* ==============================
+     CARREGAMENTO INICIAL
+  ============================== */
 
   await carregarFiltros();
 
-  /* quando muda propriedade */
+  /* ==============================
+     MUDANÇA DE PROPRIEDADE
+  ============================== */
 
   if (selectProp) {
 
-    selectProp.addEventListener("change", () => {
+    selectProp.addEventListener("change", function () {
 
-      carregarFiltros(selectProp.value);
+      const propriedade = this.value;
+
+      carregarFiltros(propriedade);
 
     });
 
