@@ -48,6 +48,9 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
         const produto_id = container.querySelector("#b-produto")?.value.trim() || "";
         const obs = container.querySelector("#b-obs")?.value.trim() || "";
 
+        const barea = container.querySelector("[name='barea']")?.value.trim() || "";
+        const barea_unidade = container.querySelector("[name='barea_unidade']")?.value || "m2";
+
         if (!nome) {
             alert("Informe o nome/número da bancada");
             return;
@@ -66,7 +69,9 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
                     estufa_id: idEstufa,
                     nome: nome,
                     produto_id: produto_id,
-                    obs: obs
+                    obs: obs,
+                    barea: barea,
+                    barea_unidade: barea_unidade
                 })
             });
 
