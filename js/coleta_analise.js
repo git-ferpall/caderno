@@ -18,25 +18,49 @@ document.addEventListener("DOMContentLoaded", () => {
     resultadoInput.addEventListener("input", atualizarAviso);
   }
 
-  // === Botão adicionar área ===
+  /* ===============================
+  ADICIONAR ÁREA
+  =============================== */
+
   const btnAddArea = document.querySelector(".add-area");
+
   if (btnAddArea) {
+
     btnAddArea.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-areas");
-      const original = lista.querySelector("select");
+      const original = lista.querySelector(".form-box-area");
+
       if (!original) return;
 
-      const novo = original.cloneNode(true);
-      novo.value = "";
-      novo.name = "area[]";
-      novo.classList.add("area-select");
+      const clone = original.cloneNode(true);
+      const select = clone.querySelector("select");
 
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
-      wrapper.appendChild(novo);
+      select.value = "";
 
-      lista.appendChild(wrapper);
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          clone.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
+      clone.appendChild(btnRemover);
+
+      lista.appendChild(clone);
+
     });
+
   }
 
   // === Submit do formulário ===
