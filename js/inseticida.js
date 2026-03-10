@@ -20,24 +20,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
+
   if (btnAddArea) {
+
     btnAddArea.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-areas");
       const original = lista.querySelector("select");
+
       if (!original) return;
 
       const novo = original.cloneNode(true);
+
       novo.value = "";
       novo.name = "area[]";
       novo.classList.add("area-select");
 
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
+      wrapper.className = "form-box form-box-area linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
+
       carregarAreas();
+
     });
+
   }
 
   
