@@ -4,18 +4,17 @@ document.addEventListener("DOMContentLoaded", function(){
     const area = document.getElementById("pf-area");
     const produto = document.getElementById("pf-produto");
 
-
-    /* =========================
-       CARREGAR FILTROS
-    ========================= */
-
     function carregarFiltros(prop_id = ""){
 
         let url = "../funcoes/relatorios/buscar_filtros_produtividade.php";
 
+        const params = new URLSearchParams();
+
         if(prop_id){
-            url += "?propriedade_id=" + prop_id;
+            params.append("propriedade_id", prop_id);
         }
+
+        url += "?" + params.toString();
 
         fetch(url)
         .then(res => res.json())
@@ -44,7 +43,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
             }
 
-
             /* AREAS */
 
             area.innerHTML = '<option value="">Todas as áreas</option>';
@@ -59,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function(){
                 area.appendChild(opt);
 
             });
-
 
             /* PRODUTOS */
 
@@ -80,27 +77,18 @@ document.addEventListener("DOMContentLoaded", function(){
 
     }
 
-
-    /* =========================
-       TROCA PROPRIEDADE
-    ========================= */
-
     $('#pf-propriedade').on('change', function(){
 
         const prop_id = $(this).val();
 
         area.innerHTML = '<option value="">Todas as áreas</option>';
+        produto.innerHTML = '<option value="">Todos os produtos</option>';
 
         if(!prop_id) return;
 
         carregarFiltros(prop_id);
 
     });
-
-
-    /* =========================
-       INICIO
-    ========================= */
 
     carregarFiltros();
 
