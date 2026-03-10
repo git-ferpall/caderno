@@ -38,6 +38,24 @@ if ($user_id) {
     #lista-areas { flex: 1; }
     .form-box-area { margin-bottom: 5px; }
     #aviso-status { display: block; font-size: 0.9em; margin-top: 6px; color: orange; }
+    .remove-btn{
+      width:35px;
+      height:35px;
+      border:none;
+      border-radius:6px;
+      background:#d9534f;
+      color:white;
+      font-size:18px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-left:8px;
+    }
+
+    .remove-btn:hover{
+      background:#c9302c;
+    }
   </style>
 </head>
 
