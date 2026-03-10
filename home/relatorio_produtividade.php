@@ -9,6 +9,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Caderno de Campo - Frutag</title>
 
 <link rel="stylesheet" href="../css/style.css">
@@ -17,28 +18,28 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <style>
 
 #pf-propriedade{
-height:auto;
-min-height:48px;
-max-height:140px;
-padding:8px;
-border-radius:8px;
-border:1px solid #ccc;
-background:#f8f8f8;
-font-size:15px;
+    height:auto;
+    min-height:48px;
+    max-height:140px;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    background:#f8f8f8;
+    font-size:15px;
 }
 
 .spinner{
-width:50px;
-height:50px;
-border:5px solid #ddd;
-border-top:5px solid #4caf50;
-border-radius:50%;
-animation:spin 1s linear infinite;
-margin:auto;
+    width:50px;
+    height:50px;
+    border:5px solid #ddd;
+    border-top:5px solid #4caf50;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin:auto;
 }
 
 @keyframes spin{
-100%{ transform:rotate(360deg); }
+    100%{ transform:rotate(360deg); }
 }
 
 </style>
@@ -53,19 +54,20 @@ margin:auto;
 <?php include '../include/loading.php' ?>
 <?php include '../include/popups.php' ?>
 
-<!-- overlay geração de PDF -->
+<!-- OVERLAY GERANDO RELATÓRIO -->
 
-<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
+<div id="loading-overlay"
+     style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
 
-<div style="text-align:center">
+    <div style="text-align:center">
 
-<div class="spinner"></div>
+        <div class="spinner"></div>
 
-<p style="margin-top:10px;font-weight:bold;color:#2e7d32">
-Gerando relatório, aguarde...
-</p>
+        <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+            Gerando relatório, aguarde...
+        </p>
 
-</div>
+    </div>
 
 </div>
 
@@ -90,11 +92,13 @@ $dt_fin = date("Y-m-t");
 
 <div class="sistema-main">
 
-<form id="rel-form"
-action="../funcoes/relatorios/relatorio_safra_pdf.php"
-method="POST"
-target="_blank"
-class="main-form container">
+<form
+    id="rel-form"
+    action="../funcoes/relatorios/relatorio_safra_pdf.php"
+    method="POST"
+    target="_blank"
+    class="main-form container"
+>
 
 <!-- PROPRIEDADE -->
 
@@ -102,10 +106,12 @@ class="main-form container">
 
 <label>Propriedade</label>
 
-<select name="propriedade"
-id="pf-propriedade"
-class="form-select form-text"
-required>
+<select
+    name="propriedade"
+    id="pf-propriedade"
+    class="form-select form-text"
+    required
+>
 
 <option value="">Selecione</option>
 
@@ -119,9 +125,11 @@ required>
 
 <label>Área</label>
 
-<select name="area"
-id="pf-area"
-class="form-select form-text">
+<select
+    name="area"
+    id="pf-area"
+    class="form-select form-text"
+>
 
 <option value="">Todas as áreas</option>
 
@@ -135,9 +143,11 @@ class="form-select form-text">
 
 <label>Produto</label>
 
-<select name="produto"
-id="pf-produto"
-class="form-select form-text">
+<select
+    name="produto"
+    id="pf-produto"
+    class="form-select form-text"
+>
 
 <option value="">Todos os produtos</option>
 
@@ -151,10 +161,12 @@ class="form-select form-text">
 
 <label>Data inicial</label>
 
-<input type="date"
-name="data_ini"
-value="<?php echo $dt_ini ?>"
-class="form-text">
+<input
+    type="date"
+    name="data_ini"
+    value="<?php echo $dt_ini ?>"
+    class="form-text"
+>
 
 </div>
 
@@ -164,24 +176,25 @@ class="form-text">
 
 <label>Data final</label>
 
-<input type="date"
-name="data_fim"
-value="<?php echo $dt_fin ?>"
-class="form-text">
+<input
+    type="date"
+    name="data_fim"
+    value="<?php echo $dt_fin ?>"
+    class="form-text"
+>
 
 </div>
 
-<!-- BOTAO -->
+<!-- BOTÃO -->
 
 <div class="form-submit">
 
 <button
-id="form-pdf-relatorio"
-class="main-btn fundo-laranja"
-type="submit">
-
+    id="form-pdf-relatorio"
+    class="main-btn fundo-laranja"
+    type="submit"
+>
 Gerar relatório de safra
-
 </button>
 
 </div>
@@ -206,21 +219,32 @@ Gerar relatório de safra
 
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function(){
 
-$('#pf-propriedade').select2({
-placeholder: "Selecione uma propriedade",
-width: '100%',
-language: "pt-BR"
+    $('#pf-propriedade').select2({
+        placeholder: "Selecione uma propriedade",
+        width: "100%",
+        language: "pt-BR"
+    });
+
 });
 
-});
 
-/* spinner ao gerar relatório */
+/* =========================
+   SPINNER AO GERAR RELATÓRIO
+========================= */
 
 document.getElementById("rel-form").addEventListener("submit", function(){
 
-document.getElementById("loading-overlay").style.display = "flex";
+    const overlay = document.getElementById("loading-overlay");
+
+    overlay.style.display = "flex";
+
+    setTimeout(function(){
+
+        overlay.style.display = "none";
+
+    }, 2000);
 
 });
 
