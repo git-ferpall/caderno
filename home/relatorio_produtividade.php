@@ -59,15 +59,15 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <div id="loading-overlay"
      style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
 
-    <div style="text-align:center">
+<div style="text-align:center">
 
-        <div class="spinner"></div>
+<div class="spinner"></div>
 
-        <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
-            Gerando relatório, aguarde...
-        </p>
+<p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+Gerando relatório, aguarde...
+</p>
 
-    </div>
+</div>
 
 </div>
 
@@ -192,7 +192,7 @@ $dt_fin = date("Y-m-t");
 <button
     id="form-pdf-relatorio"
     class="main-btn fundo-laranja"
-    type="submit"
+    type="button"
 >
 Gerar relatório de safra
 </button>
@@ -219,32 +219,25 @@ Gerar relatório de safra
 
 <script>
 
+/* SELECT2 */
+
 document.addEventListener("DOMContentLoaded", function(){
 
-    $('#pf-propriedade').select2({
-        placeholder: "Selecione uma propriedade",
-        width: "100%",
-        language: "pt-BR"
-    });
+$('#pf-propriedade').select2({
+placeholder: "Selecione uma propriedade",
+width: "100%",
+language: "pt-BR"
+});
 
 });
 
+/* GERAR RELATÓRIO */
 
-/* =========================
-   SPINNER AO GERAR RELATÓRIO
-========================= */
+document.getElementById("form-pdf-relatorio").addEventListener("click", function(){
 
-document.getElementById("rel-form").addEventListener("submit", function(){
+document.getElementById("loading-overlay").style.display = "flex";
 
-    const overlay = document.getElementById("loading-overlay");
-
-    overlay.style.display = "flex";
-
-    setTimeout(function(){
-
-        overlay.style.display = "none";
-
-    }, 2000);
+document.getElementById("rel-form").submit();
 
 });
 
