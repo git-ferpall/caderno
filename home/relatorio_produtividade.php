@@ -88,21 +88,21 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     <div class="form-campo">
                         <label>Propriedade</label>
-                        <select name="propriedade" class="form-select form-text" required>
+                        <select name="propriedade" id="pf-propriedade" class="form-select form-text" required>
                         <option value="">Selecione</option>
                         </select>
                     </div>
 
                     <div class="form-campo">
                         <label>Área</label>
-                        <select name="area" class="form-select form-text">
+                        <select name="area" id="pf-area" class="form-select form-text">
                         <option value="">Todas as áreas</option>
                         </select>
                     </div>
 
                     <div class="form-campo">
                         <label>Produto</label>
-                        <select name="produto" class="form-select form-text">
+                        <select name="produto" id="pf-produto" class="form-select form-text">
                         <option value="">Todos os produtos</option>
                         </select>
                     </div>
@@ -128,7 +128,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/relatorios.js"></script>
+        <script src="../js/relatorio_produtividade.js"></script>
     </div>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
