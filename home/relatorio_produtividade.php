@@ -93,6 +93,7 @@ $dt_fin = date("Y-m-t");
 <form id="rel-form"
 action="../funcoes/relatorios/relatorio_safra_pdf.php"
 method="POST"
+target="_blank"
 class="main-form container">
 
 <!-- PROPRIEDADE -->
