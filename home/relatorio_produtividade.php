@@ -91,7 +91,7 @@ $dt_fin = date("Y-m-t");
 
     <div class="sistema-main">
 
-        <form action="relatorio_safra_pdf.php" method="POST" class="main-form container">
+        <form id="rel-form" action="relatorio_safra_pdf.php" method="POST" class="main-form container">
 
             <!-- PROPRIEDADE -->
             <div class="form-campo">
@@ -102,7 +102,7 @@ $dt_fin = date("Y-m-t");
                         class="form-select form-text"
                         required>
 
-                    <option value="">Selecione</option>
+                <option value="">Selecione</option>
 
                 </select>
             </div>
@@ -115,7 +115,7 @@ $dt_fin = date("Y-m-t");
                         id="pf-area"
                         class="form-select form-text">
 
-                    <option value="">Todas as áreas</option>
+                <option value="">Todas as áreas</option>
 
                 </select>
             </div>
@@ -128,40 +128,41 @@ $dt_fin = date("Y-m-t");
                         id="pf-produto"
                         class="form-select form-text">
 
-                    <option value="">Todos os produtos</option>
+                <option value="">Todos os produtos</option>
 
                 </select>
             </div>
 
             <!-- DATA INICIAL -->
             <div class="form-campo">
-                <label>Data inicial</label>
+            <label>Data inicial</label>
 
-                <input type="date"
-                       name="data_ini"
-                       value="<?php echo $dt_ini ?>"
-                       class="form-text">
+            <input type="date"
+                name="data_ini"
+                value="<?php echo $dt_ini ?>"
+                class="form-text">
             </div>
 
             <!-- DATA FINAL -->
             <div class="form-campo">
-                <label>Data final</label>
+            <label>Data final</label>
 
-                <input type="date"
-                       name="data_fim"
-                       value="<?php echo $dt_fin ?>"
-                       class="form-text">
+            <input type="date"
+                name="data_fim"
+                value="<?php echo $dt_fin ?>"
+                class="form-text">
             </div>
 
             <!-- BOTAO -->
             <div class="form-submit">
 
-                <button class="main-btn fundo-laranja"
-                        type="submit">
+            <button id="form-pdf-relatorio"
+                    class="main-btn fundo-laranja"
+                    type="button">
 
-                    Gerar relatório de safra
+            Gerar relatório de safra
 
-                </button>
+            </button>
 
             </div>
 

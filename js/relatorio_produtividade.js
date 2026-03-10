@@ -37,9 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(data.err || "Erro ao carregar filtros");
       }
 
-      /* ==============================
-         PROPRIEDADES
-      ============================== */
+      /* PROPRIEDADES */
 
       if (selectProp && !propriedade) {
 
@@ -55,22 +53,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         });
 
-        // atualiza Select2
-        if (window.jQuery && $(selectProp).hasClass("select2-hidden-accessible")) {
-          $(selectProp).trigger('change.select2');
-        }
-
       }
 
-      /* ==============================
-         AREAS
-      ============================== */
+      /* AREAS */
 
       if (selectArea) {
 
         selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
 
-        data.areas.forEach(a => {
+        (data.areas || []).forEach(a => {
 
           const opt = document.createElement("option");
           opt.value = a.id;
@@ -82,15 +73,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       }
 
-      /* ==============================
-         PRODUTOS
-      ============================== */
+      /* PRODUTOS */
 
       if (selectProd) {
 
         selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
 
-        data.produtos.forEach(p => {
+        (data.produtos || []).forEach(p => {
 
           const opt = document.createElement("option");
           opt.value = p.id;
@@ -110,26 +99,80 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
 
-  /* ==============================
-     CARREGAMENTO INICIAL
-  ============================== */
+  /* carregamento inicial */
 
   await carregarFiltros();
 
-  /* ==============================
-     MUDANÇA DE PROPRIEDADE
-  ============================== */
+  /* mudança de propriedade */
 
   if (selectProp) {
 
     selectProp.addEventListener("change", function () {
 
-      const propriedade = this.value;
-
-      carregarFiltros(propriedade);
+      carregarFiltros(this.value);
 
     });
 
   }
 
 });
+
+
+/* =====================================================
+   GERAR RELATORIO PDF
+===================================================== */
+
+const btnRelatorio = document.getElementById("form-pdf-relatorio");
+
+if (btnRelatorio) {
+
+  btnRelatorio.addEventListener("click", async (e) => {
+
+    e.preventDefault();
+
+    const btn = document.getElementById("form-pdf-relatorio");
+    const form = document.getElementById("rel-form");
+    const loading = document.getElementById("pdf-loading");
+
+    if (btn.disabled) return;
+
+    try {
+
+      btn.disabled = true;
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+
+      if (loading) loading.style.display = "flex";
+
+      const formData = new FormData(form);
+
+      const resp = await fetch("../funcoes/relatorios/relatorio_safra_pdf.php", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!resp.ok) throw new Error("Erro ao gerar PDF");
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, "_blank");
+
+    } catch (err) {
+
+      alert("❌ Falha ao gerar PDF: " + err.message);
+      console.error(err);
+
+    } finally {
+
+      if (loading) loading.style.display = "none";
+
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+
+    }
+
+  });
+
+}
