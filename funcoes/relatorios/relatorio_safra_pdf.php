@@ -103,7 +103,17 @@ foreach($dados as $d){
 GERAR PDF
 =============================== */
 
-$mpdf = new \Mpdf\Mpdf();
+$tempDir = __DIR__ . '/../../tmp/mpdf';
+
+if (!is_dir($tempDir)) {
+    mkdir($tempDir, 0777, true);
+}
+
+$mpdf = new \Mpdf\Mpdf([
+    'mode' => 'utf-8',
+    'format' => 'A4',
+    'tempDir' => $tempDir
+]);
 
 $html = "
 
