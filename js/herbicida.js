@@ -21,38 +21,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarAreas();
 
-  // === Botão adicionar área ===
+ // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
+
   if (btnAddArea) {
+
     btnAddArea.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-areas");
-      const original = lista.querySelector("select");
+      const original = lista.querySelector(".area-select");
+
       if (!original) return;
 
       const novo = original.cloneNode(true);
       novo.value = "";
-      novo.name = "area[]"; // importante: array
+      novo.name = "area[]";
       novo.classList.add("area-select");
 
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
+      wrapper.className = "form-box form-box-area linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
 
-      // recarregar opções para o novo select
+      /* carregar áreas no novo select */
+
       fetch("../funcoes/buscar_areas.php")
         .then(r => r.json())
         .then(data => {
+
           novo.innerHTML = '<option value="">Selecione a área</option>';
+
           data.forEach(item => {
+
             const opt = document.createElement("option");
+
             opt.value = item.id;
             opt.textContent = `${item.nome} (${item.tipo})`;
+
             novo.appendChild(opt);
+
           });
+
         });
+
     });
+
   }
 
   // === Carregar HERBICIDAS ===
