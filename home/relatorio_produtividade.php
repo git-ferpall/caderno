@@ -233,11 +233,20 @@ language: "pt-BR"
 
 /* GERAR RELATÓRIO */
 
+
 document.getElementById("form-pdf-relatorio").addEventListener("click", function(){
 
-document.getElementById("loading-overlay").style.display = "flex";
+const overlay = document.getElementById("loading-overlay");
+
+overlay.style.display = "flex";
 
 document.getElementById("rel-form").submit();
+
+/* esconder spinner depois */
+
+setTimeout(function(){
+overlay.style.display = "none";
+},2000);
 
 });
 
