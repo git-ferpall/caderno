@@ -15,9 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const params = new URLSearchParams();
 
-      if (propriedade) {
-        params.append("propriedade", propriedade);
-      }
+        if (propriedade) {
+            params.append("propriedades[]", propriedade);
+        }
 
       const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
         method: "POST",
