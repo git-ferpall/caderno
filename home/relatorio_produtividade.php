@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caderno de Campo - Frutag</title>
@@ -15,28 +17,28 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <style>
 
 #pf-propriedade{
-    height:auto;
-    min-height:48px;
-    max-height:140px;
-    padding:8px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    background:#f8f8f8;
-    font-size:15px;
+height:auto;
+min-height:48px;
+max-height:140px;
+padding:8px;
+border-radius:8px;
+border:1px solid #ccc;
+background:#f8f8f8;
+font-size:15px;
 }
 
 .spinner{
-    width:50px;
-    height:50px;
-    border:5px solid #ddd;
-    border-top:5px solid #4caf50;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
-    margin:auto;
+width:50px;
+height:50px;
+border:5px solid #ddd;
+border-top:5px solid #4caf50;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin:auto;
 }
 
 @keyframes spin{
-    100%{ transform:rotate(360deg); }
+100%{ transform:rotate(360deg); }
 }
 
 </style>
@@ -45,7 +47,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 <body>
 
-<!-- elementos necessários para scripts globais -->
 <div id="loading" style="display:none;"></div>
 <div id="loading-screen" style="display:none;"></div>
 
@@ -53,21 +54,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <?php include '../include/popups.php' ?>
 
 <!-- overlay geração de PDF -->
-<div id="loading-overlay" style="display:none;">
-    <div id="pdf-loading"
-        style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
-        
-        <div style="text-align:center">
 
-            <div class="spinner"></div>
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
 
-            <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
-                Gerando relatório, aguarde...
-            </p>
+<div style="text-align:center">
 
-        </div>
+<div class="spinner"></div>
 
-    </div>
+<p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+Gerando relatório, aguarde...
+</p>
+
+</div>
+
 </div>
 
 <div id="conteudo">
@@ -85,90 +84,110 @@ $dt_fin = date("Y-m-t");
 
 <main id="relatorios" class="sistema">
 
-    <div class="page-title">
-        <h2 class="main-title cor-branco">Relatório de Safra</h2>
-    </div>
+<div class="page-title">
+<h2 class="main-title cor-branco">Relatório de Safra</h2>
+</div>
 
-    <div class="sistema-main">
+<div class="sistema-main">
 
-        <form id="rel-form" action="relatorio_safra_pdf.php" method="POST" class="main-form container">
+<form id="rel-form"
+action="../funcoes/relatorios/relatorio_safra_pdf.php"
+method="POST"
+class="main-form container">
 
-            <!-- PROPRIEDADE -->
-            <div class="form-campo">
-                <label>Propriedade</label>
+<!-- PROPRIEDADE -->
 
-                <select name="propriedade"
-                        id="pf-propriedade"
-                        class="form-select form-text"
-                        required>
+<div class="form-campo">
 
-                <option value="">Selecione</option>
+<label>Propriedade</label>
 
-                </select>
-            </div>
+<select name="propriedade"
+id="pf-propriedade"
+class="form-select form-text"
+required>
 
-            <!-- AREA -->
-            <div class="form-campo">
-                <label>Área</label>
+<option value="">Selecione</option>
 
-                <select name="area"
-                        id="pf-area"
-                        class="form-select form-text">
+</select>
 
-                <option value="">Todas as áreas</option>
+</div>
 
-                </select>
-            </div>
+<!-- AREA -->
 
-            <!-- PRODUTO -->
-            <div class="form-campo">
-                <label>Produto</label>
+<div class="form-campo">
 
-                <select name="produto"
-                        id="pf-produto"
-                        class="form-select form-text">
+<label>Área</label>
 
-                <option value="">Todos os produtos</option>
+<select name="area"
+id="pf-area"
+class="form-select form-text">
 
-                </select>
-            </div>
+<option value="">Todas as áreas</option>
 
-            <!-- DATA INICIAL -->
-            <div class="form-campo">
-            <label>Data inicial</label>
+</select>
 
-            <input type="date"
-                name="data_ini"
-                value="<?php echo $dt_ini ?>"
-                class="form-text">
-            </div>
+</div>
 
-            <!-- DATA FINAL -->
-            <div class="form-campo">
-            <label>Data final</label>
+<!-- PRODUTO -->
 
-            <input type="date"
-                name="data_fim"
-                value="<?php echo $dt_fin ?>"
-                class="form-text">
-            </div>
+<div class="form-campo">
 
-            <!-- BOTAO -->
-            <div class="form-submit">
+<label>Produto</label>
 
-            <button id="form-pdf-relatorio"
-                    class="main-btn fundo-laranja"
-                    type="submit">
+<select name="produto"
+id="pf-produto"
+class="form-select form-text">
 
-            Gerar relatório de safra
+<option value="">Todos os produtos</option>
 
-            </button>
+</select>
 
-            </div>
+</div>
 
-        </form>
+<!-- DATA INICIAL -->
 
-    </div>
+<div class="form-campo">
+
+<label>Data inicial</label>
+
+<input type="date"
+name="data_ini"
+value="<?php echo $dt_ini ?>"
+class="form-text">
+
+</div>
+
+<!-- DATA FINAL -->
+
+<div class="form-campo">
+
+<label>Data final</label>
+
+<input type="date"
+name="data_fim"
+value="<?php echo $dt_fin ?>"
+class="form-text">
+
+</div>
+
+<!-- BOTAO -->
+
+<div class="form-submit">
+
+<button
+id="form-pdf-relatorio"
+class="main-btn fundo-laranja"
+type="submit">
+
+Gerar relatório de safra
+
+</button>
+
+</div>
+
+</form>
+
+</div>
 
 </main>
 
@@ -178,8 +197,9 @@ $dt_fin = date("Y-m-t");
 
 </div>
 
-<!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- SELECT2 -->
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -187,11 +207,19 @@ $dt_fin = date("Y-m-t");
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    $('#pf-propriedade').select2({
-        placeholder: "Selecione uma propriedade",
-        width: '100%',
-        language: "pt-BR"
-    });
+$('#pf-propriedade').select2({
+placeholder: "Selecione uma propriedade",
+width: '100%',
+language: "pt-BR"
+});
+
+});
+
+/* spinner ao gerar relatório */
+
+document.getElementById("rel-form").addEventListener("submit", function(){
+
+document.getElementById("loading-overlay").style.display = "flex";
 
 });
 
