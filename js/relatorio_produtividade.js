@@ -1,6 +1,6 @@
 /**
- * RELATORIO_SAFRA.JS
- * Carrega filtros dinâmicos: propriedade → área → produto
+ * RELATORIO PRODUTIVIDADE
+ * Carrega propriedades, áreas e produtos dinamicamente
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -14,9 +14,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
 
       const params = new URLSearchParams();
-      if (propriedade) params.append("propriedade", propriedade);
 
-      const resp = await fetch("../funcoes/relatorios/buscar_filtros_safra.php", {
+      if (propriedade)
+        params.append("propriedade", propriedade);
+
+      const resp = await fetch("../funcoes/relatorios/buscar_filtros_produtividade.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -26,17 +28,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const data = await resp.json();
 
-      if (!data.ok) throw new Error(data.err);
+      if (!data.ok)
+        throw new Error(data.err || "Erro ao carregar filtros");
 
-      /* === PROPRIEDADES === */
+      /* PROPRIEDADES */
 
-      if (!propriedade) {
+      if (selectProp && !propriedade) {
 
         selectProp.innerHTML = "<option value=''>Selecione</option>";
 
         data.propriedades.forEach(p => {
 
           const opt = document.createElement("option");
+
           opt.value = p.id;
           opt.textContent = p.nome_razao;
 
@@ -46,57 +50,66 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       }
 
-      /* === AREAS === */
+      /* AREAS */
 
-      selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
+      if (selectArea) {
 
-      data.areas.forEach(a => {
+        selectArea.innerHTML = "<option value=''>Todas as áreas</option>";
 
-        const opt = document.createElement("option");
-        opt.value = a.id;
-        opt.textContent = a.nome;
+        data.areas.forEach(a => {
 
-        selectArea.appendChild(opt);
+          const opt = document.createElement("option");
 
-      });
+          opt.value = a.id;
+          opt.textContent = a.nome;
 
-      /* === PRODUTOS === */
+          selectArea.appendChild(opt);
 
-      selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
+        });
 
-      data.produtos.forEach(p => {
+      }
 
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.nome;
+      /* PRODUTOS */
 
-        selectProd.appendChild(opt);
+      if (selectProd) {
 
-      });
+        selectProd.innerHTML = "<option value=''>Todos os produtos</option>";
+
+        data.produtos.forEach(p => {
+
+          const opt = document.createElement("option");
+
+          opt.value = p.id;
+          opt.textContent = p.nome;
+
+          selectProd.appendChild(opt);
+
+        });
+
+      }
 
     } catch (err) {
 
       console.error("Erro ao carregar filtros:", err);
-      alert("Erro ao carregar filtros.");
 
     }
 
   }
 
-  /* === carregamento inicial === */
+  /* carregamento inicial */
 
   await carregarFiltros();
 
-  /* === mudança de propriedade === */
+  /* quando muda propriedade */
 
-  selectProp.addEventListener("change", () => {
+  if (selectProp) {
 
-    const prop = selectProp.value;
+    selectProp.addEventListener("change", () => {
 
-    if (prop) {
-      carregarFiltros(prop);
-    }
+      carregarFiltros(selectProp.value);
 
-  });
+    });
+
+  }
 
 });
