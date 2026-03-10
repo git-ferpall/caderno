@@ -62,36 +62,99 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarAreas();
   carregarProdutos();
 
-  // === Botão adicionar área ===
+  /* ===============================
+  ADICIONAR ÁREA
+  =============================== */
+
   const btnAddArea = document.querySelector(".add-area");
+
   if (btnAddArea) {
+
     btnAddArea.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-areas");
       const original = lista.querySelector(".form-box-area");
+
       if (!original) return;
 
       const clone = original.cloneNode(true);
       const select = clone.querySelector("select");
+
       select.value = "";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          clone.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
+      clone.appendChild(btnRemover);
+
       lista.appendChild(clone);
+
       carregarAreas();
+
     });
+
   }
 
-  // === Botão adicionar produto ===
+
+  /* ===============================
+  ADICIONAR PRODUTO
+  =============================== */
+
   const btnAddProduto = document.querySelector(".add-produto");
+
   if (btnAddProduto) {
+
     btnAddProduto.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-produtos");
       const original = lista.querySelector(".form-box-produto");
+
       if (!original) return;
 
       const clone = original.cloneNode(true);
       const select = clone.querySelector("select");
+
       select.value = "";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-produtos .form-box-produto").length;
+
+        if (total > 1) {
+          clone.remove();
+        } else {
+          alert("É necessário manter pelo menos um produto.");
+        }
+
+      };
+
+      clone.appendChild(btnRemover);
+
       lista.appendChild(clone);
+
       carregarProdutos();
+
     });
+
   }
 
   // === Submit do formulário ===
