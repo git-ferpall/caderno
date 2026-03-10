@@ -158,7 +158,7 @@ $dt_fin = date("Y-m-t");
 
             <button id="form-pdf-relatorio"
                     class="main-btn fundo-laranja"
-                    type="button">
+                    type="submit">
 
             Gerar relatório de safra
 
