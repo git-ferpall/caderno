@@ -49,84 +49,144 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Erro ao carregar produtos:", err));
   }
 
-  // === Botão adicionar área de origem ===
+  /* ===============================
+  ADICIONAR ÁREA ORIGEM
+  =============================== */
+
   const btnAddOrigem = document.querySelector(".add-origem");
+
   if (btnAddOrigem) {
+
     btnAddOrigem.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-origens");
       const original = lista.querySelector("select");
+
       if (!original) return;
 
       const novo = original.cloneNode(true);
+
       novo.value = "";
       novo.removeAttribute("id");
       novo.name = "area_origem[]";
       novo.classList.add("area-origem-select");
 
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
+      wrapper.className = "form-box form-box-area linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-origens .form-box-area").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área de origem.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
+
       carregarAreas();
+
     });
+
   }
 
-  // === Botão adicionar área de destino ===
+
+  /* ===============================
+  ADICIONAR ÁREA DESTINO
+  =============================== */
+
   const btnAddDestino = document.querySelector(".add-destino");
+
   if (btnAddDestino) {
+
     btnAddDestino.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-destinos");
       const original = lista.querySelector("select");
+
       if (!original) return;
 
       const novo = original.cloneNode(true);
+
       novo.value = "";
       novo.removeAttribute("id");
       novo.name = "area_destino[]";
       novo.classList.add("area-destino-select");
 
       const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
+      wrapper.className = "form-box form-box-area linha";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-destinos .form-box-area").length;
+
+        if (total > 1) {
+          wrapper.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área de destino.");
+        }
+
+      };
+
       wrapper.appendChild(novo);
+      wrapper.appendChild(btnRemover);
 
       lista.appendChild(wrapper);
+
       carregarAreas();
+
     });
+
   }
+    // === Carregar selects iniciais ===
+    carregarAreas();
+    carregarProdutos();
 
-  // === Carregar selects iniciais ===
-  carregarAreas();
-  carregarProdutos();
+    // === Submit do formulário ===
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
 
-  // === Submit do formulário ===
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
+        try {
+          const resp = await fetch("../funcoes/salvar_transplantio.php", {
+            method: "POST",
+            body: formData
+          });
+          const data = await resp.json();
 
-      try {
-        const resp = await fetch("../funcoes/salvar_transplantio.php", {
-          method: "POST",
-          body: formData
-        });
-        const data = await resp.json();
+          if (data.ok) {
+            showPopup("success", data.msg || "Transplantio salvo com sucesso!");
 
-        if (data.ok) {
-          showPopup("success", data.msg || "Transplantio salvo com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento.php";
-          }, 1200);
-        } else {
-          showPopup("failed", data.err || "Erro ao salvar o transplantio.");
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
+          } else {
+            showPopup("failed", data.err || "Erro ao salvar o transplantio.");
+          }
+        } catch (err) {
+          showPopup("failed", "Falha na comunicação: " + err);
         }
-      } catch (err) {
-        showPopup("failed", "Falha na comunicação: " + err);
-      }
-    });
-  }
-});
+      });
+    }
+  });
 
 // === Função padrão de popup ===
 function showPopup(tipo, mensagem) {
