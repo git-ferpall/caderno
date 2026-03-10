@@ -18,19 +18,49 @@ document.addEventListener("DOMContentLoaded", () => {
     conclusao.addEventListener("input", atualizarAviso);
   }
 
-  // Adicionar áreas dinamicamente
+  /* ===============================
+  ADICIONAR ÁREA
+  =============================== */
+
   const btnAdd = document.querySelector(".add-area");
+
   if (btnAdd) {
+
     btnAdd.addEventListener("click", () => {
+
       const lista = document.getElementById("lista-areas");
-      const original = lista.querySelector("select");
-      const novo = original.cloneNode(true);
-      novo.value = "";
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area";
-      wrapper.appendChild(novo);
-      lista.appendChild(wrapper);
+      const original = lista.querySelector(".form-box-area");
+
+      if (!original) return;
+
+      const clone = original.cloneNode(true);
+      const select = clone.querySelector("select");
+
+      select.value = "";
+
+      const btnRemover = document.createElement("button");
+      btnRemover.type = "button";
+      btnRemover.className = "remove-btn";
+      btnRemover.innerHTML = "−";
+
+      btnRemover.onclick = () => {
+
+        const total = document.querySelectorAll("#lista-areas .form-box-area").length;
+
+        if (total > 1) {
+          clone.remove();
+        } else {
+          alert("É necessário manter pelo menos uma área.");
+        }
+
+      };
+
+      clone.appendChild(btnRemover);
+
+      lista.appendChild(clone);
+
     });
+
   }
 
   // Envio
