@@ -47,6 +47,8 @@ try {
 
     if ($propriedade) {
 
+        // áreas filtradas pela propriedade
+
         $stmt = $mysqli->prepare("
             SELECT id, nome
             FROM areas
@@ -55,6 +57,28 @@ try {
         ");
 
         $stmt->bind_param("i", $propriedade);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        while ($row = $res->fetch_assoc()) {
+            $areas[] = $row;
+        }
+
+        $stmt->close();
+
+    } else {
+
+        // todas as áreas do usuário
+
+        $stmt = $mysqli->prepare("
+            SELECT a.id, a.nome
+            FROM areas a
+            JOIN propriedades p ON p.id = a.propriedade_id
+            WHERE p.user_id = ?
+            ORDER BY a.nome
+        ");
+
+        $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $res = $stmt->get_result();
 
