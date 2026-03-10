@@ -76,6 +76,24 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             </div>
 
                             <div class="form-campo">
+                                <label class="item-label" for="a-tamanho">Tamanho da área</label>
+                                <div style="display:flex; gap:10px;">
+                                    <input type="number"
+                                        class="form-text"
+                                        name="atamanho"
+                                        id="a-tamanho"
+                                        step="0.01"
+                                        placeholder="Ex: 5000"
+                                        required>
+
+                                    <select name="aunidade" id="a-unidade" class="form-text" style="max-width:120px;">
+                                        <option value="m2">m²</option>
+                                        <option value="ha">hectares</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-campo">
                                 <label class="item-label" for="a-tipo">Tipo de Área</label>
                                 <div class="form-radio-box" id="a-tipo">
                                     <label class="form-radio">
