@@ -146,6 +146,84 @@ try {
     $pct_atrasados  = $total_pendentes > 0 ? round(($total_atrasados / $total_pendentes) * 100) : 0;
     $pct_emdia      = 100 - $pct_atrasados;
 
+
+    /* =====================================================
+    EVOLUÇÃO ENTRE SAFRAS
+    ===================================================== */
+
+    $grafico_evolucao = [];
+    $mostrar_evolucao = false;
+    $percentual_evolucao = 0;
+
+    if(count($grafico) > 1){
+
+        $mostrar_evolucao = true;
+
+        foreach($grafico as $i => $valor){
+
+            $grafico_evolucao[] = $valor;
+
+            if($i > 0){
+
+                $anterior = $grafico[$i-1];
+
+                if($anterior > 0){
+                    $percentual_evolucao = (($valor - $anterior) / $anterior) * 100;
+                }
+
+            }
+
+        }
+
+    }
+    /* =====================================================
+    GRAFICO EVOLUÇÃO
+    ===================================================== */
+
+    $chartEvolucao = "";
+
+    if($mostrar_evolucao){
+
+        $chartConfigEvolucao = [
+
+        "type" => "line",
+
+        "data" => [
+
+        "labels" => array_map(function($i){
+            return "Safra ".($i+1);
+        }, array_keys($grafico_evolucao)),
+
+        "datasets" => [
+
+        [
+        "label" => "Produtividade (sacas/ha)",
+        "data" => $grafico_evolucao,
+        "borderColor" => "#2e7d32",
+        "backgroundColor" => "rgba(46,125,50,0.15)",
+        "fill" => true,
+        "tension" => 0.4
+        ]
+
+        ]
+
+        ],
+
+        "options" => [
+
+        "scales" => [
+        "y" => [
+        "beginAtZero" => true
+        ]
+        ]
+
+        ]
+
+        ];
+
+        $chartEvolucao = "https://quickchart.io/chart?c=".urlencode(json_encode($chartConfigEvolucao));
+
+    }
     // === PDF ===
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
@@ -231,7 +309,28 @@ try {
         . gerarGrafico('Concluídos x Pendentes', ['Concluídos', 'Pendentes'], [$pct_concluidos, $pct_pendentes], ['#4caf50','#ff9800'])
         . gerarGrafico('Em dia x Atrasados', ['Em dia', 'Atrasados'], [$pct_emdia, $pct_atrasados], ['#4caf50','#e53935'])
         . '</div>';
+    if($mostrar_evolucao){
 
+    $html .= "
+
+        <br><br>
+
+        <h2 style='color:#2e7d32'>Evolução de Produtividade</h2>
+
+        <img src='$chartEvolucao' style='width:100%'>
+
+        <p style='font-size:12px;margin-top:8px;'>
+
+        Safra inicial: ".number_format($grafico[0],2)." sacas/ha<br>
+        Última safra: ".number_format(end($grafico),2)." sacas/ha<br>
+
+        <b>Variação:</b> ".number_format($percentual_evolucao,1)."%
+
+        </p>
+
+        ";
+
+    }
     // === Monta as tabelas ===
     function montarTabela($titulo, $dados, $classe = '') {
         if (empty($dados)) return '';
