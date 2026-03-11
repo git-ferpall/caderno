@@ -443,6 +443,10 @@ if(!is_dir($tempDir)){
 $mpdf=new \Mpdf\Mpdf([
 'mode'=>'utf-8',
 'format'=>'A4',
+'margin_top'=>35,
+'margin_bottom'=>20,
+'margin_left'=>10,
+'margin_right'=>10,
 'tempDir'=>$tempDir
 ]);
 
