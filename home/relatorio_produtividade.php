@@ -92,116 +92,116 @@ $dt_fin = date("Y-m-t");
 
 <div class="sistema-main">
 
-<form
-    id="rel-form"
-    action="../funcoes/relatorios/relatorio_safra_pdf.php"
-    method="POST"
-    target="_blank"
-    class="main-form container"
->
+    <form
+        id="rel-form"
+        action="../funcoes/relatorios/relatorio_safra_pdf.php"
+        method="POST"
+        target="_blank"
+        class="main-form container"
+    >
 
-<!-- PROPRIEDADE -->
+    <!-- PROPRIEDADE -->
 
-<div class="form-campo">
+    <div class="form-campo">
 
-<label>Propriedade</label>
+    <label>Propriedade</label>
 
-<select
-    name="propriedade"
-    id="pf-propriedade"
-    class="form-select form-text"
-    required
->
+    <select
+        name="propriedade"
+        id="pf-propriedade"
+        class="form-select form-text"
+        required
+    >
 
-<option value="">Selecione</option>
+    <option value="" disabled selected>Selecione a propriedade</option>
 
-</select>
+    </select>
 
-</div>
+    </div>
 
-<!-- AREA -->
+    <!-- AREA -->
 
-<div class="form-campo">
+    <div class="form-campo">
 
-<label>Área</label>
+    <label>Área</label>
 
-<select
-    name="area"
-    id="pf-area"
-    class="form-select form-text"
->
+    <select
+        name="area"
+        id="pf-area"
+        class="form-select form-text"
+        required
+    >
 
-<option value="">Todas as áreas</option>
+    <option value="" disabled selected>Selecione a área</option>
 
-</select>
+    </select>
 
-</div>
+    </div>
 
-<!-- PRODUTO -->
+    <!-- PRODUTO -->
 
-<div class="form-campo">
+    <div class="form-campo">
 
-<label>Produto</label>
+    <label>Produto</label>
 
-<select
-    name="produto"
-    id="pf-produto"
-    class="form-select form-text"
-    required
->
+    <select
+        name="produto"
+        id="pf-produto"
+        class="form-select form-text"
+        required
+    >
 
-<option value="" disabled selected>Selecione um produto</option>
+    <option value="" disabled selected>Selecione um produto</option>
 
-</select>
+    </select>
 
-</div>
+    </div>
 
-<!-- DATA INICIAL -->
+    <!-- DATA INICIAL -->
 
-<div class="form-campo">
+    <div class="form-campo">
 
-<label>Data inicial</label>
+    <label>Data inicial</label>
 
-<input
-    type="date"
-    name="data_ini"
-    value="<?php echo $dt_ini ?>"
-    class="form-text"
->
+    <input
+        type="date"
+        name="data_ini"
+        value="<?php echo $dt_ini ?>"
+        class="form-text"
+    >
 
-</div>
+    </div>
 
-<!-- DATA FINAL -->
+    <!-- DATA FINAL -->
 
-<div class="form-campo">
+    <div class="form-campo">
 
-<label>Data final</label>
+    <label>Data final</label>
 
-<input
-    type="date"
-    name="data_fim"
-    value="<?php echo $dt_fin ?>"
-    class="form-text"
->
+    <input
+        type="date"
+        name="data_fim"
+        value="<?php echo $dt_fin ?>"
+        class="form-text"
+    >
 
-</div>
+    </div>
 
-<!-- BOTÃO -->
+    <!-- BOTÃO -->
 
-<div class="form-submit">
+    <div class="form-submit">
 
-<button
-    id="form-pdf-relatorio"
-    class="main-btn fundo-laranja"
-    type="button"
->
-Gerar relatório de safra
-</button>
+    <button
+        id="form-pdf-relatorio"
+        class="main-btn fundo-laranja"
+        type="submit"
+    >
+    Gerar relatório de safra
+    </button>
 
-</div>
+    </div>
 
 </form>
-
 </div>
 
 </main>
