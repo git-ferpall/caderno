@@ -371,7 +371,7 @@ $chartConfig = [
 
 [
 "type"=>"bar",
-"label"=>"Produtividade",
+"label"=>"Produtividade ($unidadeGrafico)",
 "data"=>$grafico,
 "backgroundColor"=>$cores
 ],
@@ -501,6 +501,15 @@ $chartConfig2 = [
 $chartUrlEvolucao="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig2));
 
 }
+
+$classificacao = "Baixa";
+
+if($r['prod_area'] >= $media){
+    $classificacao = "Alta";
+}
+elseif($r['prod_area'] >= $min){
+    $classificacao = "Média";
+}
 /* =====================================================
 MPDF
 ===================================================== */
@@ -594,7 +603,8 @@ td{
 <th>Área (ha)</th>
 <th>Produção</th>
 <th>Produtividade</th>
-<th>Prod/ha</th>
+<th>Produtividade</th>
+<th>Classificação</th>
 </tr>
 
 ";
@@ -622,11 +632,12 @@ foreach($safras as $r){
             )."
             </td>
 
-        <td>{$r['colhido']}</td>
+        <td>".number_format($r['colhido'],2)." {$r['unidade']}</td>
 
         <td>".number_format($r['prod'],2)." {$r['unidade']}</td>
 
         <td>".number_format($r['prod_area'],2)." {$r['unidade']}/{$r['un_area']}</td>
+        <td>{$classificacao}</td>
 
     </tr>
 
@@ -644,9 +655,9 @@ $html .= "
 
 <b>Referência nacional</b><br>
 
-Produtividade mínima: {$min}<br>
-Produtividade média: {$media}<br>
-Produtividade máxima: {$max}<br>
+Produtividade mínima: ".number_format($min,2)." {$unidadeGrafico}<br>
+Produtividade média: ".number_format($media,2)." {$unidadeGrafico}<br>
+Produtividade máxima: ".number_format($max,2)." {$unidadeGrafico}<br>
 
 ";
 
