@@ -265,7 +265,9 @@ $chartConfig=[
 "type"=>"bar",
 
 "data"=>[
-"labels"=>array_map(function($i){return "Safra ".$i;},array_keys($grafico)),
+"labels"=>array_map(function($i){
+    return "Safra ".($i+1);
+},array_keys($grafico)),
 "datasets"=>[[
 
 "label"=>"Produtividade (ha)",
