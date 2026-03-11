@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll(".area-select").forEach(sel => {
 
-          const valorAtual = sel.value; // guarda seleção
+          const valorAtual = sel.value; // guarda seleção atual
 
           sel.innerHTML = '<option value="">Selecione a área</option>';
 
@@ -17,8 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const opt = document.createElement("option");
             opt.value = item.id;
-            opt.textContent = item.nome;
+            opt.textContent = `${item.nome} (${item.tipo})`;
 
+            // restaura seleção anterior
             if (item.id == valorAtual) {
               opt.selected = true;
             }
@@ -29,8 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
 
-      });
+      })
+      .catch(err => console.error("Erro ao carregar áreas:", err));
   }
+
+  carregarAreas();
 
  // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
