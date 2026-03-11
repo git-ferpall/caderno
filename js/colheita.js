@@ -25,37 +25,67 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Funções para carregar selects ===
-  function carregarAreas() {
-    fetch("../funcoes/buscar_areas.php")
-      .then(r => r.json())
-      .then(data => {
-        document.querySelectorAll(".area-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione a área</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = item.nome;
-            sel.appendChild(opt);
-          });
-        });
-      });
-  }
 
-  function carregarProdutos() {
-    fetch("../funcoes/buscar_produtos.php")
-      .then(r => r.json())
-      .then(data => {
-        document.querySelectorAll(".produto-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione o produto</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = item.nome;
-            sel.appendChild(opt);
-          });
+function carregarAreas() {
+  fetch("../funcoes/buscar_areas.php")
+    .then(r => r.json())
+    .then(data => {
+
+      document.querySelectorAll(".area-select").forEach(sel => {
+
+        const valorAtual = sel.value; // guarda seleção
+
+        sel.innerHTML = '<option value="">Selecione a área</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
+
       });
-  }
+
+    });
+}
+
+
+function carregarProdutos() {
+  fetch("../funcoes/buscar_produtos.php")
+    .then(r => r.json())
+    .then(data => {
+
+      document.querySelectorAll(".produto-select").forEach(sel => {
+
+        const valorAtual = sel.value;
+
+        sel.innerHTML = '<option value="">Selecione o produto</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
+        });
+
+      });
+
+    });
+}
 
   /* ===============================
   ADICIONAR ÁREA
