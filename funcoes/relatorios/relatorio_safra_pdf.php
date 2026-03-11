@@ -342,6 +342,64 @@ if(count($grafico) > 0){
 $faixa_max = max($maiorGrafico, $max) * 1.2;
 
 /* =====================================================
+POTENCIAL PRODUTIVO
+===================================================== */
+
+$potencialTexto = "";
+
+if(count($safras) > 0){
+
+    $prodSafra = $safras[0]['prod_area'];
+
+    if($max > 0){
+
+        $percentual = ($prodSafra / $max) * 100;
+
+        /* definir cor conforme desempenho */
+
+        if($percentual >= 100){
+            $cor = "#1b5e20"; // verde escuro
+        }
+        elseif($percentual >= 80){
+            $cor = "#2e7d32"; // verde
+        }
+        elseif($percentual >= 60){
+            $cor = "#f9a825"; // amarelo
+        }
+        else{
+            $cor = "#c62828"; // vermelho
+        }
+
+        $potencialTexto = "
+
+        <h2>Potencial produtivo</h2>
+
+        <table style='width:50%;font-size:13px;margin-top:10px'>
+        <tr>
+        <td style='text-align:left'>Sua safra</td>
+        <td><b>".number_format($prodSafra,2)." {$unidadeGrafico}</b></td>
+        </tr>
+
+        <tr>
+        <td style='text-align:left'>Potencial EMBRAPA</td>
+        <td>".number_format($max,2)." {$unidadeGrafico}</td>
+        </tr>
+
+        <tr>
+        <td style='text-align:left'>Atingiu</td>
+        <td style='font-weight:bold;color:$cor;font-size:16px'>
+        ".number_format($percentual,0)." %
+        </td>
+        </tr>
+
+        </table>
+
+        ";
+
+    }
+
+}
+/* =====================================================
 UNIDADE DO GRAFICO
 ===================================================== */
 
@@ -673,7 +731,7 @@ Produtividade máxima: ".number_format($max,2)." {$unidadeGrafico}<br>
 
 ";
 
-
+$html .= $potencialTexto;
 /* =====================================================
 EVOLUÇÃO ENTRE SAFRAS
 ===================================================== */
