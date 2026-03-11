@@ -37,9 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
-ADICIONAR ÁREA
-=============================== */
-document.querySelector(".add-area").addEventListener("click", () => {
+  ADICIONAR ÁREA
+  =============================== */
+  document.querySelector(".add-area").addEventListener("click", () => {
 
   const lista = document.getElementById("lista-areas");
   const original = lista.querySelector("select");
@@ -75,7 +75,7 @@ document.querySelector(".add-area").addEventListener("click", () => {
 
   lista.appendChild(wrapper);
 
-  carregarAreas();
+  carregarAreas(novo);
 
 });
 
@@ -119,7 +119,7 @@ document.querySelector(".add-produto").addEventListener("click", () => {
 
   lista.appendChild(wrapper);
 
-  carregarProdutos();
+  carregarProdutos(novo);
 
 });
 
