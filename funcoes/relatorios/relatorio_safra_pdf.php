@@ -1,451 +1,465 @@
 <?php
 
-ini_set('display_errors',1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-require_once __DIR__.'/../../configuracao/configuracao_conexao.php';
-require_once __DIR__.'/../../vendor/autoload.php';
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 
-date_default_timezone_set("America/Sao_Paulo");
+session_start();
 
+try {
 
-/* =====================================================
-FILTROS
-===================================================== */
+    $user_id = $_SESSION['user_id'] ?? null;
 
-$propriedade = $_POST['propriedade'] ?? null;
-$area        = $_POST['area'] ?? null;
-$produto     = $_POST['produto'] ?? null;
-$data_ini    = $_POST['data_ini'] ?? null;
-$data_fim    = $_POST['data_fim'] ?? null;
-
-
-/* =====================================================
-BUSCAR NOMES
-===================================================== */
-
-$nome_propriedade='';
-$nome_area='';
-$nome_produto='';
-
-if($propriedade){
-    $r=$mysqli->query("SELECT nome_razao FROM propriedades WHERE id=$propriedade")->fetch_assoc();
-    $nome_propriedade=$r['nome_razao'] ?? '';
-}
-
-if($area){
-    $r=$mysqli->query("SELECT nome FROM areas WHERE id=$area")->fetch_assoc();
-    $nome_area=$r['nome'] ?? '';
-}
-
-if($produto){
-    $r=$mysqli->query("SELECT nome FROM produtos WHERE id=$produto")->fetch_assoc();
-    $nome_produto=$r['nome'] ?? '';
-}
-
-
-/* =====================================================
-SQL
-===================================================== */
-
-$sql="
-
-SELECT
-    a.id,
-    a.tipo,
-    a.data,
-    a.quantidade,
-    a.unidade,
-
-    MAX(CASE WHEN d.campo='area_id' THEN d.valor END) area_id,
-    MAX(CASE WHEN d.campo='produto_id' THEN d.valor END) produto_id
-
-FROM apontamentos a
-
-LEFT JOIN apontamento_detalhes d
-ON d.apontamento_id = a.id
-
-WHERE a.tipo IN ('plantio','colheita')
-AND a.status='concluido'
-
-";
-
-if($propriedade){
-    $sql.=" AND a.propriedade_id=$propriedade";
-}
-
-if($data_ini){
-    $sql.=" AND a.data>='$data_ini'";
-}
-
-if($data_fim){
-    $sql.=" AND a.data<='$data_fim'";
-}
-
-$sql.="
-
-GROUP BY a.id
-ORDER BY a.data
-
-";
-
-$res=$mysqli->query($sql);
-
-$dados=[];
-
-while($row=$res->fetch_assoc()){
-
-    if($area && $row['area_id']!=$area){
-        continue;
+    if (!$user_id) {
+        $payload = verify_jwt();
+        $user_id = $payload['sub'] ?? null;
     }
 
-    if($produto && $row['produto_id']!=$produto){
-        continue;
+    if (!$user_id) {
+        throw new Exception("Usuário não autenticado.");
     }
 
-    /* PRODUTO */
+    /* =====================================================
+    FILTROS
+    ===================================================== */
 
-    $row['produto_nome']='';
+    $propriedades = $_POST['pfpropriedades'] ?? [];
+    $cultivo = $_POST['pfcult'] ?? '';
+    $area = $_POST['pfarea'] ?? '';
+    $manejo = $_POST['pfmane'] ?? '';
+    $data_ini = $_POST['pfini'] ?? date('Y-m-01');
+    $data_fim = $_POST['pffin'] ?? date('Y-m-t');
 
-    if($row['produto_id']){
 
-        $p=$mysqli->query("SELECT nome FROM produtos WHERE id=".$row['produto_id'])->fetch_assoc();
-        $row['produto_nome']=$p['nome'] ?? '';
+    /* =====================================================
+    BUSCA PROPRIEDADES
+    ===================================================== */
 
-    }
+    if (empty($propriedades)) {
 
-    /* AREA */
+        $stmtProp = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ?");
+        $stmtProp->bind_param("i", $user_id);
+        $stmtProp->execute();
 
-    $row['area_m2']=0;
-    $row['area_ha']=0;
+        $resProp = $stmtProp->get_result();
 
-    if($row['area_id']){
-
-        $a=$mysqli->query("SELECT tamanho FROM areas WHERE id=".$row['area_id'])->fetch_assoc();
-
-        if($a){
-
-            $row['area_m2']=$a['tamanho'];
-            $row['area_ha']=$a['tamanho']/10000;
-
+        while ($row = $resProp->fetch_assoc()) {
+            $propriedades[] = $row['id'];
         }
 
+        $stmtProp->close();
     }
 
-    $dados[]=$row;
-
-}
-
-
-/* =====================================================
-IDENTIFICAR SAFRAS
-===================================================== */
-
-$safras=[];
-$plantio=null;
-
-foreach($dados as $d){
-
-    if($d['tipo']=="plantio"){
-        $plantio=$d;
+    if (empty($propriedades)) {
+        throw new Exception("Nenhuma propriedade encontrada.");
     }
 
-    if($d['tipo']=="colheita" && $plantio){
+    $placeholders = implode(',', array_fill(0, count($propriedades), '?'));
+    $types = str_repeat('i', count($propriedades));
 
-        $produtividade=0;
-        $prod_ha=0;
 
-        if($plantio['quantidade']>0){
-            $produtividade=$d['quantidade']/$plantio['quantidade'];
+    /* =====================================================
+    NOMES PROPRIEDADES
+    ===================================================== */
+
+    $stmtProps = $mysqli->prepare("
+        SELECT nome_razao 
+        FROM propriedades 
+        WHERE id IN ($placeholders)
+    ");
+
+    $stmtProps->bind_param($types, ...$propriedades);
+    $stmtProps->execute();
+
+    $resProps = $stmtProps->get_result();
+
+    $nomes_props = [];
+
+    while ($p = $resProps->fetch_assoc()) {
+        $nomes_props[] = $p['nome_razao'];
+    }
+
+    $stmtProps->close();
+
+
+    /* =====================================================
+    QUERY PRINCIPAL
+    ===================================================== */
+
+    $sql = "
+
+        SELECT 
+            a.id,
+            a.tipo,
+            a.data,
+            a.status,
+            a.observacoes,
+            a.data_conclusao,
+
+            ar.nome AS area_nome,
+            p.nome AS produto_nome,
+            prop.nome_razao AS propriedade_nome
+
+        FROM apontamentos a
+
+        LEFT JOIN apontamento_detalhes ad_area
+            ON ad_area.apontamento_id = a.id
+            AND ad_area.campo = 'area_id'
+
+        LEFT JOIN areas ar
+            ON ar.id = ad_area.valor
+
+        LEFT JOIN apontamento_detalhes ad_prod
+            ON ad_prod.apontamento_id = a.id
+            AND ad_prod.campo = 'produto_id'
+
+        LEFT JOIN produtos p
+            ON p.id = ad_prod.valor
+
+        LEFT JOIN propriedades prop
+            ON prop.id = a.propriedade_id
+
+        WHERE a.propriedade_id IN ($placeholders)
+        AND COALESCE(a.data_conclusao,a.data) BETWEEN ? AND ?
+
+    ";
+
+    $params = [];
+    $types = "";
+
+    foreach ($propriedades as $pid) {
+        $params[] = $pid;
+        $types .= "i";
+    }
+
+    $params[] = $data_ini;
+    $params[] = $data_fim;
+    $types .= "ss";
+
+    if (!empty($cultivo)) {
+        $sql .= " AND p.nome = ?";
+        $params[] = $cultivo;
+        $types .= "s";
+    }
+
+    if (!empty($area)) {
+        $sql .= " AND ar.nome = ?";
+        $params[] = $area;
+        $types .= "s";
+    }
+
+    if (!empty($manejo)) {
+        $sql .= " AND a.tipo = ?";
+        $params[] = $manejo;
+        $types .= "s";
+    }
+
+    $sql .= " ORDER BY a.data DESC";
+
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+
+    $res = $stmt->get_result();
+
+
+    /* =====================================================
+    ORGANIZA RESULTADOS
+    ===================================================== */
+
+    $pendentes = [];
+    $concluidos = [];
+    $atrasados = [];
+
+    $hoje = strtotime(date('Y-m-d'));
+
+    while ($row = $res->fetch_assoc()) {
+
+        $data_base = !empty($row['data_conclusao'])
+            ? $row['data_conclusao']
+            : $row['data'];
+
+        $data_item = strtotime($data_base);
+
+        if (strtolower($row['status']) === 'concluido') {
+
+            $concluidos[] = $row;
+
+        } else {
+
+            if ($data_item < $hoje) {
+                $atrasados[] = $row;
+            }
+
+            $pendentes[] = $row;
+        }
+    }
+
+
+    $total_pendentes = count($pendentes);
+    $total_concluidos = count($concluidos);
+    $total_atrasados = count($atrasados);
+
+    $total_geral = $total_pendentes + $total_concluidos;
+
+    $pct_concluidos = $total_geral > 0
+        ? round(($total_concluidos / $total_geral) * 100)
+        : 0;
+
+    $pct_pendentes = 100 - $pct_concluidos;
+
+    $pct_atrasados = $total_pendentes > 0
+        ? round(($total_atrasados / $total_pendentes) * 100)
+        : 0;
+
+    $pct_emdia = 100 - $pct_atrasados;
+
+
+    /* =====================================================
+    EVOLUÇÃO DE MANEJOS (por mês)
+    ===================================================== */
+
+    $grafico = [];
+
+    foreach ($concluidos as $c) {
+
+        $mes = date("Y-m", strtotime($c['data']));
+
+        if (!isset($grafico[$mes])) {
+            $grafico[$mes] = 0;
         }
 
-        if($d['area_ha']>0){
-            $prod_ha=$d['quantidade']/$d['area_ha'];
-        }
+        $grafico[$mes]++;
+    }
 
-        $safras[]=[
+    ksort($grafico);
 
-            "produto"=>$d['produto_nome'],
-            "plantio"=>$plantio['data'],
-            "colheita"=>$d['data'],
-            "plantado"=>$plantio['quantidade'],
-            "colhido"=>$d['quantidade'],
-            "prod"=>$produtividade,
-            "prod_ha"=>$prod_ha,
-            "area"=>$d['area_ha'],
-            "unidade"=>$d['unidade']
+    $mostrar_evolucao = count($grafico) > 1;
+
+
+    /* =====================================================
+    GRAFICO EVOLUÇÃO
+    ===================================================== */
+
+    $chartEvolucao = "";
+
+    if ($mostrar_evolucao) {
+
+        $chartConfig = [
+
+            "type" => "line",
+
+            "data" => [
+
+                "labels" => array_keys($grafico),
+
+                "datasets" => [[
+
+                    "label" => "Manejos concluídos",
+
+                    "data" => array_values($grafico),
+
+                    "borderColor" => "#2e7d32",
+
+                    "backgroundColor" => "rgba(46,125,50,0.15)",
+
+                    "fill" => true
+
+                ]]
+            ],
+
+            "options" => [
+                "scales" => [
+                    "y" => [
+                        "beginAtZero" => true
+                    ]
+                ]
+            ]
+        ];
+
+        $chartEvolucao = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
+    }
+
+
+    /* =====================================================
+    PDF
+    ===================================================== */
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_top' => 45,
+        'margin_bottom' => 20,
+        'tempDir' => __DIR__ . '/../../tmp/mpdf'
+    ]);
+
+
+    /* =====================================================
+    HTML
+    ===================================================== */
+
+    $html = '
+
+    <style>
+
+    body { font-family: sans-serif; font-size:12px; }
+
+    h1 { text-align:center; color:#2e7d32 }
+
+    table{
+        width:100%;
+        border-collapse:collapse;
+        margin-top:10px;
+    }
+
+    th,td{
+        border:1px solid #ccc;
+        padding:6px;
+    }
+
+    th{
+        background:#4caf50;
+        color:#fff;
+    }
+
+    .graficos{
+        text-align:center;
+        margin:20px 0;
+    }
+
+    </style>
+
+    ';
+
+    $html .= "<h1>Relatório de Manejos</h1>";
+
+    $html .= "
+    <b>Propriedades:</b> ".implode(', ', $nomes_props)."<br>
+    <b>Período:</b> ".date('d/m/Y',strtotime($data_ini))." até ".date('d/m/Y',strtotime($data_fim))."<br>
+    <b>Total:</b> $total_geral
+    ";
+
+
+    /* =====================================================
+    GRAFICOS PIZZA
+    ===================================================== */
+
+    function graficoPizza($titulo,$labels,$data,$cores){
+
+        $chart=[
+
+            "type"=>"pie",
+
+            "data"=>[
+                "labels"=>$labels,
+                "datasets"=>[[
+
+                    "data"=>$data,
+                    "backgroundColor"=>$cores
+
+                ]]
+            ],
+
+            "options"=>[
+                "plugins"=>[
+                    "title"=>[
+                        "display"=>true,
+                        "text"=>$titulo
+                    ]
+                ]
+            ]
 
         ];
 
-        $plantio=null;
+        return '<img style="width:45%" src="https://quickchart.io/chart?c='.urlencode(json_encode($chart)).'">';
+    }
+
+    $html.='<div class="graficos">';
+
+    $html.=graficoPizza(
+        "Concluídos x Pendentes",
+        ["Concluídos","Pendentes"],
+        [$pct_concluidos,$pct_pendentes],
+        ["#4caf50","#ff9800"]
+    );
+
+    $html.=graficoPizza(
+        "Em dia x Atrasados",
+        ["Em dia","Atrasados"],
+        [$pct_emdia,$pct_atrasados],
+        ["#4caf50","#e53935"]
+    );
+
+    $html.='</div>';
+
+
+    /* =====================================================
+    GRAFICO EVOLUÇÃO
+    ===================================================== */
+
+    if($mostrar_evolucao){
+
+        $html.="
+
+        <h2>Evolução de Manejos</h2>
+
+        <img src='$chartEvolucao' style='width:100%'>
+
+        ";
 
     }
 
-}
 
+    /* =====================================================
+    TABELA
+    ===================================================== */
 
-/* =====================================================
-GRAFICO
-===================================================== */
+    $html.='
 
-$grafico=[];
+    <table>
 
-foreach($safras as $s){
-    $grafico[]=round($s['prod_ha'],2);
-}
+    <tr>
+    <th>Data</th>
+    <th>Propriedade</th>
+    <th>Área</th>
+    <th>Produto</th>
+    <th>Tipo</th>
+    <th>Status</th>
+    </tr>
 
+    ';
 
-/* =====================================================
-REFERENCIA BRASIL
-===================================================== */
+    foreach($concluidos as $d){
 
-$media=0;
-$min=0;
-$max=0;
+        $html.='
 
-$stmt = $mysqli->prepare("
-SELECT prod_min, prod_media, prod_max, unidade
-FROM produtividade_referencia
-WHERE LOWER(produto) LIKE CONCAT('%',LOWER(?),'%')
-LIMIT 1
-");
+        <tr>
 
-$stmt->bind_param("s",$nome_produto);
-$stmt->execute();
+        <td>'.date('d/m/Y',strtotime($d['data'])).'</td>
+        <td>'.$d['propriedade_nome'].'</td>
+        <td>'.$d['area_nome'].'</td>
+        <td>'.$d['produto_nome'].'</td>
+        <td>'.$d['tipo'].'</td>
+        <td>'.$d['status'].'</td>
 
-$ref=$stmt->get_result()->fetch_assoc();
+        </tr>
 
-if($ref){
+        ';
+    }
 
-    $min   = $ref['prod_min'];
-    $media = $ref['prod_media'];
-    $max   = $ref['prod_max'];
+    $html.='</table>';
 
-}
-
-
-/* =====================================================
-CORES
-===================================================== */
-
-$cores=[];
-
-foreach($grafico as $g){
-    $cores[]=sprintf('#%06X', mt_rand(0, 0xFFFFFF));
-}
-
-
-/* =====================================================
-FAIXAS PRODUTIVIDADE
-===================================================== */
-
-$faixa_ruim  = $min;
-$faixa_media = $media;
-$faixa_boa   = $max;
-
-$faixa_max   = max(max($grafico), $max) * 1.2;
-
-
-/* =====================================================
-GRAFICO QUICKCHART
-===================================================== */
-
-$chartConfig = [
-
-"type" => "bar",
-
-"data" => [
-
-"labels" => array_map(function($i){
-    return "Safra ".($i+1);
-}, array_keys($grafico)),
-
-"datasets" => [
-
-[
-"type" => "bar",
-"label" => "Produtividade (sacas/ha)",
-"data" => $grafico,
-"backgroundColor" => $cores
-],
-
-[
-"type" => "line",
-"label" => "Média Brasil",
-"data" => array_fill(0, count($grafico), $media),
-"borderColor" => "#1e88e5",
-"borderWidth" => 3,
-"fill" => false
-],
-
-[
-"type" => "bar",
-"label" => "Faixa baixa",
-"data" => array_fill(0, count($grafico), $faixa_ruim),
-"backgroundColor" => "rgba(255,152,0,0.15)",
-"stack" => "bg"
-],
-
-[
-"type" => "bar",
-"label" => "Faixa média",
-"data" => array_fill(0, count($grafico), $faixa_media - $faixa_ruim),
-"backgroundColor" => "rgba(76,175,80,0.15)",
-"stack" => "bg"
-],
-
-[
-"type" => "bar",
-"label" => "Faixa alta",
-"data" => array_fill(0, count($grafico), $faixa_boa - $faixa_media),
-"backgroundColor" => "rgba(33,150,243,0.15)",
-"stack" => "bg"
-]
-
-]
-
-],
-
-"options" => [
-
-"scales" => [
-
-"x" => [
-"stacked" => true
-],
-
-"y" => [
-"beginAtZero" => true,
-"max" => $faixa_max
-]
-
-]
-
-]
-
-];
-
-$chartUrl="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig));
-
-
-/* =====================================================
-MPDF
-===================================================== */
-
-$tempDir=__DIR__.'/../../tmp/mpdf';
-
-if(!is_dir($tempDir)){
-    mkdir($tempDir,0777,true);
-}
-
-$mpdf=new \Mpdf\Mpdf([
-'mode'=>'utf-8',
-'format'=>'A4',
-'tempDir'=>$tempDir
-]);
-
-
-/* =====================================================
-HTML
-===================================================== */
-
-$html="
-
-<style>
-
-body{
-font-family:Arial;
-font-size:12px;
-}
-
-h1{
-text-align:center;
-color:#2e7d32;
-}
-
-table{
-border-collapse:collapse;
-width:100%;
-margin-top:10px;
-}
-
-th{
-background:#4caf50;
-color:#fff;
-padding:6px;
-}
-
-td{
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
-}
-
-</style>
-
-<h1>Relatório de Produtividade</h1>
-
-<b>Propriedade:</b> $nome_propriedade<br>
-<b>Área:</b> $nome_area<br>
-<b>Produto:</b> $nome_produto<br>
-<b>Período:</b> ".date('d/m/Y',strtotime($data_ini))." até ".date('d/m/Y',strtotime($data_fim))."
-
-<br><br>
-
-<img src='$chartUrl' style='width:100%'>
-
-<table>
-
-<tr>
-<th>Safra</th>
-<th>Produto</th>
-<th>Plantio</th>
-<th>Colheita</th>
-<th>Área (ha)</th>
-<th>Produção</th>
-<th>Produtividade</th>
-<th>Prod/ha</th>
-</tr>
-
-";
-
-$i=1;
-
-foreach($safras as $r){
-
-$html.="
-
-<tr>
-
-<td>Safra $i</td>
-<td>{$r['produto']}</td>
-<td>".date('d/m/Y',strtotime($r['plantio']))."</td>
-<td>".date('d/m/Y',strtotime($r['colheita']))."</td>
-<td>".number_format($r['area'],2)."</td>
-<td>{$r['colhido']}</td>
-<td>".number_format($r['prod'],2)." {$r['unidade']}</td>
-<td>".number_format($r['prod_ha'],2)." {$r['unidade']}/ha</td>
-
-</tr>
-
-";
-
-$i++;
+    $mpdf->WriteHTML($html);
+    $mpdf->Output('relatorio.pdf',Destination::INLINE);
 
 }
 
-$html.="
+catch(Exception $e){
 
-</table>
+    echo "<pre>Erro: ".$e->getMessage()."</pre>";
 
-<br>
-
-<b>Referência nacional</b><br>
-Produtividade mínima: $min<br>
-Produtividade média: $media<br>
-Produtividade máxima: $max
-
-";
-
-$mpdf->WriteHTML($html);
-$mpdf->Output("relatorio_safra.pdf","I");
+}
