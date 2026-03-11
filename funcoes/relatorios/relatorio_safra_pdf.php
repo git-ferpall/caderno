@@ -275,6 +275,44 @@ if($ref){
 
 }
 
+/* =====================================================
+CONVERTER UNIDADE DA REFERÊNCIA
+===================================================== */
+
+$unidade_ref = $ref['unidade'] ?? 't/ha';
+
+/* descobrir unidade usada no relatório */
+
+$unidade_relatorio = "ha";
+
+foreach($safras as $s){
+    $unidade_relatorio = $s['un_area'];
+    break;
+}
+
+if($unidade_ref == "t/ha"){
+
+    /* se relatório usa m² (estufa) */
+
+    if($unidade_relatorio == "m²"){
+
+        $min   = $min * 0.1;
+        $media = $media * 0.1;
+        $max   = $max * 0.1;
+
+    }
+
+    /* se relatório usa ha */
+
+    else{
+
+        $min   = $min * 1000;
+        $media = $media * 1000;
+        $max   = $max * 1000;
+
+    }
+
+}
 
 /* =====================================================
 CORES
@@ -303,7 +341,18 @@ if(count($grafico) > 0){
 
 $faixa_max = max($maiorGrafico, $max) * 1.2;
 
+/* =====================================================
+UNIDADE DO GRAFICO
+===================================================== */
 
+$unidadeGrafico = "kg/ha";
+
+foreach($safras as $s){
+    if(isset($s['un_area'])){
+        $unidadeGrafico = $s['unidade']."/".$s['un_area'];
+        break;
+    }
+}
 /* =====================================================
 GRAFICO QUICKCHART
 ===================================================== */
