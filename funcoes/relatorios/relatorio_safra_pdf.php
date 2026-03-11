@@ -349,7 +349,8 @@ $potencialTexto = "";
 
 if(count($safras) > 0){
 
-    $prodSafra = $safras[0]['prod_area'];
+    $ultimaSafra = end($safras);
+    $prodSafra = $ultimaSafra['prod_area'];
 
     if($max > 0){
 
