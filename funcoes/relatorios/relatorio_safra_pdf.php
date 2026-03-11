@@ -3,14 +3,15 @@
 ini_set('display_errors',1);
 error_reporting(E_ALL);
 
-require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__.'/../../configuracao/configuracao_conexao.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 date_default_timezone_set("America/Sao_Paulo");
 
-/* ===============================
+
+/* ==========================================
 FILTROS
-=============================== */
+========================================== */
 
 $propriedade = $_POST['propriedade'] ?? null;
 $area        = $_POST['area'] ?? null;
@@ -19,35 +20,35 @@ $data_ini    = $_POST['data_ini'] ?? null;
 $data_fim    = $_POST['data_fim'] ?? null;
 
 
-/* ===============================
-BUSCA NOMES
-=============================== */
+/* ==========================================
+BUSCAR NOMES
+========================================== */
 
-$nome_propriedade = '';
-$nome_area = '';
-$nome_produto = '';
+$nome_propriedade='';
+$nome_area='';
+$nome_produto='';
 
 if($propriedade){
-    $r = $mysqli->query("SELECT nome_razao FROM propriedades WHERE id=$propriedade")->fetch_assoc();
-    $nome_propriedade = $r['nome_razao'] ?? '';
+$r=$mysqli->query("SELECT nome_razao FROM propriedades WHERE id=$propriedade")->fetch_assoc();
+$nome_propriedade=$r['nome_razao'] ?? '';
 }
 
 if($area){
-    $r = $mysqli->query("SELECT nome FROM areas WHERE id=$area")->fetch_assoc();
-    $nome_area = $r['nome'] ?? '';
+$r=$mysqli->query("SELECT nome FROM areas WHERE id=$area")->fetch_assoc();
+$nome_area=$r['nome'] ?? '';
 }
 
 if($produto){
-    $r = $mysqli->query("SELECT nome FROM produtos WHERE id=$produto")->fetch_assoc();
-    $nome_produto = $r['nome'] ?? '';
+$r=$mysqli->query("SELECT nome FROM produtos WHERE id=$produto")->fetch_assoc();
+$nome_produto=$r['nome'] ?? '';
 }
 
 
-/* ===============================
+/* ==========================================
 SQL
-=============================== */
+========================================== */
 
-$sql = "
+$sql="
 
 SELECT
 a.id,
@@ -70,129 +71,221 @@ AND a.status='concluido'
 ";
 
 if($propriedade){
-$sql .= " AND a.propriedade_id = $propriedade";
+$sql.=" AND a.propriedade_id=$propriedade";
 }
 
 if($data_ini){
-$sql .= " AND a.data >= '$data_ini'";
+$sql.=" AND a.data>='$data_ini'";
 }
 
 if($data_fim){
-$sql .= " AND a.data <= '$data_fim'";
+$sql.=" AND a.data<='$data_fim'";
 }
 
-$sql .= "
+$sql.="
 
 GROUP BY a.id
 ORDER BY a.data
 
 ";
 
-$res = $mysqli->query($sql);
+$res=$mysqli->query($sql);
 
-$dados = [];
+$dados=[];
 
-while($row = $res->fetch_assoc()){
+while($row=$res->fetch_assoc()){
 
-    /* FILTRO AREA */
+if($area && $row['area_id']!=$area){
+continue;
+}
 
-    if($area && $row['area_id'] != $area){
-        continue;
-    }
-
-    /* FILTRO PRODUTO */
-
-    if($produto && $row['produto_id'] != $produto){
-        continue;
-    }
-
-    /* BUSCAR NOME PRODUTO */
-
-    $row['produto_nome'] = '';
-
-    if(!empty($row['produto_id'])){
-
-        $stmt = $mysqli->prepare("
-            SELECT nome 
-            FROM produtos 
-            WHERE id = ?
-        ");
-
-        $stmt->bind_param("i", $row['produto_id']);
-        $stmt->execute();
-        $r = $stmt->get_result()->fetch_assoc();
-
-        if($r){
-            $row['produto_nome'] = $r['nome'];
-        }
-
-        $stmt->close();
-    }
-
-    $dados[] = $row;
+if($produto && $row['produto_id']!=$produto){
+continue;
 }
 
 
-/* ===============================
-IDENTIFICAR SAFRAS
-=============================== */
+/* BUSCAR PRODUTO */
 
-$safras = [];
-$plantio = null;
+$row['produto_nome']='';
+
+if($row['produto_id']){
+
+$p=$mysqli->query("SELECT nome FROM produtos WHERE id=".$row['produto_id'])->fetch_assoc();
+$row['produto_nome']=$p['nome'] ?? '';
+
+}
+
+
+/* BUSCAR TAMANHO AREA */
+
+$row['area_m2']=0;
+$row['area_ha']=0;
+
+if($row['area_id']){
+
+$a=$mysqli->query("SELECT tamanho FROM areas WHERE id=".$row['area_id'])->fetch_assoc();
+
+if($a){
+
+$row['area_m2']=$a['tamanho'];
+$row['area_ha']=$a['tamanho']/10000;
+
+}
+
+}
+
+
+$dados[]=$row;
+
+}
+
+
+
+/* ==========================================
+IDENTIFICAR SAFRAS
+========================================== */
+
+$safras=[];
+
+$plantio=null;
 
 foreach($dados as $d){
 
-    if($d['tipo'] == 'plantio'){
-        $plantio = $d;
-    }
+if($d['tipo']=="plantio"){
+$plantio=$d;
+}
 
-    if($d['tipo'] == 'colheita' && $plantio){
+if($d['tipo']=="colheita" && $plantio){
 
-        $produtividade = 0;
+$produtividade=0;
+$prod_ha=0;
 
-        if($plantio['quantidade'] > 0){
-            $produtividade = $d['quantidade'] / $plantio['quantidade'];
-        }
+if($plantio['quantidade']>0){
+$produtividade=$d['quantidade']/$plantio['quantidade'];
+}
 
-        $safras[] = [
+if($d['area_ha']>0){
+$prod_ha=$d['quantidade']/$d['area_ha'];
+}
 
-            "produto"        => $d['produto_nome'],
-            "data_plantio"   => $plantio['data'],
-            "data_colheita"  => $d['data'],
-            "plantado"       => $plantio['quantidade'],
-            "colhido"        => $d['quantidade'],
-            "produtividade"  => $produtividade,
-            "unidade"        => $d['unidade']
+$safras[]=[
 
-        ];
+"produto"=>$d['produto_nome'],
+"plantio"=>$plantio['data'],
+"colheita"=>$d['data'],
+"plantado"=>$plantio['quantidade'],
+"colhido"=>$d['quantidade'],
+"prod"=>$produtividade,
+"prod_ha"=>$prod_ha,
+"area"=>$d['area_ha'],
+"unidade"=>$d['unidade']
 
-        $plantio = null;
-    }
+];
+
+$plantio=null;
 
 }
 
-/* ===============================
-MPDF
-=============================== */
+}
 
-$tempDir = __DIR__ . '/../../tmp/mpdf';
+
+
+/* ==========================================
+COMPARAÇÃO SAFRAS
+========================================== */
+
+$grafico=[];
+
+foreach($safras as $s){
+
+$grafico[]=round($s['prod_ha'],2);
+
+}
+
+
+
+/* ==========================================
+MÉDIAS BRASIL (exemplo)
+========================================== */
+
+$media_brasil=[
+
+"Morango"=>60,
+"Arroz"=>150,
+"Soja"=>55
+
+];
+
+$alerta="";
+
+if($nome_produto && isset($media_brasil[$nome_produto])){
+
+$media=$media_brasil[$nome_produto];
+
+$ultima=end($safras);
+
+if($ultima['prod_ha']<$media){
+
+$alerta="⚠ Produtividade abaixo da média nacional ($media t/ha)";
+
+}else{
+
+$alerta="✔ Produtividade acima da média nacional";
+
+}
+
+}
+
+
+
+/* ==========================================
+MPDF
+========================================== */
+
+$tempDir=__DIR__.'/../../tmp/mpdf';
 
 if(!is_dir($tempDir)){
 mkdir($tempDir,0777,true);
 }
 
-$mpdf = new \Mpdf\Mpdf([
+$mpdf=new \Mpdf\Mpdf([
 'mode'=>'utf-8',
 'format'=>'A4',
 'tempDir'=>$tempDir
 ]);
 
 
-/* ===============================
-HTML
-=============================== */
 
-$html = "
+/* ==========================================
+GRÁFICO QUICKCHART
+========================================== */
+
+$chartConfig=[
+
+"type"=>"bar",
+
+"data"=>[
+"labels"=>array_map(function($i){return "Safra ".$i;},array_keys($grafico)),
+"datasets"=>[[
+
+"label"=>"Produtividade (ha)",
+"data"=>$grafico
+
+]]
+
+]
+
+];
+
+$chartUrl="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig));
+
+
+
+/* ==========================================
+HTML
+========================================== */
+
+$html="
 
 <style>
 
@@ -204,22 +297,18 @@ font-size:12px;
 h1{
 text-align:center;
 color:#2e7d32;
-margin-bottom:5px;
-}
-
-.info{
-margin-bottom:20px;
 }
 
 table{
 border-collapse:collapse;
 width:100%;
+margin-top:10px;
 }
 
 th{
 background:#4caf50;
 color:#fff;
-padding:8px;
+padding:6px;
 }
 
 td{
@@ -228,9 +317,20 @@ padding:6px;
 text-align:center;
 }
 
+.info{
+margin-bottom:15px;
+}
+
+.alerta{
+margin-top:10px;
+font-weight:bold;
+color:#d32f2f;
+}
+
 </style>
 
-<h1>Relatório de Safra</h1>
+
+<h1>Relatório de Produtividade</h1>
 
 <div class='info'>
 
@@ -241,6 +341,8 @@ text-align:center;
 
 </div>
 
+<img src='$chartUrl' style='width:100%;margin-top:10px;'>
+
 <table>
 
 <tr>
@@ -248,14 +350,15 @@ text-align:center;
 <th>Produto</th>
 <th>Plantio</th>
 <th>Colheita</th>
-<th>Plantado</th>
+<th>Área (ha)</th>
 <th>Produção</th>
 <th>Produtividade</th>
+<th>Prod/ha</th>
 </tr>
 
 ";
 
-$s=1;
+$i=1;
 
 foreach($safras as $r){
 
@@ -263,23 +366,34 @@ $html.="
 
 <tr>
 
-<td>Safra $s</td>
+<td>Safra $i</td>
 <td>{$r['produto']}</td>
-<td>".date('d/m/Y',strtotime($r['data_plantio']))."</td>
-<td>".date('d/m/Y',strtotime($r['data_colheita']))."</td>
-<td>{$r['plantado']}</td>
+<td>".date('d/m/Y',strtotime($r['plantio']))."</td>
+<td>".date('d/m/Y',strtotime($r['colheita']))."</td>
+<td>".number_format($r['area'],2)."</td>
 <td>{$r['colhido']}</td>
-<td>".number_format($r['produtividade'],2)." {$r['unidade']}</td>
+<td>".number_format($r['prod'],2)." {$r['unidade']}</td>
+<td>".number_format($r['prod_ha'],2)." {$r['unidade']}/ha</td>
 
 </tr>
 
 ";
 
-$s++;
+$i++;
 
 }
 
-$html.="</table>";
+$html.="
+
+</table>
+
+<div class='alerta'>
+$alerta
+</div>
+
+";
+
 
 $mpdf->WriteHTML($html);
+
 $mpdf->Output("relatorio_safra.pdf","I");
