@@ -203,10 +203,10 @@ $media=0;
 $min=0;
 $max=0;
 
-$stmt=$mysqli->prepare("
-SELECT prod_min,prod_media,prod_max,unidade
+$stmt = $mysqli->prepare("
+SELECT prod_min, prod_media, prod_max, unidade
 FROM produtividade_referencia
-WHERE LOWER(produto)=LOWER(?)
+WHERE LOWER(produto) LIKE CONCAT('%',LOWER(?),'%')
 LIMIT 1
 ");
 
