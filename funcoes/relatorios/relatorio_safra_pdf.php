@@ -390,7 +390,7 @@ if(count($evolucao) > 0){
 
 $chartConfig2 = [
 
-"type" => "line",
+"type" => "bar",
 
 "data" => [
 
@@ -403,10 +403,9 @@ $chartConfig2 = [
 [
 "label"=>"Evolução %",
 "data"=>$evolucao,
-"borderColor"=>"#2e7d32",
-"pointBackgroundColor"=>"#2e7d32",
-"pointRadius"=>5,
-"tension"=>0.3
+"backgroundColor"=>array_map(function($v){
+    return $v >= 0 ? "#4caf50" : "#e53935";
+}, $evolucao)
 ]
 
 ]
