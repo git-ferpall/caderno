@@ -51,14 +51,14 @@ SQL
 $sql="
 
 SELECT
-a.id,
-a.tipo,
-a.data,
-a.quantidade,
-a.unidade,
+    a.id,
+    a.tipo,
+    a.data,
+    a.quantidade,
+    a.unidade,
 
-MAX(CASE WHEN d.campo='area_id' THEN d.valor END) area_id,
-MAX(CASE WHEN d.campo='produto_id' THEN d.valor END) produto_id
+    MAX(CASE WHEN d.campo='area_id' THEN d.valor END) area_id,
+    MAX(CASE WHEN d.campo='produto_id' THEN d.valor END) produto_id
 
 FROM apontamentos a
 
@@ -103,18 +103,18 @@ while($row=$res->fetch_assoc()){
         continue;
     }
 
-
-    /* BUSCAR PRODUTO */
+    /* PRODUTO */
 
     $row['produto_nome']='';
 
     if($row['produto_id']){
+
         $p=$mysqli->query("SELECT nome FROM produtos WHERE id=".$row['produto_id'])->fetch_assoc();
         $row['produto_nome']=$p['nome'] ?? '';
+
     }
 
-
-    /* BUSCAR TAMANHO DA ÁREA */
+    /* AREA */
 
     $row['area_m2']=0;
     $row['area_ha']=0;
@@ -124,8 +124,10 @@ while($row=$res->fetch_assoc()){
         $a=$mysqli->query("SELECT tamanho FROM areas WHERE id=".$row['area_id'])->fetch_assoc();
 
         if($a){
+
             $row['area_m2']=$a['tamanho'];
             $row['area_ha']=$a['tamanho']/10000;
+
         }
 
     }
@@ -183,7 +185,7 @@ foreach($dados as $d){
 
 
 /* =====================================================
-VALORES DO GRÁFICO
+GRAFICO
 ===================================================== */
 
 $grafico=[];
@@ -194,17 +196,17 @@ foreach($safras as $s){
 
 
 /* =====================================================
-BUSCAR MÉDIA BRASIL
+REFERENCIA BRASIL
 ===================================================== */
 
-$min=0;
 $media=0;
+$min=0;
 $max=0;
 
 $stmt=$mysqli->prepare("
 SELECT prod_min,prod_media,prod_max,unidade
 FROM produtividade_referencia
-WHERE LOWER(produto) LIKE CONCAT('%',LOWER(?),'%')
+WHERE LOWER(produto)=LOWER(?)
 LIMIT 1
 ");
 
@@ -214,45 +216,16 @@ $stmt->execute();
 $ref=$stmt->get_result()->fetch_assoc();
 
 if($ref){
-    $min   =$ref['prod_min'];
-    $media =$ref['prod_media'];
-    $max   =$ref['prod_max'];
-}
 
-
-/* =====================================================
-COMPARAÇÃO
-===================================================== */
-
-$alerta="";
-
-if($ref && count($safras)>0){
-
-    $ultima=end($safras);
-
-    if($ultima['prod_ha'] < $min){
-
-        $alerta="⚠ Muito abaixo da média nacional";
-
-    }elseif($ultima['prod_ha'] < $media){
-
-        $alerta="⚠ Abaixo da média nacional";
-
-    }elseif($ultima['prod_ha'] <= $max){
-
-        $alerta="✔ Dentro da média nacional";
-
-    }else{
-
-        $alerta="🏆 Acima da média nacional";
-
-    }
+    $min   = $ref['prod_min'];
+    $media = $ref['prod_media'];
+    $max   = $ref['prod_max'];
 
 }
 
 
 /* =====================================================
-CORES DO GRÁFICO
+CORES
 ===================================================== */
 
 $cores=[];
@@ -263,7 +236,16 @@ foreach($grafico as $g){
 
 
 /* =====================================================
-CONFIGURAÇÃO GRÁFICO
+FAIXAS PRODUTIVIDADE
+===================================================== */
+
+$faixa_baixa = $media * 0.8;
+$faixa_media = $media * 1.2;
+$faixa_max   = max($grafico) * 1.3;
+
+
+/* =====================================================
+GRAFICO QUICKCHART
 ===================================================== */
 
 $chartConfig=[
@@ -298,11 +280,16 @@ $chartConfig=[
 ],
 
 "options"=>[
+
 "scales"=>[
+
 "y"=>[
-"beginAtZero"=>true
+"min"=>0,
+"max"=>$faixa_max
 ]
+
 ]
+
 ]
 
 ];
@@ -363,30 +350,18 @@ padding:6px;
 text-align:center;
 }
 
-.info{
-margin-bottom:15px;
-}
-
-.alerta{
-margin-top:10px;
-font-weight:bold;
-color:#d32f2f;
-}
-
 </style>
 
 <h1>Relatório de Produtividade</h1>
-
-<div class='info'>
 
 <b>Propriedade:</b> $nome_propriedade<br>
 <b>Área:</b> $nome_area<br>
 <b>Produto:</b> $nome_produto<br>
 <b>Período:</b> ".date('d/m/Y',strtotime($data_ini))." até ".date('d/m/Y',strtotime($data_fim))."
 
-</div>
+<br><br>
 
-<img src='$chartUrl' style='width:100%;margin-top:10px;'>
+<img src='$chartUrl' style='width:100%'>
 
 <table>
 
@@ -432,19 +407,12 @@ $html.="
 
 </table>
 
-<div class='alerta'>
-$alerta
-</div>
-
-<p>
+<br>
 
 <b>Referência nacional</b><br>
-
 Produtividade mínima: $min<br>
 Produtividade média: $media<br>
 Produtividade máxima: $max
-
-</p>
 
 ";
 
