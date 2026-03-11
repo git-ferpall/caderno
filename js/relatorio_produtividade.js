@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", function(){
     const propriedade = document.getElementById("pf-propriedade");
     const area = document.getElementById("pf-area");
     const produto = document.getElementById("pf-produto");
+    const btn = document.getElementById("form-pdf-relatorio");
+
+    area.disabled = true;
+    produto.disabled = true;
 
     function carregarFiltros(prop_id = ""){
 
@@ -45,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             /* AREAS */
 
-           area.innerHTML = '<option value="" disabled selected>Selecione a área</option>';
+            area.innerHTML = '<option value="" disabled selected>Selecione a área</option>';
 
             data.areas.forEach(a => {
 
@@ -57,6 +61,8 @@ document.addEventListener("DOMContentLoaded", function(){
                 area.appendChild(opt);
 
             });
+
+            area.disabled = false;
 
             /* PRODUTOS */
 
@@ -73,6 +79,11 @@ document.addEventListener("DOMContentLoaded", function(){
 
             });
 
+            produto.disabled = false;
+
+        })
+        .catch(err => {
+            console.error("Erro ao carregar filtros:", err);
         });
 
     }
@@ -84,6 +95,9 @@ document.addEventListener("DOMContentLoaded", function(){
         area.innerHTML = '<option value="" disabled selected>Selecione a área</option>';
         produto.innerHTML = '<option value="" disabled selected>Selecione o produto</option>';
 
+        area.disabled = true;
+        produto.disabled = true;
+
         if(!prop_id) return;
 
         carregarFiltros(prop_id);
@@ -92,23 +106,28 @@ document.addEventListener("DOMContentLoaded", function(){
 
     carregarFiltros();
 
-});
-document.getElementById("form-pdf-relatorio").addEventListener("click", function(){
+    /* ==============================
+       VALIDAÇÃO DO FORMULÁRIO
+    ============================== */
 
-    const propriedade = document.getElementById("pf-propriedade").value;
-    const area = document.getElementById("pf-area").value;
-    const produto = document.getElementById("pf-produto").value;
-    const data_ini = document.querySelector("input[name='data_ini']").value;
-    const data_fim = document.querySelector("input[name='data_fim']").value;
+    btn.addEventListener("click", function(){
 
-    if(!propriedade || !area || !produto || !data_ini || !data_fim){
+        const prop = propriedade.value;
+        const ar = area.value;
+        const prod = produto.value;
+        const data_ini = document.querySelector("input[name='data_ini']").value;
+        const data_fim = document.querySelector("input[name='data_fim']").value;
 
-        alert("Preencha todos os campos para gerar o relatório.");
+        if(!prop || !ar || !prod || !data_ini || !data_fim){
 
-        return;
+            alert("Preencha todos os campos para gerar o relatório.");
 
-    }
+            return;
 
-    document.getElementById("rel-form").submit();
+        }
+
+        document.getElementById("rel-form").submit();
+
+    });
 
 });
