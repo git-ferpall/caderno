@@ -3,21 +3,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Carregar ÁREAS ===
   function carregarAreas() {
-    fetch("../funcoes/buscar_areas.php")
-      .then(r => r.json())
-      .then(data => {
-        document.querySelectorAll(".area-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione a área</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = `${item.nome} (${item.tipo})`;
-            sel.appendChild(opt);
-          });
+  fetch("../funcoes/buscar_areas.php")
+    .then(r => r.json())
+    .then(data => {
+
+      document.querySelectorAll(".area-select").forEach(sel => {
+
+        const valorAtual = sel.value; // guarda seleção
+
+        sel.innerHTML = '<option value="">Selecione a área</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
-      })
-      .catch(err => console.error("Erro ao carregar áreas:", err));
-  }
+
+      });
+
+    });
+}
 // === Carregar FERTILIZANTES ===
 function carregarFertilizantes() {
   fetch("../funcoes/buscar_fertilizantes.php")
