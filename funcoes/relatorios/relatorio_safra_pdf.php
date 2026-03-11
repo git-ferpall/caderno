@@ -451,6 +451,8 @@ if(count($evolucao) > 0){
 
 }
 
+
+
 /* =====================================================
 GRAFICO EVOLUÇÃO ENTRE SAFRAS
 ===================================================== */
@@ -502,20 +504,7 @@ $chartUrlEvolucao="https://quickchart.io/chart?c=".urlencode(json_encode($chartC
 
 }
 
-$classificacao = "Baixa";
 
-if($r['prod_area'] >= $max){
-    $classificacao = "Excelente";
-}
-elseif($r['prod_area'] >= $media){
-    $classificacao = "Alta";
-}
-elseif($r['prod_area'] >= $min){
-    $classificacao = "Média";
-}
-else{
-    $classificacao = "Baixa";
-}
 /* =====================================================
 MPDF
 ===================================================== */
@@ -608,8 +597,8 @@ td{
 <th>Colheita</th>
 <th>Área (ha)</th>
 <th>Produção</th>
-<th>Produtividade</th>
-<th>Produtividade</th>
+<th>Prod/planta</th>
+<th>Prod/área</th>
 <th>Classificação</th>
 </tr>
 
@@ -618,6 +607,18 @@ td{
 $i = 1;
 
 foreach($safras as $r){
+
+    $classificacao = "Baixa";
+
+    if($r['prod_area'] >= $max){
+        $classificacao = "Excelente";
+    }
+    elseif($r['prod_area'] >= $media){
+        $classificacao = "Alta";
+    }
+    elseif($r['prod_area'] >= $min){
+        $classificacao = "Média";
+    }
 
     $html .= "
 
@@ -631,27 +632,32 @@ foreach($safras as $r){
         <td>".date('d/m/Y',strtotime($r['colheita']))."</td>
 
         <td>
-            ".(
-                $r['area'] < 0.01
-                ? number_format($r['area']*10000,0)." m²"
-                : number_format($r['area'],2)." ha"
-            )."
-            </td>
+        ".(
+            $r['area'] < 0.01
+            ? number_format($r['area']*10000,0)." m²"
+            : number_format($r['area'],2)." ha"
+        )."
+        </td>
 
         <td>".number_format($r['colhido'],2)." {$r['unidade']}</td>
 
         <td>".number_format($r['prod'],2)." {$r['unidade']}</td>
 
         <td>".number_format($r['prod_area'],2)." {$r['unidade']}/{$r['un_area']}</td>
-        <td>{$classificacao}</td>
+
+        <td style='color:$cor;font-weight:bold'>{$classificacao}</td>
 
     </tr>
 
     ";
 
     $i++;
-
 }
+
+if($classificacao=="Excelente") $cor="#1b5e20";
+elseif($classificacao=="Alta") $cor="#2e7d32";
+elseif($classificacao=="Média") $cor="#f9a825";
+else $cor="#c62828";
 
 $html .= "
 
