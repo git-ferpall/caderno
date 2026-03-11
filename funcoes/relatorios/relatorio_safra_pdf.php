@@ -194,6 +194,36 @@ foreach($safras as $s){
     $grafico[]=round($s['prod_ha'],2);
 }
 
+/* =====================================================
+EVOLUÇÃO ENTRE SAFRAS
+===================================================== */
+
+$evolucao = [];
+$comparacoes = [];
+
+if(count($grafico) > 1){
+
+    for($i=1;$i<count($grafico);$i++){
+
+        $anterior = $grafico[$i-1];
+        $atual    = $grafico[$i];
+
+        $perc = 0;
+
+        if($anterior > 0){
+            $perc = (($atual - $anterior) / $anterior) * 100;
+        }
+
+        $evolucao[] = round($perc,2);
+
+        $comparacoes[] = [
+            "safra_anterior"=>$anterior,
+            "safra_atual"=>$atual,
+            "perc"=>$perc
+        ];
+    }
+
+}
 
 /* =====================================================
 REFERENCIA BRASIL
@@ -327,7 +357,55 @@ $chartConfig = [
 
 $chartUrl="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig));
 
+/* =====================================================
+GRAFICO EVOLUÇÃO ENTRE SAFRAS
+===================================================== */
 
+$chartUrlEvolucao = null;
+
+if(count($evolucao) > 0){
+
+$chartConfig2 = [
+
+"type" => "line",
+
+"data" => [
+
+"labels" => array_map(function($i){
+    return "Safra ".($i+1)." → ".($i+2);
+}, array_keys($evolucao)),
+
+"datasets" => [
+
+[
+"label"=>"Evolução %",
+"data"=>$evolucao,
+"borderColor"=>"#2e7d32",
+"backgroundColor"=>"rgba(46,125,50,0.2)",
+"fill"=>true,
+"tension"=>0.3
+]
+
+]
+
+],
+
+"options"=>[
+"scales"=>[
+"y"=>[
+"title"=>[
+"display"=>true,
+"text"=>"Variação %"
+]
+]
+]
+]
+
+];
+
+$chartUrlEvolucao="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig2));
+
+}
 /* =====================================================
 MPDF
 ===================================================== */
@@ -349,50 +427,63 @@ $mpdf=new \Mpdf\Mpdf([
 HTML
 ===================================================== */
 
-$html="
+$html = "
 
 <style>
 
 body{
-font-family:Arial;
-font-size:12px;
+    font-family: Arial;
+    font-size: 12px;
 }
 
 h1{
-text-align:center;
-color:#2e7d32;
+    text-align: center;
+    color: #2e7d32;
+}
+
+h2{
+    color: #2e7d32;
+    margin-top: 25px;
 }
 
 table{
-border-collapse:collapse;
-width:100%;
-margin-top:10px;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
 }
 
 th{
-background:#4caf50;
-color:#fff;
-padding:6px;
+    background: #4caf50;
+    color: #fff;
+    padding: 6px;
 }
 
 td{
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+}
+
+.info{
+    margin-bottom: 15px;
 }
 
 </style>
 
 <h1>Relatório de Produtividade</h1>
 
-<b>Propriedade:</b> $nome_propriedade<br>
-<b>Área:</b> $nome_area<br>
-<b>Produto:</b> $nome_produto<br>
+<div class='info'>
+
+<b>Propriedade:</b> {$nome_propriedade}<br>
+<b>Área:</b> {$nome_area}<br>
+<b>Produto:</b> {$nome_produto}<br>
 <b>Período:</b> ".date('d/m/Y',strtotime($data_ini))." até ".date('d/m/Y',strtotime($data_fim))."
 
-<br><br>
+</div>
 
-<img src='$chartUrl' style='width:100%'>
+<img src='{$chartUrl}' style='width:100%'>
+
+<h2>Safras registradas</h2>
 
 <table>
 
@@ -409,43 +500,103 @@ text-align:center;
 
 ";
 
-$i=1;
+$i = 1;
 
 foreach($safras as $r){
 
-$html.="
+    $html .= "
 
-<tr>
+    <tr>
 
-<td>Safra $i</td>
-<td>{$r['produto']}</td>
-<td>".date('d/m/Y',strtotime($r['plantio']))."</td>
-<td>".date('d/m/Y',strtotime($r['colheita']))."</td>
-<td>".number_format($r['area'],2)."</td>
-<td>{$r['colhido']}</td>
-<td>".number_format($r['prod'],2)." {$r['unidade']}</td>
-<td>".number_format($r['prod_ha'],2)." {$r['unidade']}/ha</td>
+        <td>Safra {$i}</td>
+        <td>{$r['produto']}</td>
 
-</tr>
+        <td>".date('d/m/Y',strtotime($r['plantio']))."</td>
 
-";
+        <td>".date('d/m/Y',strtotime($r['colheita']))."</td>
 
-$i++;
+        <td>".number_format($r['area'],2)."</td>
+
+        <td>{$r['colhido']}</td>
+
+        <td>".number_format($r['prod'],2)." {$r['unidade']}</td>
+
+        <td>".number_format($r['prod_ha'],2)." {$r['unidade']}/ha</td>
+
+    </tr>
+
+    ";
+
+    $i++;
 
 }
 
-$html.="
+$html .= "
 
 </table>
 
 <br>
 
 <b>Referência nacional</b><br>
-Produtividade mínima: $min<br>
-Produtividade média: $media<br>
-Produtividade máxima: $max
+
+Produtividade mínima: {$min}<br>
+Produtividade média: {$media}<br>
+Produtividade máxima: {$max}<br>
 
 ";
 
+
+/* =====================================================
+EVOLUÇÃO ENTRE SAFRAS
+===================================================== */
+
+if(isset($chartUrlEvolucao) && $chartUrlEvolucao){
+
+    $html .= "
+
+    <h2>Evolução entre safras</h2>
+
+    <img src='{$chartUrlEvolucao}' style='width:100%'>
+
+    ";
+
+}
+
+
+/* =====================================================
+COMPARAÇÃO ENTRE SAFRAS
+===================================================== */
+
+if(isset($comparacoes) && count($comparacoes) > 0){
+
+    $html .= "<h2>Comparativo entre safras</h2>";
+
+    $i = 1;
+
+    foreach($comparacoes as $c){
+
+        $seta = $c['perc'] >= 0 ? "⬆ aumento" : "⬇ redução";
+
+        $html .= "
+
+        Safra {$i} → Safra ".($i+1)."<br>
+
+        Produtividade anterior:
+        ".number_format($c['safra_anterior'],2)." sacas/ha<br>
+
+        Produtividade atual:
+        ".number_format($c['safra_atual'],2)." sacas/ha<br>
+
+        {$seta} de ".number_format($c['perc'],1)." %<br><br>
+
+        ";
+
+        $i++;
+
+    }
+
+}
+
+
 $mpdf->WriteHTML($html);
-$mpdf->Output("relatorio_safra.pdf","I");
+$mpdf->Output('relatorio_safra.pdf', 'I');
