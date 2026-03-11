@@ -94,12 +94,39 @@ $dados = [];
 
 while($row = $res->fetch_assoc()){
 
+    /* FILTRO AREA */
+
     if($area && $row['area_id'] != $area){
         continue;
     }
 
+    /* FILTRO PRODUTO */
+
     if($produto && $row['produto_id'] != $produto){
         continue;
+    }
+
+    /* BUSCAR NOME PRODUTO */
+
+    $row['produto_nome'] = '';
+
+    if(!empty($row['produto_id'])){
+
+        $stmt = $mysqli->prepare("
+            SELECT nome 
+            FROM produtos 
+            WHERE id = ?
+        ");
+
+        $stmt->bind_param("i", $row['produto_id']);
+        $stmt->execute();
+        $r = $stmt->get_result()->fetch_assoc();
+
+        if($r){
+            $row['produto_nome'] = $r['nome'];
+        }
+
+        $stmt->close();
     }
 
     $dados[] = $row;
@@ -129,12 +156,13 @@ foreach($dados as $d){
 
         $safras[] = [
 
-            "data_plantio"=>$plantio['data'],
-            "data_colheita"=>$d['data'],
-            "plantado"=>$plantio['quantidade'],
-            "colhido"=>$d['quantidade'],
-            "produtividade"=>$produtividade,
-            "unidade"=>$d['unidade']
+            "produto"        => $d['produto_nome'],
+            "data_plantio"   => $plantio['data'],
+            "data_colheita"  => $d['data'],
+            "plantado"       => $plantio['quantidade'],
+            "colhido"        => $d['quantidade'],
+            "produtividade"  => $produtividade,
+            "unidade"        => $d['unidade']
 
         ];
 
@@ -142,7 +170,6 @@ foreach($dados as $d){
     }
 
 }
-
 
 /* ===============================
 MPDF
@@ -237,7 +264,7 @@ $html.="
 <tr>
 
 <td>Safra $s</td>
-<td>$nome_produto</td>
+<td>{$r['produto']}</td>
 <td>".date('d/m/Y',strtotime($r['data_plantio']))."</td>
 <td>".date('d/m/Y',strtotime($r['data_colheita']))."</td>
 <td>{$r['plantado']}</td>
