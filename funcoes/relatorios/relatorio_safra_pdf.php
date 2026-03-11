@@ -284,10 +284,8 @@ $chartConfig = [
 "scales" => [
 
 "y" => [
-
 "beginAtZero" => true,
-"max" => $max * 1.2
-
+"max" => $faixa_max
 ]
 
 ],
@@ -306,21 +304,21 @@ $chartConfig = [
 "type" => "box",
 "yMin" => 0,
 "yMax" => $faixa_ruim,
-"backgroundColor" => "rgba(255,152,0,0.2)"
+"backgroundColor" => "rgba(255,152,0,0.15)"
 ],
 
 [
 "type" => "box",
 "yMin" => $faixa_ruim,
 "yMax" => $faixa_media,
-"backgroundColor" => "rgba(76,175,80,0.2)"
+"backgroundColor" => "rgba(76,175,80,0.15)"
 ],
 
 [
 "type" => "box",
 "yMin" => $faixa_media,
-"yMax" => $max * 1.2,
-"backgroundColor" => "rgba(33,150,243,0.2)"
+"yMax" => $faixa_max,
+"backgroundColor" => "rgba(33,150,243,0.15)"
 ]
 
 ]
@@ -329,7 +327,9 @@ $chartConfig = [
 
 ]
 
-]
+],
+
+"plugins" => ["annotation"]
 
 ];
 
