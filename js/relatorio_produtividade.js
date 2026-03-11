@@ -93,3 +93,22 @@ document.addEventListener("DOMContentLoaded", function(){
     carregarFiltros();
 
 });
+document.getElementById("form-pdf-relatorio").addEventListener("click", function(){
+
+    const propriedade = document.getElementById("pf-propriedade").value;
+    const area = document.getElementById("pf-area").value;
+    const produto = document.getElementById("pf-produto").value;
+    const data_ini = document.querySelector("input[name='data_ini']").value;
+    const data_fim = document.querySelector("input[name='data_fim']").value;
+
+    if(!propriedade || !area || !produto || !data_ini || !data_fim){
+
+        alert("Preencha todos os campos para gerar o relatório.");
+
+        return;
+
+    }
+
+    document.getElementById("rel-form").submit();
+
+});
