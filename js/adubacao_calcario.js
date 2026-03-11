@@ -62,17 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
   // === Carregar PRODUTOS ===
-  function carregarProdutos(select = null) {
-
+  // === Carregar PRODUTOS ===
+  function carregarProdutos() {
     fetch("../funcoes/buscar_produtos.php")
       .then(r => r.json())
       .then(data => {
 
-        const selects = select ? [select] : document.querySelectorAll(".produto-select");
+        document.querySelectorAll(".produto-select").forEach(sel => {
 
-        selects.forEach(sel => {
-
-          const valorAtual = sel.value;
+          const valorAtual = sel.value; // guarda seleção atual
 
           sel.innerHTML = '<option value="">Selecione o produto</option>';
 
@@ -82,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
             opt.value = item.id;
             opt.textContent = item.nome;
 
+            // restaura seleção anterior
             if (item.id == valorAtual) {
               opt.selected = true;
             }
@@ -94,8 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       })
       .catch(err => console.error("Erro ao carregar produtos:", err));
-
   }
+
+  carregarProdutos();
 
   /* ===============================
   BOTÃO ADICIONAR PRODUTO
