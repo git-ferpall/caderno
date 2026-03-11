@@ -358,6 +358,29 @@ $chartConfig = [
 $chartUrl="https://quickchart.io/chart?c=".urlencode(json_encode($chartConfig));
 
 /* =====================================================
+LIMITES DO GRAFICO EVOLUÇÃO
+===================================================== */
+
+$minGraf = 0;
+$maxGraf = 10;
+
+if(count($evolucao) > 0){
+
+    $minEvo = min($evolucao);
+    $maxEvo = max($evolucao);
+
+    $minGraf = 0;
+    $maxGraf = $maxEvo;
+
+    if($minEvo < 0){
+        $minGraf = $minEvo * 1.2;
+    }
+
+    $maxGraf = $maxGraf * 1.2;
+
+}
+
+/* =====================================================
 GRAFICO EVOLUÇÃO ENTRE SAFRAS
 ===================================================== */
 
@@ -381,8 +404,8 @@ $chartConfig2 = [
 "label"=>"Evolução %",
 "data"=>$evolucao,
 "borderColor"=>"#2e7d32",
-"backgroundColor"=>"rgba(46,125,50,0.2)",
-"fill"=>true,
+"pointBackgroundColor"=>"#2e7d32",
+"pointRadius"=>5,
 "tension"=>0.3
 ]
 
@@ -393,6 +416,8 @@ $chartConfig2 = [
 "options"=>[
 "scales"=>[
 "y"=>[
+"min"=>$minGraf,
+"max"=>$maxGraf,
 "title"=>[
 "display"=>true,
 "text"=>"Variação %"
