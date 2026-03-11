@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             /* AREAS */
 
-            area.innerHTML = '<option value="">Todas as áreas</option>';
+           area.innerHTML = '<option value="" disabled selected>Selecione a área</option>';
 
             data.areas.forEach(a => {
 
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             /* PRODUTOS */
 
-            produto.innerHTML = '<option value="">Todos os produtos</option>';
+            produto.innerHTML = '<option value="" disabled selected>Selecione o produto</option>';
 
             data.produtos.forEach(p => {
 
@@ -81,8 +81,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
         const prop_id = $(this).val();
 
-        area.innerHTML = '<option value="">Todas as áreas</option>';
-        produto.innerHTML = '<option value="">Todos os produtos</option>';
+        area.innerHTML = '<option value="" disabled selected>Selecione a área</option>';
+        produto.innerHTML = '<option value="" disabled selected>Selecione o produto</option>';
 
         if(!prop_id) return;
 
