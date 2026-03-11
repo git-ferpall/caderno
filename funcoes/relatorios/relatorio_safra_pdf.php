@@ -239,9 +239,11 @@ foreach($grafico as $g){
 FAIXAS PRODUTIVIDADE
 ===================================================== */
 
-$faixa_baixa = $media * 0.8;
-$faixa_media = $media * 1.2;
-$faixa_max   = max($grafico) * 1.3;
+$faixa_ruim  = $min;
+$faixa_media = $media;
+$faixa_boa   = $max;
+
+$faixa_max   = max(max($grafico), $max) * 1.2;
 
 
 /* =====================================================
@@ -261,43 +263,43 @@ $chartConfig = [
 "datasets" => [
 
 [
-"type"=>"bar",
-"label"=>"Produtividade (sacas/ha)",
-"data"=>$grafico,
-"backgroundColor"=>$cores
+"type" => "bar",
+"label" => "Produtividade (sacas/ha)",
+"data" => $grafico,
+"backgroundColor" => $cores
 ],
 
 [
-"type"=>"line",
-"label"=>"Média Brasil",
-"data"=>array_fill(0,count($grafico),$media),
-"borderColor"=>"#1e88e5",
-"borderWidth"=>3,
-"fill"=>false
+"type" => "line",
+"label" => "Média Brasil",
+"data" => array_fill(0, count($grafico), $media),
+"borderColor" => "#1e88e5",
+"borderWidth" => 3,
+"fill" => false
 ],
 
 [
-"type"=>"bar",
-"label"=>"Faixa baixa",
-"data"=>array_fill(0,count($grafico),$faixa_ruim),
-"backgroundColor"=>"rgba(255,152,0,0.15)",
-"stack"=>"bg"
+"type" => "bar",
+"label" => "Faixa baixa",
+"data" => array_fill(0, count($grafico), $faixa_ruim),
+"backgroundColor" => "rgba(255,152,0,0.15)",
+"stack" => "bg"
 ],
 
 [
-"type"=>"bar",
-"label"=>"Faixa média",
-"data"=>array_fill(0,count($grafico),$faixa_media-$faixa_ruim),
-"backgroundColor"=>"rgba(76,175,80,0.15)",
-"stack"=>"bg"
+"type" => "bar",
+"label" => "Faixa média",
+"data" => array_fill(0, count($grafico), $faixa_media - $faixa_ruim),
+"backgroundColor" => "rgba(76,175,80,0.15)",
+"stack" => "bg"
 ],
 
 [
-"type"=>"bar",
-"label"=>"Faixa alta",
-"data"=>array_fill(0,count($grafico),$faixa_max-$faixa_media),
-"backgroundColor"=>"rgba(33,150,243,0.15)",
-"stack"=>"bg"
+"type" => "bar",
+"label" => "Faixa alta",
+"data" => array_fill(0, count($grafico), $faixa_boa - $faixa_media),
+"backgroundColor" => "rgba(33,150,243,0.15)",
+"stack" => "bg"
 ]
 
 ]
@@ -306,15 +308,15 @@ $chartConfig = [
 
 "options" => [
 
-"scales"=>[
+"scales" => [
 
-"x"=>[
-"stacked"=>true
+"x" => [
+"stacked" => true
 ],
 
-"y"=>[
-"beginAtZero"=>true,
-"max"=>$faixa_max
+"y" => [
+"beginAtZero" => true,
+"max" => $faixa_max
 ]
 
 ]
