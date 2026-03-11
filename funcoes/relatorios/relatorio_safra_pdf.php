@@ -504,11 +504,17 @@ $chartUrlEvolucao="https://quickchart.io/chart?c=".urlencode(json_encode($chartC
 
 $classificacao = "Baixa";
 
-if($r['prod_area'] >= $media){
+if($r['prod_area'] >= $max){
+    $classificacao = "Excelente";
+}
+elseif($r['prod_area'] >= $media){
     $classificacao = "Alta";
 }
 elseif($r['prod_area'] >= $min){
     $classificacao = "Média";
+}
+else{
+    $classificacao = "Baixa";
 }
 /* =====================================================
 MPDF
