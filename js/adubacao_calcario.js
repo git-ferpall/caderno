@@ -29,40 +29,73 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
       .then(data => {
+
         document.querySelectorAll(".area-select").forEach(sel => {
+
+          const valorAtual = sel.value; // guarda seleção atual
+
           sel.innerHTML = '<option value="">Selecione a área</option>';
+
           data.forEach(item => {
+
             const opt = document.createElement("option");
             opt.value = item.id;
             opt.textContent = `${item.nome} (${item.tipo})`;
+
+            // restaura seleção anterior
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
+
             sel.appendChild(opt);
+
           });
+
         });
+
       })
       .catch(err => console.error("Erro ao carregar áreas:", err));
   }
+
   carregarAreas();
 
   
 
   // === Carregar PRODUTOS ===
-  function carregarProdutos() {
+  function carregarProdutos(select = null) {
+
     fetch("../funcoes/buscar_produtos.php")
       .then(r => r.json())
       .then(data => {
-        document.querySelectorAll(".produto-select").forEach(sel => {
+
+        const selects = select ? [select] : document.querySelectorAll(".produto-select");
+
+        selects.forEach(sel => {
+
+          const valorAtual = sel.value;
+
           sel.innerHTML = '<option value="">Selecione o produto</option>';
+
           data.forEach(item => {
+
             const opt = document.createElement("option");
             opt.value = item.id;
             opt.textContent = item.nome;
+
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
+
             sel.appendChild(opt);
+
           });
+
         });
+
       })
       .catch(err => console.error("Erro ao carregar produtos:", err));
+
   }
-  carregarProdutos();
 
   /* ===============================
   BOTÃO ADICIONAR PRODUTO

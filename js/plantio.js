@@ -39,38 +39,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Função para carregar PRODUTOS em todos os selects ===
   function carregarProdutos(select = null) {
 
-  fetch("../funcoes/buscar_produtos.php")
-    .then(r => r.json())
-    .then(data => {
+    fetch("../funcoes/buscar_produtos.php")
+      .then(r => r.json())
+      .then(data => {
 
-      const selects = select ? [select] : document.querySelectorAll(".produto-select");
+        const selects = select ? [select] : document.querySelectorAll(".produto-select");
 
-      selects.forEach(sel => {
+        selects.forEach(sel => {
 
-        const valorAtual = sel.value;
+          const valorAtual = sel.value;
 
-        sel.innerHTML = '<option value="">Selecione o produto</option>';
+          sel.innerHTML = '<option value="">Selecione o produto</option>';
 
-        data.forEach(item => {
+          data.forEach(item => {
 
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = item.nome;
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.nome;
 
-          if (item.id == valorAtual) {
-            opt.selected = true;
-          }
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
 
-          sel.appendChild(opt);
+            sel.appendChild(opt);
+
+          });
 
         });
 
-      });
+      })
+      .catch(err => console.error("Erro ao carregar produtos:", err));
 
-    })
-    .catch(err => console.error("Erro ao carregar produtos:", err));
-
-}
+  }
 
   /* ===============================
   ADICIONAR ÁREA
