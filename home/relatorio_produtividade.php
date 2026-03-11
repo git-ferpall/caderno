@@ -194,7 +194,7 @@ $dt_fin = date("Y-m-t");
     <button
         id="form-pdf-relatorio"
         class="main-btn fundo-laranja"
-        type="submit"
+        type="button"
     >
     Gerar relatório de safra
     </button>
@@ -237,11 +237,26 @@ language: "pt-BR"
 
 document.getElementById("form-pdf-relatorio").addEventListener("click", function(){
 
-const overlay = document.getElementById("loading-overlay");
+const form = document.getElementById("rel-form");
 
+/* valida HTML required */
+
+if(!form.checkValidity()){
+
+    form.reportValidity();
+
+    return;
+
+}
+
+/* mostrar overlay */
+
+const overlay = document.getElementById("loading-overlay");
 overlay.style.display = "flex";
 
-document.getElementById("rel-form").submit();
+/* enviar formulário */
+
+form.submit();
 
 /* esconder spinner depois */
 
