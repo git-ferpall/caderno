@@ -6,20 +6,31 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
       .then(data => {
+
         document.querySelectorAll(".area-select").forEach(sel => {
+
+          const valorAtual = sel.value; // guarda seleção
+
           sel.innerHTML = '<option value="">Selecione a área</option>';
+
           data.forEach(item => {
+
             const opt = document.createElement("option");
             opt.value = item.id;
-            opt.textContent = `${item.nome} (${item.tipo})`;
-            sel.appendChild(opt);
-          });
-        });
-      })
-      .catch(err => console.error("Erro ao carregar áreas:", err));
-  }
+            opt.textContent = item.nome;
 
-  carregarAreas();
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
+
+            sel.appendChild(opt);
+
+          });
+
+        });
+
+      });
+  }
 
  // === Botão adicionar área ===
   const btnAddArea = document.querySelector(".add-area");
