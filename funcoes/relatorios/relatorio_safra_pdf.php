@@ -621,6 +621,31 @@ if(isset($comparacoes) && count($comparacoes) > 0){
 
 }
 
+$logo_frutag  = __DIR__ . '/../../img/logo-frutag.png';
+$logo_caderno = __DIR__ . '/../../img/logo-color.png';
 
+$img_frutag  = file_exists($logo_frutag) ? base64_encode(file_get_contents($logo_frutag)) : '';
+$img_caderno = file_exists($logo_caderno) ? base64_encode(file_get_contents($logo_caderno)) : '';
+
+$mpdf->SetHTMLHeader('
+<table width="100%" style="border-bottom:1px solid #ccc; font-family:Arial; font-size:10px;">
+<tr>
+
+<td width="33%">
+<img src="data:image/png;base64,'.$img_frutag.'" width="110">
+</td>
+
+<td width="34%" style="text-align:center; font-weight:bold; font-size:16px; color:#2e7d32;">
+Relatório de Produtividade<br>
+<span style="font-size:11px; color:#666;">Caderno de Campo</span>
+</td>
+
+<td width="33%" style="text-align:right;">
+<img src="data:image/png;base64,'.$img_caderno.'" width="110">
+</td>
+
+</tr>
+</table>
+');
 $mpdf->WriteHTML($html);
 $mpdf->Output('relatorio_safra.pdf', 'I');
