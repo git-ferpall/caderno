@@ -19,47 +19,77 @@ document.addEventListener("DOMContentLoaded", () => {
     qtdInput.addEventListener("input", atualizarAviso);
   }
 
-  // === Carregar Áreas ===
+  // === Carregar ÁREAS ===
   function carregarAreas() {
     fetch("../funcoes/buscar_areas.php")
       .then(r => r.json())
       .then(data => {
+
         document.querySelectorAll(".area-select").forEach(sel => {
-          const selecionado = sel.value;
+
+          const valorAtual = sel.value; // guarda seleção atual
+
           sel.innerHTML = '<option value="">Selecione a área</option>';
-          data.forEach(a => {
+
+          data.forEach(item => {
+
             const opt = document.createElement("option");
-            opt.value = a.id;
-            opt.textContent = `${a.nome} (${a.tipo})`;
-            if (a.id == selecionado) opt.selected = true;
+            opt.value = item.id;
+            opt.textContent = `${item.nome} (${item.tipo})`;
+
+            // restaura seleção anterior
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
+
             sel.appendChild(opt);
+
           });
+
         });
+
       })
       .catch(err => console.error("Erro ao carregar áreas:", err));
   }
 
-  // === Carregar Produtos ===
+  carregarAreas();
+
+  
+
+  // === Carregar PRODUTOS ===
+  // === Carregar PRODUTOS ===
   function carregarProdutos() {
     fetch("../funcoes/buscar_produtos.php")
       .then(r => r.json())
       .then(data => {
+
         document.querySelectorAll(".produto-select").forEach(sel => {
-          const selecionado = sel.value;
+
+          const valorAtual = sel.value; // guarda seleção atual
+
           sel.innerHTML = '<option value="">Selecione o produto</option>';
-          data.forEach(p => {
+
+          data.forEach(item => {
+
             const opt = document.createElement("option");
-            opt.value = p.id;
-            opt.textContent = p.nome;
-            if (p.id == selecionado) opt.selected = true;
+            opt.value = item.id;
+            opt.textContent = item.nome;
+
+            // restaura seleção anterior
+            if (item.id == valorAtual) {
+              opt.selected = true;
+            }
+
             sel.appendChild(opt);
+
           });
+
         });
+
       })
       .catch(err => console.error("Erro ao carregar produtos:", err));
   }
 
-  carregarAreas();
   carregarProdutos();
 
   /* ===============================

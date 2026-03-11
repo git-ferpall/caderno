@@ -116,17 +116,17 @@ while($row=$res->fetch_assoc()){
 
     /* AREA */
 
-    $row['area_m2']=0;
-    $row['area_ha']=0;
+    $row['area_m2'] = 0;
+    $row['area_ha'] = 0;
 
     if($row['area_id']){
 
-        $a=$mysqli->query("SELECT tamanho FROM areas WHERE id=".$row['area_id'])->fetch_assoc();
+        $a = $mysqli->query("SELECT tamanho FROM areas WHERE id=".$row['area_id'])->fetch_assoc();
 
         if($a){
 
-            $row['area_m2']=$a['tamanho'];
-            $row['area_ha']=$a['tamanho']/10000;
+            $row['area_m2'] = floatval($a['tamanho']);
+            $row['area_ha'] = $row['area_m2'] / 10000;
 
         }
 
@@ -152,15 +152,33 @@ foreach($dados as $d){
 
     if($d['tipo']=="colheita" && $plantio){
 
-        $produtividade=0;
-        $prod_ha=0;
+        $produtividade = 0;
+        $prod_area = 0;
+        $unidade_area = "ha";
 
-        if($plantio['quantidade']>0){
-            $produtividade=$d['quantidade']/$plantio['quantidade'];
+        /* produtividade por planta */
+
+        if($plantio['quantidade'] > 0){
+            $produtividade = $d['quantidade'] / $plantio['quantidade'];
         }
 
-        if($d['area_ha']>0){
-            $prod_ha=$d['quantidade']/$d['area_ha'];
+        /* produtividade por área */
+
+        if($d['area_m2'] > 0){
+
+            if($d['area_m2'] < 1000){
+
+                $prod_area = $d['quantidade'] / $d['area_m2'];
+                $unidade_area = "m²";
+
+            }
+            else{
+
+                $prod_area = $d['quantidade'] / $d['area_ha'];
+                $unidade_area = "ha";
+
+            }
+
         }
 
         $safras[]=[
@@ -170,8 +188,12 @@ foreach($dados as $d){
             "colheita"=>$d['data'],
             "plantado"=>$plantio['quantidade'],
             "colhido"=>$d['quantidade'],
+
             "prod"=>$produtividade,
-            "prod_ha"=>$prod_ha,
+
+            "prod_area"=>$prod_area,
+            "un_area"=>$unidade_area,
+
             "area"=>$d['area_ha'],
             "unidade"=>$d['unidade']
 
@@ -179,7 +201,7 @@ foreach($dados as $d){
 
         $plantio=null;
 
-    }
+}
 
 }
 
@@ -191,7 +213,7 @@ GRAFICO
 $grafico=[];
 
 foreach($safras as $s){
-    $grafico[]=round($s['prod_ha'],2);
+    $grafico[]=round($s['prod_area'],2);
 }
 
 /* =====================================================
@@ -300,7 +322,7 @@ $chartConfig = [
 
 [
 "type"=>"bar",
-"label"=>"Produtividade (sacas/ha)",
+"label"=>"Produtividade",
 "data"=>$grafico,
 "backgroundColor"=>$cores
 ],
@@ -543,13 +565,19 @@ foreach($safras as $r){
 
         <td>".date('d/m/Y',strtotime($r['colheita']))."</td>
 
-        <td>".number_format($r['area'],2)."</td>
+        <td>
+            ".(
+                $r['area'] < 0.01
+                ? number_format($r['area']*10000,0)." m²"
+                : number_format($r['area'],2)." ha"
+            )."
+            </td>
 
         <td>{$r['colhido']}</td>
 
         <td>".number_format($r['prod'],2)." {$r['unidade']}</td>
 
-        <td>".number_format($r['prod_ha'],2)." {$r['unidade']}/ha</td>
+        <td>".number_format($r['prod_area'],2)." {$r['unidade']}/{$r['un_area']}</td>
 
     </tr>
 
