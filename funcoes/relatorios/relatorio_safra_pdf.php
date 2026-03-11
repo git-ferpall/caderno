@@ -248,44 +248,83 @@ $faixa_max   = max($grafico) * 1.3;
 GRAFICO QUICKCHART
 ===================================================== */
 
-$chartConfig=[
+$chartConfig = [
 
-"type"=>"bar",
+"type" => "bar",
 
-"data"=>[
+"data" => [
 
-"labels"=>array_map(function($i){
+"labels" => array_map(function($i){
     return "Safra ".($i+1);
-},array_keys($grafico)),
+}, array_keys($grafico)),
 
-"datasets"=>[
+"datasets" => [
 
 [
-"label"=>"Produtividade (sacas/ha)",
-"data"=>$grafico,
-"backgroundColor"=>$cores
+"label" => "Produtividade (sacas/ha)",
+"data" => $grafico,
+"backgroundColor" => $cores
 ],
 
 [
-"type"=>"line",
-"label"=>"Média Brasil",
-"data"=>array_fill(0,count($grafico),$media),
-"borderColor"=>"#1565c0",
-"borderWidth"=>3,
-"fill"=>false
+"type" => "line",
+"label" => "Média Brasil",
+"data" => array_fill(0, count($grafico), $media),
+"borderColor" => "#1e88e5",
+"borderWidth" => 3,
+"fill" => false
 ]
 
 ]
 
 ],
 
-"options"=>[
+"options" => [
 
-"scales"=>[
+"scales" => [
 
-"y"=>[
-"min"=>0,
-"max"=>$faixa_max
+"y" => [
+
+"beginAtZero" => true,
+"max" => $max * 1.2
+
+]
+
+],
+
+"plugins" => [
+
+"legend" => [
+"display" => true
+],
+
+"annotation" => [
+
+"annotations" => [
+
+[
+"type" => "box",
+"yMin" => 0,
+"yMax" => $faixa_ruim,
+"backgroundColor" => "rgba(255,152,0,0.2)"
+],
+
+[
+"type" => "box",
+"yMin" => $faixa_ruim,
+"yMax" => $faixa_media,
+"backgroundColor" => "rgba(76,175,80,0.2)"
+],
+
+[
+"type" => "box",
+"yMin" => $faixa_media,
+"yMax" => $max * 1.2,
+"backgroundColor" => "rgba(33,150,243,0.2)"
+]
+
+]
+
 ]
 
 ]
