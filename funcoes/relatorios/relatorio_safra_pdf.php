@@ -261,18 +261,43 @@ $chartConfig = [
 "datasets" => [
 
 [
-"label" => "Produtividade (sacas/ha)",
-"data" => $grafico,
-"backgroundColor" => $cores
+"type"=>"bar",
+"label"=>"Produtividade (sacas/ha)",
+"data"=>$grafico,
+"backgroundColor"=>$cores
 ],
 
 [
-"type" => "line",
-"label" => "Média Brasil",
-"data" => array_fill(0, count($grafico), $media),
-"borderColor" => "#1e88e5",
-"borderWidth" => 3,
-"fill" => false
+"type"=>"line",
+"label"=>"Média Brasil",
+"data"=>array_fill(0,count($grafico),$media),
+"borderColor"=>"#1e88e5",
+"borderWidth"=>3,
+"fill"=>false
+],
+
+[
+"type"=>"bar",
+"label"=>"Faixa baixa",
+"data"=>array_fill(0,count($grafico),$faixa_ruim),
+"backgroundColor"=>"rgba(255,152,0,0.15)",
+"stack"=>"bg"
+],
+
+[
+"type"=>"bar",
+"label"=>"Faixa média",
+"data"=>array_fill(0,count($grafico),$faixa_media-$faixa_ruim),
+"backgroundColor"=>"rgba(76,175,80,0.15)",
+"stack"=>"bg"
+],
+
+[
+"type"=>"bar",
+"label"=>"Faixa alta",
+"data"=>array_fill(0,count($grafico),$faixa_max-$faixa_media),
+"backgroundColor"=>"rgba(33,150,243,0.15)",
+"stack"=>"bg"
 ]
 
 ]
@@ -281,55 +306,20 @@ $chartConfig = [
 
 "options" => [
 
-"scales" => [
+"scales"=>[
 
-"y" => [
-"beginAtZero" => true,
-"max" => $faixa_max
-]
-
+"x"=>[
+"stacked"=>true
 ],
 
-"plugins" => [
-
-"legend" => [
-"display" => true
-],
-
-"annotation" => [
-
-"annotations" => [
-
-[
-"type" => "box",
-"yMin" => 0,
-"yMax" => $faixa_ruim,
-"backgroundColor" => "rgba(255,152,0,0.15)"
-],
-
-[
-"type" => "box",
-"yMin" => $faixa_ruim,
-"yMax" => $faixa_media,
-"backgroundColor" => "rgba(76,175,80,0.15)"
-],
-
-[
-"type" => "box",
-"yMin" => $faixa_media,
-"yMax" => $faixa_max,
-"backgroundColor" => "rgba(33,150,243,0.15)"
+"y"=>[
+"beginAtZero"=>true,
+"max"=>$faixa_max
 ]
 
 ]
 
 ]
-
-]
-
-],
-
-"plugins" => ["annotation"]
 
 ];
 
