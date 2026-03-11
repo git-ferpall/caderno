@@ -147,9 +147,10 @@ $dt_fin = date("Y-m-t");
     name="produto"
     id="pf-produto"
     class="form-select form-text"
+    required
 >
 
-<option value="">Todos os produtos</option>
+<option value="" disabled selected>Selecione um produto</option>
 
 </select>
 
