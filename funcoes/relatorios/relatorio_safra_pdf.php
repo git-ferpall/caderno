@@ -273,7 +273,13 @@ $faixa_ruim  = $min;
 $faixa_media = $media;
 $faixa_boa   = $max;
 
-$faixa_max   = max(max($grafico), $max) * 1.2;
+$maiorGrafico = 0;
+
+if(count($grafico) > 0){
+    $maiorGrafico = max($grafico);
+}
+
+$faixa_max = max($maiorGrafico, $max) * 1.2;
 
 
 /* =====================================================
@@ -369,14 +375,8 @@ if(count($evolucao) > 0){
     $minEvo = min($evolucao);
     $maxEvo = max($evolucao);
 
-    $minGraf = 0;
-    $maxGraf = $maxEvo;
-
-    if($minEvo < 0){
-        $minGraf = $minEvo * 1.2;
-    }
-
-    $maxGraf = $maxGraf * 1.2;
+    $minGraf = min(0, $minEvo * 1.2);
+    $maxGraf = max(5, $maxEvo * 1.2);
 
 }
 
