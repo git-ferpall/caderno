@@ -1,35 +1,63 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-transplantio");
 
-  // === Função para carregar áreas nos selects ===
   function carregarAreas() {
-    fetch("../funcoes/buscar_areas.php")
-      .then(r => r.json())
-      .then(data => {
-        // Origem
-        document.querySelectorAll(".area-origem-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione a área de origem</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = `${item.nome} (${item.tipo})`;
-            sel.appendChild(opt);
-          });
+
+  fetch("../funcoes/buscar_areas.php")
+    .then(r => r.json())
+    .then(data => {
+
+      // ORIGEM
+      document.querySelectorAll(".area-origem-select").forEach(sel => {
+
+        const valorAtual = sel.value;
+
+        sel.innerHTML = '<option value="">Selecione a área de origem</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = `${item.nome} (${item.tipo})`;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
 
-        // Destino
-        document.querySelectorAll(".area-destino-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione a área de destino</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = `${item.nome} (${item.tipo})`;
-            sel.appendChild(opt);
-          });
+      });
+
+
+      // DESTINO
+      document.querySelectorAll(".area-destino-select").forEach(sel => {
+
+        const valorAtual = sel.value;
+
+        sel.innerHTML = '<option value="">Selecione a área de destino</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = `${item.nome} (${item.tipo})`;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
-      })
-      .catch(err => console.error("Erro ao carregar áreas:", err));
-  }
+
+      });
+
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
+
+}
 
   // === Função para carregar produtos ===
   function carregarProdutos() {
