@@ -1,40 +1,76 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   // === Função para carregar ÁREAS em todos os selects ===
-  function carregarAreas() {
-    fetch("../funcoes/buscar_areas.php")
-      .then(r => r.json())
-      .then(data => {
-        document.querySelectorAll(".area-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione a área</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = `${item.nome} (${item.tipo})`;
-            sel.appendChild(opt);
-          });
+  function carregarAreas(select = null) {
+
+  fetch("../funcoes/buscar_areas.php")
+    .then(r => r.json())
+    .then(data => {
+
+      const selects = select ? [select] : document.querySelectorAll(".area-select");
+
+      selects.forEach(sel => {
+
+        const valorAtual = sel.value; // guarda seleção atual
+
+        sel.innerHTML = '<option value="">Selecione a área</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = `${item.nome} (${item.tipo})`;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
-      })
-      .catch(err => console.error("Erro ao carregar áreas:", err));
-  }
+
+      });
+
+    })
+    .catch(err => console.error("Erro ao carregar áreas:", err));
+
+}
 
   // === Função para carregar PRODUTOS em todos os selects ===
-  function carregarProdutos() {
-    fetch("../funcoes/buscar_produtos.php")
-      .then(r => r.json())
-      .then(data => {
-        document.querySelectorAll(".produto-select").forEach(sel => {
-          sel.innerHTML = '<option value="">Selecione o produto</option>';
-          data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = item.nome;
-            sel.appendChild(opt);
-          });
+  function carregarProdutos(select = null) {
+
+  fetch("../funcoes/buscar_produtos.php")
+    .then(r => r.json())
+    .then(data => {
+
+      const selects = select ? [select] : document.querySelectorAll(".produto-select");
+
+      selects.forEach(sel => {
+
+        const valorAtual = sel.value;
+
+        sel.innerHTML = '<option value="">Selecione o produto</option>';
+
+        data.forEach(item => {
+
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+
+          if (item.id == valorAtual) {
+            opt.selected = true;
+          }
+
+          sel.appendChild(opt);
+
         });
-      })
-      .catch(err => console.error("Erro ao carregar produtos:", err));
-  }
+
+      });
+
+    })
+    .catch(err => console.error("Erro ao carregar produtos:", err));
+
+}
 
   /* ===============================
   ADICIONAR ÁREA
