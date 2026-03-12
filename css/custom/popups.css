@@ -91,6 +91,9 @@
     padding: 10px 15px;
     position: absolute;
     top: -21px;
+
+    max-height: 85vh;   /* altura máxima baseada na tela */
+    overflow-y: auto;   /* ativa barra de rolagem */
 }
 
 .popup-box .popup-overflow {
@@ -101,6 +104,8 @@
 
 .popup-box .main-form {
     padding: 26px 0px 10px;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 .prop-box {
@@ -115,4 +120,5 @@
 
 .prop-box.v2 {
     padding-top: 24px;
+
 }
