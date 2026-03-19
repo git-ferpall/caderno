@@ -64,7 +64,7 @@ try {
         VALUES (?, 'irrigacao', ?, ?, ?, ?, 'pendente')
     ");
 
-    $stmt->bind_param("isssss", 
+    $stmt->bind_param("isdsss", 
         $propriedade_id, 
         $data, 
         $volume_aplicado, 
