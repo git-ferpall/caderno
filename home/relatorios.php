@@ -87,7 +87,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <span class="card-icon">🛠️</span>
                                 <h3>Relatório Fitossanitário</h3>
                             </div>
-                            <p>Registros de visitas e recomendações técnicas.</p>
+                            <p>Registros de aplicações de defensivos, fertilizantes e intervenções no cultivo.</p>
                         </a>
 
                         <a href="relatorio_produtividade.php" class="card-relatorio">
