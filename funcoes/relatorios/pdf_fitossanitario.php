@@ -8,10 +8,10 @@ require_once __DIR__.'/../../vendor/autoload.php';
 
 use Mpdf\Mpdf;
 
-$data_ini = $_GET['data_ini'] ?? null;
-$data_fim = $_GET['data_fim'] ?? null;
-$areas    = $_GET['area'] ?? null;
-$props    = $_GET['propriedade'] ?? [];
+$data_ini = $_POST['data_ini'] ?? null;
+$data_fim = $_POST['data_fim'] ?? null;
+$areas    = $_POST['area'] ?? null;
+$props    = $_POST['propriedade'] ?? [];
 
 if (!is_array($props)) $props = [$props];
 
