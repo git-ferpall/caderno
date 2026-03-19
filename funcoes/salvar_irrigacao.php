@@ -60,10 +60,17 @@ try {
 
     // PRINCIPAL (quantidade = volume)
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, 'irrigacao', ?, ?, ?, 'pendente')
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, 'irrigacao', ?, ?, ?, ?, 'pendente')
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $volume_aplicado, $obs);
+
+    $stmt->bind_param("isssss", 
+        $propriedade_id, 
+        $data, 
+        $volume_aplicado, 
+        $unidade_volume, 
+        $obs
+    );
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
@@ -108,14 +115,7 @@ try {
         }
     }
 
-    // VOLUME (unidade)
-    if (!empty($unidade_volume)) {
-        $campo = "volume_unidade";
-        $valor = $unidade_volume;
-        $stmt->bind_param("iss", $apontamento_id, $campo, $valor);
-        $stmt->execute();
-    }
-
+    
     $stmt->close();
     $mysqli->commit();
 
