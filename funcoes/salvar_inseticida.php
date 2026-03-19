@@ -51,10 +51,11 @@ if (!$data || empty($areas) || !$inseticida || !$quantidade || !$unidade) {
 
 try {
     $mysqli->begin_transaction();
-
+    $tipo = "inseticida";
+    $status = "pendente";
     // Inserir apontamento principal
     $stmt = $mysqli->prepare("
-    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->bind_param("issdsss", $propriedade_id, $tipo, $data, $quantidade, $unidade, $obs, $status);
