@@ -35,11 +35,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <body>
 <?php include '../include/popups.php'; ?> 
 <?php include '../include/menu.php'; ?>
-<div id="loading" style="display:none;">
-  <img id="loading-img" src="" style="display:none;">
-  <img id="loading-image" src="" style="display:none;">
-  <img id="img-loading" src="" style="display:none;">
-  <img id="loading-logo" src="" style="display:none;">
+<div id="load" style="display:none;">
+  <img id="load-img" src="" style="display:none;">
 </div>
 <div id="pdf-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;">
     <div style="text-align:center">
