@@ -20,6 +20,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
     #lista-areas .form-box-area {
       margin-bottom: 5px;
     }
+    .linha .form-text {
+      width: auto;
+      flex: 2;
+    }
+
+    .linha .form-select {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
