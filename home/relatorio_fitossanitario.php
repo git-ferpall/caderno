@@ -103,54 +103,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 <script src="../js/relatorio_fitossanitario.js"></script>
 
-<script>
-// 🔥 carregar propriedades
-fetch("../funcoes/buscar_propriedades.php")
-.then(r => r.json())
-.then(data => {
 
-    const select = document.getElementById("pf-propriedades");
 
-    select.innerHTML = '<option value="">Selecione</option>';
-
-    data.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.nome_razao;
-        select.appendChild(opt);
-    });
-
-});
-
-// 🔥 carregar áreas conforme propriedade
-document.getElementById("pf-propriedades").addEventListener("change", function(){
-
-    const prop = this.value;
-
-    fetch("../funcoes/buscar_areas.php?propriedade_id="+prop)
-    .then(r => r.json())
-    .then(data => {
-
-        const select = document.getElementById("pf-area");
-
-        select.innerHTML = '<option value="">Todas as áreas</option>';
-
-        data.forEach(a => {
-            const opt = document.createElement("option");
-            opt.value = a.id;
-            opt.textContent = a.nome;
-            select.appendChild(opt);
-        });
-
-    });
-
-});
-
-// datas padrão
-document.getElementById("pf-ini").value = new Date().toISOString().slice(0,10).replace(/-\d+$/, "-01");
-document.getElementById("pf-fin").value = new Date().toISOString().slice(0,10);
-
-</script>
 
 </body>
 </html>
