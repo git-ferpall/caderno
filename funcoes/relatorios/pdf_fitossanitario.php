@@ -8,6 +8,10 @@ require_once __DIR__.'/../../vendor/autoload.php';
 
 use Mpdf\Mpdf;
 
+/* ===============================
+📥 PARAMETROS
+=============================== */
+
 $data_ini = $_POST['data_ini'] ?? null;
 $data_fim = $_POST['data_fim'] ?? null;
 $areas    = $_POST['area'] ?? null;
@@ -18,6 +22,10 @@ if (!is_array($props)) $props = [$props];
 if (!$data_ini || !$data_fim || empty($props)) {
     die("Parâmetros inválidos");
 }
+
+/* ===============================
+📌 TIPOS
+=============================== */
 
 $tipos = [
     'inseticida',
@@ -30,6 +38,10 @@ $tipos = [
 
 $in_props = implode(",", array_map('intval', $props));
 
+/* ===============================
+📌 FILTRO AREA
+=============================== */
+
 $filtro_area = "";
 if (!empty($areas)) {
     $filtro_area = "AND EXISTS (
@@ -40,6 +52,10 @@ if (!empty($areas)) {
     )";
 }
 
+/* ===============================
+📊 QUERY
+=============================== */
+
 $sql = "
 SELECT 
     ap.id,
@@ -47,55 +63,99 @@ SELECT
     ap.data,
     ap.quantidade,
     ap.unidade,
-    ap.status
+    ap.status,
+    ap.data_conclusao,
+
+    ar.nome as area_nome
+
 FROM apontamentos ap
+
+LEFT JOIN apontamento_detalhes ad 
+    ON ad.apontamento_id = ap.id 
+    AND ad.campo = 'area_id'
+
+LEFT JOIN areas ar 
+    ON ar.id = ad.valor
+
 WHERE ap.tipo IN ('".implode("','",$tipos)."')
 AND ap.propriedade_id IN ($in_props)
 AND ap.data BETWEEN '$data_ini' AND '$data_fim'
 $filtro_area
-ORDER BY ap.data DESC
+ORDER BY ar.nome, ap.data DESC
 ";
 
 $res = $mysqli->query($sql);
 
-$pendentes = [];
-$concluidos = [];
+if(!$res){
+    die("Erro SQL: ".$mysqli->error);
+}
+
+/* ===============================
+📊 AGRUPAR POR AREA
+=============================== */
+
+$dados_por_area = [];
 
 while($row = $res->fetch_assoc()){
 
+    $area_nome = $row['area_nome'] ?? 'Não informada';
+
+    if(!isset($dados_por_area[$area_nome])){
+        $dados_por_area[$area_nome] = [
+            'pendentes' => [],
+            'concluidos' => [],
+            'total' => 0
+        ];
+    }
+
+    // soma total (somente concluídos)
     if($row['status'] == 'concluido'){
-        $concluidos[] = $row;
+        $dados_por_area[$area_nome]['concluidos'][] = $row;
+        $dados_por_area[$area_nome]['total'] += floatval($row['quantidade']);
     }else{
-        $pendentes[] = $row;
+        $dados_por_area[$area_nome]['pendentes'][] = $row;
     }
 }
 
+/* ===============================
+📊 TABELA
+=============================== */
+
 function tabela($dados, $titulo){
 
-    $html = "<h2>$titulo</h2>";
+    $html = "<h3>$titulo</h3>";
 
     if(empty($dados)){
         return $html."<p>Nenhum registro</p>";
     }
 
     $html .= "<table border='1' width='100%' cellspacing='0' cellpadding='6'>
-        <thead>
+        <thead style='background:#eee;'>
             <tr>
                 <th>Data</th>
                 <th>Tipo</th>
                 <th>Quantidade</th>
                 <th>Status</th>
+                <th>Conclusão</th>
             </tr>
         </thead>
         <tbody>";
 
     foreach($dados as $d){
 
-        $html .= "<tr>
+        $cor = ($d['status'] == 'concluido') ? "#2e7d32" : "#c62828";
+        $bg  = ($d['status'] == 'concluido') ? "#e8f5e9" : "#ffebee";
+
+        $data_conclusao = !empty($d['data_conclusao']) 
+            ? date("d/m/Y", strtotime($d['data_conclusao'])) 
+            : "-";
+
+        $html .= "<tr style='background:$bg;'>
             <td>".date("d/m/Y", strtotime($d['data']))."</td>
             <td>".ucwords(str_replace("_"," ",$d['tipo']))."</td>
             <td>{$d['quantidade']} {$d['unidade']}</td>
-            <td>{$d['status']}</td>
+            <td style='color:$cor; font-weight:bold;'>".ucwords($d['status'])."</td>
+            <td>{$data_conclusao}</td>
         </tr>";
     }
 
@@ -104,13 +164,45 @@ function tabela($dados, $titulo){
     return $html;
 }
 
+/* ===============================
+📄 HTML
+=============================== */
+
 $html = "
 <h1>Relatório Fitossanitário</h1>
-<p>Período: ".date("d/m/Y",strtotime($data_ini))." até ".date("d/m/Y",strtotime($data_fim))."</p>
+<p><b>Período:</b> ".date("d/m/Y",strtotime($data_ini))." até ".date("d/m/Y",strtotime($data_fim))."</p>
 ";
 
-$html .= tabela($pendentes, "Pendentes");
-$html .= tabela($concluidos, "Concluídos");
+/* ===============================
+📊 LOOP AREAS
+=============================== */
+
+foreach($dados_por_area as $area => $dados){
+
+    $total = number_format($dados['total'], 2, ',', '.');
+
+    $html .= "
+    <div style='border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:15px;'>
+
+        <h2 style='background:#f1f1f1; padding:8px; border-radius:5px;'>
+            Área: $area
+        </h2>
+
+        <p style='font-size:14px;'>
+            <b>Total aplicado:</b> 
+            <span style='color:#2e7d32; font-weight:bold;'>$total</span>
+        </p>
+    ";
+
+    $html .= tabela($dados['pendentes'], "Pendentes");
+    $html .= tabela($dados['concluidos'], "Concluídos");
+
+    $html .= "</div>";
+}
+
+/* ===============================
+📄 MPDF
+=============================== */
 
 $mpdf = new Mpdf([
     'mode' => 'utf-8',
@@ -157,7 +249,7 @@ $mpdf->SetHTMLHeader('
 ');
 
 /* ===============================
-📄 FOOTER (PAGINAÇÃO)
+📄 FOOTER
 =============================== */
 
 $mpdf->SetHTMLFooter('
@@ -167,14 +259,10 @@ $mpdf->SetHTMLFooter('
 ');
 
 /* ===============================
-📑 CONTEÚDO
+📑 OUTPUT
 =============================== */
 
 $mpdf->WriteHTML($html);
-
-/* ===============================
-📤 OUTPUT
-=============================== */
 
 header('Content-Type: application/pdf');
 $mpdf->Output("relatorio_fitossanitario.pdf","I");
