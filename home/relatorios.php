@@ -13,164 +13,104 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 <style>
-    #pf-propriedades {
-    height: auto;
-    min-height: 48px;
-    max-height: 140px; /* define altura visível */
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background-color: #f8f8f8;
-    font-size: 15px;
-    overflow-y: auto;
-    cursor: pointer;
+.fundo-img {
+        background-image: url("../img/bg-sistema.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
     }
 
-    #pf-propriedades option {
-    padding: 6px;
+    /* overlay ocupa tela toda */
+    .overlay-conteudo {
+        min-height: 100vh;
+        padding: 60px 20px;
     }
 
-    #pf-propriedades option:checked {
-    background-color: #4caf50;
-    color: #fff;
-    }
-    .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #ddd;
-    border-top: 5px solid #4caf50;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: auto;
+    /* agora limitamos só o conteúdo */
+    .relatorios-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
     }
 
-    @keyframes spin {
-    100% { transform: rotate(360deg); }
+    /* grid */
+    .relatorios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+
+    /* cards */
+    .card-relatorio {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        text-decoration: none;
+        color: #333;
+        transition: 0.25s ease;
+    }
+
+    .card-relatorio:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.15);
     }
 </style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?> 
-    <div id="loading-overlay">
-        <div id="pdf-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;font-family:sans-serif;">
-            <div style="text-align:center">
-                <div class="spinner">
-                </div>
-                <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
-                Gerando relatório, aguarde...
-                </p>
-        </div>
-    </div>
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
+        <main id="relatorios" class="sistema fundo-img">
 
-        <?php
-        date_default_timezone_set("America/Sao_Paulo");
+            <div class="overlay-conteudo">
 
-        // Aqui vai uma função pra pegar as informações do sistema que, caso possua algum dado cadastrado, esse valor já é colocado automaticamente no campo passível de edição
+                <div class="page-title">
+                    <h2 class="main-title cor-branco">Central de Relatórios</h2>
+                </div>
 
-        $cultivos = [];
-        $areas = [];
-        $manejos = [];
+                <div class="relatorios-wrapper">
 
-        $dt_ini = date("Y-m-01");
-        $dt_fin = date("Y-m-t");
-        ?>
+                    <div class="relatorios-grid">
 
-        <main id="relatorios" class="sistema">
-            <div class="page-title">
-                <h2 class="main-title cor-branco">Relatórios</h2>
+                        <a href="relatorio_manejos.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">📊</span>
+                                <h3>Relatório de Manejos</h3>
+                            </div>
+                            <p>Aplicações, defensivos e operações realizadas.</p>
+                        </a>
+
+                        <a href="relatorio_fitossanitario.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">🛠️</span>
+                                <h3>Relatório Fitossanitário</h3>
+                            </div>
+                            <p>Registros de visitas e recomendações técnicas.</p>
+                        </a>
+
+                        <a href="relatorio_produtividade.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">📦</span>
+                                <h3>Relatório de Produção</h3>
+                            </div>
+                            <p>Resumo de colheita e produtividade.</p>
+                        </a>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="sistema-main">
-                <form action="relatorios.php" class="main-form container" id="rel-form">
-
-                    <div class="form-campo">
-                        <label for="pf-propriedades">Propriedades</label>
-                        <select name="pfpropriedades[]" id="pf-propriedades" class="form-select form-text f1" multiple required>
-                            <option value="">Carregando...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-campo">
-                        <label for="pf-cult">Cultivos</label>
-                        <select name="pfcult" id="pf-cult" class="form-select form-text f1" required>
-                            <option value="" selected>Todos os cultivos</option>
-                            <?php
-                            if (!empty($cultivos)) {
-                                foreach ($cultivos as $cultivo) {
-                                    echo '<option value="' . strtolower($cultivo) . '">' . $cultivo . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <div class="form-campo">
-                        <label for="pf-area">Áreas</label>
-                        <select name="pfarea" id="pf-area" class="form-select form-text f1" required>
-                            <option value="" selected>Todas as áreas</option>
-                            <?php
-                            if (!empty($areas)) {
-                                foreach ($areas as $area) {
-                                    echo '<option value="' . strtolower($area) . '">' . $area . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <div class="form-campo">
-                        <label for="pf-mane">Tipos de manejo</label>
-                        <select name="pfmane" id="pf-mane" class="form-select form-text f1" required>
-                            <option value="" selected>Todos os tipos de manejo</option>
-                            <?php
-                            if (!empty($manejos)) {
-                                foreach ($manejos as $manejo) {
-                                    echo '<option value="' . strtolower($manejo) . '">' . $manejo . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <div class="form-campo">
-                        <label for="pf-ini">Data Inicial</label>
-                        <input class="form-text only-num" type="date" name="pfini" id="pf-ini" value="<?php echo $dt_ini ?>" required>
-                    </div>
-
-                    <div class="form-campo">
-                        <label for="pf-fin">Data Final</label>
-                        <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?php echo $dt_fin ?>" required>
-                    </div>
-
-                    <div class="form-submit">
-                        <button class="main-btn fundo-laranja" id="form-pdf-relatorio" type="button">
-                            <!-- <div class="btn-icon icon-check cor-verde"></div> -->
-                            <span class="main-btn-text">Gerar PDF</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/relatorios.js"></script>
+        
     </div>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-    $('#pf-propriedades').select2({
-        placeholder: "Selecione uma ou mais propriedades",
-        width: '100%',
-        language: "pt-BR"
-    });
-    });
-    </script>
-
         
     <?php include '../include/footer.php' ?>
 </body>
