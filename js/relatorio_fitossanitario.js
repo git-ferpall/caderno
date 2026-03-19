@@ -1,144 +1,101 @@
-/**
- * RELATORIO FITOSSANITARIO.JS
- * Baseado no relatorios.js (mesma estrutura)
- */
-
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
 
   const selectProp = document.getElementById("pf-propriedades");
   const selectArea = document.getElementById("pf-area");
 
-  const loading = document.getElementById("pdf-loading");
-  const btn = document.getElementById("form-pdf-relatorio");
-  const form = document.getElementById("rel-form");
+  /* ===============================
+  🔹 CARREGAR PROPRIEDADES
+  =============================== */
 
-  // ===============================
-  // CARREGAR PROPRIEDADES + AREAS
-  // ===============================
-  async function carregarFiltros(propriedadesSelecionadas = []) {
-
+  async function carregarPropriedades() {
     try {
 
-      const params = new URLSearchParams();
-      propriedadesSelecionadas.forEach(id => params.append("propriedades[]", id));
+      const resp = await fetch("/funcoes/relatorios/buscar_propriedades_areas.php");
 
-      const resp = await fetch("../funcoes/relatorios/buscar_filtros_relatorio.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params.toString()
-      });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Erro HTTP:", txt);
+        throw new Error("Erro ao buscar propriedades");
+      }
 
       const data = await resp.json();
 
-      if (!data.ok) throw new Error(data.err || "Erro ao carregar filtros");
+      if (!data.ok) throw new Error(data.err || "Erro desconhecido");
 
-      // PROPRIEDADES (primeira carga)
-      if (!propriedadesSelecionadas.length && data.propriedades?.length) {
+      selectProp.innerHTML = '<option value="">Selecione</option>';
 
-        selectProp.innerHTML = "";
+      data.propriedades.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nome_razao;
+        selectProp.appendChild(opt);
+      });
 
-        data.propriedades.forEach(p => {
-          const opt = document.createElement("option");
-          opt.value = p.id;
-          opt.textContent = p.nome_razao + (p.ativo ? " (Ativa)" : "");
-          selectProp.appendChild(opt);
-        });
+    } catch (err) {
+      console.error("❌ Erro propriedades:", err);
+      alert("Erro ao carregar propriedades");
+    }
+  }
 
+  /* ===============================
+  🔹 CARREGAR ÁREAS
+  =============================== */
+
+  async function carregarAreas(propriedade_id) {
+
+    if (!propriedade_id) {
+      selectArea.innerHTML = '<option value="">Todas as áreas</option>';
+      return;
+    }
+
+    try {
+
+      const resp = await fetch(`/funcoes/relatorios/buscar_propriedades_areas.php?propriedade_id=${propriedade_id}`);
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Erro HTTP:", txt);
+        throw new Error("Erro ao buscar áreas");
       }
 
-      // ÁREAS
-      selectArea.innerHTML = "<option value='' selected>Todas as áreas</option>";
+      const data = await resp.json();
 
-      (data.areas || []).forEach(a => {
+      if (!data.ok) throw new Error(data.err || "Erro ao carregar áreas");
+
+      selectArea.innerHTML = '<option value="">Todas as áreas</option>';
+
+      if (data.areas.length === 0) {
+        selectArea.innerHTML += '<option disabled>Nenhuma área encontrada</option>';
+        return;
+      }
+
+      data.areas.forEach(a => {
         const opt = document.createElement("option");
-        opt.value = a.id || a; // compatível com os dois formatos
-        opt.textContent = a.nome || a;
+        opt.value = a.id;
+        opt.textContent = a.nome;
         selectArea.appendChild(opt);
       });
 
     } catch (err) {
-      console.error("Erro filtros:", err);
-      alert("Erro ao carregar filtros: " + err.message);
+      console.error("❌ Erro áreas:", err);
+      alert("Erro ao carregar áreas");
     }
-
   }
 
-  // inicial
-  await carregarFiltros();
+  /* ===============================
+  🔹 EVENTOS
+  =============================== */
 
-  // ===============================
-  // CHANGE SELECT2
-  // ===============================
-  $(document).on('change', '#pf-propriedades', function () {
+  if (selectProp) {
+    selectProp.addEventListener("change", function () {
+      carregarAreas(this.value);
+    });
+  }
 
-    const selecionadas = $(this).val() || [];
+  /* ===============================
+  🚀 INIT
+  =============================== */
 
-    if (selecionadas.length > 0) {
-      carregarFiltros(selecionadas);
-    } else {
-      selectArea.innerHTML = "<option value='' selected>Todas as áreas</option>";
-    }
-
-  });
-
-  // ===============================
-  // GERAR PDF
-  // ===============================
-  btn.addEventListener("click", async (e) => {
-
-    e.preventDefault();
-
-    if (btn.disabled) return;
-
-    try {
-
-      const props = $("#pf-propriedades").val();
-      const data_ini = document.getElementById("pf-ini").value;
-      const data_fim = document.getElementById("pf-fin").value;
-
-      if (!props || props.length === 0) {
-        alert("Selecione ao menos uma propriedade");
-        return;
-      }
-
-      if (!data_ini || !data_fim) {
-        alert("Informe o período");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.style.opacity = "0.6";
-
-      if (loading) loading.style.display = "flex";
-
-      const formData = new FormData(form);
-
-      const resp = await fetch("../relatorios/pdf_fitossanitario.php", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!resp.ok) throw new Error("Erro ao gerar PDF");
-
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-
-      window.open(url, "_blank");
-
-    } catch (err) {
-
-      console.error(err);
-      alert("❌ Falha ao gerar relatório: " + err.message);
-
-    } finally {
-
-      if (loading) loading.style.display = "none";
-
-      btn.disabled = false;
-      btn.style.opacity = "1";
-
-    }
-
-  });
+  carregarPropriedades();
 
 });

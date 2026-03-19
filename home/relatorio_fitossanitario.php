@@ -33,12 +33,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 </head>
 
 <body>
-
-<div id="loading"></div> <!-- 👈 deixa assim, sem display:none -->
-
-<?php include '../include/loading.php'; ?> 
-<?php include '../include/popups.php'; ?> 
-<?php include '../include/menu.php'; ?>
+<div id="loading" style="display:none;"></div>
 
 <?php include '../include/loading.php'; ?> 
 <?php include '../include/popups.php'; ?> 
