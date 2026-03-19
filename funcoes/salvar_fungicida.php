@@ -35,13 +35,14 @@ $fungicida        = $_POST['fungicida'] ?? null;
 $fungicida_outro  = $_POST['fungicida_outro'] ?? null;
 $quantidade       = $_POST['quantidade'] ?? null;
 $obs              = $_POST['obs'] ?? null;
+$unidade          = $_POST['unidade'] ?? null;
 
 // Se o usuário escolheu "Outro", usa o nome digitado
 if ($fungicida === 'outro' && !empty($fungicida_outro)) {
     $fungicida = trim($fungicida_outro);
 }
 
-if (!$data || empty($areas) || !$fungicida || !$quantidade) {
+if (!$data || empty($areas) || !$fungicida || !$quantidade || !$unidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
     exit;
 }
@@ -53,10 +54,10 @@ try {
     $status = "pendente";
 
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issdss", $propriedade_id, $tipo, $data, $quantidade, $obs, $status);
+    $stmt->bind_param("issdsss", $propriedade_id, $tipo, $data, $quantidade, $unidade, $obs, $status);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
