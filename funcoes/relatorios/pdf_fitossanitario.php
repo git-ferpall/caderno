@@ -155,6 +155,20 @@ while($row = $res->fetch_assoc()){
     }
 }
 
+function nomeTipo($tipo){
+
+    $mapa = [
+        'inseticida'         => 'Inseticida',
+        'herbicida'          => 'Herbicida',
+        'fertilizante'       => 'Fertilizante',
+        'fungicida'          => 'Fungicida',
+        'adubacao_organica'  => 'Adubação Orgânica',
+        'adubacao_calcario'  => 'Adubação Calcário'
+    ];
+
+    return $mapa[$tipo] ?? ucfirst($tipo);
+}
+
 /* ===============================
 📊 TABELA
 =============================== */
@@ -189,7 +203,7 @@ function tabela($dados, $titulo){
 
         $html .= "<tr style='background:$bg'>
             <td>".date("d/m/Y", strtotime($d['data']))."</td>
-            <td>".ucwords(str_replace("_"," ",$d['tipo']))."</td>
+            <td>".nomeTipo($d['tipo'])."</td>
             <td>{$d['quantidade']} {$d['unidade']}</td>
             <td style='color:$cor; font-weight:bold;'>".ucwords($d['status'])."</td>
             <td>$data_conclusao</td>
