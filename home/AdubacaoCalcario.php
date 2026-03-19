@@ -123,6 +123,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
               <select name="unidade" class="form-select form-text" required>
                 <option value="ton">Toneladas</option>
                 <option value="kg">Kg</option>
+                <option value="l">Litros</option>
+                <option value="ml">Mililitros</option>
+                <option value="g">Gramas</option>
               </select>
             </div>
           </div>
