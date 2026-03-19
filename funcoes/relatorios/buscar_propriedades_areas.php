@@ -30,7 +30,6 @@ try {
         SELECT id, nome_razao
         FROM propriedades
         WHERE user_id = ?
-        AND ativo = 1
         ORDER BY nome_razao
     ");
     $stmt->bind_param("i", $user_id);
