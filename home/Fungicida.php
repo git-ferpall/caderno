@@ -83,8 +83,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
           Solicitar cadastro de novo fungicida
         </button> -->
 
-        <!-- Quantidade -->
-        <label>Quantidade</label>
+        <div class="form-campo">
+          <label>Quantidade</label>
+
           <div class="linha">
             <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 5" required>
 
@@ -95,6 +96,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
               <option value="g">Gramas</option>
             </select>
           </div>
+        </div>
 
         <!-- Observações -->
         <div class="form-campo">
