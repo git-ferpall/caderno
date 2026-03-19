@@ -222,7 +222,7 @@ foreach($dados_por_area as $area => $dados){
 
         if($valor <= 0) continue; // NÃO MOSTRA ZERO
 
-        $valor_formatado = number_format($valor, 2, ',', '.');
+        $valor_formatado = number_format($valor, 3, ',', '.');
 
         $html .= "<span style='color:#2e7d32; font-weight:bold;'>
             $valor_formatado $un
