@@ -149,9 +149,11 @@ carregarInseticidas();
         .then(res => {
           if (res.ok) {
             showPopup("success", res.msg || "Inseticida salvo com sucesso!");
-            form.reset();
-            carregarAreas();
-            carregarInseticidas();
+
+            setTimeout(() => {
+              window.location.href = "apontamento.php";
+            }, 1200);
+
           } else {
             showPopup("failed", res.err || "Erro ao salvar inseticida.");
           }
