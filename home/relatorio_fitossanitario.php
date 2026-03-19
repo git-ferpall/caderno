@@ -109,6 +109,23 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <script src="../js/relatorio_fitossanitario.js"></script>
 
 <script>
+// 🔥 carregar propriedades
+fetch("../funcoes/buscar_propriedades.php")
+.then(r => r.json())
+.then(data => {
+
+    const select = document.getElementById("pf-propriedades");
+
+    select.innerHTML = '<option value="">Selecione</option>';
+
+    data.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nome_razao;
+        select.appendChild(opt);
+    });
+
+});
 
 // 🔥 carregar áreas conforme propriedade
 document.getElementById("pf-propriedades").addEventListener("change", function(){
