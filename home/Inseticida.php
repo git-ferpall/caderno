@@ -37,6 +37,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .remove-btn:hover{
       background:#c9302c;
     }
+    .linha .form-text {
+      width: auto;
+      flex: 2;
+    }
+
+    .linha .form-select {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -94,8 +102,18 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <!-- Quantidade -->
         <div class="form-campo">
-          <label for="quantidade">Quantidade Aplicada (L)</label>
-          <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 5" required>
+          <label>Quantidade</label>
+
+          <div class="linha">
+            <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 5" required>
+
+            <select name="unidade" class="form-select form-text" required>
+              <option value="l">Litros</option>
+              <option value="ml">Mililitros</option>
+              <option value="kg">Kg</option>
+              <option value="g">Gramas</option>
+            </select>
+          </div>
         </div>
 
         <!-- Observações -->

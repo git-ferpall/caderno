@@ -37,13 +37,14 @@ $inseticida       = $_POST['inseticida'] ?? null;
 $inseticida_outro = $_POST['inseticida_outro'] ?? null;
 $quantidade       = $_POST['quantidade'] ?? null;
 $obs              = $_POST['obs'] ?? null;
+$unidade          = $_POST['unidade'] ?? null;
 
 // Se o usuário escolheu "Outro", usa o nome digitado
 if ($inseticida === 'outro' && !empty($inseticida_outro)) {
     $inseticida = trim($inseticida_outro);
 }
 
-if (!$data || empty($areas) || !$inseticida || !$quantidade) {
+if (!$data || empty($areas) || !$inseticida || !$quantidade || !$unidade) {
     echo json_encode(['ok' => false, 'err' => 'Preencha todos os campos obrigatórios']);
     exit;
 }
@@ -53,10 +54,10 @@ try {
 
     // Inserir apontamento principal
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, 'inseticida', ?, ?, ?, 'pendente')
+    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("isds", $propriedade_id, $data, $quantidade, $obs);
+    $stmt->bind_param("issdsss", $propriedade_id, $tipo, $data, $quantidade, $unidade, $obs, $status);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
