@@ -99,7 +99,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 </div>
 
 <?php include '../include/imports.php'; ?>
-<div id="footer">  ✅ IMPORTANTE
+<div id="footer">  
   <?php include '../include/footer.php'; ?>
 </div>
 <script src="../js/relatorio_fitossanitario.js"></script>
