@@ -1,0 +1,155 @@
+<?php
+require_once __DIR__ . '/../configuracao/protect.php';
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Relatório Fitossanitário - Frutag</title>
+
+<link rel="stylesheet" href="../css/style.css">
+<link rel="icon" type="image/png" href="/img/logo-icon.png">
+
+<style>
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ddd;
+    border-top: 5px solid #4caf50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+</style>
+</head>
+
+<body>
+
+<?php include '../include/loading.php'; ?> 
+<?php include '../include/popups.php'; ?> 
+<?php include '../include/menu.php'; ?>
+
+<div id="pdf-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;">
+    <div style="text-align:center">
+        <div class="spinner"></div>
+        <p style="margin-top:10px;font-weight:bold;color:#2e7d32">
+            Gerando relatório, aguarde...
+        </p>
+    </div>
+</div>
+
+<main class="sistema">
+
+    <div class="page-title">
+        <h2 class="main-title cor-branco">Controle Fitossanitário</h2>
+    </div>
+
+    <div class="sistema-main container">
+
+        <form id="rel-form" class="main-form">
+
+            <!-- PROPRIEDADE -->
+            <div class="form-campo">
+                <label>Propriedade</label>
+                <select id="pf-propriedades" class="form-select form-text" required>
+                    <option value="">Carregando...</option>
+                </select>
+            </div>
+
+            <!-- ÁREA -->
+            <div class="form-campo">
+                <label>Área (opcional)</label>
+                <select id="pf-area" class="form-select form-text">
+                    <option value="">Todas as áreas</option>
+                </select>
+            </div>
+
+            <!-- PERÍODO -->
+            <div class="form-campo">
+                <label>Data Inicial</label>
+                <input type="date" id="pf-ini" class="form-text" required>
+            </div>
+
+            <div class="form-campo">
+                <label>Data Final</label>
+                <input type="date" id="pf-fin" class="form-text" required>
+            </div>
+
+            <!-- BOTÃO -->
+            <div class="form-submit">
+                <button type="button" class="main-btn fundo-verde" id="form-pdf-relatorio">
+                    <span class="main-btn-text">Gerar PDF</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<?php include '../include/imports.php'; ?>
+<?php include '../include/footer.php'; ?>
+
+<script src="../js/relatorio_fitossanitario.js"></script>
+
+<script>
+// 🔥 carregar propriedades
+fetch("../funcoes/buscar_propriedades.php")
+.then(r => r.json())
+.then(data => {
+
+    const select = document.getElementById("pf-propriedades");
+
+    select.innerHTML = '<option value="">Selecione</option>';
+
+    data.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nome_razao;
+        select.appendChild(opt);
+    });
+
+});
+
+// 🔥 carregar áreas conforme propriedade
+document.getElementById("pf-propriedades").addEventListener("change", function(){
+
+    const prop = this.value;
+
+    fetch("../funcoes/buscar_areas.php?propriedade_id="+prop)
+    .then(r => r.json())
+    .then(data => {
+
+        const select = document.getElementById("pf-area");
+
+        select.innerHTML = '<option value="">Todas as áreas</option>';
+
+        data.forEach(a => {
+            const opt = document.createElement("option");
+            opt.value = a.id;
+            opt.textContent = a.nome;
+            select.appendChild(opt);
+        });
+
+    });
+
+});
+
+// datas padrão
+document.getElementById("pf-ini").value = new Date().toISOString().slice(0,10).replace(/-\d+$/, "-01");
+document.getElementById("pf-fin").value = new Date().toISOString().slice(0,10);
+
+</script>
+
+</body>
+</html>
