@@ -33,7 +33,12 @@ require_once __DIR__ . '/../configuracao/protect.php';
 </head>
 
 <body>
-<div id="loading" style="display:none;"></div>
+
+<div id="loading"></div> <!-- 👈 deixa assim, sem display:none -->
+
+<?php include '../include/loading.php'; ?> 
+<?php include '../include/popups.php'; ?> 
+<?php include '../include/menu.php'; ?>
 
 <?php include '../include/loading.php'; ?> 
 <?php include '../include/popups.php'; ?> 
@@ -104,23 +109,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 <script src="../js/relatorio_fitossanitario.js"></script>
 
 <script>
-// 🔥 carregar propriedades
-fetch("../funcoes/buscar_propriedades.php")
-.then(r => r.json())
-.then(data => {
-
-    const select = document.getElementById("pf-propriedades");
-
-    select.innerHTML = '<option value="">Selecione</option>';
-
-    data.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.nome_razao;
-        select.appendChild(opt);
-    });
-
-});
 
 // 🔥 carregar áreas conforme propriedade
 document.getElementById("pf-propriedades").addEventListener("change", function(){
