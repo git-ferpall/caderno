@@ -51,9 +51,10 @@ try {
     $forma_aplicacao  = $_POST['forma_aplicacao'] ?? null;
     $n_referencia     = $_POST['n_referencia'] ?? null;
     $obs              = $_POST['obs'] ?? null;
+    $unidade = $_POST['unidade'] ?? null;
 
     // Validação básica
-    if (!$data || !$tipo || !$quantidade || empty($areas) || empty($produtos)) {
+    if (!$data || !$tipo || !$quantidade || !$unidade || empty($areas) || empty($produtos)) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
@@ -62,10 +63,10 @@ try {
 
     // Inserir registro principal
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
-        VALUES (?, 'adubacao_organica', ?, ?, ?, 'pendente')
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, 'adubacao_organica', ?, ?, ?, ?, 'pendente')
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $quantidade, $obs);
+    $stmt->bind_param("issss", $propriedade_id, $data, $quantidade, $unidade, $obs);
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
