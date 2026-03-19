@@ -49,8 +49,8 @@ try {
 
     // === apontamentos (principal)
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
-        VALUES (?, 'controle_agua', ?, ?, ?, 'pendente')
+    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+        VALUES (?, 'controle_agua', ?, ?, ?, ?, 'pendente')
     ");
     $stmt->bind_param("isdss", 
         $propriedade_id, 
