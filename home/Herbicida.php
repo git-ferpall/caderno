@@ -37,6 +37,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .remove-btn:hover{
       background:#c9302c;
     }
+    .linha .form-text {
+      width: auto;
+      flex: 2;
+    }
+
+    .linha .form-select {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
