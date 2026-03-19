@@ -46,57 +46,60 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </p>
     </div>
 </div>
+<div id="conteudo">
+    <main class="sistema">
 
-<main class="sistema">
+        <div class="page-title">
+            <h2 class="main-title cor-branco">Controle Fitossanitário</h2>
+        </div>
 
-    <div class="page-title">
-        <h2 class="main-title cor-branco">Controle Fitossanitário</h2>
-    </div>
+        <div class="sistema-main container">
 
-    <div class="sistema-main container">
+            <form id="rel-form" class="main-form">
 
-        <form id="rel-form" class="main-form">
+                <!-- PROPRIEDADE -->
+                <div class="form-campo">
+                    <label>Propriedade</label>
+                    <select id="pf-propriedades" class="form-select form-text" required>
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
 
-            <!-- PROPRIEDADE -->
-            <div class="form-campo">
-                <label>Propriedade</label>
-                <select id="pf-propriedades" class="form-select form-text" required>
-                    <option value="">Carregando...</option>
-                </select>
-            </div>
+                <!-- ÁREA -->
+                <div class="form-campo">
+                    <label>Área (opcional)</label>
+                    <select id="pf-area" class="form-select form-text">
+                        <option value="">Todas as áreas</option>
+                    </select>
+                </div>
 
-            <!-- ÁREA -->
-            <div class="form-campo">
-                <label>Área (opcional)</label>
-                <select id="pf-area" class="form-select form-text">
-                    <option value="">Todas as áreas</option>
-                </select>
-            </div>
+                <!-- PERÍODO -->
+                <div class="form-campo">
+                    <label>Data Inicial</label>
+                    <input type="date" id="pf-ini" class="form-text" required>
+                </div>
 
-            <!-- PERÍODO -->
-            <div class="form-campo">
-                <label>Data Inicial</label>
-                <input type="date" id="pf-ini" class="form-text" required>
-            </div>
+                <div class="form-campo">
+                    <label>Data Final</label>
+                    <input type="date" id="pf-fin" class="form-text" required>
+                </div>
 
-            <div class="form-campo">
-                <label>Data Final</label>
-                <input type="date" id="pf-fin" class="form-text" required>
-            </div>
+                <!-- BOTÃO -->
+                <div class="form-submit">
+                    <button type="button" class="main-btn fundo-verde" id="form-pdf-relatorio">
+                        <span class="main-btn-text">Gerar PDF</span>
+                    </button>
+                </div>
 
-            <!-- BOTÃO -->
-            <div class="form-submit">
-                <button type="button" class="main-btn fundo-verde" id="form-pdf-relatorio">
-                    <span class="main-btn-text">Gerar PDF</span>
-                </button>
-            </div>
+            </form>
 
-        </form>
+        </div>
 
-    </div>
-
-</main>
-
+    </main>
+</div>
+<div id="footer">  ✅ IMPORTANTE
+  <?php include '../include/footer.php'; ?>
+</div>
 <?php include '../include/imports.php'; ?>
 <?php include '../include/footer.php'; ?>
 
