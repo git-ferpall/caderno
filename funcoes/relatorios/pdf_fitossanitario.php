@@ -269,13 +269,67 @@ foreach($dados as $prop => $areas){
 📄 MPDF
 =============================== */
 
+/* ===============================
+📄 MPDF
+=============================== */
+
 $mpdf = new Mpdf([
-    'mode'=>'utf-8',
-    'format'=>'A4',
-    'margin_top'=>45,
-    'margin_bottom'=>20,
-    'tempDir'=>__DIR__.'/../../tmp/mpdf'
+    'mode' => 'utf-8',
+    'format' => 'A4',
+    'margin_top' => 45,
+    'margin_bottom' => 20,
+    'tempDir' => __DIR__ . '/../../tmp/mpdf'
 ]);
+
+/* ===============================
+🎨 LOGOS
+=============================== */
+
+$logo_frutag = __DIR__ . '/../../img/logo-frutag.png';
+$logo_caderno = __DIR__ . '/../../img/logo-color.png';
+
+$img_frutag = file_exists($logo_frutag) ? base64_encode(file_get_contents($logo_frutag)) : '';
+$img_caderno = file_exists($logo_caderno) ? base64_encode(file_get_contents($logo_caderno)) : '';
+
+/* ===============================
+🧾 HEADER
+=============================== */
+
+$mpdf->SetHTMLHeader('
+<div style="border-bottom:1px solid #ccc; padding-bottom:5px; font-family:sans-serif;">
+    
+    <div style="width:33%; float:left;">
+        <img src="data:image/png;base64,' . $img_frutag . '" width="110">
+    </div>
+
+    <div style="width:34%; float:left; text-align:center; font-weight:bold; font-size:16px; color:#2e7d32;">
+        Relatório Fitossanitário<br>
+        <span style="font-size:12px; color:#666;">
+            Período: '.date("d/m/Y",strtotime($data_ini)).' até '.date("d/m/Y",strtotime($data_fim)).'
+        </span>
+    </div>
+
+    <div style="width:33%; float:right; text-align:right;">
+        <img src="data:image/png;base64,' . $img_caderno . '" width="110">
+    </div>
+
+    <div style="clear:both;"></div>
+</div>
+');
+
+/* ===============================
+📄 FOOTER
+=============================== */
+
+$mpdf->SetHTMLFooter('
+<div style="border-top:1px solid #ccc; text-align:center; font-size:10px; color:#777; padding-top:4px;">
+    Página {PAGENO} de {nb} | Gerado em ' . date('d/m/Y H:i') . '
+</div>
+');
+
+/* ===============================
+📤 OUTPUT
+=============================== */
 
 $mpdf->WriteHTML($html);
 
