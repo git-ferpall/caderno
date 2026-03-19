@@ -109,8 +109,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <!-- Quantidade -->
           <div class="form-campo">
-            <label for="quantidade">Quantidade (t/ha)</label>
-            <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 2.5" step="0.01" required>
+            <label>Quantidade</label>
+
+            <div class="linha">
+              <input type="number" 
+                    id="quantidade" 
+                    name="quantidade" 
+                    class="form-text" 
+                    placeholder="Ex: 2.5" 
+                    step="0.01" 
+                    required>
+
+              <select name="unidade" class="form-select form-text" required>
+                <option value="ton">Toneladas</option>
+                <option value="kg">Kg</option>
+              </select>
+            </div>
           </div>
 
           <!-- PRNT -->
