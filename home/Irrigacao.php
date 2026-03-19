@@ -120,11 +120,8 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
           <div class="linha">
             <input type="number" 
-                  id="volume_aplicado" 
                   name="volume_aplicado" 
                   class="form-text" 
-                  placeholder="Ex: 3000" 
-                  step="0.01" 
                   required>
 
             <select name="unidade_volume" class="form-select form-text" required>
