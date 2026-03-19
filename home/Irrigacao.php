@@ -96,14 +96,42 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <!-- Tempo de irrigação -->
         <div class="form-campo">
-          <label for="tempo_irrigacao">Tempo de irrigação (horas)</label>
-          <input type="number" id="tempo_irrigacao" name="tempo_irrigacao" class="form-text" placeholder="Ex: 2.5" step="0.01" required>
+          <label>Tempo de irrigação</label>
+
+          <div class="linha">
+            <input type="number" 
+                  id="tempo_irrigacao" 
+                  name="tempo_irrigacao" 
+                  class="form-text" 
+                  placeholder="Ex: 2.5" 
+                  step="0.01" 
+                  required>
+
+            <select name="unidade_tempo" class="form-select form-text" required>
+              <option value="h">Horas</option>
+              <option value="min">Minutos</option>
+            </select>
+          </div>
         </div>
 
         <!-- Volume aplicado -->
         <div class="form-campo">
-          <label for="volume_aplicado">Volume aplicado (L ou m³)</label>
-          <input type="number" id="volume_aplicado" name="volume_aplicado" class="form-text" placeholder="Ex: 3000" step="0.01" required>
+          <label>Volume aplicado</label>
+
+          <div class="linha">
+            <input type="number" 
+                  id="volume_aplicado" 
+                  name="volume_aplicado" 
+                  class="form-text" 
+                  placeholder="Ex: 3000" 
+                  step="0.01" 
+                  required>
+
+            <select name="unidade_volume" class="form-select form-text" required>
+              <option value="l">Litros</option>
+              <option value="m3">m³</option>
+            </select>
+          </div>
         </div>
 
         <!-- Observações -->
