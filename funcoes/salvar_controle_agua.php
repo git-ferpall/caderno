@@ -37,6 +37,7 @@ try {
     $volume      = $_POST['volume'] ?? null;
     $finalidade  = $_POST['finalidade'] ?? null;
     $obs         = $_POST['obs'] ?? null;
+    $unidade_volume = $_POST['unidade_volume'] ?? null;
 
     if (!is_array($fontes)) $fontes = [$fontes];
 
@@ -48,10 +49,16 @@ try {
 
     // === apontamentos (principal)
     $stmt = $mysqli->prepare("
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
         VALUES (?, 'controle_agua', ?, ?, ?, 'pendente')
     ");
-    $stmt->bind_param("isss", $propriedade_id, $data, $volume, $obs);
+    $stmt->bind_param("isdss", 
+        $propriedade_id, 
+        $data, 
+        $volume, 
+        $unidade_volume, 
+        $obs
+    );
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
     $stmt->close();

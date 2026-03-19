@@ -82,8 +82,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <!-- Volume -->
         <div class="form-campo">
-          <label for="volume">Volume captado (L ou m³)</label>
-          <input type="number" id="volume" name="volume" class="form-text" step="0.01" placeholder="Ex: 15000" required>
+          <label>Volume captado</label>
+
+          <div class="linha">
+            <input type="number" 
+                  id="volume" 
+                  name="volume" 
+                  class="form-text" 
+                  step="0.01" 
+                  placeholder="Ex: 15000" 
+                  required>
+
+            <select name="unidade_volume" class="form-select form-text" required>
+              <option value="l">Litros</option>
+              <option value="m3">m³</option>
+            </select>
+          </div>
         </div>
 
         <!-- Finalidade -->
