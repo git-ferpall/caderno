@@ -41,7 +41,7 @@ try {
 
     if (!is_array($fontes)) $fontes = [$fontes];
 
-    if (!$data || !$volume || empty($fontes)) {
+    if (!$data || !$volume || !$unidade_volume || empty($fontes)) {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
