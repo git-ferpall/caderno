@@ -74,7 +74,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     <div class="relatorios-grid">
 
-                        <a href="relatorio_manejos.php" class="card-relatorio">
+                        <a href="relatorios_manejos.php" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">📊</span>
                                 <h3>Relatório de Manejos</h3>
