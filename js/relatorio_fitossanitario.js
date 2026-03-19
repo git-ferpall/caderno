@@ -99,3 +99,58 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarPropriedades();
 
 });
+
+/* ===============================
+📄 GERAR PDF
+=============================== */
+
+const btnPDF = document.getElementById("form-pdf-relatorio");
+
+if (btnPDF) {
+
+  btnPDF.addEventListener("click", async () => {
+
+    console.log("🟢 clicou gerar PDF");
+
+    const form = document.getElementById("rel-form");
+    const loading = document.getElementById("pdf-loading");
+
+    if (loading) loading.style.display = "flex";
+
+    const formData = new FormData();
+
+    formData.append("propriedade", document.getElementById("pf-propriedades").value);
+    formData.append("area", document.getElementById("pf-area").value);
+    formData.append("data_ini", document.getElementById("pf-ini").value);
+    formData.append("data_fim", document.getElementById("pf-fin").value);
+
+    try {
+
+      const resp = await fetch("/funcoes/relatorios/pdf_fitossanitario.php", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!resp.ok) {
+        throw new Error("Erro ao gerar PDF");
+      }
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, "_blank");
+
+    } catch (err) {
+
+      console.error("❌ erro PDF:", err);
+      alert("Erro ao gerar PDF");
+
+    } finally {
+
+      if (loading) loading.style.display = "none";
+
+    }
+
+  });
+
+}
