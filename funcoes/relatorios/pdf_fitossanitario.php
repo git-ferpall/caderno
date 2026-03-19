@@ -216,7 +216,7 @@ $html = "
 
 foreach($dados as $prop => $areas){
 
-    $html .= "<h1 style='margin-top:20px;'>🏡 Propriedade: $prop</h1>";
+    $html .= "<h1 style='margin-top:20px;'>Propriedade: $prop</h1>";
 
     foreach($areas as $area => $d){
 
@@ -232,11 +232,11 @@ foreach($dados as $prop => $areas){
         <div style='border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:20px;'>
 
             <div style='background:#2e7d32; color:white; padding:10px; border-radius:5px;'>
-                📍 Área: <b>$area</b>
+                Área: <b>$area</b>
             </div>
 
             <p style='margin-top:10px;'>
-                📊 <b>Eficiência:</b> 
+                <b>Eficiência:</b> 
                 <span style='color:$cor; font-weight:bold;'>$ef_format%</span>
             </p>
 
