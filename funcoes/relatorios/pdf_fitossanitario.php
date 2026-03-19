@@ -93,12 +93,44 @@ if(!$res){
 📊 AGRUPAMENTO (AREA + UNIDADE)
 =============================== */
 
+function converterUnidade($quantidade, $unidade){
+
+    $u = strtolower(trim($unidade));
+
+    switch($u){
+
+        // líquidos → base L
+        case 'ml':
+            return [$quantidade / 1000, 'L'];
+
+        case 'l':
+        case 'litro':
+        case 'litros':
+            return [$quantidade, 'L'];
+
+        // peso → base kg
+        case 'ton':
+        case 't':
+            return [$quantidade * 1000, 'kg'];
+
+        case 'kg':
+            return [$quantidade, 'kg'];
+
+        default:
+            return [$quantidade, $unidade];
+    }
+}
+
 $dados_por_area = [];
 
 while($row = $res->fetch_assoc()){
 
     $area_nome = $row['area_nome'] ?? 'Não informada';
-    $unidade   = $row['unidade'] ?? '';
+
+    list($qtd_convertida, $unidade_base) = converterUnidade(
+        floatval($row['quantidade']),
+        $row['unidade']
+    );
 
     if(!isset($dados_por_area[$area_nome])){
         $dados_por_area[$area_nome] = [
@@ -108,21 +140,20 @@ while($row = $res->fetch_assoc()){
         ];
     }
 
-    if(!isset($dados_por_area[$area_nome]['totais'][$unidade])){
-        $dados_por_area[$area_nome]['totais'][$unidade] = 0;
+    if(!isset($dados_por_area[$area_nome]['totais'][$unidade_base])){
+        $dados_por_area[$area_nome]['totais'][$unidade_base] = 0;
     }
 
     if($row['status'] == 'concluido'){
         $dados_por_area[$area_nome]['concluidos'][] = $row;
 
-        // soma por unidade
-        $dados_por_area[$area_nome]['totais'][$unidade] += floatval($row['quantidade']);
+        // soma já convertido
+        $dados_por_area[$area_nome]['totais'][$unidade_base] += $qtd_convertida;
 
     }else{
         $dados_por_area[$area_nome]['pendentes'][] = $row;
     }
 }
-
 /* ===============================
 📊 TABELA
 =============================== */
@@ -185,31 +216,26 @@ $html = "
 
 foreach($dados_por_area as $area => $dados){
 
-    $html .= "
-    <div style='border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:15px;'>
-
-        <h2 style='background:#f1f1f1; padding:8px; border-radius:5px;'>
-            Área: $area
-        </h2>
-
-        <p style='font-size:14px;'><b>Total aplicado:</b><br>
-    ";
+    $html .= "<p style='font-size:14px;'><b>Total aplicado:</b><br>";
 
     foreach($dados['totais'] as $un => $valor){
-        $valor = number_format($valor, 2, ',', '.');
+
+        if($valor <= 0) continue; // NÃO MOSTRA ZERO
+
+        $valor_formatado = number_format($valor, 2, ',', '.');
 
         $html .= "<span style='color:#2e7d32; font-weight:bold;'>
-            $valor $un
+            $valor_formatado $un
         </span><br>";
     }
 
     $html .= "</p>";
 
-    $html .= tabela($dados['pendentes'], "Pendentes");
-    $html .= tabela($dados['concluidos'], "Concluídos");
+        $html .= tabela($dados['pendentes'], "Pendentes");
+        $html .= tabela($dados['concluidos'], "Concluídos");
 
-    $html .= "</div>";
-}
+        $html .= "</div>";
+    }
 
 /* ===============================
 📄 MPDF
