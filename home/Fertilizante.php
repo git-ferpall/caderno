@@ -37,6 +37,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
     .remove-btn:hover{
       background:#c9302c;
     }
+    .linha input {
+      flex: 2;
+    }
+
+    .linha select {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -95,8 +102,25 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 
         <div class="form-campo">
-          <label for="quantidade">Quantidade (Kg)</label>
-          <input type="number" id="quantidade" name="quantidade" class="form-text" placeholder="Ex: 100" required>
+          <label>Quantidade</label>
+
+          <div class="linha">
+            <input type="number" 
+                  id="quantidade" 
+                  name="quantidade" 
+                  class="form-text" 
+                  placeholder="Ex: 100" 
+                  step="0.001"
+                  required>
+
+            <select name="unidade" id="unidade" class="form-select form-text" required>
+              <option value="kg">Kg</option>
+              <option value="g">Gramas</option>
+              <option value="ton">Toneladas</option>
+              <option value="l">Litros</option>
+              <option value="ml">Mililitros</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-campo">
