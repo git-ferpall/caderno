@@ -112,6 +112,12 @@ $html = "
 $html .= tabela($pendentes, "Pendentes");
 $html .= tabela($concluidos, "Concluídos");
 
-$mpdf = new Mpdf();
+$mpdf = new Mpdf([
+    'mode' => 'utf-8',
+    'format' => 'A4',
+    'margin_top' => 20,
+    'margin_bottom' => 20,
+    'tempDir' => __DIR__ . '/../../tmp/mpdf'
+]);
 $mpdf->WriteHTML($html);
 $mpdf->Output("relatorio_fitossanitario.pdf","I");
