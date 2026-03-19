@@ -53,7 +53,7 @@ if (!empty($areas)) {
 }
 
 /* ===============================
-📊 QUERY
+📊 QUERY (COM JOIN OTIMIZADO)
 =============================== */
 
 $sql = "
@@ -65,7 +65,6 @@ SELECT
     ap.unidade,
     ap.status,
     ap.data_conclusao,
-
     ar.nome as area_nome
 
 FROM apontamentos ap
@@ -91,7 +90,7 @@ if(!$res){
 }
 
 /* ===============================
-📊 AGRUPAR POR AREA
+📊 AGRUPAMENTO (AREA + UNIDADE)
 =============================== */
 
 $dados_por_area = [];
@@ -99,19 +98,26 @@ $dados_por_area = [];
 while($row = $res->fetch_assoc()){
 
     $area_nome = $row['area_nome'] ?? 'Não informada';
+    $unidade   = $row['unidade'] ?? '';
 
     if(!isset($dados_por_area[$area_nome])){
         $dados_por_area[$area_nome] = [
             'pendentes' => [],
             'concluidos' => [],
-            'total' => 0
+            'totais' => []
         ];
     }
 
-    // soma total (somente concluídos)
+    if(!isset($dados_por_area[$area_nome]['totais'][$unidade])){
+        $dados_por_area[$area_nome]['totais'][$unidade] = 0;
+    }
+
     if($row['status'] == 'concluido'){
         $dados_por_area[$area_nome]['concluidos'][] = $row;
-        $dados_por_area[$area_nome]['total'] += floatval($row['quantidade']);
+
+        // soma por unidade
+        $dados_por_area[$area_nome]['totais'][$unidade] += floatval($row['quantidade']);
+
     }else{
         $dados_por_area[$area_nome]['pendentes'][] = $row;
     }
@@ -165,7 +171,7 @@ function tabela($dados, $titulo){
 }
 
 /* ===============================
-📄 HTML
+📄 HTML BASE
 =============================== */
 
 $html = "
@@ -179,8 +185,6 @@ $html = "
 
 foreach($dados_por_area as $area => $dados){
 
-    $total = number_format($dados['total'], 2, ',', '.');
-
     $html .= "
     <div style='border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:15px;'>
 
@@ -188,11 +192,18 @@ foreach($dados_por_area as $area => $dados){
             Área: $area
         </h2>
 
-        <p style='font-size:14px;'>
-            <b>Total aplicado:</b> 
-            <span style='color:#2e7d32; font-weight:bold;'>$total</span>
-        </p>
+        <p style='font-size:14px;'><b>Total aplicado:</b><br>
     ";
+
+    foreach($dados['totais'] as $un => $valor){
+        $valor = number_format($valor, 2, ',', '.');
+
+        $html .= "<span style='color:#2e7d32; font-weight:bold;'>
+            $valor $un
+        </span><br>";
+    }
+
+    $html .= "</p>";
 
     $html .= tabela($dados['pendentes'], "Pendentes");
     $html .= tabela($dados['concluidos'], "Concluídos");
@@ -259,7 +270,7 @@ $mpdf->SetHTMLFooter('
 ');
 
 /* ===============================
-📑 OUTPUT
+📤 OUTPUT
 =============================== */
 
 $mpdf->WriteHTML($html);
