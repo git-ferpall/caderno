@@ -55,8 +55,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                 <div class="form-campo">
                     <label>Areas (selecione uma ou mais)</label>
-                    <select id="ri-areas" class="form-select form-text" multiple size="6">
-                    </select>
+                    <div id="ri-areas" class="form-text" style="max-height:220px;overflow:auto;background:#fff;border:1px solid #d9d9d9;border-radius:8px;padding:10px;">
+                        <span style="color:#777;">Selecione uma propriedade para carregar as areas.</span>
+                    </div>
                 </div>
 
                 <div class="form-campo">

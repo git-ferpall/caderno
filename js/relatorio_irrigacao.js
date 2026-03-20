@@ -32,7 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function carregarAreas(propriedadeId) {
     selectAreas.innerHTML = "";
-    if (!propriedadeId) return;
+    if (!propriedadeId) {
+      selectAreas.innerHTML = '<span style="color:#777;">Selecione uma propriedade para carregar as areas.</span>';
+      return;
+    }
 
     const resp = await fetch(`/funcoes/relatorios/buscar_propriedades_areas.php?propriedade_id=${encodeURIComponent(propriedadeId)}`);
     const data = await resp.json();
@@ -41,11 +44,30 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error(data.err || "Falha ao carregar areas");
     }
 
+    if (!data.areas || data.areas.length === 0) {
+      selectAreas.innerHTML = '<span style="color:#777;">Nenhuma area encontrada para esta propriedade.</span>';
+      return;
+    }
+
     data.areas.forEach((a) => {
-      const opt = document.createElement("option");
-      opt.value = a.id;
-      opt.textContent = a.nome;
-      selectAreas.appendChild(opt);
+      const row = document.createElement("label");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "8px";
+      row.style.padding = "4px 0";
+      row.style.cursor = "pointer";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = a.id;
+      checkbox.className = "ri-area-check";
+
+      const text = document.createElement("span");
+      text.textContent = a.nome;
+
+      row.appendChild(checkbox);
+      row.appendChild(text);
+      selectAreas.appendChild(row);
     });
   }
 
@@ -60,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const propriedade = selectProp.value;
     const dataIni = inputIni.value;
     const dataFim = inputFim.value;
-    const areas = Array.from(selectAreas.selectedOptions).map((o) => o.value);
+    const areas = Array.from(document.querySelectorAll(".ri-area-check:checked")).map((o) => o.value);
 
     if (!propriedade || !dataIni || !dataFim) {
       alert("Preencha propriedade e periodo.");
