@@ -98,6 +98,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <p>Resumo de colheita e produtividade.</p>
                         </a>
 
+                        <a href="relatorio_irrigacao.php" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">💧</span>
+                                <h3>Relatório de Irrigação</h3>
+                            </div>
+                            <p>Comparativo de consumo de água por área com média em L/ha.</p>
+                        </a>
+
                     </div>
 
                 </div>

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
+header('Content-Type: application/json; charset=utf-8');
 
 try {
     $payload = verify_jwt();
@@ -36,15 +37,28 @@ try {
         exit;
     }
 
-    // 🧭 Corrige caminho físico
-    $path = "/var/www/html/uploads/" . ltrim($res['caminho_arquivo'], '/');
+    // 🧭 Resolve caminho físico a partir da pasta local de uploads
+    $uploadsBase = realpath(__DIR__ . '/../../uploads');
+    if ($uploadsBase === false) {
+        throw new RuntimeException('uploads_base_invalida');
+    }
 
-    if (!file_exists($path)) {
+    $caminhoRelativo = trim((string)($res['caminho_arquivo'] ?? ''), "/\\");
+    $path = $uploadsBase . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $caminhoRelativo);
+    $pathReal = realpath($path);
+
+    // Evita path traversal e garante que o arquivo está dentro de uploads
+    if ($pathReal === false || strpos($pathReal, $uploadsBase . DIRECTORY_SEPARATOR) !== 0) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'err' => 'caminho_invalido']);
+        exit;
+    }
+
+    if (!file_exists($pathReal)) {
         http_response_code(404);
         echo json_encode([
             'ok' => false,
-            'err' => 'arquivo_fisico_nao_encontrado',
-            'path' => $path
+            'err' => 'arquivo_fisico_nao_encontrado'
         ]);
         exit;
     }
@@ -55,12 +69,14 @@ try {
     // 🔧 Define nome e tipo de arquivo
     $nome = basename($res['nome_arquivo']);
     $tipo = $res['tipo_arquivo'] ?: 'application/octet-stream';
-    $tamanho = filesize($path);
+    $tamanho = filesize($pathReal);
+    $nomeSeguroHeader = str_replace(['"', "\r", "\n"], '', $nome);
+    $nomeUtf8 = rawurlencode($nome);
 
     // 📦 Envia cabeçalhos
     header('Content-Description: File Transfer');
     header('Content-Type: ' . $tipo);
-    header('Content-Disposition: attachment; filename="' . addslashes($nome) . '"');
+    header('Content-Disposition: attachment; filename="' . $nomeSeguroHeader . '"; filename*=UTF-8\'\'' . $nomeUtf8);
     header('Content-Transfer-Encoding: binary');
     header('Content-Length: ' . $tamanho);
     header('Cache-Control: must-revalidate');
@@ -68,7 +84,7 @@ try {
     header('Expires: 0');
 
     // 📥 Envia arquivo ao navegador
-    readfile($path);
+    readfile($pathReal);
     exit;
 
 } catch (Throwable $e) {

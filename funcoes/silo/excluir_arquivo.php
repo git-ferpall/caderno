@@ -26,6 +26,13 @@ function removerDiretorio($dir) {
     return @rmdir($dir);
 }
 
+function caminhoDentroDeBase($base, $path)
+{
+    $baseNorm = rtrim(str_replace('\\', '/', $base), '/');
+    $pathNorm = str_replace('\\', '/', $path);
+    return strpos($pathNorm, $baseNorm . '/') === 0 || $pathNorm === $baseNorm;
+}
+
 try {
     // 🔐 Autenticação
     $payload = verify_jwt();
@@ -47,16 +54,30 @@ try {
 
     $tipo = $res['tipo'];
     $caminho_rel = $res['caminho_arquivo'];
-    $base = '/var/www/html/uploads';
-    $caminho_abs = "$base/$caminho_rel";
+    $base = realpath(__DIR__ . '/../../uploads');
+    if ($base === false) {
+        throw new Exception('Base de uploads inválida');
+    }
+
+    $caminho_rel = trim((string)$caminho_rel, "/\\");
+    $caminho_abs = $base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $caminho_rel);
+    $caminho_real = realpath($caminho_abs);
 
     // 🧹 Exclusão física
     if ($tipo === 'pasta') {
-        if (!removerDiretorio($caminho_abs)) {
+        if ($caminho_real === false || !caminhoDentroDeBase($base, $caminho_real)) {
+            throw new Exception('Caminho da pasta inválido');
+        }
+
+        if (!removerDiretorio($caminho_real)) {
             throw new Exception('Falha ao remover pasta física');
         }
     } else {
-        if (file_exists($caminho_abs) && !@unlink($caminho_abs)) {
+        if ($caminho_real !== false && !caminhoDentroDeBase($base, $caminho_real)) {
+            throw new Exception('Caminho do arquivo inválido');
+        }
+
+        if ($caminho_real !== false && file_exists($caminho_real) && !@unlink($caminho_real)) {
             throw new Exception('Falha ao excluir arquivo');
         }
     }
