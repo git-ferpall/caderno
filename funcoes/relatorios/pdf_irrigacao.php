@@ -24,6 +24,18 @@ function paraLitros($quantidade, $unidade)
     }
 }
 
+function periodoDias($dataIni, $dataFim)
+{
+    try {
+        $ini = new DateTime($dataIni);
+        $fim = new DateTime($dataFim);
+        $dias = (int)$ini->diff($fim)->days + 1; // inclusivo
+        return $dias > 0 ? $dias : 1;
+    } catch (Throwable $e) {
+        return 1;
+    }
+}
+
 try {
     $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
@@ -74,15 +86,20 @@ try {
     }
 
     $areasInfo = [];
+    $totalAreaHa = 0.0;
     foreach ($rowsAreas as $a) {
         $id = (int)$a['id'];
-        $ha = ((float)$a['tamanho']) / 10000;
+        $m2 = (float)$a['tamanho'];
+        $ha = $m2 / 10000;
+        $haFinal = $ha > 0 ? $ha : 0;
         $areasInfo[$id] = [
             'nome' => $a['nome'],
-            'ha' => $ha > 0 ? $ha : 0,
+            'm2' => $m2 > 0 ? $m2 : 0,
+            'ha' => $haFinal,
             'volume_l' => 0.0,
             'registros' => 0
         ];
+        $totalAreaHa += $haFinal;
     }
 
     $sqlApts = "
@@ -104,6 +121,7 @@ try {
     $stmtApt->close();
 
     $apontamentos = [];
+    $evolucaoMensal = [];
     foreach ($rows as $r) {
         $id = (int)$r['id'];
         if (!isset($apontamentos[$id])) {
@@ -134,6 +152,16 @@ try {
         $volumeRateado = $volumeLitrosTotal / $countAreas;
         $totalRegistros++;
 
+        $mesRef = date('Y-m', strtotime($apt['data']));
+        if (!isset($evolucaoMensal[$mesRef])) {
+            $evolucaoMensal[$mesRef] = [
+                'volume_l' => 0.0,
+                'registros' => 0
+            ];
+        }
+        $evolucaoMensal[$mesRef]['volume_l'] += $volumeLitrosTotal;
+        $evolucaoMensal[$mesRef]['registros']++;
+
         foreach ($areasDoRegistro as $aid) {
             $areasInfo[$aid]['volume_l'] += $volumeRateado;
             $areasInfo[$aid]['registros']++;
@@ -151,6 +179,7 @@ try {
         }
         $comparativo[] = [
             'nome' => $info['nome'],
+            'm2' => $info['m2'],
             'ha' => $info['ha'],
             'volume_l' => $info['volume_l'],
             'lha' => $lha,
@@ -162,44 +191,108 @@ try {
         return $b['lha'] <=> $a['lha'];
     });
 
+    $diasPeriodo = periodoDias($data_ini, $data_fim);
     $mediaLHa = $countLHa > 0 ? ($somaLHa / $countLHa) : 0;
+    $mediaLHaDia = $mediaLHa / $diasPeriodo;
     $totalLitros = array_reduce($comparativo, function ($carry, $item) {
         return $carry + $item['volume_l'];
     }, 0.0);
 
+    foreach ($comparativo as &$linha) {
+        $linha['participacao'] = $totalLitros > 0 ? (($linha['volume_l'] / $totalLitros) * 100) : 0;
+        $linha['lha_dia'] = $diasPeriodo > 0 ? ($linha['lha'] / $diasPeriodo) : 0;
+        $linha['lm2'] = $linha['m2'] > 0 ? ($linha['volume_l'] / $linha['m2']) : 0;
+    }
+    unset($linha);
+
+    ksort($evolucaoMensal);
+
     $html = '<h1>Relatorio de Irrigacao</h1>';
     $html .= '<p><b>Propriedade:</b> ' . htmlspecialchars($propriedade['nome_razao']) . '</p>';
     $html .= '<p><b>Periodo:</b> ' . date('d/m/Y', strtotime($data_ini)) . ' ate ' . date('d/m/Y', strtotime($data_fim)) . '</p>';
+    $html .= '<p><b>Dias no periodo:</b> ' . $diasPeriodo . '</p>';
     $html .= '<p><b>Registros considerados:</b> ' . $totalRegistros . '</p>';
     $html .= '<p><b>Volume total irrigado (rateado entre areas do mesmo apontamento):</b> ' . number_format($totalLitros, 2, ',', '.') . ' L</p>';
+    $html .= '<p><b>Area total selecionada:</b> ' . number_format($totalAreaHa, 2, ',', '.') . ' ha</p>';
     $html .= '<p><b>Media geral:</b> ' . number_format($mediaLHa, 2, ',', '.') . ' L/ha</p>';
+    $html .= '<p><b>Eficiencia hidrica por periodo:</b> ' . number_format($mediaLHaDia, 2, ',', '.') . ' L/ha/dia</p>';
+    $html .= '<p><b>Filtro aplicado:</b> apenas registros concluidos.</p>';
 
     if (count($comparativo) > 1) {
-        $html .= '<p><b>Comparativo:</b> areas ordenadas por maior consumo especifico (L/ha).</p>';
+        $html .= '<p><b>Ranking:</b> areas ordenadas por maior consumo especifico (L/ha).</p>';
     }
 
     $html .= "
     <table border='1' width='100%' cellspacing='0' cellpadding='6'>
       <thead style='background:#eee;'>
         <tr>
+          <th>Posicao</th>
           <th>Area</th>
+          <th>Tamanho (m2)</th>
           <th>Tamanho (ha)</th>
           <th>Volume irrigado (L)</th>
           <th>Media (L/ha)</th>
+          <th>Media (L/m2)</th>
+          <th>L/ha/dia</th>
+          <th>Participacao</th>
           <th>Registros</th>
         </tr>
       </thead>
       <tbody>
     ";
 
+    $posicao = 1;
     foreach ($comparativo as $linha) {
         $html .= '<tr>';
+        $html .= '<td>' . $posicao . '</td>';
         $html .= '<td>' . htmlspecialchars($linha['nome']) . '</td>';
-        $html .= '<td>' . number_format($linha['ha'], 2, ',', '.') . '</td>';
+        $html .= '<td>' . number_format($linha['m2'], 2, ',', '.') . '</td>';
+        $html .= '<td>' . number_format($linha['ha'], 4, ',', '.') . '</td>';
         $html .= '<td>' . number_format($linha['volume_l'], 2, ',', '.') . '</td>';
         $html .= '<td><b>' . number_format($linha['lha'], 2, ',', '.') . '</b></td>';
+        $html .= '<td>' . number_format($linha['lm2'], 4, ',', '.') . '</td>';
+        $html .= '<td>' . number_format($linha['lha_dia'], 2, ',', '.') . '</td>';
+        $html .= '<td>' . number_format($linha['participacao'], 1, ',', '.') . '%</td>';
         $html .= '<td>' . (int)$linha['registros'] . '</td>';
         $html .= '</tr>';
+        $posicao++;
+    }
+
+    $html .= '</tbody></table>';
+
+    $html .= "<h2 style='margin-top:20px;'>Evolucao temporal</h2>";
+    $html .= "
+    <table border='1' width='100%' cellspacing='0' cellpadding='6'>
+      <thead style='background:#eee;'>
+        <tr>
+          <th>Mes</th>
+          <th>Volume total (L)</th>
+          <th>Consumo especifico (L/ha)</th>
+          <th>Eficiencia diaria (L/ha/dia)</th>
+          <th>Registros concluidos</th>
+        </tr>
+      </thead>
+      <tbody>
+    ";
+
+    if (empty($evolucaoMensal)) {
+        $html .= "<tr><td colspan='5'>Sem dados no periodo selecionado.</td></tr>";
+    } else {
+        foreach ($evolucaoMensal as $mes => $ev) {
+            $ano = (int)substr($mes, 0, 4);
+            $mesNum = (int)substr($mes, 5, 2);
+            $diasNoMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $ano);
+            $lhaMes = $totalAreaHa > 0 ? ($ev['volume_l'] / $totalAreaHa) : 0;
+            $lhaDiaMes = $diasNoMes > 0 ? ($lhaMes / $diasNoMes) : 0;
+
+            $html .= '<tr>';
+            $html .= '<td>' . date('m/Y', strtotime($mes . '-01')) . '</td>';
+            $html .= '<td>' . number_format($ev['volume_l'], 2, ',', '.') . '</td>';
+            $html .= '<td>' . number_format($lhaMes, 2, ',', '.') . '</td>';
+            $html .= '<td>' . number_format($lhaDiaMes, 2, ',', '.') . '</td>';
+            $html .= '<td>' . (int)$ev['registros'] . '</td>';
+            $html .= '</tr>';
+        }
     }
 
     $html .= '</tbody></table>';
