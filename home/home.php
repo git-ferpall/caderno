@@ -96,6 +96,16 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                     <tbody><!-- Está vazio --></tbody>
                                 </table>
 
+                                <div class="manejos-pagination" data-status="pendente" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:10px;">
+                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="-1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
+                                        &lt;
+                                    </button>
+                                    <span class="manejos-page-text" data-status="pendente">Página 1</span>
+                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
+                                        &gt;
+                                    </button>
+                                </div>
+
                                 <!-- Só aparece caso não haja nenhum item na tabela -->
                                 <p class="nenhum-apontamento">Nenhum apontamento</p>
                             </div>
@@ -126,6 +136,16 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                     <tbody> 
                                     </tbody>
                                 </table>
+
+                                <div class="manejos-pagination" data-status="concluido" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:10px;">
+                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="-1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
+                                        &lt;
+                                    </button>
+                                    <span class="manejos-page-text" data-status="concluido">Página 1</span>
+                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
+                                        &gt;
+                                    </button>
+                                </div>
 
                                 <!-- Só aparece caso não haja nenhum item na tabela -->
                                 <p class="nenhum-apontamento">Nenhum apontamento</p>

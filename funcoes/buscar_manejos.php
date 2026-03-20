@@ -31,68 +31,109 @@ if (!$prop) {
 
 $propriedade_id = $prop['id'];
 
-// === Consulta principal ===
-$sql = "
-    SELECT 
-        a.id,
-        a.tipo,
-        a.data,
-        a.data_conclusao,
-        a.status,
-        a.observacoes,
+// === Paginação ===
+$limite = intval($_GET['limite'] ?? 10);
+if ($limite <= 0) $limite = 10;
 
-        GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
+$paginaPendente = intval($_GET['pendente_page'] ?? 1);
+if ($paginaPendente <= 0) $paginaPendente = 1;
 
-        (
-            SELECT p.nome
-            FROM apontamento_detalhes ad2
-            JOIN produtos p ON p.id = ad2.valor
-            WHERE ad2.apontamento_id = a.id 
-              AND (ad2.campo = 'produto' OR ad2.campo = 'produto_id')
-            LIMIT 1
-        ) AS produto_nome
+$paginaConcluido = intval($_GET['concluido_page'] ?? 1);
+if ($paginaConcluido <= 0) $paginaConcluido = 1;
 
-    FROM apontamentos a
-    LEFT JOIN apontamento_detalhes ad 
-        ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
-    LEFT JOIN areas ar 
-        ON ar.id = ad.valor
-    WHERE a.propriedade_id = ?
-    GROUP BY a.id
-    ORDER BY a.data DESC
-";
+$offsetPendente = ($paginaPendente - 1) * $limite;
+$offsetConcluido = ($paginaConcluido - 1) * $limite;
 
-$stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $propriedade_id);
-$stmt->execute();
-$res = $stmt->get_result();
+function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset)
+{
+    $sql = "
+        SELECT 
+            a.id,
+            a.tipo,
+            a.data,
+            a.data_conclusao,
+            a.status,
+            a.observacoes,
 
-$pendentes  = [];
-$concluidos = [];
+            GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
 
-while ($row = $res->fetch_assoc()) {
+            (
+                SELECT p.nome
+                FROM apontamento_detalhes ad2
+                JOIN produtos p ON p.id = ad2.valor
+                WHERE ad2.apontamento_id = a.id 
+                  AND (ad2.campo = 'produto' OR ad2.campo = 'produto_id')
+                LIMIT 1
+            ) AS produto_nome
 
-    $item = [
-        'id'        => $row['id'],
-        'tipo'      => ucfirst(str_replace('_', ' ', $row['tipo'])),
-        'data'      => date('d/m/Y', strtotime($row['data'])),
-        'conclusao' => (
-            $row['status'] === 'concluido' && !empty($row['data_conclusao'])
-        ) ? date('d/m/Y', strtotime($row['data_conclusao'])) : null,
-        'areas'     => $row['areas'] ?: '—',
-        'produto'   => $row['produto_nome'] ?: '—',
-        'status'    => $row['status']
-    ];
+        FROM apontamentos a
+        LEFT JOIN apontamento_detalhes ad 
+            ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
+        LEFT JOIN areas ar 
+            ON ar.id = ad.valor
+        WHERE a.propriedade_id = ?
+          AND a.status = ?
+        GROUP BY a.id
+        ORDER BY a.data DESC
+        LIMIT ? OFFSET ?
+    ";
 
-    if ($row['status'] === 'pendente') {
-        $pendentes[] = $item;
-    } elseif ($row['status'] === 'concluido') {
-        $concluidos[] = $item;
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("isii", $propriedade_id, $status, $limite, $offset);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $itens = [];
+    while ($row = $res->fetch_assoc()) {
+        $itens[] = [
+            'id' => (int)$row['id'],
+            'tipo' => ucfirst(str_replace('_', ' ', $row['tipo'])),
+            'data' => date('d/m/Y', strtotime($row['data'])),
+            'conclusao' => ($row['status'] === 'concluido' && !empty($row['data_conclusao']))
+                ? date('d/m/Y', strtotime($row['data_conclusao']))
+                : null,
+            'areas' => $row['areas'] ?: '—',
+            'produto' => $row['produto_nome'] ?: '—',
+            'status' => $row['status']
+        ];
     }
+    $stmt->close();
+
+    return $itens;
 }
+
+function contarPorStatus($mysqli, $propriedade_id, $status)
+{
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS total FROM apontamentos WHERE propriedade_id = ? AND status = ?");
+    $stmt->bind_param("is", $propriedade_id, $status);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return (int)($row['total'] ?? 0);
+}
+
+$totalPendente = contarPorStatus($mysqli, $propriedade_id, 'pendente');
+$totalConcluido = contarPorStatus($mysqli, $propriedade_id, 'concluido');
+
+$totalPaginasPendente = $limite > 0 ? (int)ceil($totalPendente / $limite) : 1;
+$totalPaginasConcluido = $limite > 0 ? (int)ceil($totalConcluido / $limite) : 1;
+
+// Ajusta página caso esteja fora do range
+if ($paginaPendente > $totalPaginasPendente) $paginaPendente = max(1, $totalPaginasPendente);
+if ($paginaConcluido > $totalPaginasConcluido) $paginaConcluido = max(1, $totalPaginasConcluido);
+
+$pendentes = buscarPorStatus($mysqli, $propriedade_id, 'pendente', $limite, $offsetPendente);
+$concluidos = buscarPorStatus($mysqli, $propriedade_id, 'concluido', $limite, $offsetConcluido);
 
 echo json_encode([
     'ok' => true,
     'pendentes'  => $pendentes,
-    'concluidos' => $concluidos
+    'concluidos' => $concluidos,
+    'limite' => $limite,
+    'pagina_pendente' => $paginaPendente,
+    'pagina_concluido' => $paginaConcluido,
+    'total_pendentes' => $totalPendente,
+    'total_concluidos' => $totalConcluido,
+    'total_paginas_pendente' => $totalPaginasPendente,
+    'total_paginas_concluido' => $totalPaginasConcluido
 ]);
