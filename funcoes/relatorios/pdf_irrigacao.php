@@ -87,6 +87,7 @@ try {
 
     $areasInfo = [];
     $totalAreaHa = 0.0;
+    $totalAreaM2 = 0.0;
     foreach ($rowsAreas as $a) {
         $id = (int)$a['id'];
         $m2 = (float)$a['tamanho'];
@@ -100,6 +101,7 @@ try {
             'registros' => 0
         ];
         $totalAreaHa += $haFinal;
+        $totalAreaM2 += ($m2 > 0 ? $m2 : 0);
     }
 
     $sqlApts = "
@@ -213,7 +215,7 @@ try {
     $html .= '<p><b>Dias no periodo:</b> ' . $diasPeriodo . '</p>';
     $html .= '<p><b>Registros considerados:</b> ' . $totalRegistros . '</p>';
     $html .= '<p><b>Volume total irrigado (rateado entre areas do mesmo apontamento):</b> ' . number_format($totalLitros, 2, ',', '.') . ' L</p>';
-    $html .= '<p><b>Area total selecionada:</b> ' . number_format($totalAreaHa, 2, ',', '.') . ' ha</p>';
+    $html .= '<p><b>Area total selecionada:</b> ' . number_format($totalAreaM2, 2, ',', '.') . ' m2 (' . number_format($totalAreaHa, 4, ',', '.') . ' ha)</p>';
     $html .= '<p><b>Media geral:</b> ' . number_format($mediaLHa, 2, ',', '.') . ' L/ha</p>';
     $html .= '<p><b>Eficiencia hidrica por periodo:</b> ' . number_format($mediaLHaDia, 2, ',', '.') . ' L/ha/dia</p>';
     $html .= '<p><b>Filtro aplicado:</b> apenas registros concluidos.</p>';
