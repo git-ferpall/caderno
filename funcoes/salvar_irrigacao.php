@@ -58,20 +58,24 @@ try {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
+    $dataAtual = date('Y-m-d');
+    $status = ($data < $dataAtual) ? 'concluido' : 'pendente';
+
     $mysqli->begin_transaction();
 
     // PRINCIPAL (quantidade = volume)
     $stmt = $mysqli->prepare("
         INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
-        VALUES (?, 'irrigacao', ?, ?, ?, ?, 'pendente')
+        VALUES (?, 'irrigacao', ?, ?, ?, ?, ?)
     ");
 
-    $stmt->bind_param("isdss", 
+    $stmt->bind_param("isdsss", 
         $propriedade_id, 
         $data, 
         $volume_aplicado, 
         $unidade_volume, 
-        $obs
+        $obs,
+        $status
     );
     $stmt->execute();
     $apontamento_id = $stmt->insert_id;
