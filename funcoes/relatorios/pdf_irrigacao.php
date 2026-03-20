@@ -279,9 +279,14 @@ try {
         $html .= "<tr><td colspan='5'>Sem dados no periodo selecionado.</td></tr>";
     } else {
         foreach ($evolucaoMensal as $mes => $ev) {
-            $ano = (int)substr($mes, 0, 4);
-            $mesNum = (int)substr($mes, 5, 2);
-            $diasNoMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $ano);
+            $diasNoMes = 30;
+            try {
+                $dtFimMes = new DateTime($mes . '-01');
+                $dtFimMes->modify('last day of this month');
+                $diasNoMes = (int)$dtFimMes->format('d');
+            } catch (Throwable $e) {
+                $diasNoMes = 30;
+            }
             $lhaMes = $totalAreaHa > 0 ? ($ev['volume_l'] / $totalAreaHa) : 0;
             $lhaDiaMes = $diasNoMes > 0 ? ($lhaMes / $diasNoMes) : 0;
 
