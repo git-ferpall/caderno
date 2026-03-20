@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalPaginasPendente = 1;
   let totalPaginasConcluido = 1;
 
+  const sortState = {
+    pendente: { key: "data", dir: "desc" },
+    concluido: { key: "data", dir: "desc" }
+  };
+
   const paginationUI = {
     pendente: {
       container: document.querySelector('.manejos-pagination[data-status="pendente"]'),
@@ -53,7 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function carregarManejos() {
-    const url = `../funcoes/buscar_manejos.php?limite=${limite}&pendente_page=${pagePendente}&concluido_page=${pageConcluido}`;
+    const url = `../funcoes/buscar_manejos.php?limite=${limite}` +
+      `&pendente_page=${pagePendente}&concluido_page=${pageConcluido}` +
+      `&pendente_sort=${encodeURIComponent(sortState.pendente.key)}&pendente_dir=${encodeURIComponent(sortState.pendente.dir)}` +
+      `&concluido_sort=${encodeURIComponent(sortState.concluido.key)}&concluido_dir=${encodeURIComponent(sortState.concluido.dir)}`;
     fetch(url)
       .then(r => r.json())
       .then(data => {
@@ -139,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =========================
-  // ORDENAÇÃO DAS TABELAS
+  // ORDENAÇÃO DAS TABELAS (server-side)
   // =========================
   function inicializarOrdenacao() {
     const tabelas = document.querySelectorAll(".apontamento-tabela");
@@ -152,44 +160,44 @@ document.addEventListener("DOMContentLoaded", () => {
         th.dataset.ordem = "none";
 
         th.addEventListener("click", () => {
-          const corpo = tabela.querySelector("tbody");
-          const linhas = Array.from(corpo.querySelectorAll("tr"));
+          const container = tabela.closest(".apontamento-concluido") ? "concluido" : "pendente";
 
-          let novaOrdem = th.dataset.ordem === "asc" ? "desc" : "asc";
-          th.dataset.ordem = novaOrdem;
+          // mapear id do th para chave usada no backend
+          let key = null;
+          switch (th.id) {
+            case "apt-data":
+              key = "data";
+              break;
+            case "apt-conclusao":
+              key = "conclusao";
+              break;
+            case "apt-nome":
+              key = "tipo";
+              break;
+            case "apt-area":
+              key = "areas";
+              break;
+            case "apt-cult":
+              key = "produto";
+              break;
+          }
+
+          if (!key) return;
+
+          const estado = sortState[container];
+          const novaDir = (estado.key === key && estado.dir === "asc") ? "desc" : "asc";
+          sortState[container] = { key, dir: novaDir };
 
           cabecalhos.forEach(h => {
-            if (h !== th) h.dataset.ordem = "none";
+            h.dataset.ordem = "none";
           });
+          th.dataset.ordem = novaDir;
 
-          // Trata Data e Conclusão como datas
-          const ehData = th.id === "apt-data" || th.id === "apt-conclusao";
+          // quando muda ordenação, volta para a primeira página para evitar “página vazia”
+          if (container === "pendente") pagePendente = 1;
+          if (container === "concluido") pageConcluido = 1;
 
-          const comparar = (a, b) => {
-            const valorA = a.children[indice].innerText.trim();
-            const valorB = b.children[indice].innerText.trim();
-
-            if (ehData) {
-              if (valorA === '—') return 1;
-              if (valorB === '—') return -1;
-
-              const [diaA, mesA, anoA] = valorA.split("/").map(Number);
-              const [diaB, mesB, anoB] = valorB.split("/").map(Number);
-
-              const dataA = new Date(anoA, mesA - 1, diaA);
-              const dataB = new Date(anoB, mesB - 1, diaB);
-
-              return novaOrdem === "asc" ? dataA - dataB : dataB - dataA;
-            }
-
-            return novaOrdem === "asc"
-              ? valorA.localeCompare(valorB)
-              : valorB.localeCompare(valorA);
-          };
-
-          linhas.sort(comparar);
-          corpo.innerHTML = "";
-          linhas.forEach(tr => corpo.appendChild(tr));
+          carregarManejos();
         });
       });
     });
