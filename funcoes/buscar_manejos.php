@@ -44,7 +44,47 @@ if ($paginaConcluido <= 0) $paginaConcluido = 1;
 $offsetPendente = ($paginaPendente - 1) * $limite;
 $offsetConcluido = ($paginaConcluido - 1) * $limite;
 
-function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset)
+// === Ordenação (para ficar global com paginação) ===
+$pendente_sort = $_GET['pendente_sort'] ?? 'data';
+$concluido_sort = $_GET['concluido_sort'] ?? 'data';
+
+$pendente_dir = strtolower($_GET['pendente_dir'] ?? 'desc');
+if (!in_array($pendente_dir, ['asc', 'desc'])) $pendente_dir = 'desc';
+
+$concluido_dir = strtolower($_GET['concluido_dir'] ?? 'desc');
+if (!in_array($concluido_dir, ['asc', 'desc'])) $concluido_dir = 'desc';
+
+function montarOrderBy($sort, $dir)
+{
+    $dirSql = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
+    $sort = (string)$sort;
+
+    // mapear somente chaves conhecidas para evitar SQL injection
+    switch ($sort) {
+        case 'data':
+            $expr = 'a.data';
+            break;
+        case 'conclusao':
+            $expr = 'CASE WHEN a.data_conclusao IS NULL THEN 1 ELSE 0 END, a.data_conclusao';
+            break;
+        case 'tipo':
+            $expr = 'a.tipo';
+            break;
+        case 'areas':
+            $expr = 'areas';
+            break;
+        case 'produto':
+            $expr = 'produto_nome';
+            break;
+        default:
+            $expr = 'a.data';
+            break;
+    }
+
+    return $expr . ' ' . $dirSql;
+}
+
+function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset, $sort, $dir)
 {
     $sql = "
         SELECT 
@@ -74,11 +114,14 @@ function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset)
         WHERE a.propriedade_id = ?
           AND a.status = ?
         GROUP BY a.id
-        ORDER BY a.data DESC
+        ORDER BY ___ORDERBY___
         LIMIT ? OFFSET ?
     ";
+    $orderBy = montarOrderBy($sort, $dir);
 
-    $stmt = $mysqli->prepare($sql);
+    // Inserção controlada: montagem via whitelist (montarOrderBy)
+    $sqlFinal = str_replace("___ORDERBY___", $orderBy, $sql);
+    $stmt = $mysqli->prepare($sqlFinal);
     $stmt->bind_param("isii", $propriedade_id, $status, $limite, $offset);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -122,8 +165,24 @@ $totalPaginasConcluido = $limite > 0 ? (int)ceil($totalConcluido / $limite) : 1;
 if ($paginaPendente > $totalPaginasPendente) $paginaPendente = max(1, $totalPaginasPendente);
 if ($paginaConcluido > $totalPaginasConcluido) $paginaConcluido = max(1, $totalPaginasConcluido);
 
-$pendentes = buscarPorStatus($mysqli, $propriedade_id, 'pendente', $limite, $offsetPendente);
-$concluidos = buscarPorStatus($mysqli, $propriedade_id, 'concluido', $limite, $offsetConcluido);
+$pendentes = buscarPorStatus(
+    $mysqli,
+    $propriedade_id,
+    'pendente',
+    $limite,
+    $offsetPendente,
+    $pendente_sort,
+    $pendente_dir
+);
+$concluidos = buscarPorStatus(
+    $mysqli,
+    $propriedade_id,
+    'concluido',
+    $limite,
+    $offsetConcluido,
+    $concluido_sort,
+    $concluido_dir
+);
 
 echo json_encode([
     'ok' => true,
