@@ -91,6 +91,7 @@ try {
         JOIN apontamento_detalhes ad
           ON ad.apontamento_id = ap.id AND ad.campo = 'area_id'
         WHERE ap.tipo = 'irrigacao'
+          AND ap.status = 'concluido'
           AND ap.propriedade_id = ?
           AND ap.data BETWEEN ? AND ?
           AND CAST(ad.valor AS UNSIGNED) IN ($inAreas)
