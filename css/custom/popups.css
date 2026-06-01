@@ -350,6 +350,12 @@ body.popup-scroll-lock {
     border-top: 1px solid var(--cinza-b);
 }
 
+.popup .popup-box.popup-manejo .popup-actions.popup-manejo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: stretch;
+}
+
 .popup-manejo-actions .popup-btn {
     font-size: 13px;
     padding: 8px 14px;
@@ -377,7 +383,10 @@ body.popup-scroll-lock {
         gap: 0;
         padding: 0;
         align-items: stretch;
+        justify-content: flex-start;
         text-align: left;
+        height: min(92dvh, 92vh);
+        max-height: min(92dvh, 92vh);
     }
 
     .popup-manejo {
@@ -387,7 +396,6 @@ body.popup-scroll-lock {
         width: 100% !important;
         margin: 0 !important;
         border-radius: 20px 20px 0 0 !important;
-        max-height: min(94dvh, 94vh);
         min-height: 0;
         overflow: hidden;
         animation: popup-manejo-sheet-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
@@ -404,45 +412,41 @@ body.popup-scroll-lock {
         }
     }
 
+    .popup-manejo-shell {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        height: 100%;
+        min-height: 0;
+        padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
+        overflow: hidden;
+    }
+
     .popup-manejo-handle {
         display: block;
         width: 40px;
         height: 4px;
-        margin: 0 auto 10px;
+        margin: 0 auto 8px;
         border-radius: 999px;
         background: #d0d8dc;
-        flex-shrink: 0;
-    }
-
-    .popup-manejo-shell {
-        flex: 1 1 auto;
-        min-height: 0;
-        max-height: min(94dvh, 94vh);
-        padding: 8px 16px max(12px, env(safe-area-inset-bottom, 0px));
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
     }
 
     .popup-manejo .popup-title {
         position: static;
         transform: none;
         left: auto;
-        flex-shrink: 0;
         margin: 0 auto 10px;
         white-space: normal;
         text-align: center;
-        font-size: 17px;
-        padding: 8px 16px;
+        font-size: 16px;
+        padding: 8px 14px;
         box-shadow: 0 2px 10px rgba(0, 79, 114, 0.18);
     }
 
     .popup-manejo-body {
-        flex: 1 1 0;
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0 2px 16px;
+        padding: 0 2px 12px;
         margin-top: 0;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
@@ -575,40 +579,34 @@ body.popup-scroll-lock {
         font-size: 14px;
     }
 
-    .popup-manejo-actions {
+    .popup .popup-manejo .popup-actions.popup-manejo-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        flex-shrink: 0;
+        flex-wrap: unset;
+        justify-content: stretch;
         padding-top: 10px;
-        margin-top: auto;
-        position: relative;
+        margin-top: 0;
         background: #fff;
         border-top: 1px solid var(--cinza-b);
         padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
-        z-index: 2;
     }
 
-    .popup-manejo-actions .popup-btn {
-        flex: none;
+    .popup .popup-manejo .popup-actions.popup-manejo-actions .popup-btn {
+        flex: unset;
         width: 100%;
-        min-height: 44px;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 9px 10px;
-        border-radius: 12px;
-    }
-
-    .popup-manejo-actions #btn-marcar-concluido,
-    .popup-manejo-actions #btn-salvar-manejo {
-        grid-column: 1 / -1;
-        min-height: 46px;
-        font-size: 14px;
-    }
-
-    .popup-manejo-actions #btn-ver-historico {
-        grid-column: 1 / -1;
+        min-width: 0;
         min-height: 40px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    .popup .popup-manejo .popup-actions.popup-manejo-actions #btn-salvar-manejo {
+        grid-column: 1 / -1;
+        min-height: 42px;
+        font-size: 13px;
     }
 }
 
