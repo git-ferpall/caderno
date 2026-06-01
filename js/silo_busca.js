@@ -4,7 +4,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const inputBusca = document.getElementById("siloBusca");
-  const boxArquivos = document.querySelector(".silo-arquivos");
+  const boxArquivos = document.querySelector(".silo-arquivos-grid");
 
   if (!inputBusca || !boxArquivos) {
     console.warn("⚠️ Campo de busca ou container de arquivos não encontrado.");
@@ -31,14 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🚀 Função principal de busca
 // =============================================
 async function buscarArquivos(termo) {
-  const box = document.querySelector(".silo-arquivos");
+  const box = document.querySelector(".silo-arquivos-grid");
   if (!box) return;
 
-  // Mostra loading temporário
   box.innerHTML = `
-    <div style="text-align:center; opacity:0.7; margin-top:20px;">
-      <div class="loader"></div>
-      <p>Buscando "<b>${termo}</b>"...</p>
+    <div class="silo-state-msg">
+      <div class="silo-loader"></div>
+      <p>Buscando "<strong>${termo}</strong>"...</p>
     </div>
   `;
 
@@ -49,7 +48,7 @@ async function buscarArquivos(termo) {
     if (!j.ok) throw new Error(j.err || "Falha na busca.");
 
     if (!j.arquivos || j.arquivos.length === 0) {
-      box.innerHTML = `<p style="text-align:center; opacity:0.6;">Nenhum resultado encontrado para "<b>${termo}</b>".</p>`;
+      box.innerHTML = `<p class="silo-state-msg">Nenhum resultado para "<strong>${termo}</strong>".</p>`;
       return;
     }
 
@@ -70,7 +69,10 @@ async function buscarArquivos(termo) {
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-path" style="display:block; opacity:0.6; font-size:11px;">${formatarCaminho(a.caminho_arquivo)}</span>
+          <div>
+            <span class="silo-item-title">${a.nome_arquivo}</span>
+            <span class="silo-item-path">${formatarCaminho(a.caminho_arquivo)}</span>
+          </div>
         </div>
       `;
 
@@ -92,7 +94,8 @@ async function buscarArquivos(termo) {
     });
   } catch (err) {
     console.error("❌ Erro na busca:", err);
-    document.querySelector(".silo-arquivos").innerHTML = `<p>❌ Erro ao buscar arquivos.</p>`;
+    const box = document.querySelector(".silo-arquivos-grid");
+    if (box) box.innerHTML = '<p class="silo-state-msg">Erro ao buscar arquivos.</p>';
   }
 }
 

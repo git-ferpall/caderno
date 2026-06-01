@@ -29,11 +29,9 @@ async function carregarUsoSilo() {
     const restante = limite - usado;
 
     txt.innerHTML = `
-      <strong>${formatBytes(usado)}</strong> usados de 
-      <strong>${formatBytes(limite)}</strong><br>
-      <span style="opacity:0.7;">
-        ${formatBytes(restante)} disponíveis (${percentual}% utilizado)
-      </span>
+      <strong>${formatBytes(usado)}</strong> usados de
+      <strong>${formatBytes(limite)}</strong>
+      <span class="silo-uso-detail">${formatBytes(restante)} disponíveis</span>
     `;
 
     // ===============================

@@ -1,0 +1,275 @@
+/* Home — painéis de manejos (estilo alinhado ao popup-manejo) */
+
+.sistema .apontamento .manejos-panel {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    margin-bottom: 16px;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-header {
+    padding: 14px 18px;
+    border-radius: 16px;
+    transition: border-radius 0.25s ease;
+}
+
+.sistema .apontamento .manejos-panel.active .apontamento-header {
+    border-radius: 16px 16px 0 0;
+}
+
+.sistema .apontamento .manejos-panel.apontamento-fazer .apontamento-header {
+    background: linear-gradient(135deg, #e95c24 0%, #c7431a 100%);
+}
+
+.sistema .apontamento .manejos-panel.apontamento-concluido .apontamento-header {
+    background: var(--grad-azul);
+}
+
+.sistema .apontamento .manejos-panel .apontamento-title-text {
+    font-size: 18px;
+    letter-spacing: 0.01em;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-count {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.sistema .apontamento .manejos-panel .main-tabela {
+    background: var(--branco);
+}
+
+.sistema .apontamento .manejos-panel.active .main-tabela {
+    padding-bottom: 0;
+}
+
+.sistema .apontamento .manejos-table-wrap {
+    padding: 4px 12px 0;
+    max-height: min(52vh, 460px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(19, 176, 166, 0.45) transparent;
+}
+
+.sistema .apontamento .manejos-table-wrap::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sistema .apontamento .manejos-table-wrap::-webkit-scrollbar-thumb {
+    background: rgba(19, 176, 166, 0.4);
+    border-radius: 999px;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela {
+    border-collapse: collapse;
+    border-spacing: 0;
+    padding: 0;
+    width: 100%;
+    overflow: visible;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela th {
+    background: #f8fafb;
+    border-bottom: 1px solid var(--cinza-b);
+    border-radius: 0;
+    color: #5a5a5a;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 10px 12px;
+    text-align: left;
+    text-transform: uppercase;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela th:hover {
+    background: #eef6f5;
+    color: var(--azul-e);
+}
+
+.sistema .apontamento .manejos-panel.apontamento-fazer .apontamento-tabela th[data-ordem="asc"],
+.sistema .apontamento .manejos-panel.apontamento-fazer .apontamento-tabela th[data-ordem="desc"] {
+    background: #fff3e6;
+    color: #c45a00;
+}
+
+.sistema .apontamento .manejos-panel.apontamento-concluido .apontamento-tabela th[data-ordem="asc"],
+.sistema .apontamento .manejos-panel.apontamento-concluido .apontamento-tabela th[data-ordem="desc"] {
+    background: #e8f7f5;
+    color: var(--azul-e);
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela th[data-ordem="asc"]::after,
+.sistema .apontamento .manejos-panel .apontamento-tabela th[data-ordem="desc"]::after {
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0.85;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela th[data-ordem="asc"]::after {
+    content: "▲";
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela th[data-ordem="desc"]::after {
+    content: "▼";
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela tbody {
+    font-size: 13px;
+    text-align: left;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela tbody tr.manejos-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela td {
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    line-height: 1.35;
+    padding: 11px 12px;
+    vertical-align: middle;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela tbody tr.manejos-row:last-child td {
+    border-bottom: none;
+}
+
+.sistema .apontamento .manejos-panel.apontamento-fazer .apontamento-tabela tbody tr.manejos-row:hover {
+    background: #fff8f3;
+}
+
+.sistema .apontamento .manejos-panel.apontamento-concluido .apontamento-tabela tbody tr.manejos-row:hover {
+    background: #f3faf9;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela td.manejos-data {
+    font-weight: 600;
+    color: #222;
+    white-space: nowrap;
+}
+
+.sistema .apontamento .manejos-panel .apontamento-tabela td.manejos-area {
+    color: #444;
+    max-width: 140px;
+}
+
+.sistema .apontamento .manejos-empty {
+    color: #aaa;
+}
+
+.manejos-tipo-badge {
+    display: inline-block;
+    background: #eef6f5;
+    border: 1px solid #c5e8e4;
+    border-radius: 999px;
+    color: var(--azul-e);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.apontamento-fazer .manejos-tipo-badge {
+    background: #fff3e6;
+    border-color: #ffd9b3;
+    color: #c45a00;
+}
+
+.manejos-tipo-badge.manejos-tipo-colheita { background: #fff8e1; border-color: #ffe082; color: #9a7200; }
+.manejos-tipo-badge.manejos-tipo-irrigacao { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+.manejos-tipo-badge.manejos-tipo-herbicida { background: #e8f5e9; border-color: #a5d6a7; color: #2e7d32; }
+.manejos-tipo-badge.manejos-tipo-fungicida { background: #e0f2f1; border-color: #80cbc4; color: #00695c; }
+.manejos-tipo-badge.manejos-tipo-inseticida { background: #e1f5fe; border-color: #81d4fa; color: #0277bd; }
+.manejos-tipo-badge.manejos-tipo-fertilizante { background: #f3e5f5; border-color: #ce93d8; color: #6a1b9a; }
+
+.sistema .apontamento .manejos-panel .nenhum-apontamento {
+    color: #888;
+    font-size: 13px;
+    padding: 20px 18px 24px;
+    text-align: center;
+}
+
+.sistema .apontamento .manejos-pagination {
+    align-items: center;
+    border-top: 1px solid var(--cinza-b);
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 0;
+    padding: 12px 14px 14px;
+    width: 100%;
+}
+
+.sistema .apontamento .manejos-page-text {
+    color: #555;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 100px;
+    text-align: center;
+}
+
+.sistema .apontamento .manejos-page-btn {
+    background: #fff;
+    border: 1px solid var(--cinza-b);
+    border-radius: 10px;
+    color: #444;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 36px;
+    padding: 8px 12px;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sistema .apontamento .apontamento-fazer .manejos-page-btn:hover:not(:disabled) {
+    background: #fff3e6;
+    border-color: #ffd9b3;
+    color: #c45a00;
+}
+
+.sistema .apontamento .apontamento-concluido .manejos-page-btn:hover:not(:disabled) {
+    background: #e8f7f5;
+    border-color: #b2dfdb;
+    color: var(--azul-e);
+}
+
+.sistema .apontamento .manejos-page-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+@media (max-width: 991px) {
+    .sistema .apontamento .manejos-table-wrap {
+        max-height: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .sistema .apontamento .manejos-panel .apontamento-tabela th,
+    .sistema .apontamento .manejos-panel .apontamento-tabela td {
+        font-size: 11px;
+        padding: 9px 8px;
+    }
+
+    .manejos-tipo-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}

@@ -15,18 +15,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================
 async function atualizarLista() {
   try {
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
-    const j = await res.json();
-    const box = document.querySelector('.silo-arquivos');
+    const box = document.querySelector('.silo-arquivos-grid');
+    if (!box) return;
     box.innerHTML = '';
 
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
+    const j = await res.json();
+
     if (!j.ok || !Array.isArray(j.arquivos)) {
-      box.innerHTML = '<p>❌ Erro ao carregar arquivos.</p>';
+      box.innerHTML = '<p class="silo-state-msg">Erro ao carregar arquivos.</p>';
       return;
     }
 
     if (j.arquivos.length === 0) {
-      box.innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum item nesta pasta.</p>';
+      box.innerHTML = `
+        <div class="silo-empty">
+          <div class="silo-empty-icon">📁</div>
+          <p>Esta pasta está vazia</p>
+          <small>Use o botão + para enviar arquivos ou criar uma pasta</small>
+        </div>`;
       return;
     }
 
@@ -70,8 +77,8 @@ async function atualizarLista() {
     atualizarBreadcrumb();
   } catch (err) {
     console.error('Erro ao atualizar lista:', err);
-    document.querySelector('.silo-arquivos').innerHTML =
-      '<p>❌ Falha ao comunicar com o servidor.</p>';
+    const box = document.querySelector('.silo-arquivos-grid');
+    if (box) box.innerHTML = '<p class="silo-state-msg">Falha ao comunicar com o servidor.</p>';
   }
 }
 
@@ -207,15 +214,21 @@ async function atualizarBreadcrumb() {
     if (j.ok) {
       nav.innerHTML = '';
       j.caminho.forEach((p, i) => {
+        if (i > 0) {
+          const sep = document.createElement('span');
+          sep.className = 'silo-breadcrumb-sep';
+          sep.textContent = '/';
+          nav.appendChild(sep);
+        }
         const span = document.createElement('span');
         span.textContent = p.nome;
-        span.className = 'breadcrumb-item';
-        span.onclick = () => acessarPasta(p.id);
+        const isLast = i === j.caminho.length - 1;
+        span.className = 'breadcrumb-item' + (isLast ? ' is-current' : '');
+        if (!isLast) span.onclick = () => acessarPasta(p.id);
         nav.appendChild(span);
-        if (i < j.caminho.length - 1) nav.innerHTML += ' / ';
       });
     } else {
-      nav.innerHTML = 'Silo de Dados';
+      nav.innerHTML = '<span class="breadcrumb-item is-current">Silo de Dados</span>';
     }
   } catch {
     nav.innerHTML = 'Silo de Dados';

@@ -1,0 +1,573 @@
+/* Silo de Dados — layout elegante (alinhado ao popup / manejos) */
+
+#silo.silo-layout {
+    padding-top: 100px;
+    padding-bottom: 24px;
+}
+
+.silo-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* --- Card de armazenamento --- */
+.silo-storage-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 18px 22px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
+    color: #fff;
+}
+
+.silo-storage-card .silo-uso-circular {
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.silo-storage-card .silo-uso-circular::after {
+    width: 62px;
+    height: 62px;
+    background: #fff;
+}
+
+.silo-storage-card #silo-uso-percent {
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.silo-uso-label {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+.silo-uso-text h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.silo-uso-detail {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+/* --- Painel principal --- */
+.silo-panel {
+    background: var(--branco);
+    border-radius: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    overflow: hidden;
+    position: relative;
+    min-height: 420px;
+    padding-bottom: 72px;
+}
+
+.silo-panel-header {
+    padding: 20px 22px 12px;
+    border-bottom: 1px solid var(--cinza-b);
+    background: linear-gradient(180deg, #f8fafb 0%, #fff 100%);
+}
+
+.silo-panel-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--azul-e);
+}
+
+.silo-panel-subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #777;
+}
+
+/* --- Toolbar --- */
+.silo-toolbar {
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--cinza-b);
+}
+
+.silo-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #666;
+    min-height: 22px;
+}
+
+.silo-breadcrumb-sep {
+    color: #bbb;
+    padding: 0 2px;
+    user-select: none;
+}
+
+.silo-breadcrumb .breadcrumb-item {
+    cursor: pointer;
+    color: var(--azul);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.silo-breadcrumb .breadcrumb-item:hover {
+    background: #e8f7f5;
+    color: var(--azul-e);
+}
+
+.silo-breadcrumb .breadcrumb-item.is-current {
+    color: #444;
+    cursor: default;
+    font-weight: 700;
+}
+
+.silo-breadcrumb .breadcrumb-item.is-current:hover {
+    background: transparent;
+}
+
+.silo-toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.silo-busca {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+    margin: 0;
+}
+
+.silo-busca-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+#siloBusca {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border: 1px solid var(--cinza-b);
+    border-radius: 10px;
+    font-size: 14px;
+    background: #f8fafb;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#siloBusca:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(19, 176, 166, 0.15);
+    background: #fff;
+}
+
+.silo-arquivos-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.silo-sort-btn,
+.silo-sort-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--cinza-b);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.silo-sort-btn:hover,
+.silo-sort-type:hover {
+    background: #e8f7f5;
+    border-color: #b2dfdb;
+    color: var(--azul-e);
+}
+
+/* --- Grid de arquivos --- */
+.silo-arquivos-wrap {
+    padding: 16px 22px;
+    max-height: min(52vh, 480px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(19, 176, 166, 0.45) transparent;
+}
+
+.silo-arquivos-wrap::-webkit-scrollbar {
+    width: 5px;
+}
+
+.silo-arquivos-wrap::-webkit-scrollbar-thumb {
+    background: rgba(19, 176, 166, 0.4);
+    border-radius: 999px;
+}
+
+.silo-arquivos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+#silo .silo-item-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    background: #f8fafb;
+    border: 1px solid var(--cinza-b);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: none;
+}
+
+#silo .silo-item-box:hover {
+    background: #f3faf9;
+    border-color: #b2dfdb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(19, 176, 166, 0.1);
+}
+
+#silo .silo-item-box .silo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+#silo .silo-item-box .btn-icon {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    flex-shrink: 0;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--cinza-b);
+    background-size: 18px;
+}
+
+#silo .silo-item-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+#silo .silo-item.silo-arquivo > div:not(.btn-icon) {
+    min-width: 0;
+    flex: 1;
+}
+
+#silo .silo-item-path {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.silo-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+.silo-empty-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.silo-empty p {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #555;
+}
+
+.silo-empty small {
+    font-size: 13px;
+    color: #999;
+}
+
+.silo-state-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 32px 16px;
+    color: #888;
+    font-size: 14px;
+}
+
+.silo-loader {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #e8f7f5;
+    border-top-color: var(--azul);
+    border-radius: 50%;
+    animation: siloSpin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+
+@keyframes siloSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- FAB e menu de ações --- */
+#silo .silo-dados-add {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+#silo .silo-dados-content {
+    position: absolute;
+    bottom: 68px;
+    right: 18px;
+    background: #fff;
+    border: 1px solid var(--cinza-b);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+    overflow: hidden;
+    height: 0;
+    z-index: 8;
+    pointer-events: auto;
+}
+
+#silo .silo-dados-content-space {
+    padding: 12px;
+    gap: 8px;
+}
+
+#silo .silo-dados-add-btn {
+    width: 100%;
+    justify-content: flex-start;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+#silo .silo-action-upload {
+    background: #edf7e6;
+    color: #4a7c1b;
+}
+
+#silo .silo-action-folder {
+    background: #fff3e6;
+    color: #c45a00;
+}
+
+#silo .silo-action-scan {
+    background: #f8fafb;
+    color: #444;
+    border: 1px solid var(--cinza-b);
+}
+
+#silo .silo-dados-add-btn:hover {
+    transform: translateX(2px);
+    opacity: 0.92;
+}
+
+#silo .silo-dados-btn.v1 {
+    bottom: 18px;
+    right: 18px;
+    width: 52px;
+    height: 52px;
+    background: var(--grad-azul);
+    box-shadow: 0 6px 20px rgba(0, 79, 114, 0.35);
+    pointer-events: auto;
+    border: none;
+}
+
+#silo .silo-dados-btn.v1:hover {
+    transform: scale(1.05);
+}
+
+#silo .silo-dados-btn.v1.active {
+    background: var(--preto);
+}
+
+/* --- Menu contextual --- */
+.silo-menu-arquivo {
+    border: 1px solid var(--cinza-b);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+    padding: 6px;
+    min-width: 160px;
+}
+
+.silo-menu-arquivo .menu-btn {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #333;
+}
+
+.silo-menu-arquivo .menu-btn:hover {
+    background: #f3faf9;
+    color: var(--azul-e);
+}
+
+.silo-menu-arquivo .menu-btn.delete:hover {
+    background: #fdecea;
+    color: var(--vermelho);
+}
+
+/* --- Upload popup --- */
+.upload-popup {
+    backdrop-filter: blur(4px);
+}
+
+.upload-popup .upload-box {
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: min(400px, 92vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+    text-align: left;
+}
+
+.upload-popup .upload-box h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    color: var(--azul-e);
+    text-align: center;
+}
+
+.upload-cancel-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px;
+    border: 1px solid var(--cinza-b);
+    border-radius: 10px;
+    background: #f8fafb;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.upload-cancel-btn:hover {
+    background: #eee;
+}
+
+.progress-bar {
+    border-radius: 999px;
+    height: 8px;
+}
+
+.progress-fill {
+    background: var(--azul);
+    border-radius: 999px;
+}
+
+/* --- Popup sistema (mover etc.) --- */
+.popup-sistema .popup-box {
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+
+.popup-sistema button {
+    border-radius: 10px;
+    background: var(--azul);
+}
+
+.popup-sistema button:hover {
+    background: var(--azul-e);
+}
+
+/* --- Overrides legados --- */
+#silo .sistema-main,
+#silo .silo-dados {
+    all: unset;
+}
+
+#silo .silo-uso-wrapper {
+    display: none;
+}
+
+#siloBusca,
+.silo-busca {
+    margin-left: 0 !important;
+}
+
+#btn-silo-scan {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    #silo.silo-layout {
+        padding-top: 88px;
+    }
+
+    .silo-storage-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+    }
+
+    .silo-arquivos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .silo-arquivos-wrap {
+        max-height: none;
+    }
+
+    #btn-silo-scan {
+        display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .silo-toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .silo-arquivos-sort {
+        justify-content: flex-end;
+    }
+}

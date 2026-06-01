@@ -72,10 +72,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
             </div>
 
             <div class="apontamento container">
-                <div class="row">
+                <div class="row g-3">
                     <div class="col-12 col-lg-6">
-                        <div class="apontamento-collapse apontamento-fazer active">
-                            <div class="apontamento-header fundo-laranja" id="manejo-fazer">
+                        <div class="apontamento-collapse apontamento-fazer manejos-panel active">
+                            <div class="apontamento-header" id="manejo-fazer">
                                 <div class="apontamento-title">
                                     <span class="apontamento-count cor-laranja">0</span>
                                     <h2 class="apontamento-title-text">Manejo a fazer</h2>
@@ -84,71 +84,64 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             </div>
 
                             <div class="main-tabela">
-                                <table class="apontamento-tabela">
-                                    <thead>
-                                        <tr>
-                                            <th id="apt-data">Data</th>
-                                            <th id="apt-nome">Apontamento</th>
-                                            <th id="apt-area">Área</th>
-                                            <th id="apt-cult">Cultivo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody><!-- Está vazio --></tbody>
-                                </table>
-
-                                <div class="manejos-pagination" data-status="pendente" style="display:flex;align-items:center;gap:10px;justify-content:center;width:100%;margin-top:10px;">
-                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="-1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
-                                        &lt;
-                                    </button>
-                                    <span class="manejos-page-text" data-status="pendente">Página 1</span>
-                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
-                                        &gt;
-                                    </button>
+                                <div class="manejos-table-wrap">
+                                    <table class="apontamento-tabela">
+                                        <thead>
+                                            <tr>
+                                                <th id="apt-data">Data</th>
+                                                <th id="apt-nome">Apontamento</th>
+                                                <th id="apt-area">Área</th>
+                                                <th id="apt-cult">Cultivo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
 
-                                <!-- Só aparece caso não haja nenhum item na tabela -->
-                                <p class="nenhum-apontamento">Nenhum apontamento</p>
+                                <div class="manejos-pagination" data-status="pendente">
+                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="-1" aria-label="Página anterior">&lt;</button>
+                                    <span class="manejos-page-text" data-status="pendente">Página 1</span>
+                                    <button type="button" class="manejos-page-btn" data-status="pendente" data-dir="1" aria-label="Próxima página">&gt;</button>
+                                </div>
+
+                                <p class="nenhum-apontamento">Nenhum apontamento pendente</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-12 col-lg-6">
-                        <div class="apontamento-collapse apontamento-concluido active">
-                            <div class="apontamento-header fundo-azul" id="manejo-concluido">
+                        <div class="apontamento-collapse apontamento-concluido manejos-panel active">
+                            <div class="apontamento-header" id="manejo-concluido">
                                 <div class="apontamento-title">
-                                    <span class="apontamento-count cor-azul">4</span>
+                                    <span class="apontamento-count cor-azul">0</span>
                                     <h2 class="apontamento-title-text">Manejo concluído</h2>
                                 </div>
                                 <div class="btn-icon icon-angle apontamento-icon cor-branco"></div>
                             </div>
                         
                             <div class="main-tabela">
-                                <table class="apontamento-tabela">
-                                    <thead>
-                                        <tr>
-                                            <th id="apt-data">Data</th>
-                                            <th id="apt-conclusao">Conclusão</th>
-                                            <th id="apt-nome">Apontamento</th>
-                                            <th id="apt-area">Área</th>
-                                            <th id="apt-cult">Cultivo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody> 
-                                    </tbody>
-                                </table>
-
-                                <div class="manejos-pagination" data-status="concluido" style="display:flex;align-items:center;gap:10px;justify-content:center;width:100%;margin-top:10px;">
-                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="-1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
-                                        &lt;
-                                    </button>
-                                    <span class="manejos-page-text" data-status="concluido">Página 1</span>
-                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="1" style="border:none;background:#eaeaea;padding:8px 12px;border-radius:8px;cursor:pointer;">
-                                        &gt;
-                                    </button>
+                                <div class="manejos-table-wrap">
+                                    <table class="apontamento-tabela">
+                                        <thead>
+                                            <tr>
+                                                <th id="apt-data">Data</th>
+                                                <th id="apt-conclusao">Conclusão</th>
+                                                <th id="apt-nome">Apontamento</th>
+                                                <th id="apt-area">Área</th>
+                                                <th id="apt-cult">Cultivo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
 
-                                <!-- Só aparece caso não haja nenhum item na tabela -->
-                                <p class="nenhum-apontamento">Nenhum apontamento</p>
+                                <div class="manejos-pagination" data-status="concluido">
+                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="-1" aria-label="Página anterior">&lt;</button>
+                                    <span class="manejos-page-text" data-status="concluido">Página 1</span>
+                                    <button type="button" class="manejos-page-btn" data-status="concluido" data-dir="1" aria-label="Próxima página">&gt;</button>
+                                </div>
+
+                                <p class="nenhum-apontamento">Nenhum apontamento concluído</p>
                             </div>
                         </div>
                     </div>

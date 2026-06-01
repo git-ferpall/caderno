@@ -173,36 +173,37 @@ async function voltarPasta() {
 // 🧭 Atualiza breadcrumb
 // ================================
 async function atualizarBreadcrumb() {
-  const breadcrumb = document.querySelector(".silo-breadcrumb");
-  if (!breadcrumb) return;
-
-  if (!window.pastaAtual || window.pastaAtual === 0) {
-    breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
-    return;
-  }
+  const nav = document.querySelector(".silo-breadcrumb");
+  if (!nav) return;
 
   try {
-    const res = await fetch(`../funcoes/silo/get_caminho.php?id=${window.pastaAtual}`);
+    const pastaId = window.pastaAtual || 0;
+    const res = await fetch(`../funcoes/silo/get_caminho.php?id=${pastaId}`);
     const j = await res.json();
 
-    if (!j.ok) {
-      breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
+    if (!j.ok || !Array.isArray(j.caminho) || j.caminho.length === 0) {
+      nav.innerHTML = '<span class="breadcrumb-item is-current">Raiz</span>';
       return;
     }
 
-    let html = `<span class="link-voltar" onclick="voltarPasta()">⬅️ Voltar</span>`;
-    html += `<span style="opacity:0.6;"> / </span>`;
-    html += `<span class="breadcrumb-item link" onclick="abrirPasta(0, 'Raiz')">📁 Raiz</span>`;
-
-    j.caminho.forEach((p) => {
-      html += ` <span style="opacity:0.6;">/</span> `;
-      html += `<span class="breadcrumb-item link" onclick="abrirPasta(${p.id}, '${p.nome.replace(/'/g, "\\'")}')">${p.nome}</span>`;
+    nav.innerHTML = "";
+    j.caminho.forEach((p, i) => {
+      if (i > 0) {
+        const sep = document.createElement("span");
+        sep.className = "silo-breadcrumb-sep";
+        sep.textContent = "/";
+        nav.appendChild(sep);
+      }
+      const span = document.createElement("span");
+      span.textContent = p.nome;
+      const isLast = i === j.caminho.length - 1;
+      span.className = "breadcrumb-item" + (isLast ? " is-current" : "");
+      if (!isLast) span.onclick = () => abrirPasta(p.id, p.nome);
+      nav.appendChild(span);
     });
-
-    breadcrumb.innerHTML = html;
   } catch (err) {
     console.error("Erro ao atualizar breadcrumb:", err);
-    breadcrumb.innerHTML = `<span>📁 Raiz</span>`;
+    nav.innerHTML = '<span class="breadcrumb-item is-current">Raiz</span>';
   }
 }
 
@@ -241,10 +242,10 @@ window.abrirPopup = abrirPopup;
 // 🧭 Atualiza lista
 // ================================
 async function atualizarLista() {
-  const box = document.querySelector(".silo-arquivos");
+  const box = document.querySelector(".silo-arquivos-grid");
 
   if (!box) {
-    console.warn("⚠️ .silo-arquivos não encontrado no DOM.");
+    console.warn("⚠️ .silo-arquivos-grid não encontrado no DOM.");
     return;
   }
 
@@ -256,12 +257,17 @@ async function atualizarLista() {
 
     if (!j.ok || !Array.isArray(j.arquivos)) {
       console.error("Resposta inválida:", j);
-      box.innerHTML = "<p>❌ Erro ao carregar arquivos.</p>";
+      box.innerHTML = '<p class="silo-state-msg">Erro ao carregar arquivos.</p>';
       return;
     }
 
     if (j.arquivos.length === 0) {
-      box.innerHTML = "<p style='text-align:center; opacity:0.6;'>Nenhum item encontrado.</p>";
+      box.innerHTML = `
+        <div class="silo-empty">
+          <div class="silo-empty-icon">📁</div>
+          <p>Esta pasta está vazia</p>
+          <small>Use o botão + para enviar arquivos ou criar uma pasta</small>
+        </div>`;
       return;
     }
 
@@ -297,6 +303,9 @@ async function atualizarLista() {
 
   } catch (err) {
     console.error("Erro ao atualizar lista:", err);
-    box.innerHTML = "<p>❌ Falha ao comunicar com o servidor.</p>";
+    box.innerHTML = '<p class="silo-state-msg">Falha ao comunicar com o servidor.</p>';
   }
 }
+
+window.atualizarLista = atualizarLista;
+window.atualizarBreadcrumb = atualizarBreadcrumb;

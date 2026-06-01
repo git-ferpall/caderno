@@ -20,6 +20,39 @@ document.addEventListener("DOMContentLoaded", () => {
     concluido: { key: "data", dir: "desc" }
   };
 
+  function labelTipo(tipo) {
+    if (!tipo || tipo === "-") return "—";
+    return tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/_/g, " ");
+  }
+
+  function badgeTipo(tipo) {
+    const slug = (tipo || "").toLowerCase().replace(/\s+/g, "_");
+    return `<span class="manejos-tipo-badge manejos-tipo-${slug}">${labelTipo(tipo)}</span>`;
+  }
+
+  function celulaTexto(valor) {
+    if (!valor || valor === "-") return '<span class="manejos-empty">—</span>';
+    return valor;
+  }
+
+  function aplicarIndicadorOrdenacao() {
+    document.querySelectorAll(".manejos-panel").forEach((panel) => {
+      const status = panel.classList.contains("apontamento-concluido") ? "concluido" : "pendente";
+      const estado = sortState[status];
+      const mapaTh = {
+        data: "apt-data",
+        conclusao: "apt-conclusao",
+        tipo: "apt-nome",
+        areas: "apt-area",
+        produto: "apt-cult",
+      };
+
+      panel.querySelectorAll("th").forEach((th) => {
+        th.dataset.ordem = th.id === mapaTh[estado.key] ? estado.dir : "none";
+      });
+    });
+  }
+
   const paginationUI = {
     pendente: {
       container: document.querySelector('.manejos-pagination[data-status="pendente"]'),
@@ -43,13 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (ui.btnPrev) {
       ui.btnPrev.disabled = page <= 1;
-      ui.btnPrev.style.opacity = page <= 1 ? 0.5 : 1;
-      ui.btnPrev.style.cursor = page <= 1 ? "not-allowed" : "pointer";
     }
     if (ui.btnNext) {
       ui.btnNext.disabled = page >= totalPages;
-      ui.btnNext.style.opacity = page >= totalPages ? 0.5 : 1;
-      ui.btnNext.style.cursor = page >= totalPages ? "not-allowed" : "pointer";
     }
 
     if (ui.container) {
@@ -82,13 +111,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           data.pendentes.forEach(item => {
             const tr = document.createElement("tr");
-            tr.dataset.id = item.id; // usado no popup
+            tr.className = "manejos-row";
+            tr.dataset.id = item.id;
+            tr.title = "Clique para ver detalhes";
 
             tr.innerHTML = `
-              <td>${item.data}</td>
-              <td>${item.tipo}</td>
-              <td>${item.areas}</td>
-              <td>${item.produto}</td>
+              <td class="manejos-data">${item.data}</td>
+              <td>${badgeTipo(item.tipo)}</td>
+              <td class="manejos-area">${celulaTexto(item.areas)}</td>
+              <td>${celulaTexto(item.produto)}</td>
             `;
 
             tabelaPendente.appendChild(tr);
@@ -108,14 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
           data.concluidos.forEach(item => {
             const tr = document.createElement("tr");
+            tr.className = "manejos-row";
             tr.dataset.id = item.id;
+            tr.title = "Clique para ver detalhes";
 
             tr.innerHTML = `
-              <td>${item.data}</td>
-              <td>${item.conclusao ?? '—'}</td>
-              <td>${item.tipo}</td>
-              <td>${item.areas}</td>
-              <td>${item.produto}</td>
+              <td class="manejos-data">${item.data}</td>
+              <td class="manejos-data">${item.conclusao ?? '<span class="manejos-empty">—</span>'}</td>
+              <td>${badgeTipo(item.tipo)}</td>
+              <td class="manejos-area">${celulaTexto(item.areas)}</td>
+              <td>${celulaTexto(item.produto)}</td>
             `;
 
             tabelaConcluido.appendChild(tr);
@@ -135,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setPagination("pendente", pagePendente, totalPaginasPendente);
         setPagination("concluido", pageConcluido, totalPaginasConcluido);
+        aplicarIndicadorOrdenacao();
 
         // Inicializa popup (outro JS)
         if (typeof inicializarPopupLinhas === "function") {
@@ -205,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Ativa ordenação uma vez (não duplicar handlers a cada fetch)
   inicializarOrdenacao();
+  aplicarIndicadorOrdenacao();
 
   // Pagination buttons
   paginationUI.pendente?.btnPrev?.addEventListener("click", () => {
