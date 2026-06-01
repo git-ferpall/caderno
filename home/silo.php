@@ -49,12 +49,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <input type="search" id="siloBusca" placeholder="Buscar arquivos ou pastas..." autocomplete="off">
                             </div>
                             <div class="silo-arquivos-sort">
-                                <button class="silo-sort-btn" type="button">
+                                <button class="silo-sort-btn" type="button" title="Ordenar por data">
                                     <span class="silo-sort-btn-text">Data</span>
-                                    <div class="btn-icon icon-angle"></div>
-                                </button>
-                                <button class="silo-sort-type" type="button" title="Alternar visualização">
-                                    <div class="btn-icon icon-silo"></div>
+                                    <span class="silo-sort-chevron" aria-hidden="true">▾</span>
                                 </button>
                             </div>
                         </div>

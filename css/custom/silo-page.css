@@ -1,54 +1,106 @@
 /* Silo de Dados — layout elegante (alinhado ao popup / manejos) */
 
 #silo.silo-layout {
-    padding-top: 100px;
-    padding-bottom: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 100px 16px 0;
+    min-height: calc(100vh - 52px);
+    box-sizing: border-box;
 }
 
 .silo-page {
-    max-width: 960px;
+    flex: 1;
+    width: 100%;
+    max-width: 1140px;
     margin: 0 auto;
-    padding: 0 14px 20px;
+    padding: 0 0 20px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 14px;
+    min-height: 0;
+}
+
+/* --- Ícones: tamanho fixo (evita SVG gigante) --- */
+#silo .btn-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#silo .btn-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 18px;
+    max-height: 18px;
+    display: block;
+}
+
+#silo .silo-dados-btn .btn-icon {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+}
+
+#silo .silo-dados-btn .btn-icon svg {
+    max-width: 22px;
+    max-height: 22px;
+}
+
+#silo .silo-dados-add-btn .btn-icon {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
 }
 
 /* --- Card de armazenamento --- */
 .silo-storage-card {
     display: flex;
     align-items: center;
-    gap: 22px;
-    padding: 18px 22px;
-    background: rgba(255, 255, 255, 0.12);
+    gap: 20px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.14);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 16px;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     color: #fff;
+    flex-shrink: 0;
 }
 
 .silo-storage-card .silo-uso-circular {
-    width: 88px;
-    height: 88px;
+    width: 72px;
+    height: 72px;
     flex-shrink: 0;
     margin: 0;
 }
 
 .silo-storage-card .silo-uso-circular::after {
-    width: 62px;
-    height: 62px;
+    width: 52px;
+    height: 52px;
     background: #fff;
 }
 
 .silo-storage-card #silo-uso-percent {
-    font-size: 16px;
+    font-size: 14px;
     color: #2c3e50;
 }
 
 .silo-uso-label {
-    margin: 0 0 4px;
-    font-size: 11px;
+    margin: 0 0 2px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -57,53 +109,57 @@
 
 .silo-uso-text h4 {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.4;
 }
 
 .silo-uso-detail {
     display: block;
-    margin-top: 4px;
-    font-size: 13px;
-    opacity: 0.8;
+    margin-top: 2px;
+    font-size: 12px;
+    opacity: 0.82;
 }
 
 /* --- Painel principal --- */
 .silo-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     background: var(--branco);
     border-radius: 16px;
     box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.65);
     overflow: hidden;
     position: relative;
-    min-height: 420px;
-    padding-bottom: 72px;
 }
 
 .silo-panel-header {
-    padding: 20px 22px 12px;
+    padding: 16px 20px 10px;
     border-bottom: 1px solid var(--cinza-b);
     background: linear-gradient(180deg, #f8fafb 0%, #fff 100%);
+    flex-shrink: 0;
 }
 
 .silo-panel-title {
     margin: 0;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
     color: var(--azul-e);
 }
 
 .silo-panel-subtitle {
-    margin: 4px 0 0;
+    margin: 3px 0 0;
     font-size: 13px;
     color: #777;
 }
 
 /* --- Toolbar --- */
 .silo-toolbar {
-    padding: 14px 22px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--cinza-b);
+    flex-shrink: 0;
 }
 
 .silo-breadcrumb {
@@ -111,10 +167,10 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 4px;
-    margin: 0 0 12px;
+    margin: 0 0 10px;
     font-size: 13px;
     color: #666;
-    min-height: 22px;
+    min-height: 20px;
 }
 
 .silo-breadcrumb-sep {
@@ -156,7 +212,7 @@
 
 .silo-busca {
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
     position: relative;
     margin: 0;
 }
@@ -167,7 +223,7 @@
     top: 50%;
     transform: translateY(-50%);
     color: #999;
-    font-size: 16px;
+    font-size: 15px;
     pointer-events: none;
 }
 
@@ -179,6 +235,7 @@
     font-size: 14px;
     background: #f8fafb;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
 }
 
 #siloBusca:focus {
@@ -191,16 +248,14 @@
 .silo-arquivos-sort {
     display: flex;
     align-items: center;
-    gap: 8px;
     flex-shrink: 0;
 }
 
-.silo-sort-btn,
-.silo-sort-type {
+.silo-sort-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 9px 14px;
     border: 1px solid var(--cinza-b);
     border-radius: 10px;
     background: #fff;
@@ -211,17 +266,22 @@
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.silo-sort-btn:hover,
-.silo-sort-type:hover {
+.silo-sort-btn:hover {
     background: #e8f7f5;
     border-color: #b2dfdb;
     color: var(--azul-e);
 }
 
+.silo-sort-chevron {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
 /* --- Grid de arquivos --- */
 .silo-arquivos-wrap {
-    padding: 16px 22px;
-    max-height: min(52vh, 480px);
+    flex: 1;
+    min-height: 200px;
+    padding: 14px 20px 80px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(19, 176, 166, 0.45) transparent;
@@ -248,6 +308,7 @@
     align-items: center;
     gap: 10px;
     width: 100%;
+    min-width: 0;
     padding: 12px 14px;
     background: #f8fafb;
     border: 1px solid var(--cinza-b);
@@ -275,8 +336,8 @@
 #silo .silo-item-box .btn-icon {
     width: 32px;
     height: 32px;
-    margin: 0;
-    flex-shrink: 0;
+    min-width: 32px;
+    min-height: 32px;
     background-color: #fff;
     border-radius: 8px;
     border: 1px solid var(--cinza-b);
@@ -287,11 +348,16 @@
     font-size: 13px;
     font-weight: 600;
     color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
 }
 
 #silo .silo-item.silo-arquivo > div:not(.btn-icon) {
     min-width: 0;
     flex: 1;
+    overflow: hidden;
 }
 
 #silo .silo-item-path {
@@ -299,12 +365,15 @@
     font-size: 11px;
     color: #888;
     margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .silo-empty {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 40px 20px;
+    padding: 48px 20px;
     color: #888;
 }
 
@@ -354,36 +423,46 @@
     bottom: 0;
     left: 0;
     right: 0;
+    height: 76px;
     pointer-events: none;
+    z-index: 6;
 }
 
 #silo .silo-dados-content {
     position: absolute;
-    bottom: 68px;
-    right: 18px;
+    bottom: 72px;
+    right: 16px;
+    left: auto;
+    width: 220px;
     background: #fff;
     border: 1px solid var(--cinza-b);
     border-radius: 14px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
     overflow: hidden;
     height: 0;
-    z-index: 8;
+    z-index: 7;
     pointer-events: auto;
 }
 
 #silo .silo-dados-content-space {
-    padding: 12px;
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 6px;
 }
 
 #silo .silo-dados-add-btn {
+    display: flex;
+    align-items: center;
     width: 100%;
     justify-content: flex-start;
+    gap: 8px;
     border: none;
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-size: 13px;
     font-weight: 600;
+    cursor: pointer;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -409,18 +488,29 @@
 }
 
 #silo .silo-dados-btn.v1 {
-    bottom: 18px;
-    right: 18px;
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
     width: 52px;
     height: 52px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     background: var(--grad-azul);
     box-shadow: 0 6px 20px rgba(0, 79, 114, 0.35);
     pointer-events: auto;
     border: none;
+    cursor: pointer;
+    z-index: 8;
+    overflow: hidden;
+    transition: transform 0.2s ease, background 0.2s ease;
 }
 
 #silo .silo-dados-btn.v1:hover {
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
 #silo .silo-dados-btn.v1.active {
@@ -503,7 +593,6 @@
     border-radius: 999px;
 }
 
-/* --- Popup sistema (mover etc.) --- */
 .popup-sistema .popup-box {
     border-radius: 16px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
@@ -518,16 +607,6 @@
     background: var(--azul-e);
 }
 
-/* --- Overrides legados --- */
-#silo .sistema-main,
-#silo .silo-dados {
-    all: unset;
-}
-
-#silo .silo-uso-wrapper {
-    display: none;
-}
-
 #siloBusca,
 .silo-busca {
     margin-left: 0 !important;
@@ -537,23 +616,30 @@
     display: none;
 }
 
+@media (min-width: 992px) {
+    .silo-arquivos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .silo-page {
+        max-width: 1200px;
+    }
+}
+
 @media (max-width: 768px) {
     #silo.silo-layout {
         padding-top: 88px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .silo-storage-card {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
         gap: 14px;
     }
 
     .silo-arquivos-grid {
         grid-template-columns: 1fr;
-    }
-
-    .silo-arquivos-wrap {
-        max-height: none;
     }
 
     #btn-silo-scan {
@@ -568,6 +654,11 @@
     }
 
     .silo-arquivos-sort {
-        justify-content: flex-end;
+        align-self: flex-end;
+    }
+
+    .silo-storage-card {
+        flex-direction: column;
+        text-align: center;
     }
 }
