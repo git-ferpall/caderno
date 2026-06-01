@@ -396,9 +396,17 @@ body.popup-scroll-lock {
         width: 100% !important;
         margin: 0 !important;
         border-radius: 20px 20px 0 0 !important;
-        min-height: 0;
         overflow: hidden;
         animation: popup-manejo-sheet-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .popup-manejo > .popup-manejo-shell {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
     }
 
     @keyframes popup-manejo-sheet-in {
@@ -412,15 +420,6 @@ body.popup-scroll-lock {
         }
     }
 
-    .popup-manejo-shell {
-        display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr) auto;
-        height: 100%;
-        min-height: 0;
-        padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
-        overflow: hidden;
-    }
-
     .popup-manejo-handle {
         display: block;
         width: 40px;
@@ -428,12 +427,14 @@ body.popup-scroll-lock {
         margin: 0 auto 8px;
         border-radius: 999px;
         background: #d0d8dc;
+        flex-shrink: 0;
     }
 
     .popup-manejo .popup-title {
         position: static;
         transform: none;
         left: auto;
+        flex-shrink: 0;
         margin: 0 auto 10px;
         white-space: normal;
         text-align: center;
@@ -443,6 +444,7 @@ body.popup-scroll-lock {
     }
 
     .popup-manejo-body {
+        flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
@@ -580,9 +582,11 @@ body.popup-scroll-lock {
     }
 
     .popup .popup-manejo .popup-actions.popup-manejo-actions {
-        display: grid;
+        display: grid !important;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
+        flex: 0 0 auto;
+        flex-shrink: 0;
         flex-wrap: unset;
         justify-content: stretch;
         padding-top: 10px;
@@ -590,9 +594,12 @@ body.popup-scroll-lock {
         background: #fff;
         border-top: 1px solid var(--cinza-b);
         padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+        position: relative;
+        z-index: 3;
     }
 
     .popup .popup-manejo .popup-actions.popup-manejo-actions .popup-btn {
+        display: flex;
         flex: unset;
         width: 100%;
         min-width: 0;
@@ -603,8 +610,12 @@ body.popup-scroll-lock {
         border-radius: 10px;
     }
 
-    .popup .popup-manejo .popup-actions.popup-manejo-actions #btn-salvar-manejo {
-        grid-column: 1 / -1;
+    .popup .popup-manejo .popup-actions.popup-manejo-actions .popup-btn.d-none {
+        display: none !important;
+    }
+
+    .popup .popup-manejo .popup-actions.popup-manejo-actions #btn-salvar-manejo:not(.d-none),
+    .popup .popup-manejo .popup-actions.popup-manejo-actions #btn-cancelar-edicao-manejo:not(.d-none) {
         min-height: 42px;
         font-size: 13px;
     }
