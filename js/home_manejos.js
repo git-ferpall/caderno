@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function carregarManejos() {
+  window.carregarManejos = function carregarManejos() {
     const url = `../funcoes/buscar_manejos.php?limite=${limite}` +
       `&pendente_page=${pagePendente}&concluido_page=${pageConcluido}` +
       `&pendente_sort=${encodeURIComponent(sortState.pendente.key)}&pendente_dir=${encodeURIComponent(sortState.pendente.dir)}` +

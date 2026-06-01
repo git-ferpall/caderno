@@ -221,47 +221,60 @@ if ($user_id) {
 
     <div class="main-form" id="manejo-detalhes">
         <div class="form-campo">
-        <label>Data:</label>
-        <input type="text" id="manejo-data" class="form-text" readonly>
+        <label for="manejo-data">Data</label>
+        <input type="date" id="manejo-data" class="form-text" readonly>
         </div>
         <div class="form-campo">
-        <label>Tipo:</label>
+        <label>Tipo</label>
         <input type="text" id="manejo-tipo" class="form-text" readonly>
         </div>
         <div class="form-campo">
-        <label>Status:</label>
+        <label>Status</label>
         <input type="text" id="manejo-status" class="form-text" readonly>
         </div>
         <div class="form-campo">
-        <label>Áreas:</label>
+        <label>Áreas</label>
         <div id="manejo-areas" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;"></div>
         </div>
         <div class="form-campo">
-        <label>Produtos:</label>
+        <label>Produtos</label>
         <div id="manejo-produtos" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;"></div>
         </div>
         <div class="form-campo">
-        <label>Detalhes:</label>
+        <label for="manejo-obs">Observações</label>
+        <textarea id="manejo-obs" class="form-text form-textarea" rows="3" readonly></textarea>
+        </div>
+        <div class="form-campo">
+        <label>Detalhes</label>
         <div id="manejo-detalhes-extra" class="form-text" style="background:#f8f8f8;padding:6px;border-radius:4px;font-size:0.9rem;"></div>
         </div>
         <div id="bloco-colheita" class="d-none" style="margin-top:15px;">
-            <label>Quantidade colhida</label>
-
+            <label>Quantidade / volume</label>
             <div style="display:flex; gap:10px;">
-                <input type="number" id="colheita-quantidade" step="0.01" class="form-text">
-
-                <select id="colheita-unidade" class="form-text">
+                <input type="number" id="colheita-quantidade" step="0.01" class="form-text" readonly>
+                <select id="colheita-unidade" class="form-text" disabled>
                 <option value="kg">Kg</option>
                 <option value="sacas">Sacas</option>
                 <option value="caixas">Caixas</option>
                 <option value="bandejas">Bandejas</option>
+                <option value="l">L</option>
+                <option value="ml">ml</option>
+                <option value="m3">m³</option>
                 </select>
             </div>
+        </div>
+        <div id="manejo-historico-wrap" class="d-none" style="margin-top:12px;text-align:left;">
+            <h4 style="font-size:14px;margin:0 0 8px;">Histórico de alterações</h4>
+            <div id="manejo-historico-list" style="max-height:180px;overflow:auto;font-size:12px;background:#f8f8f8;padding:8px;border-radius:6px;"></div>
         </div>
     </div>
 
     <div class="popup-actions">
         <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Fechar</button>
+        <button class="popup-btn fundo-azul" id="btn-ver-historico" type="button">Histórico</button>
+        <button class="popup-btn fundo-laranja" id="btn-editar-manejo" type="button">Editar</button>
+        <button class="popup-btn fundo-verde d-none" id="btn-salvar-manejo" type="button">Salvar</button>
+        <button class="popup-btn fundo-cinza-b cor-preto d-none" id="btn-cancelar-edicao-manejo" type="button">Cancelar</button>
         <button class="popup-btn fundo-verde" id="btn-marcar-concluido" type="button">Marcar como concluído</button>
     </div>
     </div>

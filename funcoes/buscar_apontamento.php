@@ -5,6 +5,8 @@ require_once __DIR__ . '/../funcoes/busca_dados.php';
 
 header('Content-Type: application/json');
 
+session_start();
+
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     $payload = verify_jwt();

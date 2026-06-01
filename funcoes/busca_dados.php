@@ -77,6 +77,7 @@ function getApontamentosCompletos($mysqli, $user_id) {
             'tipo' => $ap['tipo'],
             'data' => $ap['data'],
             'quantidade' => $ap['quantidade'],
+            'unidade' => $ap['unidade'] ?? null,
             'previsao' => $ap['previsao'] ?? null,
             'observacoes' => $ap['observacoes'],
             'status' => $ap['status'],
