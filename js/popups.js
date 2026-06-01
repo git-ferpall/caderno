@@ -4,6 +4,67 @@ const popupSuccess = document.getElementById('popup-success');
 const popupFailed = document.getElementById('popup-failed');
 const popupProp = document.getElementById('popup-prop');
 
+let popupScrollY = 0;
+let popupTouchBlock = null;
+
+function findPopupScrollable(el) {
+    while (el && el !== document.documentElement) {
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        const canScroll = el.scrollHeight > el.clientHeight + 1;
+        if (canScroll && (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')) {
+            return el;
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function lockPopupScroll() {
+    if (document.body.classList.contains('popup-scroll-lock')) return;
+
+    popupScrollY = window.scrollY || document.documentElement.scrollTop;
+    document.documentElement.classList.add('popup-scroll-lock');
+    document.body.classList.add('popup-scroll-lock');
+    document.body.style.top = `-${popupScrollY}px`;
+
+    popupTouchBlock = (e) => {
+        if (!overlay || overlay.classList.contains('d-none')) return;
+        if (findPopupScrollable(e.target)) return;
+        e.preventDefault();
+    };
+    document.addEventListener('touchmove', popupTouchBlock, { passive: false });
+}
+
+function unlockPopupScroll() {
+    if (!document.body.classList.contains('popup-scroll-lock')) return;
+
+    document.documentElement.classList.remove('popup-scroll-lock');
+    document.body.classList.remove('popup-scroll-lock');
+    document.body.style.top = '';
+    window.scrollTo(0, popupScrollY);
+
+    if (popupTouchBlock) {
+        document.removeEventListener('touchmove', popupTouchBlock);
+        popupTouchBlock = null;
+    }
+}
+
+function syncPopupScrollLock() {
+    if (overlay && !overlay.classList.contains('d-none')) {
+        lockPopupScroll();
+    } else {
+        unlockPopupScroll();
+    }
+}
+
+if (overlay) {
+    new MutationObserver(syncPopupScrollLock).observe(overlay, {
+        attributes: true,
+        attributeFilter: ['class'],
+    });
+}
+
 function closePopup() {
     if (overlay) overlay.classList.add('d-none');
     if (popupCancel) popupCancel.classList.add('d-none');
@@ -18,6 +79,7 @@ function closePopup() {
     if (popupDetalheManejo) popupDetalheManejo.classList.add('d-none');
     if (popupDelete) popupDelete.classList.add('d-none');
     if (popupSiloInput) popupSiloInput.classList.add('d-none');
+    unlockPopupScroll();
 }
 
 /* Cancelar */

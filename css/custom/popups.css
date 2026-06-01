@@ -7,6 +7,20 @@
     align-items: center;
     z-index: 2000;
     padding: 20px;
+    overscroll-behavior: none;
+}
+
+html.popup-scroll-lock,
+body.popup-scroll-lock {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+body.popup-scroll-lock {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    right: 0;
 }
 
 .popup .popup-box {
@@ -97,6 +111,8 @@
     max-height: 440px;
     overflow: scroll;
     padding: 26px 0px 0px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .popup-box .main-form {
@@ -143,6 +159,8 @@
     margin-top: 6px;
     scrollbar-width: thin;
     scrollbar-color: rgba(19, 176, 166, 0.55) transparent;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .popup-manejo-body::-webkit-scrollbar {
@@ -387,6 +405,8 @@
     .popup-manejo-shell {
         padding: 8px 16px max(16px, env(safe-area-inset-bottom, 0px));
         max-height: min(92dvh, 92vh);
+        overflow: hidden;
+        touch-action: pan-y;
     }
 
     .popup-manejo .popup-title {
@@ -405,6 +425,8 @@
         padding: 0 2px 8px;
         margin-top: 0;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
     }
 
     .manejo-form label {
