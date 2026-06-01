@@ -314,29 +314,3 @@
         min-width: 80px;
     }
 }
-
-@media (max-width: 768px) {
-    .popup-manejo {
-        max-width: calc(100vw - 24px) !important;
-        width: calc(100vw - 24px) !important;
-        margin: 0 12px;
-    }
-
-    .popup-manejo-shell {
-        padding: 20px 16px 16px !important;
-        max-height: min(90vh, 100dvh - 40px);
-    }
-
-    .popup-manejo-actions {
-        position: sticky;
-        bottom: 0;
-        background: #fff;
-        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
-    }
-
-    .popup-manejo-actions .popup-btn {
-        min-height: 44px;
-        font-size: 12px;
-        padding: 10px 12px;
-    }
-}

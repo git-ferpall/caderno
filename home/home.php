@@ -32,10 +32,16 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <?php if (!empty($propriedades)) :
                                     $propriedade = $propriedades[0]; ?>
                                     <h2 class="home-property-name"><?= htmlspecialchars($propriedade['nome_razao']) ?></h2>
-                                    <button class="home-property-edit" type="button" onclick="altProp()">Alterar propriedade</button>
+                                    <button class="home-property-edit" type="button" onclick="altProp()" aria-label="Alterar propriedade">
+                                        <span class="home-property-edit-icon" aria-hidden="true">↔</span>
+                                        <span>Alterar propriedade</span>
+                                    </button>
                                 <?php else : ?>
                                     <h2 class="home-property-name">Nenhuma propriedade</h2>
-                                    <button class="home-property-edit" type="button" onclick="altProp()">Cadastrar</button>
+                                    <button class="home-property-edit home-property-edit--cadastrar" type="button" onclick="altProp()" aria-label="Cadastrar propriedade">
+                                        <span class="home-property-edit-icon" aria-hidden="true">+</span>
+                                        <span>Cadastrar propriedade</span>
+                                    </button>
                                 <?php endif; ?>
                             </div>
                         </div>

@@ -121,6 +121,10 @@
     position: relative;
 }
 
+.popup-manejo-handle {
+    display: none;
+}
+
 .popup-manejo .popup-title {
     position: absolute;
     top: -18px;
@@ -343,6 +347,193 @@
 
     .popup-manejo-actions .popup-btn {
         flex: 1 1 calc(50% - 4px);
+    }
+}
+
+/* --- Popup Manejo — mobile (bottom sheet) --- */
+@media (max-width: 768px) {
+    .popup:has(.popup-manejo:not(.d-none)) {
+        align-items: flex-end;
+        padding: 0;
+        background: rgba(15, 23, 28, 0.52);
+    }
+
+    .popup-manejo {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: min(92dvh, 92vh);
+        animation: popup-manejo-sheet-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes popup-manejo-sheet-in {
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .popup-manejo-handle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        margin: 0 auto 10px;
+        border-radius: 999px;
+        background: #d0d8dc;
+        flex-shrink: 0;
+    }
+
+    .popup-manejo-shell {
+        padding: 8px 16px max(16px, env(safe-area-inset-bottom, 0px));
+        max-height: min(92dvh, 92vh);
+    }
+
+    .popup-manejo .popup-title {
+        position: static;
+        transform: none;
+        left: auto;
+        margin: 0 auto 12px;
+        white-space: normal;
+        text-align: center;
+        font-size: 17px;
+        padding: 8px 16px;
+        box-shadow: 0 2px 10px rgba(0, 79, 114, 0.18);
+    }
+
+    .popup-manejo-body {
+        padding: 0 2px 8px;
+        margin-top: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .manejo-form label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #6a7379;
+    }
+
+    .manejo-meta-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .manejo-meta-grid .form-text {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+
+    .manejo-status-wrap {
+        min-height: 44px;
+    }
+
+    .manejo-valor-box {
+        min-height: 44px;
+        padding: 12px 14px;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .manejo-textarea {
+        min-height: 88px !important;
+        font-size: 16px !important;
+    }
+
+    .manejo-historico-list {
+        max-height: 120px;
+        font-size: 13px;
+    }
+
+    .manejo-anexo-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .manejo-anexo-item a {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .manejo-anexo-actions {
+        justify-content: flex-end;
+    }
+
+    .manejo-anexo-actions button {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .manejo-anexos-upload label {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    .popup-manejo-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding-top: 12px;
+        margin-top: 8px;
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, #fff 24%);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+        z-index: 2;
+    }
+
+    .popup-manejo-actions .popup-btn {
+        flex: none;
+        width: 100%;
+        min-height: 46px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+
+    .popup-manejo-actions #btn-marcar-concluido,
+    .popup-manejo-actions #btn-salvar-manejo {
+        grid-column: 1 / -1;
+        min-height: 48px;
+        font-size: 14px;
+    }
+
+    .popup-manejo-actions #btn-ver-historico {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 480px) {
+    .manejo-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .manejo-status-campo {
+        grid-column: auto;
+    }
+
+    .manejo-qtd-row {
+        flex-direction: column;
+    }
+
+    .manejo-qtd-row .form-text {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
     }
 }
 

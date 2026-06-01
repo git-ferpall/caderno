@@ -218,6 +218,7 @@ if ($user_id) {
     <!-- Popup Detalhes do Manejo -->
     <div class="popup-box popup-manejo v2 d-none" id="popup-detalhe-manejo">
         <div class="popup-manejo-shell">
+            <div class="popup-manejo-handle" aria-hidden="true"></div>
             <h2 class="popup-title">Detalhes do Manejo</h2>
 
             <div class="popup-manejo-body">

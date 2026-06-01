@@ -69,20 +69,61 @@
 }
 
 #home .home-property-edit {
-    margin-top: 4px;
-    padding: 0;
-    border: none;
-    background: none;
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    min-height: 32px;
+    border: 1px solid #c5e8e4;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f4faf9 0%, #ecf6f4 100%);
     color: var(--azul-e);
     font-size: 12px;
     font-weight: 600;
+    line-height: 1.2;
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+#home .home-property-edit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(19, 176, 166, 0.12);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
 }
 
 #home .home-property-edit:hover {
-    color: var(--azul);
+    background: #e8f4f2;
+    border-color: var(--azul);
+    box-shadow: 0 2px 8px rgba(19, 176, 166, 0.12);
+}
+
+#home .home-property-edit:active {
+    transform: scale(0.98);
+}
+
+#home .home-property-edit--cadastrar {
+    border-color: #c8e6a8;
+    background: linear-gradient(180deg, #f6fbf2 0%, #edf7e6 100%);
+    color: #3d6b1a;
+}
+
+#home .home-property-edit--cadastrar .home-property-edit-icon {
+    background: rgba(74, 124, 27, 0.12);
+}
+
+#home .home-property-edit--cadastrar:hover {
+    background: #edf7e6;
+    border-color: #8bc34a;
+    box-shadow: 0 2px 8px rgba(74, 124, 27, 0.12);
 }
 
 #home .home-timeline-btn {
@@ -513,6 +554,12 @@
         overflow: hidden;
     }
 
+    #home .home-property-edit {
+        min-height: 40px;
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
     #home .home-timeline-btn {
         width: 100%;
         justify-content: center;
@@ -588,6 +635,11 @@
     }
 
     #home a.home-stat:hover {
+        box-shadow: none;
+    }
+
+    #home .home-property-edit:hover {
+        transform: none;
         box-shadow: none;
     }
 }
