@@ -119,14 +119,18 @@ document.addEventListener("DOMContentLoaded", function(){
         const data_fim = document.querySelector("input[name='data_fim']").value;
 
         if(!prop || !ar || !prod || !data_ini || !data_fim){
-
             alert("Preencha todos os campos para gerar o relatório.");
-
             return;
-
         }
 
+        const overlay = document.getElementById("loading-overlay");
+        if (overlay) overlay.style.display = "flex";
+
         document.getElementById("rel-form").submit();
+
+        setTimeout(function () {
+            if (overlay) overlay.style.display = "none";
+        }, 2000);
 
     });
 
