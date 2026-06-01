@@ -41,5 +41,5 @@ setcookie('AUTH_COOKIE', $jwt, [
     'samesite' => 'Lax'
 ]);
 
-header('Location: /home/index.php');
+header('Location: /home');
 exit;

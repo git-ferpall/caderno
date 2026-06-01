@@ -74,7 +74,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     <div class="relatorios-grid">
 
-                        <a href="relatorios_manejos.php" class="card-relatorio">
+                        <a href="relatorios_manejos" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">📊</span>
                                 <h3>Relatório de Manejos</h3>
@@ -82,7 +82,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <p>Aplicações, defensivos e operações realizadas.</p>
                         </a>
 
-                        <a href="relatorio_fitossanitario.php" class="card-relatorio">
+                        <a href="relatorio_fitossanitario" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">🛠️</span>
                                 <h3>Relatório Fitossanitário</h3>
@@ -90,7 +90,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <p>Registros de aplicações de defensivos, fertilizantes e intervenções no cultivo.</p>
                         </a>
 
-                        <a href="relatorio_produtividade.php" class="card-relatorio">
+                        <a href="relatorio_produtividade" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">📦</span>
                                 <h3>Relatório de Produção</h3>
@@ -98,7 +98,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <p>Resumo de colheita e produtividade.</p>
                         </a>
 
-                        <a href="relatorio_irrigacao.php" class="card-relatorio">
+                        <a href="relatorio_irrigacao" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">💧</span>
                                 <h3>Relatório de Irrigação</h3>

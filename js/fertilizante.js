@@ -121,7 +121,7 @@ function carregarFertilizantes() {
           showPopup("success", res.msg || "✅ Fertilizante salvo com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "apontamento.php";
+            window.location.href = "apontamento";
           }, 1200);
         } else {
             showPopup("failed", res.msg || "❌ Erro ao salvar o fertilizante.");

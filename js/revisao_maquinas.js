@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", res.msg || "Dados salvos com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "apontamento.php";
+            window.location.href = "apontamento";
           }, 1200);
         } else {
           showPopup("erro", res.msg || "Erro ao salvar apontamento.");

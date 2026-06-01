@@ -151,7 +151,7 @@ carregarInseticidas();
             showPopup("success", res.msg || "Inseticida salvo com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
 
           } else {

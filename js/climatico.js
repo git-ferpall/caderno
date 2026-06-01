@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showPopup("success", res.msg || "Registro climático salvo com sucesso!");
 
           setTimeout(() => {
-            window.location.href = "apontamento.php";
+            window.location.href = "apontamento";
           }, 1200);
 
         } else {

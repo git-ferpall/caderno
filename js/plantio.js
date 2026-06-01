@@ -209,7 +209,7 @@ document.querySelector(".add-produto").addEventListener("click", () => {
 
             // Pequeno delay só para o usuário ver o popup
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar o plantio.");

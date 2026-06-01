@@ -48,23 +48,23 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
 
                 <ul class="menu-links">
-                    <a href="./apontamento.php"><li class="menu-link fundo-verde">
+                    <a href="./apontamento"><li class="menu-link fundo-verde">
                         <div class="btn-icon icon-plus cor-branco"></div>
                         <span class="link-title cor-branco">Novo Apontamento</span>
                     </li></a>
-                    <a href="./silo.php"><li class="menu-link fundo-azul cor-branco">
+                    <a href="./silo"><li class="menu-link fundo-azul cor-branco">
                         <div class="btn-icon icon-silo"></div>
                         <span class="link-title cor-branco">Silo de Dados</span>
                     </li></a>
-                    <a href="./produtos.php"><li class="menu-link">
+                    <a href="./produtos"><li class="menu-link">
                         <div class="btn-icon icon-fruit"></div>
                         <span class="link-title">Produtos</span>
                     </li></a>
-                    <a href="./areas.php"><li class="menu-link">
+                    <a href="./areas"><li class="menu-link">
                         <div class="btn-icon icon-plant"></div>
                         <span class="link-title">Áreas</span>
                     </li></a>
-                    <a href="./relatorios.php"><li class="menu-link">
+                    <a href="./relatorios"><li class="menu-link">
                         <div class="btn-icon icon-pen"></div>
                         <span class="link-title">Relatórios</span>
                     </li></a>

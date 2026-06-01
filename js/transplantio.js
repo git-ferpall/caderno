@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", data.msg || "Transplantio salvo com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
           } else {
             showPopup("failed", data.err || "Erro ao salvar o transplantio.");

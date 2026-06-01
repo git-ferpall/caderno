@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function abrirPopupManejo(id) {
 
-    fetch("../funcoes/buscar_apontamento.php", {
+    fetch("../funcoes/buscar_apontamento", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: "id=" + encodeURIComponent(id),

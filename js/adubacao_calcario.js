@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", res.msg || "Adubação registrada com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
           } else {
             showPopup("failed", res.err || "Erro ao salvar adubação.");

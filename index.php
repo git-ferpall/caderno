@@ -5,7 +5,7 @@ require_once __DIR__ . '/configuracao/auth.php';
 require_once __DIR__ . '/configuracao/recaptcha.php'; 
 
 if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
-    header('Location: /home/home.php');
+    header('Location: /home');
     exit;
 }
 ?>
@@ -91,7 +91,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
 <div id="conteudo" class="content-login">
     <header class="header-login" id="cabecalho">
         <div class="logo-box">
-            <a href="index.php"><img src="img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
+            <a href="/"><img src="img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
             <a href="https://www.frutag.com.br" target="_blank"><img src="img/logo-frutag.png" alt="Logo Frutag"></a>
         </div>
 
@@ -152,7 +152,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             <!-- Formulário de Cadastro -->
             <div class="cadastro-content d-none" id="cad-form">
                 <h2 class="login-title">Faça seu cadastro</h2>
-                <form id="fcadastro" class="main-form" action="index.php" method="POST">
+                <form id="fcadastro" class="main-form" action="/" method="POST">
                     <input class="fcampo" name="user" type="text" placeholder="Digite seu usuário..." required>
                     <input class="fcampo" id="fuser_cad" name="login" type="text" placeholder="Digite seu usuário ou email..." required autocomplete="username">
                     <input class="fcampo" id="fpass_cad" name="pass" type="password" placeholder="Digite sua senha..." required autocomplete="new-password">
@@ -169,7 +169,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             <!-- Recuperação de Senha -->
             <div class="recuperacao-content d-none" id="rec-form">
                 <h2 class="login-title">Recupere sua senha</h2>
-                <form id="fsenha" class="main-form" action="index.php" method="POST">
+                <form id="fsenha" class="main-form" action="/" method="POST">
                     <input class="fcampo" name="email_tel" type="text" placeholder="Digite seu email ou telefone..." required>
                     <div class="fbuttons">
                         <input class="fbotao main-btn" type="button" value="Enviar" onclick="enviarRecuperacao()">

@@ -24,7 +24,7 @@ $captcha = trim($_POST['g-recaptcha-response'] ?? ''); // token reCAPTCHA
 
 if ($login === '' || $senha === '') {
     setLoginError('Por favor, preencha usuário e senha.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -36,7 +36,7 @@ if ($login === '' || $senha === '') {
 if (empty($captcha)) {
     error_log("reCAPTCHA token vazio");
     setLoginError('Validação de segurança falhou. Recarregue a página e tente novamente.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -68,7 +68,7 @@ file_put_contents('/tmp/debug_recaptcha.log', date('[Y-m-d H:i:s] ') . "RAW_RESP
 if (!$response) {
     error_log("reCAPTCHA erro cURL: $error");
     setLoginError('Erro ao validar o reCAPTCHA. Tente novamente.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -80,7 +80,7 @@ $score = $captcha_data['score'] ?? 0;
 if (empty($captcha_data['success']) || $score < 0.2) {
     error_log("reCAPTCHA falhou: score=" . ($score ?: 'null'));
     setLoginError('Falha na validação de segurança. Tente novamente.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -105,7 +105,7 @@ $r = http_post_form(AUTH_API_LOGIN, $payload);
 if (!$r || ($r['status'] ?? 0) === 0 || ($r['body'] ?? '') === '' || ($r['status'] ?? 0) >= 500) {
     error_log("AUTH_API erro rede/5xx status=" . ($r['status'] ?? 'null'));
     setLoginError('Erro de comunicação com o servidor. Tente novamente mais tarde.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -117,14 +117,14 @@ if (!$r || ($r['status'] ?? 0) === 0 || ($r['body'] ?? '') === '' || ($r['status
 if (($r['status'] ?? 0) === 401) {
     error_log("AUTH_API 401 body=" . substr($r['body'], 0, 400));
     setLoginError('Usuário ou senha incorretos.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
 if (($r['status'] ?? 0) === 403) {
     error_log("AUTH_API 403 body=" . substr($r['body'], 0, 400));
     setLoginError('Usuário sem permissão para acessar o Caderno de Campo.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 
@@ -132,7 +132,7 @@ $j = json_decode($r['body'], true);
 if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
     error_log("AUTH_API sem ok/token body=" . substr($r['body'], 0, 400));
     setLoginError('Falha na autenticação. Verifique suas credenciais.');
-    header('Location: /index.php');
+    header('Location: /');
     exit;
 }
 

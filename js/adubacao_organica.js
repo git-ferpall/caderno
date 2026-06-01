@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", res.msg || "Adubação orgânica registrada com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
 
           } else {

@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showPopup("success", res.msg || "Controle de água registrado com sucesso!");
 
             setTimeout(() => {
-              window.location.href = "apontamento.php";
+              window.location.href = "apontamento";
             }, 1200);
 
           } else {

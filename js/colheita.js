@@ -199,7 +199,7 @@ function carregarProdutos() {
           showPopup("success", data.msg || "Dados Salvos Com Sucesso!");
 
           setTimeout(() => {
-            window.location.href = "apontamento.php";
+            window.location.href = "apontamento";
           }, 1200);
 
         } else {

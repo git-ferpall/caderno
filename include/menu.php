@@ -60,7 +60,7 @@ if (!empty($user_id)) {
 <header class="menu-principal">
     <nav class="navbar nav-menu">
         <div class="nav-logo">
-            <a href="home.php"><img src="../img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
+            <a href="/home"><img src="../img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
         </div>
         <div class="nav-items">
             <button class="nav-menu-btn main-btn" id="btn-menu" name="menu" type="button" onclick="abrirMenu()">Menu</button>
@@ -90,7 +90,7 @@ if (!empty($user_id)) {
 
         <div class="menu-list">
             <ul class="menu-links">
-                <a href="./apontamento.php"><li class="menu-link fundo-verde">
+                <a href="./apontamento"><li class="menu-link fundo-verde">
                     <div class="btn-icon icon-plus cor-branco"></div>
                     <span class="link-title cor-branco">Novo Apontamento</span>
                 </li></a>
@@ -98,39 +98,39 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen cor-branco"></div>
                     <span class="link-title cor-branco">Alterar Propriedade</span>
                 </li></button>
-                <a href="./home.php"><li class="menu-link fundo-preto">
+                <a href="./home"><li class="menu-link fundo-preto">
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>
-                <a href="./silo.php"><li class="menu-link fundo-azul">
+                <a href="./silo"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>
                     <span class="link-title cor-branco">Silo de Dados</span>
                 </li></a>
-                <a href="./perfil.php"><li class="menu-link">
+                <a href="./perfil"><li class="menu-link">
                     <div class="btn-icon icon-user"></div>
                     <span class="link-title">Dados Pessoais</span>
                 </li></a>
-                <a href="./propriedade.php"><li class="menu-link">
+                <a href="./propriedade"><li class="menu-link">
                     <div class="btn-icon icon-pin"></div>
                     <span class="link-title">Cadastro de Propriedade</span>
                 </li></a>
-                <a href="./produtos.php"><li class="menu-link">
+                <a href="./produtos"><li class="menu-link">
                     <div class="btn-icon icon-fruit"></div>
                     <span class="link-title">Produtos Cultivados</span>
                 </li></a>
-                <a href="./areas.php"><li class="menu-link">
+                <a href="./areas"><li class="menu-link">
                     <div class="btn-icon icon-plant"></div>
                     <span class="link-title">Áreas Cultivadas</span>
                 </li></a>
-                <a href="./maquinas.php"><li class="menu-link">
+                <a href="./maquinas"><li class="menu-link">
                     <div class="btn-icon icon-truck"></div>
                     <span class="link-title">Relação de Máquinas</span>
                 </li></a>
-                <a href="./hidroponia.php"><li class="menu-link">
+                <a href="./hidroponia"><li class="menu-link">
                     <div class="btn-icon icon-water"></div>
                     <span class="link-title">Hidroponia</span>
                 </li></a>
-                <a href="./relatorios.php"><li class="menu-link">
+                <a href="./relatorios"><li class="menu-link">
                     <div class="btn-icon icon-pen"></div>
                     <span class="link-title">Relatórios</span>
                 </li></a>
