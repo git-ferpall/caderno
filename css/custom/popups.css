@@ -192,6 +192,10 @@
     padding: 10px 12px;
     font-size: 14px;
     border-radius: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .manejo-status-wrap {
@@ -337,14 +341,6 @@
 }
 
 @media (max-width: 520px) {
-    .manejo-meta-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .manejo-status-campo {
-        grid-column: 1 / -1;
-    }
-
     .popup-manejo-actions .popup-btn {
         flex: 1 1 calc(50% - 4px);
     }
@@ -417,21 +413,66 @@
         letter-spacing: 0.04em;
         text-transform: uppercase;
         color: #6a7379;
+        padding-left: 4px;
     }
 
     .manejo-meta-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "meta-data meta-status"
+            "meta-tipo meta-tipo";
+        align-items: end;
+        gap: 10px 12px;
+    }
+
+    .manejo-meta-grid .form-campo:nth-child(1) {
+        grid-area: meta-data;
+    }
+
+    .manejo-meta-grid .form-campo:nth-child(2) {
+        grid-area: meta-tipo;
+    }
+
+    .manejo-meta-grid .manejo-status-campo {
+        grid-area: meta-status;
+    }
+
+    .manejo-meta-grid .form-campo {
+        width: 100%;
+        overflow: hidden;
     }
 
     .manejo-meta-grid .form-text {
         min-height: 44px;
         font-size: 16px;
         padding: 10px 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .manejo-meta-grid input[type="date"].form-text {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .manejo-meta-grid #manejo-tipo {
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.35;
+    }
+
+    .manejo-status-campo label {
+        text-align: right;
+        padding-right: 2px;
     }
 
     .manejo-status-wrap {
         min-height: 44px;
+        padding-left: 0;
+        justify-content: flex-end;
     }
 
     .manejo-valor-box {
@@ -520,10 +561,25 @@
 @media (max-width: 480px) {
     .manejo-meta-grid {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "meta-data"
+            "meta-tipo"
+            "meta-status";
+        align-items: stretch;
     }
 
-    .manejo-status-campo {
-        grid-column: auto;
+    .manejo-status-campo label {
+        text-align: left;
+        padding-left: 4px;
+    }
+
+    .manejo-status-wrap {
+        justify-content: flex-start;
+    }
+
+    .manejo-meta-grid #manejo-tipo {
+        white-space: normal;
+        text-overflow: clip;
     }
 
     .manejo-qtd-row {
