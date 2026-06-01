@@ -137,6 +137,10 @@ body.popup-scroll-lock {
     position: relative;
 }
 
+.popup-manejo-lead {
+    display: none;
+}
+
 .popup-manejo-handle {
     display: none;
 }
@@ -433,16 +437,19 @@ body.popup-scroll-lock {
     }
 
     .popup-manejo .popup-title {
-        position: static;
-        transform: none;
-        left: auto;
+        display: none;
+    }
+
+    .popup-manejo-lead {
+        display: block;
         flex-shrink: 0;
-        margin: 0 auto 10px;
-        white-space: normal;
-        text-align: center;
-        font-size: 16px;
-        padding: 8px 14px;
-        box-shadow: 0 2px 10px rgba(0, 79, 114, 0.18);
+        margin: 0 0 12px;
+        padding: 0 4px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.45;
+        color: #5a656b;
+        text-align: left;
     }
 
     .popup-manejo-body {
@@ -469,6 +476,25 @@ body.popup-scroll-lock {
 
     .manejo-detalhes-extra {
         word-break: break-word;
+    }
+
+    .manejo-detalhes-campo .manejo-detalhes-label {
+        display: none;
+    }
+
+    .manejo-detalhes-campo .manejo-detalhes-extra {
+        background: transparent;
+        border: none;
+        min-height: 0;
+        padding: 0 4px 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #444;
+    }
+
+    .manejo-detalhes-campo .manejo-detalhes-extra em {
+        color: #999;
+        font-style: italic;
     }
 
     .manejo-form label {

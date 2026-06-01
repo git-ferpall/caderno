@@ -222,6 +222,7 @@ if ($user_id) {
             <h2 class="popup-title">Detalhes do Manejo</h2>
 
             <div class="popup-manejo-body">
+                <p class="popup-manejo-lead">Apontamento selecionado — role para ver todas as informações.</p>
                 <div class="main-form manejo-form" id="manejo-detalhes">
                     <div class="manejo-meta-grid">
                         <div class="form-campo">
@@ -252,8 +253,8 @@ if ($user_id) {
                         <label for="manejo-obs">Observações</label>
                         <textarea id="manejo-obs" class="form-text form-textarea manejo-textarea" rows="2" readonly></textarea>
                     </div>
-                    <div class="form-campo">
-                        <label>Detalhes</label>
+                    <div class="form-campo manejo-detalhes-campo">
+                        <label class="manejo-detalhes-label">Detalhes</label>
                         <div id="manejo-detalhes-extra" class="manejo-valor-box manejo-detalhes-extra"></div>
                     </div>
 
