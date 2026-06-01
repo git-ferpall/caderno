@@ -80,9 +80,8 @@ async function moverItem(id) {
 
         if (json.ok) {
           overlay.remove();
-          siloShowSuccess(json.msg || "Item movido com sucesso!", async () => {
-            if (typeof atualizarLista === "function") await atualizarLista();
-          });
+          await siloRefreshLista();
+          siloShowSuccess(json.msg || "Item movido com sucesso!");
 
         } else {
           siloShowError(json.err || "Falha ao mover o item.");

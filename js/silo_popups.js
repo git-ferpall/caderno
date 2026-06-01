@@ -70,7 +70,6 @@ function siloConfirm({ title, text, onConfirm }) {
   btnConfirm.onclick = async () => {
     popup.classList.add("d-none");
     if (typeof onConfirm === "function") await onConfirm();
-    if (typeof closePopup === "function") closePopup();
   };
 }
 
@@ -123,6 +122,21 @@ function siloPrompt({ title, label, defaultValue = "" }) {
   });
 }
 
+function siloRefreshLista() {
+  if (typeof window.atualizarLista === "function") {
+    return window.atualizarLista();
+  }
+  return Promise.resolve();
+}
+
+function siloRefreshUso() {
+  if (typeof window.atualizarUsoSilo === "function") {
+    window.atualizarUsoSilo();
+  }
+}
+
+window.siloRefreshLista = siloRefreshLista;
+window.siloRefreshUso = siloRefreshUso;
 window.siloShowSuccess = siloShowSuccess;
 window.siloShowError = siloShowError;
 window.siloConfirm = siloConfirm;

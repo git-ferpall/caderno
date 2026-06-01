@@ -198,10 +198,9 @@ async function excluirArquivo(id) {
       const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
       const j = await res.json();
       if (j.ok) {
-        siloShowSuccess(j.msg || 'Arquivo excluído.', () => {
-          atualizarLista();
-          if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
-        });
+        await siloRefreshLista();
+        siloRefreshUso();
+        siloShowSuccess(j.msg || "Arquivo excluído.");
       } else {
         siloShowError(j.err || 'Falha ao excluir arquivo.');
       }

@@ -105,10 +105,9 @@ function enviarArquivosSilo(files) {
         barra.style.background = "var(--verde)";
         txt.textContent = "Upload concluído!";
         setTimeout(() => overlay.remove(), 400);
-        siloShowSuccess(j.msg || "Upload concluído!", () => {
-          if (typeof atualizarLista === "function") atualizarLista();
-          if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
-        });
+        await siloRefreshLista();
+        siloRefreshUso();
+        siloShowSuccess(j.msg || "Upload concluído!");
       } else {
         barra.style.background = "#c33";
         txt.textContent = j.err || "Erro no upload";

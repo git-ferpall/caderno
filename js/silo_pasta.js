@@ -125,10 +125,9 @@ function abrirMenuPasta(e, pasta) {
         const j = await res.json();
 
         if (j.ok) {
-          siloShowSuccess(j.msg || "Pasta excluída com sucesso!", () => {
-            atualizarLista();
-            if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
-          });
+          await siloRefreshLista();
+          siloRefreshUso();
+          siloShowSuccess(j.msg || "Pasta excluída com sucesso!");
         } else {
           siloShowError(j.err || "Falha ao excluir pasta.");
         }
@@ -237,7 +236,9 @@ async function atualizarLista() {
   }
 
   try {
-    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}`);
+    const res = await fetch(`../funcoes/silo/listar_arquivos.php?parent_id=${window.pastaAtual || 0}&_=${Date.now()}`, {
+      credentials: "include",
+    });
     const j = await res.json();
 
     box.innerHTML = "";
