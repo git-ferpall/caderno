@@ -391,15 +391,14 @@
   border-color: var(--verde);
 }
 
-/* Por padrão, ESCONDE */
-#btn-silo-scan {
+/* Escanear documento: oculto no desktop (ver silo-page.css) */
+#btn-silo-scan.silo-action-scan {
   display: none;
 }
 
-/* Exibe somente em telas pequenas (celular) */
-@media (max-width: 768px) {
-  #btn-silo-scan {
-    display: flex; /* ou inline-flex, conforme seu layout */
+@media (max-width: 1024px) {
+  #btn-silo-scan.silo-action-scan {
+    display: flex;
     align-items: center;
     gap: 6px;
   }

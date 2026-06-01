@@ -612,8 +612,15 @@
     margin-left: 0 !important;
 }
 
-#btn-silo-scan {
+/* Escanear: só celular e tablet */
+#silo .silo-dados-add-btn.silo-action-scan {
     display: none;
+}
+
+@media (max-width: 1024px) {
+    #silo .silo-dados-add-btn.silo-action-scan {
+        display: flex;
+    }
 }
 
 @media (min-width: 992px) {
@@ -640,10 +647,6 @@
 
     .silo-arquivos-grid {
         grid-template-columns: 1fr;
-    }
-
-    #btn-silo-scan {
-        display: flex;
     }
 }
 
