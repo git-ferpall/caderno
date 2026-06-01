@@ -16,13 +16,6 @@ body.popup-scroll-lock {
     overscroll-behavior: none;
 }
 
-body.popup-scroll-lock {
-    position: fixed;
-    width: 100%;
-    left: 0;
-    right: 0;
-}
-
 .popup .popup-box {
     display: flex;
     flex-direction: column;

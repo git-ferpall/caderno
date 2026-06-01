@@ -36,12 +36,15 @@ body {
 
 #conteudo.home-layout {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
 
 #conteudo.home-layout #home {
-    flex: 1;
+    flex: 1 0 auto;
+    min-height: 0;
+    height: auto;
 }
 
 #conteudo.home-layout #silo {

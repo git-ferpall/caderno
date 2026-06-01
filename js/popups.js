@@ -21,34 +21,39 @@ function findPopupScrollable(el) {
 }
 
 function lockPopupScroll() {
-    if (document.body.classList.contains('popup-scroll-lock')) return;
+    if (document.documentElement.classList.contains('popup-scroll-lock')) return;
 
     popupScrollY = window.scrollY || document.documentElement.scrollTop;
     document.documentElement.classList.add('popup-scroll-lock');
     document.body.classList.add('popup-scroll-lock');
-    document.body.style.top = `-${popupScrollY}px`;
 
-    popupTouchBlock = (e) => {
-        if (!overlay || overlay.classList.contains('d-none')) return;
-        if (e.target.closest('.popup-manejo, .popup-btn, .popup-actions, .popup-manejo-actions')) return;
-        if (findPopupScrollable(e.target)) return;
-        e.preventDefault();
-    };
-    document.addEventListener('touchmove', popupTouchBlock, { passive: false });
+    if (!popupTouchBlock) {
+        popupTouchBlock = (e) => {
+            if (!overlay || overlay.classList.contains('d-none')) return;
+            if (e.target.closest('.popup-manejo, .popup-btn, .popup-actions, .popup-manejo-actions')) return;
+            if (findPopupScrollable(e.target)) return;
+            e.preventDefault();
+        };
+        document.addEventListener('touchmove', popupTouchBlock, { passive: false });
+    }
 }
 
 function unlockPopupScroll() {
-    if (!document.body.classList.contains('popup-scroll-lock')) return;
+    if (!document.documentElement.classList.contains('popup-scroll-lock')) return;
 
+    const scrollTo = popupScrollY;
     document.documentElement.classList.remove('popup-scroll-lock');
     document.body.classList.remove('popup-scroll-lock');
     document.body.style.top = '';
-    window.scrollTo(0, popupScrollY);
+    document.body.style.width = '';
+    document.documentElement.style.top = '';
 
     if (popupTouchBlock) {
         document.removeEventListener('touchmove', popupTouchBlock);
         popupTouchBlock = null;
     }
+
+    window.scrollTo(0, scrollTo);
 }
 
 function syncPopupScrollLock() {
