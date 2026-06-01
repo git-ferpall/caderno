@@ -48,20 +48,7 @@
 
 .sistema .apontamento .manejos-table-wrap {
     padding: 4px 12px 0;
-    max-height: min(52vh, 460px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(19, 176, 166, 0.45) transparent;
-}
-
-.sistema .apontamento .manejos-table-wrap::-webkit-scrollbar {
-    width: 5px;
-}
-
-.sistema .apontamento .manejos-table-wrap::-webkit-scrollbar-thumb {
-    background: rgba(19, 176, 166, 0.4);
-    border-radius: 999px;
+    overflow: visible;
 }
 
 .sistema .apontamento .manejos-panel .apontamento-tabela {
@@ -73,9 +60,7 @@
 }
 
 .sistema .apontamento .manejos-panel .apontamento-tabela thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    position: static;
 }
 
 .sistema .apontamento .manejos-panel .apontamento-tabela th {
@@ -140,7 +125,7 @@
     border-bottom: 1px solid #f0f0f0;
     color: #333;
     line-height: 1.35;
-    padding: 11px 12px;
+    padding: 9px 12px;
     vertical-align: middle;
 }
 
@@ -253,12 +238,6 @@
 .sistema .apontamento .manejos-page-btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
-}
-
-@media (max-width: 991px) {
-    .sistema .apontamento .manejos-table-wrap {
-        max-height: none;
-    }
 }
 
 @media (max-width: 576px) {

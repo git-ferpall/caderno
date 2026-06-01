@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const textoPendente = document.querySelector(".apontamento-fazer .nenhum-apontamento");
   const textoConcluido = document.querySelector(".apontamento-concluido .nenhum-apontamento");
 
-  const limite = 10;
+  const limite = 5;
 
   let pagePendente = 1;
   let pageConcluido = 1;
