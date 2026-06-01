@@ -25,6 +25,10 @@ try {
     $novo_nome = trim($_POST['novo_nome'] ?? '');
     if ($id <= 0 || $novo_nome === '') throw new Exception('param_invalid');
 
+    require_once __DIR__ . '/silo_validacao.php';
+    $novo_nome = siloSanitizarNomeExibicao($novo_nome);
+    siloValidarExtensaoNome($novo_nome);
+
     // 🔎 Busca o registro atual no banco
     $stmt = $mysqli->prepare("SELECT nome_arquivo, caminho_arquivo, tipo FROM silo_arquivos WHERE id = ? AND user_id = ?");
     $stmt->bind_param('ii', $id, $user_id);

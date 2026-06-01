@@ -1,45 +1,41 @@
 <?php
 require_once __DIR__ . '/funcoes_silo.php';
+require_once __DIR__ . '/silo_validacao.php';
 
 header('Content-Type: application/json; charset=utf-8');
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 try {
-
-    // 🔒 Autenticação
     $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
-
-    if (!$user_id) {
+    $user_id = (int)($payload['sub'] ?? ($_SESSION['user_id'] ?? 0));
+    if ($user_id <= 0) {
         throw new Exception('unauthorized');
     }
 
-    $id = intval($_POST['id'] ?? 0);
-    $destino_id = intval($_POST['destino_id'] ?? 0);
-    
+    $id = (int)($_POST['id'] ?? 0);
+    $destino_id = (int)($_POST['destino_id'] ?? 0);
     if ($id <= 0) {
         throw new Exception('ID inválido.');
     }
 
-    // 📁 Caminho base físico real
-    $base = "/var/www/html/uploads/silo/$user_id";
+    $base = realpath(__DIR__ . '/../../uploads');
+    if ($base === false) {
+        throw new Exception('Base de uploads inválida.');
+    }
 
-    if (!is_dir($base)) {
+    $baseUser = $base . '/silo/' . $user_id;
+    if (!is_dir($baseUser)) {
         throw new Exception('Diretório base não encontrado.');
     }
 
-    // ===============================
-    // 🔎 BUSCA ITEM NO BANCO
-    // ===============================
-
     $stmt = $mysqli->prepare("
-        SELECT id, nome_arquivo, caminho_arquivo, tipo
+        SELECT id, nome_arquivo, caminho_arquivo, tipo, parent_id
         FROM silo_arquivos
         WHERE id = ? AND user_id = ?
         LIMIT 1
     ");
-    $stmt->bind_param("ii", $id, $user_id);
+    $stmt->bind_param('ii', $id, $user_id);
     $stmt->execute();
     $item = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -48,99 +44,99 @@ try {
         throw new Exception('Item não encontrado.');
     }
 
-    // Remove prefixo silo/USER_ID/
-    $caminho_rel = preg_replace('#^silo/' . $user_id . '/#', '', $item['caminho_arquivo']);
-
-    $origem_abs = $base . '/' . $caminho_rel;
-
-    if (!file_exists($origem_abs)) {
-        throw new Exception('Arquivo físico não encontrado: ' . $origem_abs);
+    if ($destino_id === $id) {
+        throw new Exception('Não é possível mover um item para ele mesmo.');
     }
 
-    // ===============================
-    // 📂 DESTINO
-    // ===============================
+    $caminhoRel = trim(str_replace(['uploads/', './'], '', (string)$item['caminho_arquivo']), '/');
+    $origemAbs = $base . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $caminhoRel);
+
+    if (!file_exists($origemAbs) || !siloCaminhoDentroDeBase($base, $origemAbs)) {
+        throw new Exception('Arquivo físico não encontrado.');
+    }
 
     if ($destino_id > 0) {
-
         $stmt = $mysqli->prepare("
-            SELECT nome_arquivo
+            SELECT id, caminho_arquivo
             FROM silo_arquivos
             WHERE id = ? AND user_id = ? AND tipo = 'pasta'
             LIMIT 1
         ");
-        $stmt->bind_param("ii", $destino_id, $user_id);
+        $stmt->bind_param('ii', $destino_id, $user_id);
         $stmt->execute();
         $dest = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        if (!$dest) {
+        if (!$dest || empty($dest['caminho_arquivo'])) {
             throw new Exception('Pasta destino não encontrada.');
         }
 
-        $destino_abs = $base . '/' . $dest['nome_arquivo'];
+        $destRel = trim(str_replace(['uploads/', './'], '', $dest['caminho_arquivo']), '/');
+        $destinoAbs = $base . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $destRel);
 
-        if (!is_dir($destino_abs)) {
+        if (!is_dir($destinoAbs) || !siloCaminhoDentroDeBase($base, $destinoAbs)) {
             throw new Exception('Diretório físico da pasta destino não existe.');
         }
 
+        if (str_starts_with($destRel . '/', $caminhoRel . '/') && $item['tipo'] === 'pasta') {
+            throw new Exception('Não é possível mover uma pasta para dentro dela mesma.');
+        }
+
         $novo_parent_id = $destino_id;
-
-        $novo_caminho_rel = $dest['nome_arquivo'] . '/' . basename($caminho_rel);
-
+        $novoCaminhoRel = $destRel . '/' . basename($caminhoRel);
     } else {
-        // mover para raiz
-        $destino_abs = $base;
+        $destinoAbs = $baseUser;
         $novo_parent_id = 0;
-        $novo_caminho_rel = basename($caminho_rel);
+        $novoCaminhoRel = 'silo/' . $user_id . '/' . basename($caminhoRel);
     }
 
-    $novo_abs = $destino_abs . '/' . basename($caminho_rel);
+    $novoAbs = $destinoAbs . DIRECTORY_SEPARATOR . basename($caminhoRel);
 
-    // 🚫 Mesmo local
-    if (realpath($origem_abs) === realpath($novo_abs)) {
+    if (realpath($origemAbs) === realpath($novoAbs)) {
         throw new Exception('O item já está nesse local.');
     }
 
-    // 🚫 Evita sobrescrever
-    if (file_exists($novo_abs)) {
-        throw new Exception('Já existe um arquivo com esse nome no destino.');
+    if (file_exists($novoAbs)) {
+        throw new Exception('Já existe um item com esse nome no destino.');
     }
 
-    // ===============================
-    // 🚚 MOVE FÍSICO
-    // ===============================
-
-    if (!rename($origem_abs, $novo_abs)) {
-        throw new Exception('Erro ao mover o arquivo.');
+    if (!rename($origemAbs, $novoAbs)) {
+        throw new Exception('Erro ao mover o item.');
     }
-
-    // ===============================
-    // 💾 ATUALIZA BANCO
-    // ===============================
-
-    $novo_caminho_banco = "silo/$user_id/" . $novo_caminho_rel;
 
     $stmt = $mysqli->prepare("
         UPDATE silo_arquivos
         SET caminho_arquivo = ?, parent_id = ?, atualizado_em = NOW()
         WHERE id = ? AND user_id = ?
     ");
-    $stmt->bind_param("siii", $novo_caminho_banco, $novo_parent_id, $id, $user_id);
+    $stmt->bind_param('siii', $novoCaminhoRel, $novo_parent_id, $id, $user_id);
     $stmt->execute();
     $stmt->close();
 
+    if ($item['tipo'] === 'pasta') {
+        $prefixoAntigo = rtrim($caminhoRel, '/\\') . '/';
+        $prefixoNovo = rtrim($novoCaminhoRel, '/\\') . '/';
+
+        $stmt = $mysqli->prepare("
+            UPDATE silo_arquivos
+            SET caminho_arquivo = REPLACE(caminho_arquivo, ?, ?)
+            WHERE user_id = ?
+              AND id <> ?
+              AND caminho_arquivo LIKE CONCAT(?, '%')
+        ");
+        $stmt->bind_param('ssiis', $prefixoAntigo, $prefixoNovo, $user_id, $id, $prefixoAntigo);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     echo json_encode([
         'ok' => true,
-        'msg' => '📦 Item movido com sucesso!'
+        'msg' => 'Item movido com sucesso!',
     ], JSON_UNESCAPED_UNICODE);
-
 } catch (Throwable $e) {
-
     http_response_code(400);
-
     echo json_encode([
         'ok' => false,
-        'err' => $e->getMessage()
+        'err' => $e->getMessage(),
     ], JSON_UNESCAPED_UNICODE);
 }

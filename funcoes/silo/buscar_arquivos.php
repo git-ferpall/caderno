@@ -24,7 +24,11 @@ try {
     $stmt->bind_param("is", $user_id, $q);
     $stmt->execute();
     $res = $stmt->get_result();
-    $arquivos = $res->fetch_all(MYSQLI_ASSOC);
+    $arquivos = [];
+    while ($row = $res->fetch_assoc()) {
+        $row['nome_exibicao'] = htmlspecialchars($row['nome_arquivo'], ENT_QUOTES, 'UTF-8');
+        $arquivos[] = $row;
+    }
     $stmt->close();
 
     echo json_encode(['ok' => true, 'arquivos' => $arquivos]);

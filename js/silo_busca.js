@@ -30,14 +30,24 @@ document.addEventListener("DOMContentLoaded", () => {
 // =============================================
 // 🚀 Função principal de busca
 // =============================================
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 async function buscarArquivos(termo) {
   const box = document.querySelector(".silo-arquivos-grid");
   if (!box) return;
 
+  const termoSafe = escapeHtml(termo);
+
   box.innerHTML = `
     <div class="silo-state-msg">
       <div class="silo-loader"></div>
-      <p>Buscando "<strong>${termo}</strong>"...</p>
+      <p>Buscando "<strong>${termoSafe}</strong>"...</p>
     </div>
   `;
 
@@ -48,7 +58,7 @@ async function buscarArquivos(termo) {
     if (!j.ok) throw new Error(j.err || "Falha na busca.");
 
     if (!j.arquivos || j.arquivos.length === 0) {
-      box.innerHTML = `<p class="silo-state-msg">Nenhum resultado para "<strong>${termo}</strong>".</p>`;
+      box.innerHTML = `<p class="silo-state-msg">Nenhum resultado para "<strong>${termoSafe}</strong>".</p>`;
       return;
     }
 
@@ -70,7 +80,7 @@ async function buscarArquivos(termo) {
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <div>
-            <span class="silo-item-title">${a.nome_arquivo}</span>
+            <span class="silo-item-title">${a.nome_exibicao || escapeHtml(a.nome_arquivo)}</span>
             <span class="silo-item-path">${formatarCaminho(a.caminho_arquivo)}</span>
           </div>
         </div>

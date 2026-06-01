@@ -7,8 +7,17 @@
  */
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../sso/verify_jwt.php';
 
 header('Content-Type: text/html; charset=utf-8');
+
+try {
+    verify_jwt();
+} catch (Throwable $e) {
+    http_response_code(401);
+    die('Não autorizado.');
+}
+
 echo "<h2>🛠️ Correção Automática de Caminhos - Silo</h2>";
 $base = realpath(__DIR__ . '/../../uploads');
 if (!$base) die('<p style="color:red;">❌ Base de uploads não encontrada.</p>');

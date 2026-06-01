@@ -82,12 +82,22 @@ try {
         }
     }
 
-    // 🗄️ Remove do banco (arquivos e subpastas)
-    $stmtDel = $mysqli->prepare("
-        DELETE FROM silo_arquivos 
-        WHERE id = ? OR parent_id = ?
-    ");
-    $stmtDel->bind_param("ii", $id, $id);
+    // 🗄️ Remove do banco (pasta + descendentes)
+    if ($tipo === 'pasta') {
+        $prefixo = rtrim($caminho_rel, '/\\') . '/';
+        $stmtDel = $mysqli->prepare("
+            DELETE FROM silo_arquivos
+            WHERE user_id = ?
+              AND (id = ? OR caminho_arquivo = ? OR caminho_arquivo LIKE CONCAT(?, '%'))
+        ");
+        $stmtDel->bind_param('iiss', $user_id, $id, $caminho_rel, $prefixo);
+    } else {
+        $stmtDel = $mysqli->prepare("
+            DELETE FROM silo_arquivos
+            WHERE id = ? AND user_id = ?
+        ");
+        $stmtDel->bind_param('ii', $id, $user_id);
+    }
     $stmtDel->execute();
     $stmtDel->close();
 
