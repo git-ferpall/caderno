@@ -101,3 +101,4 @@ document.addEventListener("DOMContentLoaded", carregarUsoSilo);
 // 🔄 Permite atualizar manualmente
 // ===============================
 window.atualizarUsoSilo = carregarUsoSilo;
+window.atualizarUso = carregarUsoSilo;

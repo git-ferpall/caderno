@@ -193,7 +193,7 @@ async function excluirArquivo(id) {
   if (j.ok) {
     abrirPopup('🗑️ Removido', j.msg || 'Arquivo excluído.');
     atualizarLista();
-    atualizarUso();
+    if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
   } else {
     abrirPopup('❌ Erro', j.err || 'Falha ao excluir arquivo.');
   }

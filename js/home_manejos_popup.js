@@ -29,6 +29,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.inicializarPopupLinhas = function () {};
 
+  function ocultarPopupsOverlay() {
+    document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => {
+      el.classList.add("d-none");
+    });
+  }
+
+  function reabrirDetalheManejo() {
+    overlay?.classList.remove("d-none");
+    popupDetalhe?.classList.remove("d-none");
+  }
+
+  function showPopupSucesso(mensagem, onOk) {
+    ocultarPopupsOverlay();
+    overlay?.classList.remove("d-none");
+    const popup = document.getElementById("popup-success");
+    popup?.classList.remove("d-none");
+    const title = popup?.querySelector(".popup-title");
+    if (title) title.textContent = mensagem;
+    const btnOk = popup?.querySelector(".popup-btn");
+    if (btnOk) {
+      btnOk.onclick = () => {
+        popup?.classList.add("d-none");
+        if (typeof onOk === "function") onOk();
+      };
+    }
+  }
+
+  function showPopupErro(mensagem, reabrirDetalhe = true) {
+    ocultarPopupsOverlay();
+    overlay?.classList.remove("d-none");
+    const popup = document.getElementById("popup-failed");
+    popup?.classList.remove("d-none");
+    const text = popup?.querySelector(".popup-text");
+    if (text) text.textContent = mensagem;
+    const btn = popup?.querySelector(".popup-btn");
+    if (btn) {
+      btn.onclick = () => {
+        popup?.classList.add("d-none");
+        if (reabrirDetalhe && apontamentoAtual) {
+          reabrirDetalheManejo();
+        } else if (typeof closePopup === "function") {
+          closePopup();
+        }
+      };
+    }
+  }
+
   function setModoEdicao(ativo) {
     modoEdicao = ativo;
 
@@ -108,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((data) => {
         if (!data.ok) {
-          alert(data.msg || "Erro ao buscar detalhes.");
+          showPopupErro(data.msg || "Erro ao buscar detalhes.", false);
           return;
         }
 
@@ -116,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
         overlay?.classList.remove("d-none");
         popupDetalhe?.classList.remove("d-none");
       })
-      .catch((err) => alert("Erro: " + err));
+      .catch((err) => showPopupErro("Erro ao buscar detalhes: " + err, false));
   }
 
   function carregarHistorico(id) {
@@ -128,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((data) => {
         if (!data.ok) {
-          alert(data.msg || "Erro ao carregar histórico.");
+          showPopupErro(data.msg || "Erro ao carregar histórico.");
           return;
         }
 
@@ -148,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `).join("");
       })
-      .catch((err) => alert("Erro: " + err));
+      .catch((err) => showPopupErro("Erro ao carregar histórico: " + err));
   }
 
   btnEditar?.addEventListener("click", () => {
@@ -183,17 +230,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((res) => {
         if (!res.ok) {
-          alert(res.msg || "Erro ao salvar.");
+          showPopupErro(res.msg || "Erro ao salvar.");
           return;
         }
 
-        alert(res.msg || "Salvo com sucesso!");
-        abrirPopupManejo(apontamentoAtual.id);
-        if (typeof window.carregarManejos === "function") {
-          window.carregarManejos();
-        }
+        showPopupSucesso(res.msg || "Apontamento atualizado com sucesso!", () => {
+          reabrirDetalheManejo();
+          abrirPopupManejo(apontamentoAtual.id);
+          if (typeof window.carregarManejos === "function") {
+            window.carregarManejos();
+          }
+        });
       })
-      .catch((err) => alert("Erro: " + err));
+      .catch((err) => showPopupErro("Erro ao salvar: " + err));
   });
 
   btnHistorico?.addEventListener("click", () => {
@@ -205,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnConcluir.addEventListener("click", () => {
       const id = btnConcluir.dataset.id;
       if (!id) {
-        alert("ID inválido.");
+        showPopupErro("ID inválido.");
         return;
       }
 
@@ -218,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
         unidade = document.getElementById("colheita-unidade").value;
 
         if (!quantidade || quantidade <= 0) {
-          alert("Informe a quantidade colhida.");
+          showPopupErro("Informe a quantidade colhida.");
           return;
         }
       }
@@ -236,28 +285,25 @@ document.addEventListener("DOMContentLoaded", () => {
           if (res.ok) {
             popupDetalhe?.classList.add("d-none");
             const popupSucesso = document.getElementById("popup-ativar");
+            ocultarPopupsOverlay();
             overlay?.classList.remove("d-none");
             popupSucesso?.classList.remove("d-none");
             popupSucesso.querySelector(".popup-title").textContent =
               "Manejo concluído com sucesso!";
-            popupSucesso.querySelector("#btn-ok").onclick = function () {
-              closePopup();
-              location.reload();
-            };
+            const btnOk = popupSucesso.querySelector(".popup-btn");
+            if (btnOk) {
+              btnOk.onclick = function () {
+                if (typeof closePopup === "function") closePopup();
+                popupSucesso?.classList.add("d-none");
+                location.reload();
+              };
+            }
           } else {
-            const popupFail = document.getElementById("popup-failed");
-            overlay?.classList.remove("d-none");
-            popupFail?.classList.remove("d-none");
-            popupFail.querySelector(".popup-text").textContent =
-              res.msg || "Erro ao concluir.";
+            showPopupErro(res.msg || "Erro ao concluir.");
           }
         })
         .catch((err) => {
-          const popupFail = document.getElementById("popup-failed");
-          overlay?.classList.remove("d-none");
-          popupFail?.classList.remove("d-none");
-          popupFail.querySelector(".popup-text").textContent =
-            "Falha na requisição: " + err;
+          showPopupErro("Falha na requisição: " + err);
         });
     });
   }

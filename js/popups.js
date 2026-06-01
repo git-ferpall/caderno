@@ -10,6 +10,10 @@ function closePopup() {
     if (popupSuccess) popupSuccess.classList.add('d-none');
     if (popupFailed) popupFailed.classList.add('d-none');
     if (popupProp) popupProp.classList.add('d-none');
+    const popupAtivar = document.getElementById('popup-ativar');
+    const popupDetalheManejo = document.getElementById('popup-detalhe-manejo');
+    if (popupAtivar) popupAtivar.classList.add('d-none');
+    if (popupDetalheManejo) popupDetalheManejo.classList.add('d-none');
 }
 
 /* Cancelar */

@@ -107,8 +107,8 @@ function enviarArquivosSilo(files) {
         abrirPopup("✅ Sucesso", j.msg);
         setTimeout(() => {
           overlay.remove();
-          atualizarLista();
-          atualizarUso();
+          if (typeof atualizarLista === "function") atualizarLista();
+          if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
         }, 800);
       } else {
         barra.style.background = "#c33";
