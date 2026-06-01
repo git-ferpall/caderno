@@ -95,7 +95,7 @@ function enviarArquivosSilo(files) {
   };
 
   // 📥 Conclusão
-  xhr.onload = () => {
+  xhr.onload = async () => {
     uploadAtivo = false;
     if (cancelado) return;
 

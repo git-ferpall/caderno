@@ -98,6 +98,7 @@ function siloPrompt({ title, label, defaultValue = "" }) {
 
     const cleanup = (valor) => {
       popup.classList.add("d-none");
+      overlay.classList.add("d-none");
       btnOk.onclick = null;
       btnCancel.onclick = null;
       field.onkeydown = null;
