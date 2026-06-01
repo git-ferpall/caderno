@@ -54,6 +54,7 @@ try {
     $sql = "
     SELECT 
             a.id, a.tipo, a.data, a.status, a.observacoes, a.data_conclusao,
+            a.quantidade, a.unidade,
             ar.nome AS area_nome,
             p.nome AS produto_nome,
             prop.nome_razao AS propriedade_nome
@@ -233,6 +234,23 @@ try {
         . '</div>';
 
     // === Monta as tabelas ===
+    function formatarQuantidadeColhida(array $d): string
+    {
+        if (strtolower($d['tipo'] ?? '') !== 'colheita') {
+            return '—';
+        }
+
+        $qtd = $d['quantidade'] ?? null;
+        if ($qtd === null || $qtd === '' || (float)$qtd <= 0) {
+            return '—';
+        }
+
+        $unidade = trim((string)($d['unidade'] ?? ''));
+        $qtdFmt = number_format((float)$qtd, 2, ',', '.');
+
+        return $unidade !== '' ? ($qtdFmt . ' ' . $unidade) : $qtdFmt;
+    }
+
     function montarTabela($titulo, $dados, $classe = '') {
         if (empty($dados)) return '';
 
@@ -245,6 +263,7 @@ try {
                     <th>Propriedade</th>
                     <th>Área</th>
                     <th>Produto</th>
+                    <th>Qtd. Colhida</th>
                     <th>Tipo</th>
                     <th>Status</th>
                     <th>Observações</th>
@@ -277,6 +296,7 @@ try {
                 <td>' . htmlspecialchars($d['propriedade_nome'] ?? '—') . '</td>
                 <td>' . htmlspecialchars($d['area_nome'] ?? '—') . '</td>
                 <td>' . htmlspecialchars($d['produto_nome'] ?? '—') . '</td>
+                <td>' . formatarQuantidadeColhida($d) . '</td>
                 <td>' . ucfirst($d['tipo'] ?? '—') . '</td>
                 <td>' . ucfirst($d['status'] ?? '—') . '</td>
                 <td>' . htmlspecialchars($d['observacoes'] ?? '—') . '</td>
