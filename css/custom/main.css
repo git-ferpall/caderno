@@ -34,6 +34,16 @@ body {
     text-align: center;
 }
 
+#conteudo.home-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#conteudo.home-layout #home {
+    flex: 1;
+}
+
 a {
     text-decoration: none;
 }
@@ -119,27 +129,70 @@ button {
     padding: 2px 0px 0px 0px;
 }
 
-footer {
+footer,
+footer#footer,
+.site-footer {
     position: relative;
-    text-align: center;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.90);
+    margin-top: auto;
+    flex-shrink: 0;
     width: 100%;
+    padding: 0;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.45) 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
-footer .ferpall {
+.site-footer-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    color: var(--branco);
-    background-color: var(--preto);
-    border-radius: 15px;
-    display: inline-block;
-    font-size: 10px;
-    margin: 0px;
-    max-width: 400px;
-    min-width: 300px;
-    padding: 6px 0px;
-    text-align: center;
-    width: 100%;
+    justify-content: center;
+    gap: 8px 14px;
+}
+
+.site-footer-brand {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.site-footer-sep {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.site-footer-copy {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.4;
+}
+
+/* compatibilidade legado */
+footer .ferpall {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .site-footer-inner {
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 16px 18px;
+    }
+
+    .site-footer-sep {
+        display: none;
+    }
 }
 
 .show {

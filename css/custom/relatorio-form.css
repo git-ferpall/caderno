@@ -203,17 +203,6 @@
 
 .rel-form-layout #footer {
     margin-top: auto;
-    flex-shrink: 0;
-    background: transparent;
-    padding: 10px 10px 16px;
-    width: 100%;
-}
-
-.rel-form-layout #footer .ferpall {
-    background: rgba(0, 0, 0, 0.82);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 640px) {

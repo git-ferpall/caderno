@@ -18,7 +18,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <?php require '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?>
 
-    <div id="conteudo">
+    <div id="conteudo" class="home-layout">
         <?php include '../include/menu.php' ?>
 
         <main id="home" class="sistema fundo-img">
@@ -158,9 +158,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/home_manejos.js"></script>
+        <script src="../js/home_manejos_popup.js"></script>
+        <?php include '../include/footer.php' ?>
     </div>
-    <script src="../js/home_manejos.js"></script>
-    <script src="../js/home_manejos_popup.js"></script>
-    <?php include '../include/footer.php' ?>
 </body>
 </html>
