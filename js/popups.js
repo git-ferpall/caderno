@@ -30,7 +30,7 @@ function lockPopupScroll() {
 
     popupTouchBlock = (e) => {
         if (!overlay || overlay.classList.contains('d-none')) return;
-        if (e.target.closest('.popup-btn, .popup-actions, .popup-manejo-actions')) return;
+        if (e.target.closest('.popup-manejo, .popup-btn, .popup-actions, .popup-manejo-actions')) return;
         if (findPopupScrollable(e.target)) return;
         e.preventDefault();
     };

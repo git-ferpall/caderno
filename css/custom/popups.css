@@ -385,8 +385,8 @@ body.popup-scroll-lock {
         align-items: stretch;
         justify-content: flex-start;
         text-align: left;
-        height: min(92dvh, 92vh);
-        max-height: min(92dvh, 92vh);
+        height: min(94dvh, 94vh);
+        max-height: min(94dvh, 94vh);
     }
 
     .popup-manejo {
@@ -403,10 +403,12 @@ body.popup-scroll-lock {
     .popup-manejo > .popup-manejo-shell {
         flex: 1 1 auto;
         min-height: 0;
+        max-height: 100%;
+        height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
+        padding: 10px 16px 0;
     }
 
     @keyframes popup-manejo-sheet-in {
@@ -444,19 +446,21 @@ body.popup-scroll-lock {
     }
 
     .popup-manejo-body {
-        flex: 1 1 auto;
+        flex: 1 1 0;
         min-height: 0;
+        max-height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0 2px 12px;
+        padding: 0 2px 4px;
         margin-top: 0;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
         touch-action: pan-y;
     }
 
-    .manejo-form {
+    .popup-manejo-body .manejo-form {
         width: 100%;
+        padding-bottom: 20px;
     }
 
     .manejo-form .form-campo {
@@ -589,11 +593,11 @@ body.popup-scroll-lock {
         flex-shrink: 0;
         flex-wrap: unset;
         justify-content: stretch;
-        padding-top: 10px;
+        padding: 10px 0 max(12px, env(safe-area-inset-bottom, 0px));
         margin-top: 0;
         background: #fff;
         border-top: 1px solid var(--cinza-b);
-        padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
         position: relative;
         z-index: 3;
     }
