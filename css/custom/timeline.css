@@ -301,3 +301,87 @@
     color: #888;
     font-style: italic;
 }
+
+/* --- Mobile: timeline + popup silo --- */
+@media (max-width: 768px) {
+    .timeline-page {
+        padding: 80px max(12px, env(safe-area-inset-left, 0px)) 32px max(12px, env(safe-area-inset-right, 0px));
+    }
+
+    .timeline-header h2 {
+        font-size: 22px;
+    }
+
+    .timeline-filters {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px;
+    }
+
+    .timeline-filters label {
+        width: 100%;
+    }
+
+    .timeline-filters input,
+    .timeline-filters select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .timeline-filters button {
+        width: 100%;
+        min-height: 44px;
+        align-self: stretch;
+    }
+
+    .timeline-feed {
+        padding-left: 20px;
+    }
+
+    .timeline-item {
+        padding: 14px;
+    }
+
+    .timeline-item:hover {
+        transform: none;
+    }
+
+    .timeline-item-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .timeline-pagination button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+
+    #popup-silo-input.popup-silo {
+        width: min(calc(100vw - 32px), 420px) !important;
+        max-width: calc(100vw - 32px) !important;
+    }
+
+    #popup-silo-input .popup-silo-field {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    #popup-silo-input .popup-silo-actions .popup-btn {
+        min-height: 44px;
+        flex: 1;
+    }
+}
+
+@media (max-width: 576px) {
+    .timeline-page {
+        padding-top: 76px;
+    }
+
+    .timeline-item-tipo {
+        font-size: 14px;
+    }
+}

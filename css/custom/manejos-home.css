@@ -48,7 +48,10 @@
 
 .sistema .apontamento .manejos-table-wrap {
     padding: 4px 12px 0;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 .sistema .apontamento .manejos-panel .apontamento-tabela {
@@ -56,7 +59,16 @@
     border-spacing: 0;
     padding: 0;
     width: 100%;
+    min-width: 0;
     overflow: visible;
+}
+
+#home .apontamento-fazer .apontamento-tabela {
+    min-width: 420px;
+}
+
+#home .apontamento-concluido .apontamento-tabela {
+    min-width: 520px;
 }
 
 .sistema .apontamento .manejos-panel .apontamento-tabela thead {
@@ -240,15 +252,91 @@
     opacity: 0.45;
 }
 
+/* Scroll hint nas tabelas (mobile) */
+#home .manejos-table-wrap {
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    #home .manejos-panel .apontamento-header {
+        padding: 12px 14px;
+    }
+
+    #home .manejos-panel .apontamento-title-text {
+        font-size: 16px;
+    }
+
+    #home .manejos-table-wrap {
+        margin: 0 -4px;
+        padding: 0 4px 4px;
+    }
+
+    #home .manejos-page-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    #home .manejos-panel .apontamento-tabela tbody tr.manejos-row {
+        min-height: 44px;
+    }
+
+    #home .manejos-panel .apontamento-tabela tbody tr.manejos-row:active {
+        background: #f0f4f5;
+    }
+}
+
 @media (max-width: 576px) {
     .sistema .apontamento .manejos-panel .apontamento-tabela th,
     .sistema .apontamento .manejos-panel .apontamento-tabela td {
         font-size: 11px;
-        padding: 9px 8px;
+        padding: 10px 8px;
     }
 
     .manejos-tipo-badge {
         font-size: 10px;
         padding: 3px 8px;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #home .manejos-panel {
+        margin-bottom: 12px;
+    }
+
+    #home .manejos-pagination {
+        padding: 10px 12px 12px;
+    }
+
+    #home .manejos-page-text {
+        font-size: 12px;
+        min-width: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .popup-manejo {
+        max-width: calc(100vw - 24px) !important;
+        width: calc(100vw - 24px) !important;
+        margin: 0 12px;
+    }
+
+    .popup-manejo-shell {
+        padding: 20px 16px 16px !important;
+        max-height: min(90vh, 100dvh - 40px);
+    }
+
+    .popup-manejo-actions {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    }
+
+    .popup-manejo-actions .popup-btn {
+        min-height: 44px;
+        font-size: 12px;
+        padding: 10px 12px;
     }
 }

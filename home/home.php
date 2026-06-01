@@ -22,6 +22,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <?php include '../include/menu.php' ?>
 
         <main id="home" class="sistema fundo-img">
+            <div class="container home-page-shell">
             <div class="home-hero">
                 <div class="home-hero-panel">
                     <div class="home-hero-top">
@@ -82,7 +83,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                 </div>
             </div>
 
-            <div class="apontamento container home-manejos-wrap">
+            <div class="apontamento home-manejos-wrap">
                 <div class="row g-3">
                     <div class="col-12 col-lg-6">
                         <div class="apontamento-collapse apontamento-fazer manejos-panel active">
@@ -158,6 +159,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     </div>
                     
                 </div>
+            </div>
             </div>
         </main>
 
