@@ -1,6 +1,77 @@
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("home-dashboard-grid");
+  const carouselWrap = document.querySelector(".home-dashboard-carousel-wrap");
+  const carousel = document.getElementById("home-dashboard-carousel");
+  const dotsEl = document.getElementById("home-dashboard-dots");
   if (!grid) return;
+
+  const carouselMq = window.matchMedia("(max-width: 768px)");
+  let carouselScrollHandler = null;
+
+  function initMobileCarousel() {
+    if (carouselScrollHandler && carousel) {
+      carousel.removeEventListener("scroll", carouselScrollHandler);
+      carouselScrollHandler = null;
+    }
+    if (!carouselWrap || !carousel || !dotsEl) return;
+
+    dotsEl.innerHTML = "";
+    carouselWrap.classList.remove("has-scrolled", "is-carousel");
+
+    if (!carouselMq.matches) return;
+
+    const cards = grid.querySelectorAll(".home-stat:not(.home-stat-loading)");
+    if (cards.length <= 1) return;
+
+    carouselWrap.classList.add("is-carousel");
+
+    cards.forEach((card, index) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "home-dashboard-dot" + (index === 0 ? " is-active" : "");
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-label", `Resumo ${index + 1} de ${cards.length}`);
+      dot.setAttribute("aria-selected", index === 0 ? "true" : "false");
+      dot.addEventListener("click", () => {
+        card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      });
+      dotsEl.appendChild(dot);
+    });
+
+    function updateDots() {
+      const dots = dotsEl.querySelectorAll(".home-dashboard-dot");
+      if (!dots.length) return;
+
+      const center = carousel.scrollLeft + carousel.clientWidth / 2;
+      let active = 0;
+      let minDist = Infinity;
+
+      cards.forEach((card, index) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const dist = Math.abs(cardCenter - center);
+        if (dist < minDist) {
+          minDist = dist;
+          active = index;
+        }
+      });
+
+      dots.forEach((dot, index) => {
+        const isActive = index === active;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+    }
+
+    carouselScrollHandler = () => {
+      carouselWrap.classList.add("has-scrolled");
+      updateDots();
+    };
+
+    carousel.addEventListener("scroll", carouselScrollHandler, { passive: true });
+    updateDots();
+  }
+
+  carouselMq.addEventListener("change", initMobileCarousel);
 
   function fmtData(iso) {
     if (!iso) return "—";
@@ -35,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((d) => {
       if (!d.ok) {
         grid.innerHTML = '<div class="home-stat"><span class="home-stat-label">Resumo indisponível</span></div>';
+        initMobileCarousel();
         return;
       }
 
@@ -90,8 +162,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="home-stat-sub">${fmtBytes(d.silo?.usado_bytes)} usados</span>
           <div class="home-stat-bar"><div class="home-stat-bar-fill" style="width:${siloPct}%;background:${siloCor}"></div></div>
         </a>`;
+
+      initMobileCarousel();
     })
     .catch(() => {
       grid.innerHTML = '<div class="home-stat"><span class="home-stat-label">Erro ao carregar resumo</span></div>';
+      initMobileCarousel();
     });
 });

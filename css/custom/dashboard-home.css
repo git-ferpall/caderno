@@ -1,8 +1,12 @@
 /* Home — painel superior refinado */
 
 #home .home-page-shell {
-    padding-top: 96px;
+    padding-top: 118px;
     padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+
+#home .home-hero {
+    margin-top: 10px;
 }
 
 #home .home-hero {
@@ -202,6 +206,19 @@
     border-top: 1px solid #eef1f3;
 }
 
+#home .home-dashboard-carousel-wrap {
+    position: relative;
+}
+
+#home .home-dashboard-swipe-hint,
+#home .home-dashboard-dots {
+    display: none;
+}
+
+#home .home-dashboard-carousel {
+    position: relative;
+}
+
 #home .home-dashboard-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -304,7 +321,11 @@
 
 @media (max-width: 768px) {
     #home .home-page-shell {
-        padding-top: 84px;
+        padding-top: 108px;
+    }
+
+    #home .home-hero {
+        margin-top: 14px;
     }
 
     #home .home-actions {
@@ -336,24 +357,102 @@
     }
 
     /* Stats — carrossel horizontal no mobile */
-    #home .home-dashboard-grid {
+    #home .home-dashboard-carousel-wrap.is-carousel .home-dashboard-swipe-hint {
         display: flex;
-        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 0 0 10px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #8a9399;
+        letter-spacing: 0.02em;
+    }
+
+    #home .home-dashboard-swipe-arrows {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--azul);
+        animation: home-swipe-nudge 2.2s ease-in-out infinite;
+    }
+
+    @keyframes home-swipe-nudge {
+        0%, 100% { transform: translateX(0); opacity: 0.85; }
+        50% { transform: translateX(4px); opacity: 1; }
+    }
+
+    #home .home-dashboard-carousel-wrap.has-scrolled .home-dashboard-swipe-hint {
+        opacity: 0;
+        max-height: 0;
+        margin: 0;
+        overflow: hidden;
+        transition: opacity 0.35s ease, max-height 0.35s ease, margin 0.35s ease;
+    }
+
+    #home .home-dashboard-carousel {
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
-        gap: 10px;
-        padding-bottom: 6px;
+        scroll-padding-inline: 14px;
         scrollbar-width: none;
+        margin: 0 -20px;
+        padding: 4px 20px 8px;
+        -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 52px), transparent 100%);
+        mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 52px), transparent 100%);
     }
 
-    #home .home-dashboard-grid::-webkit-scrollbar {
+    #home .home-dashboard-carousel-wrap.has-scrolled .home-dashboard-carousel {
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 36px, #000 calc(100% - 52px), transparent 100%);
+        mask-image: linear-gradient(90deg, transparent 0%, #000 36px, #000 calc(100% - 52px), transparent 100%);
+    }
+
+    #home .home-dashboard-carousel::-webkit-scrollbar {
         display: none;
     }
 
+    #home .home-dashboard-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 12px;
+    }
+
     #home .home-stat {
-        flex: 0 0 min(46%, 168px);
-        scroll-snap-align: start;
+        flex: 0 0 min(78%, 260px);
+        scroll-snap-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    #home .home-dashboard-carousel-wrap.is-carousel .home-dashboard-dots {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 12px;
+        padding-bottom: 2px;
+    }
+
+    #home .home-dashboard-dot {
+        width: 7px;
+        height: 7px;
+        padding: 0;
+        border: none;
+        border-radius: 999px;
+        background: #d5dce0;
+        cursor: pointer;
+        transition: width 0.25s ease, background 0.25s ease, transform 0.2s ease;
+    }
+
+    #home .home-dashboard-dot.is-active {
+        width: 22px;
+        background: var(--azul);
+    }
+
+    #home .home-dashboard-dot:focus-visible {
+        outline: 2px solid var(--azul);
+        outline-offset: 2px;
     }
 
     #home .home-hero-top {
@@ -375,7 +474,11 @@
 
 @media (max-width: 576px) {
     #home .home-page-shell {
-        padding-top: 80px;
+        padding-top: 104px;
+    }
+
+    #home .home-hero {
+        margin-top: 16px;
     }
 
     #home .home-hero-panel {
@@ -437,9 +540,15 @@
         padding: 14px 14px 16px;
     }
 
+    #home .home-dashboard-carousel {
+        margin: 0 -14px;
+        padding: 4px 14px 8px;
+        scroll-padding-inline: 14px;
+    }
+
     #home .home-stat {
-        flex: 0 0 72%;
-        padding: 12px 10px;
+        flex: 0 0 82%;
+        padding: 14px 12px;
     }
 
     #home .home-stat-value {

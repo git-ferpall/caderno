@@ -73,11 +73,20 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     </div>
 
                     <section class="home-dashboard" id="home-dashboard" aria-label="Resumo da propriedade">
-                        <div class="home-dashboard-grid" id="home-dashboard-grid">
-                            <div class="home-stat home-stat-loading">
-                                <span class="home-stat-value">…</span>
-                                <span class="home-stat-label">Carregando</span>
+                        <div class="home-dashboard-carousel-wrap">
+                            <p class="home-dashboard-swipe-hint" aria-hidden="true">
+                                <span class="home-dashboard-swipe-arrows" aria-hidden="true">‹ ›</span>
+                                Deslize para ver o resumo
+                            </p>
+                            <div class="home-dashboard-carousel" id="home-dashboard-carousel">
+                                <div class="home-dashboard-grid" id="home-dashboard-grid">
+                                    <div class="home-stat home-stat-loading">
+                                        <span class="home-stat-value">…</span>
+                                        <span class="home-stat-label">Carregando</span>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="home-dashboard-dots" id="home-dashboard-dots" role="tablist" aria-label="Indicador do resumo"></div>
                         </div>
                     </section>
                 </div>
