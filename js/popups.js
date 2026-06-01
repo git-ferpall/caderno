@@ -12,8 +12,12 @@ function closePopup() {
     if (popupProp) popupProp.classList.add('d-none');
     const popupAtivar = document.getElementById('popup-ativar');
     const popupDetalheManejo = document.getElementById('popup-detalhe-manejo');
+    const popupDelete = document.getElementById('popup-delete');
+    const popupSiloInput = document.getElementById('popup-silo-input');
     if (popupAtivar) popupAtivar.classList.add('d-none');
     if (popupDetalheManejo) popupDetalheManejo.classList.add('d-none');
+    if (popupDelete) popupDelete.classList.add('d-none');
+    if (popupSiloInput) popupSiloInput.classList.add('d-none');
 }
 
 /* Cancelar */

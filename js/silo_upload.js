@@ -31,7 +31,7 @@ let uploadAtivo = false;
 // =====================================
 function enviarArquivosSilo(files) {
   if (uploadAtivo) {
-    abrirPopup("⚠️ Aguarde", "Já há um upload em andamento.");
+    siloShowError("Já há um upload em andamento.");
     return;
   }
 
@@ -41,7 +41,7 @@ function enviarArquivosSilo(files) {
   ];
   for (let f of files) {
     if (!tiposPermitidos.includes(f.type)) {
-      abrirPopup("❌ Tipo inválido", `O arquivo "${f.name}" possui tipo não permitido.`);
+      siloShowError(`O arquivo "${f.name}" possui tipo não permitido.`);
       return;
     }
   }
@@ -82,7 +82,7 @@ function enviarArquivosSilo(files) {
     xhr.abort();
     uploadAtivo = false;
     overlay.remove();
-    abrirPopup("🚫 Cancelado", "Envio interrompido.");
+    siloShowError("Envio interrompido.");
   };
 
   // 📊 Progresso visual
@@ -103,32 +103,30 @@ function enviarArquivosSilo(files) {
       const j = JSON.parse(xhr.responseText);
       if (j.ok) {
         barra.style.background = "var(--verde)";
-        txt.textContent = "✅ Upload concluído!";
-        abrirPopup("✅ Sucesso", j.msg);
-        setTimeout(() => {
-          overlay.remove();
+        txt.textContent = "Upload concluído!";
+        setTimeout(() => overlay.remove(), 400);
+        siloShowSuccess(j.msg || "Upload concluído!", () => {
           if (typeof atualizarLista === "function") atualizarLista();
           if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
-        }, 800);
+        });
       } else {
         barra.style.background = "#c33";
-        txt.textContent = "❌ " + j.err;
-        abrirPopup("❌ Erro", j.err);
-        setTimeout(() => overlay.remove(), 1200);
+        txt.textContent = j.err || "Erro no upload";
+        setTimeout(() => overlay.remove(), 400);
+        siloShowError(j.err || "Erro no upload.");
       }
     } catch (err) {
       console.error("Erro na resposta:", xhr.responseText);
-      abrirPopup("❌ Retorno inválido", "Erro ao interpretar resposta do servidor.");
       overlay.remove();
+      siloShowError("Erro ao interpretar resposta do servidor.");
     }
   };
 
-  // ⚠️ Erros gerais
   xhr.onerror = () => {
     uploadAtivo = false;
     if (!cancelado) {
-      abrirPopup("❌ Erro", "Falha de conexão.");
       overlay.remove();
+      siloShowError("Falha de conexão.");
     }
   };
 

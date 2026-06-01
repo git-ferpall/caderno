@@ -136,21 +136,25 @@ function abrirMenuArquivo(e, arquivo) {
 
   // ✏️ Renomear
   menu.querySelector('.rename').onclick = async () => {
-    const novoNome = prompt('Digite o novo nome do arquivo:', arquivo.nome_arquivo);
-    if (novoNome && novoNome.trim() !== '' && novoNome !== arquivo.nome_arquivo) {
-      const fd = new FormData();
-      fd.append('id', arquivo.id);
-      fd.append('novo_nome', novoNome.trim());
-      const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
-      const j = await res.json();
-      if (j.ok) {
-        abrirPopup('✅ Sucesso', j.msg);
-        atualizarLista();
-      } else {
-        abrirPopup('❌ Erro', j.err || 'Erro ao renomear.');
-      }
-    }
     fecharMenuArquivo();
+    const novoNome = await siloPrompt({
+      title: 'Renomear arquivo',
+      label: 'Novo nome',
+      defaultValue: arquivo.nome_arquivo,
+    });
+    if (!novoNome || novoNome === arquivo.nome_arquivo) return;
+
+    const fd = new FormData();
+    fd.append('id', arquivo.id);
+    fd.append('novo_nome', novoNome);
+    const res = await fetch('../funcoes/silo/rename_arquivo.php', { method: 'POST', body: fd });
+    const j = await res.json();
+    if (j.ok) {
+      siloShowSuccess(j.msg || 'Arquivo renomeado com sucesso!');
+      atualizarLista();
+    } else {
+      siloShowError(j.err || 'Erro ao renomear.');
+    }
   };
 
   // 📂 Mover
@@ -185,18 +189,24 @@ function baixarArquivo(url) {
 // 🗑️ Excluir
 // ===================================
 async function excluirArquivo(id) {
-  if (!confirm('Excluir este arquivo?')) return;
-  const fd = new FormData();
-  fd.append('id', id);
-  const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
-  const j = await res.json();
-  if (j.ok) {
-    abrirPopup('🗑️ Removido', j.msg || 'Arquivo excluído.');
-    atualizarLista();
-    if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
-  } else {
-    abrirPopup('❌ Erro', j.err || 'Falha ao excluir arquivo.');
-  }
+  siloConfirm({
+    title: 'Excluir arquivo?',
+    text: 'Esta ação não poderá ser desfeita.',
+    onConfirm: async () => {
+      const fd = new FormData();
+      fd.append('id', id);
+      const res = await fetch('../funcoes/silo/excluir_arquivo.php', { method: 'POST', body: fd });
+      const j = await res.json();
+      if (j.ok) {
+        siloShowSuccess(j.msg || 'Arquivo excluído.', () => {
+          atualizarLista();
+          if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
+        });
+      } else {
+        siloShowError(j.err || 'Falha ao excluir arquivo.');
+      }
+    },
+  });
 }
 
 
@@ -235,24 +245,7 @@ async function atualizarBreadcrumb() {
   }
 }
 
-// ===================================
-// 📂 Mover arquivo/pasta
-// ===================================
-async function moverItem(id) {
-  const destino = prompt("Digite o ID da pasta de destino:");
-  if (!destino || isNaN(destino)) return;
-  const fd = new FormData();
-  fd.append('id', id);
-  fd.append('destino', destino);
-  const res = await fetch('../funcoes/silo/mover_arquivo.php', { method: 'POST', body: fd });
-  const j = await res.json();
-  if (j.ok) {
-    abrirPopup('📂 Movido', j.msg);
-    atualizarLista();
-  } else abrirPopup('❌ Erro', j.err);
-}
-
-// ===================================
+// moverItem definido em silo_mover.js
 // ❌ Fecha menus abertos
 // ===================================
 function fecharMenuArquivo() {

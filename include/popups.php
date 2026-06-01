@@ -290,6 +290,19 @@ if ($user_id) {
         </div>
     </div>
 
+    <!-- Popup texto — Silo (nova pasta, renomear) -->
+    <div class="popup-box v2 d-none" id="popup-silo-input">
+        <h2 class="popup-title" id="popup-silo-input-title">Informe o nome</h2>
+        <div class="form-campo" style="text-align:left;width:100%;">
+            <label for="popup-silo-input-field" id="popup-silo-input-label">Nome</label>
+            <input type="text" id="popup-silo-input-field" class="form-text" autocomplete="off">
+        </div>
+        <div class="popup-actions">
+            <button class="popup-btn fundo-cinza-b cor-preto" type="button" id="popup-silo-input-cancel">Cancelar</button>
+            <button class="popup-btn fundo-verde" type="button" id="popup-silo-input-confirm">Confirmar</button>
+        </div>
+    </div>
+
     </div>
     <div id="popup-bancada" class="popup d-none">
         <div class="popup-inner">

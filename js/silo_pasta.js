@@ -20,11 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
 // 📁 Criar nova pasta
 // ================================
 async function criarPasta() {
-  const nome = prompt("📁 Nome da nova pasta:");
-  if (!nome || nome.trim() === "") return;
+  const nome = await siloPrompt({
+    title: "Nova pasta",
+    label: "Nome da pasta",
+  });
+  if (!nome) return;
 
   const fd = new FormData();
-  fd.append("nome", nome.trim());
+    fd.append("nome", nome);
   fd.append("parent_id", window.pastaAtual || 0);
 
   try {
@@ -40,14 +43,14 @@ async function criarPasta() {
     const j = JSON.parse(text);
 
     if (j.ok) {
-      abrirPopup("📁 Sucesso", j.msg || "Pasta criada com sucesso!");
+      siloShowSuccess(j.msg || "Pasta criada com sucesso!");
       atualizarLista();
     } else {
-      abrirPopup("❌ Erro", j.err || "Falha ao criar pasta.");
+      siloShowError(j.err || "Falha ao criar pasta.");
     }
   } catch (err) {
     console.error("Erro ao criar pasta:", err);
-    abrirPopup("❌ Erro", "Falha ao comunicar com o servidor.");
+    siloShowError("Falha ao comunicar com o servidor.");
   }
 }
 window.criarPasta = criarPasta;
@@ -88,47 +91,49 @@ function abrirMenuPasta(e, pasta) {
   };
 
   menu.querySelector(".rename").onclick = async () => {
-    const novoNome = prompt("Digite o novo nome da pasta:", pasta.nome_arquivo);
-    if (!novoNome || novoNome.trim() === "" || novoNome === pasta.nome_arquivo) {
-      fecharMenuArquivo();
-      return;
-    }
+    fecharMenuArquivo();
+    const novoNome = await siloPrompt({
+      title: "Renomear pasta",
+      label: "Novo nome",
+      defaultValue: pasta.nome_arquivo,
+    });
+    if (!novoNome || novoNome === pasta.nome_arquivo) return;
 
     const fd = new FormData();
     fd.append("id", pasta.id);
-    fd.append("novo_nome", novoNome.trim());
+    fd.append("novo_nome", novoNome);
     const res = await fetch("../funcoes/silo/rename_arquivo.php", { method: "POST", body: fd });
     const j = await res.json();
 
     if (j.ok) {
-      abrirPopup("✅ Sucesso", j.msg);
+      siloShowSuccess(j.msg || "Pasta renomeada com sucesso!");
       atualizarLista();
     } else {
-      abrirPopup("❌ Erro", j.err || "Falha ao renomear pasta.");
+      siloShowError(j.err || "Falha ao renomear pasta.");
     }
-
-    fecharMenuArquivo();
   };
 
-  menu.querySelector(".delete").onclick = async () => {
-    if (!confirm("🗑️ Deseja realmente excluir esta pasta e todo o conteúdo dentro dela?")) {
-      fecharMenuArquivo();
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append("id", pasta.id);
-    const res = await fetch("../funcoes/silo/excluir_arquivo.php", { method: "POST", body: fd });
-    const j = await res.json();
-
-    if (j.ok) {
-      abrirPopup("🗑️ Removido", j.msg || "Pasta excluída com sucesso.");
-      atualizarLista();
-    } else {
-      abrirPopup("❌ Erro", j.err || "Falha ao excluir pasta.");
-    }
-
+  menu.querySelector(".delete").onclick = () => {
     fecharMenuArquivo();
+    siloConfirm({
+      title: "Excluir pasta?",
+      text: "Deseja excluir esta pasta e todo o conteúdo dentro dela? Esta ação não poderá ser desfeita.",
+      onConfirm: async () => {
+        const fd = new FormData();
+        fd.append("id", pasta.id);
+        const res = await fetch("../funcoes/silo/excluir_arquivo.php", { method: "POST", body: fd });
+        const j = await res.json();
+
+        if (j.ok) {
+          siloShowSuccess(j.msg || "Pasta excluída com sucesso!", () => {
+            atualizarLista();
+            if (typeof window.atualizarUsoSilo === "function") window.atualizarUsoSilo();
+          });
+        } else {
+          siloShowError(j.err || "Falha ao excluir pasta.");
+        }
+      },
+    });
   };
 
   document.addEventListener("click", fecharMenuArquivo, { once: true });
@@ -219,24 +224,6 @@ function getIconClass(tipo, isFolder = false) {
     return "icon-img";
   return "icon-file";
 }
-
-// ================================
-// 📢 Popup padrão
-// ================================
-function abrirPopup(titulo, mensagem) {
-  const popup = document.createElement("div");
-  popup.className = "popup-sistema";
-  popup.innerHTML = `
-    <div class="popup-box">
-      <h3>${titulo}</h3>
-      <p>${mensagem}</p>
-      <button class="popup-fechar">Fechar</button>
-    </div>
-  `;
-  document.body.appendChild(popup);
-  popup.querySelector(".popup-fechar").onclick = () => popup.remove();
-}
-window.abrirPopup = abrirPopup;
 
 // ================================
 // 🧭 Atualiza lista

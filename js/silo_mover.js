@@ -73,33 +73,30 @@ async function moverItem(id) {
         try {
           json = JSON.parse(text);
         } catch {
-          abrirPopup("❌ Erro", "Resposta inválida do servidor.");
+          siloShowError("Resposta inválida do servidor.");
           overlay.remove();
           return;
         }
 
         if (json.ok) {
-          abrirPopup("📦 Sucesso", json.msg || "Item movido com sucesso!");
           overlay.remove();
-
-          // 🔄 Atualiza a visualização
-          if (typeof atualizarLista === "function") {
-            await atualizarLista();
-          }
+          siloShowSuccess(json.msg || "Item movido com sucesso!", async () => {
+            if (typeof atualizarLista === "function") await atualizarLista();
+          });
 
         } else {
-          abrirPopup("❌ Erro", json.err || "Falha ao mover o item.");
+          siloShowError(json.err || "Falha ao mover o item.");
         }
 
       } catch (err) {
         console.error("Erro ao mover item:", err);
-        abrirPopup("❌ Erro", "Falha inesperada ao tentar mover o item.");
+        siloShowError("Falha inesperada ao tentar mover o item.");
       }
     };
 
   } catch (err) {
     console.error("Erro ao abrir mover:", err);
-    abrirPopup("❌ Erro", "Erro inesperado ao abrir a janela de mover.");
+    siloShowError("Erro inesperado ao abrir a janela de mover.");
   }
 }
 
