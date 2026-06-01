@@ -89,4 +89,90 @@ function getApontamentosCompletos($mysqli, $user_id) {
 
     return $dados;
 }
+
+function getApontamentoPorId($mysqli, $user_id, $id) {
+    $stmt = $mysqli->prepare("
+        SELECT a.*
+        FROM apontamentos a
+        INNER JOIN propriedades p ON p.id = a.propriedade_id
+        WHERE a.id = ? AND p.user_id = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param('ii', $id, $user_id);
+    $stmt->execute();
+    $ap = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$ap) {
+        return null;
+    }
+
+    $ap_id = (int)$ap['id'];
+
+    $stmt = $mysqli->prepare("SELECT campo, valor FROM apontamento_detalhes WHERE apontamento_id = ?");
+    $stmt->bind_param('i', $ap_id);
+    $stmt->execute();
+    $detalhes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    $campos = [];
+    $areas = [];
+    $produtos = [];
+
+    foreach ($detalhes as $d) {
+        $campo = $d['campo'];
+        $valor = $d['valor'];
+        if ($campo === 'area_id') {
+            $areas[] = (int)$valor;
+        } elseif ($campo === 'produto_id' || $campo === 'produto') {
+            if (is_numeric($valor)) {
+                $produtos[] = (int)$valor;
+            } else {
+                $campos['produto_nome'] = $valor;
+            }
+        } else {
+            $campos[$campo] = $valor;
+        }
+    }
+
+    $areas_nome = [];
+    if (!empty($areas)) {
+        $ids = implode(',', array_map('intval', $areas));
+        $res = $mysqli->query("SELECT id, nome FROM areas WHERE id IN ($ids)");
+        while ($row = $res->fetch_assoc()) {
+            $areas_nome[] = $row['nome'];
+        }
+    }
+
+    $produtos_nome = [];
+    if (!empty($produtos)) {
+        $ids = implode(',', array_map('intval', $produtos));
+        $res = $mysqli->query("SELECT id, nome FROM produtos WHERE id IN ($ids)");
+        while ($row = $res->fetch_assoc()) {
+            $produtos_nome[] = $row['nome'];
+        }
+    }
+    if (!empty($campos['produto_nome'])) {
+        $produtos_nome[] = $campos['produto_nome'];
+        unset($campos['produto_nome']);
+    }
+
+    require_once __DIR__ . '/apontamento_arquivos.php';
+    $arquivos = listarArquivosApontamento($mysqli, $ap_id, (int)$user_id);
+
+    return [
+        'id' => $ap_id,
+        'tipo' => $ap['tipo'],
+        'data' => $ap['data'],
+        'quantidade' => $ap['quantidade'],
+        'unidade' => $ap['unidade'] ?? null,
+        'previsao' => $ap['previsao'] ?? null,
+        'observacoes' => $ap['observacoes'],
+        'status' => $ap['status'],
+        'detalhes' => $campos,
+        'areas' => $areas_nome,
+        'produtos' => $produtos_nome,
+        'arquivos' => $arquivos,
+    ];
+}
 ?>

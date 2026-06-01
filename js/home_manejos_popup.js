@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnHistorico = document.getElementById("btn-ver-historico");
   const historicoWrap = document.getElementById("manejo-historico-wrap");
   const historicoList = document.getElementById("manejo-historico-list");
+  const anexosList = document.getElementById("manejo-anexos-list");
+  const anexoInput = document.getElementById("manejo-anexo-input");
 
   let apontamentoAtual = null;
   let modoEdicao = false;
@@ -144,6 +146,33 @@ document.addEventListener("DOMContentLoaded", () => {
       btnConcluir.dataset.id = a.id;
       btnConcluir.classList.toggle("d-none", a.status === "concluido");
     }
+
+    renderAnexos(a.arquivos || []);
+  }
+
+  function renderAnexos(arquivos) {
+    if (!anexosList) return;
+    if (!arquivos.length) {
+      anexosList.innerHTML = '<p class="manejo-anexos-empty">Nenhum anexo vinculado.</p>';
+      return;
+    }
+    anexosList.innerHTML = arquivos.map((arq) => `
+      <div class="manejo-anexo-item" data-vinculo="${arq.vinculo_id}">
+        <a href="../funcoes/silo/download_arquivo.php?id=${arq.id}" target="_blank" rel="noopener">${arq.nome_arquivo}</a>
+        <div class="manejo-anexo-actions">
+          <button type="button" class="btn-remove" data-vinculo="${arq.vinculo_id}">Remover</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function carregarAnexos(id) {
+    fetch(`../funcoes/apontamento_arquivo_acao.php?acao=listar&apontamento_id=${encodeURIComponent(id)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) renderAnexos(data.arquivos || []);
+      })
+      .catch(() => {});
   }
 
   function abrirPopupManejo(id) {
@@ -165,6 +194,47 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((err) => showPopupErro("Erro ao buscar detalhes: " + err, false));
   }
+
+  window.abrirPopupManejo = abrirPopupManejo;
+
+  anexosList?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-remove");
+    if (!btn || !apontamentoAtual) return;
+    const vinculoId = btn.dataset.vinculo;
+    if (!vinculoId) return;
+
+    const fd = new FormData();
+    fd.append("acao", "desvincular");
+    fd.append("vinculo_id", vinculoId);
+
+    fetch("../funcoes/apontamento_arquivo_acao.php", { method: "POST", body: fd })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.ok) carregarAnexos(apontamentoAtual.id);
+        else showPopupErro(res.msg || "Erro ao remover anexo.");
+      });
+  });
+
+  anexoInput?.addEventListener("change", () => {
+    if (!apontamentoAtual || !anexoInput.files?.length) return;
+
+    const fd = new FormData();
+    fd.append("acao", "upload");
+    fd.append("apontamento_id", apontamentoAtual.id);
+    fd.append("arquivo", anexoInput.files[0]);
+
+    fetch("../funcoes/apontamento_arquivo_acao.php", { method: "POST", body: fd })
+      .then((r) => r.json())
+      .then((res) => {
+        anexoInput.value = "";
+        if (res.ok) {
+          carregarAnexos(apontamentoAtual.id);
+        } else {
+          showPopupErro(res.msg || "Erro ao anexar arquivo.");
+        }
+      })
+      .catch(() => showPopupErro("Falha ao enviar anexo."));
+  });
 
   function carregarHistorico(id) {
     fetch("../funcoes/buscar_historico_apontamento.php", {

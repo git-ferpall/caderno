@@ -1,0 +1,116 @@
+/* Dashboard resumido — home */
+
+.home-dashboard {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    padding: 0 12px;
+}
+
+.home-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+}
+
+.home-dash-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.home-dash-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    color: inherit;
+}
+
+.home-dash-card .dash-value {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--azul-e);
+}
+
+.home-dash-card.dash-alert .dash-value {
+    color: #c7431a;
+}
+
+.home-dash-card.dash-ok .dash-value {
+    color: #2e7d32;
+}
+
+.home-dash-card .dash-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-top: 6px;
+}
+
+.home-dash-card .dash-sub {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.home-dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.home-dash-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.home-dash-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.home-dash-link:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.home-dash-silo-bar {
+    height: 6px;
+    background: #e8ecef;
+    border-radius: 999px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.home-dash-silo-fill {
+    height: 100%;
+    background: var(--azul);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+@media (max-width: 576px) {
+    .home-dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .home-dash-card .dash-value {
+        font-size: 22px;
+    }
+}

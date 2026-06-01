@@ -68,8 +68,22 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         <div class="btn-icon icon-pen"></div>
                         <span class="link-title">Relatórios</span>
                     </li></a>
+                    <a href="./timeline"><li class="menu-link fundo-preto">
+                        <div class="btn-icon icon-file cor-branco"></div>
+                        <span class="link-title cor-branco">Linha do tempo</span>
+                    </li></a>
                 </ul>
             </div>
+
+            <section class="home-dashboard" id="home-dashboard" aria-label="Resumo da propriedade">
+                <div class="home-dash-header">
+                    <h3>Resumo da propriedade</h3>
+                    <a href="./timeline" class="home-dash-link">Ver linha do tempo</a>
+                </div>
+                <div class="home-dashboard-grid" id="home-dashboard-grid">
+                    <div class="home-dash-card"><div class="dash-value">…</div><div class="dash-label">Carregando</div></div>
+                </div>
+            </section>
 
             <div class="apontamento container">
                 <div class="row g-3">
@@ -151,6 +165,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
+        <script src="../js/home_dashboard.js"></script>
         <script src="../js/home_manejos.js"></script>
         <script src="../js/home_manejos_popup.js"></script>
         <?php include '../include/footer.php' ?>

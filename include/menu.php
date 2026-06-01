@@ -134,6 +134,10 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen"></div>
                     <span class="link-title">Relatórios</span>
                 </li></a>
+                <a href="./timeline"><li class="menu-link">
+                    <div class="btn-icon icon-file"></div>
+                    <span class="link-title">Linha do tempo</span>
+                </li></a>
                 <!--<a href="./clientes.php"><li class="menu-link">
                     <div class="btn-icon icon-people"></div>
                     <span class="link-title">Painel de Clientes</span>

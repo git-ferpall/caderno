@@ -276,6 +276,17 @@ if ($user_id) {
                         <h4 class="manejo-historico-title">Histórico de alterações</h4>
                         <div id="manejo-historico-list" class="manejo-historico-list"></div>
                     </div>
+
+                    <div class="form-campo manejo-anexos-wrap">
+                        <label>Anexos (Silo)</label>
+                        <div id="manejo-anexos-list" class="manejo-anexos-list"></div>
+                        <div class="manejo-anexos-upload">
+                            <label>
+                                <span>📎 Enviar arquivo</span>
+                                <input type="file" id="manejo-anexo-input" accept="image/*,application/pdf,text/plain">
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

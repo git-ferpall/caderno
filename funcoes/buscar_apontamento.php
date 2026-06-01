@@ -13,22 +13,13 @@ if (!$user_id) {
     $user_id = $payload['sub'] ?? null;
 }
 
-$id = $_POST['id'] ?? null;
-if (!$id || !$user_id) {
+$id = (int)($_POST['id'] ?? 0);
+if ($id <= 0 || !$user_id) {
     echo json_encode(['ok' => false, 'msg' => 'ID ou usuário inválido']);
     exit;
 }
 
-$apontamentos = getApontamentosCompletos($mysqli, $user_id);
-
-// procura apenas o registro correspondente
-$detalhe = null;
-foreach ($apontamentos as $ap) {
-    if ($ap['id'] == $id) {
-        $detalhe = $ap;
-        break;
-    }
-}
+$detalhe = getApontamentoPorId($mysqli, (int)$user_id, $id);
 
 if ($detalhe) {
     echo json_encode(['ok' => true, 'apontamento' => $detalhe]);
