@@ -16,55 +16,82 @@ document.addEventListener("DOMContentLoaded", () => {
     return (bytes / Math.pow(1024, i)).toFixed(1) + " " + u[i];
   }
 
+  function statCard({ href, emoji, value, label, sub, extraClass = "", valueClass = "" }) {
+    const tag = href ? "a" : "div";
+    return `
+      <${tag}${href ? ` href="${href}"` : ""} class="home-stat ${extraClass}">
+        <div class="home-stat-head">
+          <span class="home-stat-emoji">${emoji}</span>
+          <span class="home-stat-value ${valueClass}">${value}</span>
+        </div>
+        <span class="home-stat-label">${label}</span>
+        ${sub ? `<span class="home-stat-sub">${sub}</span>` : ""}
+      </${tag}>
+    `;
+  }
+
   fetch("../funcoes/buscar_dashboard.php")
     .then((r) => r.json())
     .then((d) => {
       if (!d.ok) {
-        grid.innerHTML = '<p class="dash-sub" style="color:#fff">Resumo indisponível.</p>';
+        grid.innerHTML = '<div class="home-stat"><span class="home-stat-label">Resumo indisponível</span></div>';
         return;
       }
 
       const siloPct = d.silo?.percentual ?? 0;
       const siloCor = siloPct >= 90 ? "#e74c3c" : siloPct >= 70 ? "#f39c12" : "var(--azul)";
 
-      grid.innerHTML = `
-        <a href="./timeline" class="home-dash-card">
-          <div class="dash-value">${d.eventos_30_dias ?? 0}</div>
-          <div class="dash-label">Eventos (30 dias)</div>
-          <div class="dash-sub">Ver linha do tempo →</div>
-        </a>
-        <div class="home-dash-card ${d.atrasados > 0 ? "dash-alert" : ""}">
-          <div class="dash-value">${d.atrasados ?? 0}</div>
-          <div class="dash-label">Manejos atrasados</div>
-          <div class="dash-sub">${d.pendentes ?? 0} pendentes no total</div>
-        </div>
-        <div class="home-dash-card">
-          <div class="dash-value">${d.semana ?? 0}</div>
-          <div class="dash-label">Para esta semana</div>
-          <div class="dash-sub">Até domingo</div>
-        </div>
-        <div class="home-dash-card dash-ok">
-          <div class="dash-value">${d.concluidos_mes ?? 0}</div>
-          <div class="dash-label">Concluídos no mês</div>
-        </div>
-        <div class="home-dash-card">
-          <div class="dash-value" style="font-size:18px">${fmtData(d.ultima_irrigacao)}</div>
-          <div class="dash-label">Última irrigação</div>
-        </div>
-        <div class="home-dash-card">
-          <div class="dash-value" style="font-size:18px">${d.ultima_aplicacao ? fmtData(d.ultima_aplicacao.data) : "—"}</div>
-          <div class="dash-label">Última aplicação</div>
-          <div class="dash-sub">${d.ultima_aplicacao?.tipo ?? "Nenhum registro"}</div>
-        </div>
-        <a href="./silo" class="home-dash-card">
-          <div class="dash-value">${siloPct}%</div>
-          <div class="dash-label">Silo de Dados</div>
-          <div class="dash-sub">${fmtBytes(d.silo?.usado_bytes)} usados</div>
-          <div class="home-dash-silo-bar"><div class="home-dash-silo-fill" style="width:${siloPct}%;background:${siloCor}"></div></div>
-        </a>
-      `;
+      grid.innerHTML =
+        statCard({
+          href: "./timeline",
+          emoji: "📅",
+          value: d.eventos_30_dias ?? 0,
+          label: "Eventos (30 dias)",
+          sub: "Ver histórico",
+        }) +
+        statCard({
+          emoji: "⚠️",
+          value: d.atrasados ?? 0,
+          label: "Atrasados",
+          sub: `${d.pendentes ?? 0} pendentes`,
+          extraClass: d.atrasados > 0 ? "is-alert" : "",
+        }) +
+        statCard({
+          emoji: "📋",
+          value: d.semana ?? 0,
+          label: "Esta semana",
+          sub: "Até domingo",
+        }) +
+        statCard({
+          emoji: "✅",
+          value: d.concluidos_mes ?? 0,
+          label: "Concluídos no mês",
+          extraClass: "is-ok",
+        }) +
+        statCard({
+          emoji: "💧",
+          value: fmtData(d.ultima_irrigacao),
+          label: "Última irrigação",
+          valueClass: "is-date",
+        }) +
+        statCard({
+          emoji: "🧴",
+          value: d.ultima_aplicacao ? fmtData(d.ultima_aplicacao.data) : "—",
+          label: "Última aplicação",
+          sub: d.ultima_aplicacao?.tipo ?? "Sem registro",
+          valueClass: "is-date",
+        }) +
+        `<a href="./silo" class="home-stat">
+          <div class="home-stat-head">
+            <span class="home-stat-emoji">📦</span>
+            <span class="home-stat-value">${siloPct}%</span>
+          </div>
+          <span class="home-stat-label">Silo de dados</span>
+          <span class="home-stat-sub">${fmtBytes(d.silo?.usado_bytes)} usados</span>
+          <div class="home-stat-bar"><div class="home-stat-bar-fill" style="width:${siloPct}%;background:${siloCor}"></div></div>
+        </a>`;
     })
     .catch(() => {
-      grid.innerHTML = '<p class="dash-sub" style="color:#fff">Erro ao carregar resumo.</p>';
+      grid.innerHTML = '<div class="home-stat"><span class="home-stat-label">Erro ao carregar resumo</span></div>';
     });
 });

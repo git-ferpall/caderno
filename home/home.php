@@ -25,61 +25,57 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <div class="home-hero">
                 <div class="home-hero-panel">
                     <div class="home-hero-top">
-                        <div class="item-box prop-box home-prop-box">
-                    <?php
-                    if (!empty($propriedades)) {
-                        $propriedade = $propriedades[0];
-                        echo '
-                            <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
-                                <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
-                                <div class="item-edit">
-                                    <button class="edit-btn" id="edit-propriedade-home" type="button" onclick="altProp()">
-                                        Alterar
-                                    </button>
-                                </div>
+                        <div class="home-property">
+                            <div class="home-property-icon" aria-hidden="true">🏡</div>
+                            <div class="home-property-body">
+                                <?php if (!empty($propriedades)) :
+                                    $propriedade = $propriedades[0]; ?>
+                                    <h2 class="home-property-name"><?= htmlspecialchars($propriedade['nome_razao']) ?></h2>
+                                    <button class="home-property-edit" type="button" onclick="altProp()">Alterar propriedade</button>
+                                <?php else : ?>
+                                    <h2 class="home-property-name">Nenhuma propriedade</h2>
+                                    <button class="home-property-edit" type="button" onclick="altProp()">Cadastrar</button>
+                                <?php endif; ?>
                             </div>
-                        ';
-                    } else {
-                        echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
-                    }
-                    ?>
                         </div>
-                        <a href="./timeline" class="home-hero-timeline-link">Ver linha do tempo →</a>
+                        <a href="./timeline" class="home-timeline-btn">
+                            <span class="home-timeline-icon" aria-hidden="true">📅</span>
+                            Linha do tempo
+                        </a>
                     </div>
 
-                    <ul class="home-quick-links menu-links">
-                    <a href="./apontamento"><li class="menu-link fundo-verde">
-                        <div class="btn-icon icon-plus cor-branco"></div>
-                        <span class="link-title cor-branco">Novo Apontamento</span>
-                    </li></a>
-                    <a href="./silo"><li class="menu-link fundo-azul cor-branco">
-                        <div class="btn-icon icon-silo"></div>
-                        <span class="link-title cor-branco">Silo de Dados</span>
-                    </li></a>
-                    <a href="./produtos"><li class="menu-link">
-                        <div class="btn-icon icon-fruit"></div>
-                        <span class="link-title">Produtos</span>
-                    </li></a>
-                    <a href="./areas"><li class="menu-link">
-                        <div class="btn-icon icon-plant"></div>
-                        <span class="link-title">Áreas</span>
-                    </li></a>
-                    <a href="./relatorios"><li class="menu-link">
-                        <div class="btn-icon icon-pen"></div>
-                        <span class="link-title">Relatórios</span>
-                    </li></a>
-                    <a href="./timeline"><li class="menu-link fundo-cinza-b">
-                        <div class="btn-icon icon-file"></div>
-                        <span class="link-title">Linha do tempo</span>
-                    </li></a>
-                    </ul>
+                    <div class="home-actions">
+                        <div class="home-actions-primary">
+                            <a href="./apontamento" class="home-action-btn home-action-main home-action-green">
+                                <span class="home-action-icon"><div class="btn-icon icon-plus cor-branco"></div></span>
+                                <span class="home-action-text">Novo apontamento</span>
+                            </a>
+                            <a href="./silo" class="home-action-btn home-action-main home-action-blue">
+                                <span class="home-action-icon"><div class="btn-icon icon-silo cor-branco"></div></span>
+                                <span class="home-action-text">Silo de dados</span>
+                            </a>
+                        </div>
+                        <div class="home-actions-secondary">
+                            <a href="./produtos" class="home-action-btn home-action-sm">
+                                <div class="btn-icon icon-fruit"></div>
+                                <span>Produtos</span>
+                            </a>
+                            <a href="./areas" class="home-action-btn home-action-sm">
+                                <div class="btn-icon icon-plant"></div>
+                                <span>Áreas</span>
+                            </a>
+                            <a href="./relatorios" class="home-action-btn home-action-sm">
+                                <div class="btn-icon icon-pen"></div>
+                                <span>Relatórios</span>
+                            </a>
+                        </div>
+                    </div>
 
                     <section class="home-dashboard" id="home-dashboard" aria-label="Resumo da propriedade">
-                        <h3 class="home-dash-title">Resumo da propriedade</h3>
                         <div class="home-dashboard-grid" id="home-dashboard-grid">
-                            <div class="home-dash-card home-dash-loading">
-                                <div class="dash-value">…</div>
-                                <div class="dash-label">Carregando</div>
+                            <div class="home-stat home-stat-loading">
+                                <span class="home-stat-value">…</span>
+                                <span class="home-stat-label">Carregando</span>
                             </div>
                         </div>
                     </section>
