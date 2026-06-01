@@ -72,7 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("manejo-data").value = (a.data || "").substring(0, 10);
     document.getElementById("manejo-tipo").value = a.tipo;
-    document.getElementById("manejo-status").value = (a.status || "").toUpperCase();
+
+    const statusEl = document.getElementById("manejo-status");
+    const st = (a.status || "").toLowerCase();
+    statusEl.textContent = st === "concluido" ? "Concluído" : "Pendente";
+    statusEl.className = "manejo-status-badge " + (st === "concluido" ? "concluido" : "pendente");
+
     document.getElementById("manejo-obs").value = a.observacoes || "";
 
     document.getElementById("manejo-areas").innerHTML =
@@ -135,11 +140,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         historicoList.innerHTML = data.historico.map((h) => `
-          <div style="padding:6px 0;border-bottom:1px solid #e5e5e5;">
+          <div class="manejo-historico-item">
             <strong>${h.alterado_em}</strong> — ${h.campo}<br>
-            <span style="color:#666;">${h.valor_anterior}</span>
+            <span style="color:#777;">${h.valor_anterior}</span>
             →
-            <span style="color:#2e7d32;">${h.valor_novo}</span>
+            <span style="color:#4a7c1b;">${h.valor_novo}</span>
           </div>
         `).join("");
       })
