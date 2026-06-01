@@ -22,14 +22,13 @@ require_once __DIR__ . '/../configuracao/protect.php';
         <?php include '../include/menu.php' ?>
 
         <main id="home" class="sistema fundo-img">
-            <div class="container-fluid principais-abas">
-                <h3 class="main-title cor-branco"></h3>
-
-               <div class="item-box prop-box">
+            <div class="home-hero">
+                <div class="home-hero-panel">
+                    <div class="home-hero-top">
+                        <div class="item-box prop-box home-prop-box">
                     <?php
                     if (!empty($propriedades)) {
-                        // Pega a propriedade ativa (ou a primeira retornada)
-                        $propriedade = $propriedades[0]; 
+                        $propriedade = $propriedades[0];
                         echo '
                             <div class="item item-propriedade v2 fundo-branco" id="prop-' . (int)$propriedade['id'] . '-home">
                                 <h4 class="item-title">' . htmlspecialchars($propriedade['nome_razao']) . '</h4>
@@ -44,10 +43,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         echo '<div class="item-none">Nenhuma propriedade cadastrada.</div>';
                     }
                     ?>
-                </div>
+                        </div>
+                        <a href="./timeline" class="home-hero-timeline-link">Ver linha do tempo →</a>
+                    </div>
 
-
-                <ul class="menu-links">
+                    <ul class="home-quick-links menu-links">
                     <a href="./apontamento"><li class="menu-link fundo-verde">
                         <div class="btn-icon icon-plus cor-branco"></div>
                         <span class="link-title cor-branco">Novo Apontamento</span>
@@ -68,24 +68,25 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         <div class="btn-icon icon-pen"></div>
                         <span class="link-title">Relatórios</span>
                     </li></a>
-                    <a href="./timeline"><li class="menu-link fundo-preto">
-                        <div class="btn-icon icon-file cor-branco"></div>
-                        <span class="link-title cor-branco">Linha do tempo</span>
+                    <a href="./timeline"><li class="menu-link fundo-cinza-b">
+                        <div class="btn-icon icon-file"></div>
+                        <span class="link-title">Linha do tempo</span>
                     </li></a>
-                </ul>
+                    </ul>
+
+                    <section class="home-dashboard" id="home-dashboard" aria-label="Resumo da propriedade">
+                        <h3 class="home-dash-title">Resumo da propriedade</h3>
+                        <div class="home-dashboard-grid" id="home-dashboard-grid">
+                            <div class="home-dash-card home-dash-loading">
+                                <div class="dash-value">…</div>
+                                <div class="dash-label">Carregando</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
             </div>
 
-            <section class="home-dashboard" id="home-dashboard" aria-label="Resumo da propriedade">
-                <div class="home-dash-header">
-                    <h3>Resumo da propriedade</h3>
-                    <a href="./timeline" class="home-dash-link">Ver linha do tempo</a>
-                </div>
-                <div class="home-dashboard-grid" id="home-dashboard-grid">
-                    <div class="home-dash-card"><div class="dash-value">…</div><div class="dash-label">Carregando</div></div>
-                </div>
-            </section>
-
-            <div class="apontamento container">
+            <div class="apontamento container home-manejos-wrap">
                 <div class="row g-3">
                     <div class="col-12 col-lg-6">
                         <div class="apontamento-collapse apontamento-fazer manejos-panel active">
