@@ -372,12 +372,24 @@ body.popup-scroll-lock {
         background: rgba(15, 23, 28, 0.52);
     }
 
+    .popup-manejo.popup-box.v2 {
+        margin-top: 0;
+        gap: 0;
+        padding: 0;
+        align-items: stretch;
+        text-align: left;
+    }
+
     .popup-manejo {
+        display: flex;
+        flex-direction: column;
         max-width: 100% !important;
         width: 100% !important;
         margin: 0 !important;
         border-radius: 20px 20px 0 0 !important;
-        max-height: min(92dvh, 92vh);
+        max-height: min(94dvh, 94vh);
+        min-height: 0;
+        overflow: hidden;
         animation: popup-manejo-sheet-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -403,17 +415,21 @@ body.popup-scroll-lock {
     }
 
     .popup-manejo-shell {
-        padding: 8px 16px max(16px, env(safe-area-inset-bottom, 0px));
-        max-height: min(92dvh, 92vh);
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: min(94dvh, 94vh);
+        padding: 8px 16px max(12px, env(safe-area-inset-bottom, 0px));
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
-        touch-action: pan-y;
     }
 
     .popup-manejo .popup-title {
         position: static;
         transform: none;
         left: auto;
-        margin: 0 auto 12px;
+        flex-shrink: 0;
+        margin: 0 auto 10px;
         white-space: normal;
         text-align: center;
         font-size: 17px;
@@ -422,11 +438,27 @@ body.popup-scroll-lock {
     }
 
     .popup-manejo-body {
-        padding: 0 2px 8px;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0 2px 16px;
         margin-top: 0;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
         touch-action: pan-y;
+    }
+
+    .manejo-form {
+        width: 100%;
+    }
+
+    .manejo-form .form-campo {
+        width: 100%;
+    }
+
+    .manejo-detalhes-extra {
+        word-break: break-word;
     }
 
     .manejo-form label {
@@ -547,13 +579,12 @@ body.popup-scroll-lock {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        padding-top: 12px;
-        margin-top: 8px;
-        position: sticky;
-        bottom: 0;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, #fff 24%);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
+        flex-shrink: 0;
+        padding-top: 10px;
+        margin-top: auto;
+        position: relative;
+        background: #fff;
+        border-top: 1px solid var(--cinza-b);
         padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
         z-index: 2;
     }
@@ -561,22 +592,23 @@ body.popup-scroll-lock {
     .popup-manejo-actions .popup-btn {
         flex: none;
         width: 100%;
-        min-height: 46px;
+        min-height: 44px;
         font-size: 13px;
         font-weight: 700;
-        padding: 10px 12px;
+        padding: 9px 10px;
         border-radius: 12px;
     }
 
     .popup-manejo-actions #btn-marcar-concluido,
     .popup-manejo-actions #btn-salvar-manejo {
         grid-column: 1 / -1;
-        min-height: 48px;
+        min-height: 46px;
         font-size: 14px;
     }
 
     .popup-manejo-actions #btn-ver-historico {
         grid-column: 1 / -1;
+        min-height: 40px;
     }
 }
 
