@@ -138,21 +138,12 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Linha do tempo</span>
                 </li></a>
-                <button type="button" id="btn-offline-prepare" class="offline-prepare-menu d-none">
+                <a href="#" id="btn-offline-prepare" class="d-none" role="button" aria-label="Baixar dados para uso offline">
                     <li class="menu-link fundo-azul">
-                        <div class="btn-icon icon-silo cor-branco"></div>
+                        <div class="btn-icon icon-file cor-branco"></div>
                         <span class="link-title cor-branco">Baixar para offline</span>
                     </li>
-                </button>
-                <?php
-                require_once __DIR__ . '/../funcoes/offline/helpers.php';
-                $menuOfflineAdminId = (int)($payload['sub'] ?? 0);
-                if ($menuOfflineAdminId && isset($mysqli) && offlineIsAdmin($mysqli, $menuOfflineAdminId)) : ?>
-                <a href="/home/admin_offline"><li class="menu-link fundo-azul">
-                    <div class="btn-icon icon-silo cor-branco"></div>
-                    <span class="link-title cor-branco">Admin offline</span>
-                </li></a>
-                <?php endif; ?>
+                </a>
                 <!--<a href="./clientes.php"><li class="menu-link">
                     <div class="btn-icon icon-people"></div>
                     <span class="link-title">Painel de Clientes</span>

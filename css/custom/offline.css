@@ -133,24 +133,13 @@
     color: #888;
 }
 
-/* Menu — preparar offline */
-.offline-prepare-menu {
-    display: block;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    text-align: left;
-    font: inherit;
+/* Menu — baixar para offline (mesmo padrão dos outros itens) */
+#btn-offline-prepare {
+    text-decoration: none;
+    color: inherit;
 }
 
-.offline-prepare-menu:disabled {
-    opacity: 0.55;
-    cursor: wait;
-}
-
-.offline-prepare-menu .menu-link {
-    width: 100%;
+#btn-offline-prepare.is-busy {
+    pointer-events: none;
+    opacity: 0.65;
 }

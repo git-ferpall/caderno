@@ -76,17 +76,18 @@ const OfflineUI = (() => {
     };
     show();
 
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
       if (!navigator.onLine) {
         setBanner("Conecte-se à internet para baixar os dados para offline.", "warn");
         return;
       }
-      if (btn.disabled) return;
-      btn.disabled = true;
+      if (btn.classList.contains("is-busy")) return;
+      btn.classList.add("is-busy");
       try {
         await onPrepare();
       } finally {
-        btn.disabled = false;
+        btn.classList.remove("is-busy");
       }
     });
 

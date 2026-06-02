@@ -51,7 +51,7 @@ const OfflineSession = (() => {
     await OfflineDB.putCache(SESSION_KEY, session);
     if (navigator.onLine && typeof OfflineSync !== "undefined") {
       try {
-        await OfflineSync.refreshDados();
+        await OfflineSync.refreshDados(window.__nativeFetch || fetch);
       } catch (e) {
         console.warn("[offline] refresh dados no login:", e);
       }

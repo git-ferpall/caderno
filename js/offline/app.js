@@ -3,6 +3,7 @@ const OfflineApp = (() => {
   let syncing = false;
   let preparing = false;
   const nativeFetch = window.fetch.bind(window);
+  window.__nativeFetch = nativeFetch;
 
   function jsonResponse(obj, status = 200) {
     return new Response(JSON.stringify(obj), {
@@ -35,11 +36,14 @@ const OfflineApp = (() => {
 
       if (isCatalogGet(method, url)) {
         if (!navigator.onLine) {
+          const cached = await OfflineSync.getCachedList(cacheKey);
+          if (cached && cached.length) return jsonResponse(cached);
           return serveCatalogFromCache(cacheKey);
         }
 
+        const catalogUrl = OfflineSync.getCatalogApiUrl(cacheKey) || url;
         try {
-          const res = await nativeFetch(input, init);
+          const res = await nativeFetch(catalogUrl, init);
           if (res.ok) {
             res
               .clone()
@@ -81,7 +85,7 @@ const OfflineApp = (() => {
 
   async function loadConfig() {
     try {
-      const r = await nativeFetch("../funcoes/offline/config.php", { credentials: "same-origin" });
+      const r = await nativeFetch("/funcoes/offline/config.php", { credentials: "same-origin" });
       const data = await r.json();
       if (data.ok && data.habilitado && typeof OfflineSession !== "undefined") {
         await OfflineSession.save(data);
@@ -119,10 +123,16 @@ const OfflineApp = (() => {
     }
   }
 
+  function scheduleCatalogRefill() {
+    const run = () => OfflineSync.refillCatalogSelects().catch(() => {});
+    run();
+    setTimeout(run, 400);
+  }
+
   async function refreshIfOnline() {
     if (enabled !== true || !navigator.onLine) return;
     try {
-      await OfflineSync.refreshDados();
+      await OfflineSync.refreshDados(nativeFetch);
     } catch (e) {
       console.warn("[offline] cache dados:", e);
     }
@@ -171,7 +181,7 @@ const OfflineApp = (() => {
       }
 
       OfflineUI.setBanner("Preparando offline: baixando áreas, produtos e listas…", "sync");
-      await OfflineSync.refreshDados();
+      await OfflineSync.refreshDados(nativeFetch);
       await OfflineSync.warmCatalogFromNetwork(nativeFetch);
 
       OfflineUI.setBanner("Preparando offline: baixando telas (0%)…", "sync");
@@ -193,6 +203,12 @@ const OfflineApp = (() => {
       if (sum.areas) parts.push(`${sum.areas} área(s)`);
       if (sum.produtos) parts.push(`${sum.produtos} produto(s)`);
       if (sum.maquinas) parts.push(`${sum.maquinas} máquina(s)`);
+
+      if (!sum.areas && !sum.produtos) {
+        throw new Error("Nenhuma área ou produto foi baixado. Cadastre-os online ou verifique a propriedade ativa.");
+      }
+
+      scheduleCatalogRefill();
 
       const msg =
         `Pronto para offline: ${pages.ok}/${pages.total} telas` +
@@ -278,6 +294,9 @@ const OfflineApp = (() => {
     await refreshIfOnline();
     await updatePendingUI();
     await warnIfCatalogEmpty();
+    if (!navigator.onLine || enabled === true) {
+      scheduleCatalogRefill();
+    }
     if (navigator.onLine) await runSync();
   }
 

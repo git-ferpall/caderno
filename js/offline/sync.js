@@ -48,10 +48,23 @@ const OfflineSync = (() => {
     return u.includes("/funcoes/relatorios/") || u.includes("/relatorios") || u.includes("gerar_relatorio") || u.includes("pdf_");
   }
 
+  function apiUrl(file) {
+    const path = String(file).replace(/^\//, "");
+    if (path.startsWith("funcoes/")) return `/${path}`;
+    return `/funcoes/${path}`;
+  }
+
   function getCacheKeyFromUrl(url) {
     const u = String(url);
     for (const [file, key] of Object.entries(CACHE_MAP)) {
       if (u.includes(file)) return key;
+    }
+    return null;
+  }
+
+  function getCatalogApiUrl(cacheKey) {
+    for (const [file, key] of Object.entries(CACHE_MAP)) {
+      if (key === cacheKey) return apiUrl(file);
     }
     return null;
   }
@@ -86,8 +99,10 @@ const OfflineSync = (() => {
     return data;
   }
 
-  async function refreshDados() {
-    const r = await fetch("../funcoes/offline/dados.php", { credentials: "same-origin" });
+  async function refreshDados(fetchFn) {
+    const fn = fetchFn || window.__nativeFetch || fetch;
+    const r = await fn(apiUrl("offline/dados.php"), { credentials: "same-origin" });
+    if (!r.ok) throw new Error(`Falha ao baixar dados (${r.status})`);
     const data = await r.json();
     if (!data.ok) throw new Error(data.msg || "Falha ao cachear dados");
     return putDadosCache(data);
@@ -125,7 +140,46 @@ const OfflineSync = (() => {
   }
 
   function getCatalogFetchUrls() {
-    return Object.keys(CACHE_MAP).map((file) => `../funcoes/${file}`);
+    return Object.keys(CACHE_MAP).map((file) => apiUrl(file));
+  }
+
+  function areaOptionLabel(item) {
+    if (!item) return "";
+    return item.tipo ? `${item.nome} (${item.tipo})` : String(item.nome ?? "");
+  }
+
+  async function refillCatalogSelects() {
+    const dados = await getDadosCache();
+    if (!dados) return false;
+
+    const areas = Array.isArray(dados.areas) ? dados.areas : [];
+    const produtos = Array.isArray(dados.produtos) ? dados.produtos : [];
+
+    document.querySelectorAll(".area-select").forEach((sel) => {
+      const valorAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione a área</option>';
+      areas.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = areaOptionLabel(item);
+        if (String(item.id) === String(valorAtual)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+
+    document.querySelectorAll(".produto-select").forEach((sel) => {
+      const valorAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione o produto</option>';
+      produtos.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.nome;
+        if (String(item.id) === String(valorAtual)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+
+    return areas.length > 0 || produtos.length > 0;
   }
 
   async function warmCatalogFromNetwork(fetchFn = fetch) {
@@ -191,10 +245,13 @@ const OfflineSync = (() => {
     isSalvarUrl,
     isRelatorioUrl,
     getCacheKeyFromUrl,
+    getCatalogApiUrl,
     formDataToObject,
     objectToFormData,
+    apiUrl,
     refreshDados,
     getDadosCache,
+    refillCatalogSelects,
     getCachedList,
     mergeDadosSlice,
     warmDadosCache,
