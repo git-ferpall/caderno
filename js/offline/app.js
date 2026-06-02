@@ -128,12 +128,6 @@ const OfflineApp = (() => {
         const canQueue = await canQueueOfflineSave();
 
         if (!navigator.onLine) {
-          if (!canQueue) {
-            return jsonResponse(
-              { ok: false, err: "Modo offline indisponível. Use «Baixar para offline» com internet." },
-              503
-            );
-          }
           return queueSalvarAndRespond(salvarUrl, init.body);
         }
 
@@ -196,6 +190,10 @@ const OfflineApp = (() => {
             offline_session: true,
           };
         }
+      }
+      if (await isPreparedOnDevice()) {
+        enabled = true;
+        return { ok: true, habilitado: true, offline_prepared: true };
       }
       enabled = false;
       return { habilitado: false };
@@ -396,12 +394,22 @@ const OfflineApp = (() => {
 
     const config = await loadConfig();
     const canWork = config.habilitado || (await canQueueOfflineSave());
-    if (!canWork) return;
+    const offlineNow = !navigator.onLine;
+
+    if (!canWork && !offlineNow) return;
+
     if (!config.habilitado && (await canQueueOfflineSave())) {
       enabled = true;
     }
 
     bindEvents();
+
+    if (!canWork && offlineNow) {
+      OfflineUI.setBanner("Modo offline — apontamentos serão salvos no dispositivo.", "info");
+      await updatePendingUI();
+      scheduleCatalogRefill();
+      return;
+    }
     if (typeof OfflineBackgroundSync !== "undefined") {
       OfflineBackgroundSync.installListener(() => runSync());
     }

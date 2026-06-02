@@ -206,6 +206,8 @@ document.querySelector(".add-produto").addEventListener("click", () => {
 
       if (typeof CadernoSalvar !== "undefined") {
         CadernoSalvar.postFormData("salvar_plantio.php", dados);
+      } else {
+        alert("Erro: módulo de salvamento não carregou. Atualize a página (Ctrl+F5).");
       }
     };
 
