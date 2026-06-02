@@ -25,6 +25,7 @@ const OfflineSession = (() => {
     "/home/ColetaAnalise",
     "/home/VisitaTecnica",
     "/home/Personalizado",
+    "/home/hidroponia",
   ];
 
   function isValid(session) {

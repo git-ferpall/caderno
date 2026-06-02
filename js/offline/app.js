@@ -56,8 +56,7 @@ const OfflineApp = (() => {
       if (isCatalogGet(method, url)) {
         if (!navigator.onLine) {
           const cached = await OfflineSync.getCachedList(cacheKey);
-          if (cached && cached.length) return jsonResponse(cached);
-          return serveCatalogFromCache(cacheKey);
+          return jsonResponse(cached && cached.length ? cached : []);
         }
 
         const catalogUrl = OfflineSync.getCatalogApiUrl(cacheKey) || url;
@@ -164,10 +163,18 @@ const OfflineApp = (() => {
     }
   }
 
+  let catalogRefillObserver = null;
+
   function scheduleCatalogRefill() {
     const run = () => OfflineSync.refillCatalogSelects().catch(() => {});
     run();
-    setTimeout(run, 400);
+    [300, 800, 2000, 5000].forEach((ms) => setTimeout(run, ms));
+
+    if (catalogRefillObserver) return;
+    catalogRefillObserver = new MutationObserver(() => {
+      if (document.querySelector(".area-select, .produto-select")) run();
+    });
+    catalogRefillObserver.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   async function refreshIfOnline() {
@@ -181,10 +188,10 @@ const OfflineApp = (() => {
 
   async function warnIfCatalogEmpty() {
     if (!navigator.onLine && enabled === true) {
-      const dados = await OfflineSync.getDadosCache();
-      if (!OfflineSync.hasCatalogData(dados)) {
+      const status = await OfflineSync.getCatalogStatus();
+      if (!status.areas && !status.produtos) {
         OfflineUI.setBanner(
-          "Áreas e produtos não estão neste aparelho. Abra o Caderno com internet uma vez para baixá-los.",
+          "Áreas e produtos não estão neste aparelho. Use o menu «Baixar para offline» com internet.",
           "warn"
         );
       }
@@ -206,11 +213,6 @@ const OfflineApp = (() => {
       OfflineUI.setBanner("Conecte-se à internet para baixar para offline.", "warn");
       return;
     }
-    if (enabled !== true) {
-      OfflineUI.setBanner("Modo offline não está ativo para este usuário.", "warn");
-      return;
-    }
-
     preparing = true;
     try {
       OfflineUI.setBanner("Preparando offline: verificando sessão…", "sync");
@@ -220,10 +222,14 @@ const OfflineApp = (() => {
         OfflineUI.setBanner("Modo offline não disponível.", "warn");
         return;
       }
+      enabled = true;
 
       OfflineUI.setBanner("Preparando offline: baixando áreas, produtos e listas…", "sync");
       await OfflineSync.refreshDados(nativeFetch);
-      await OfflineSync.warmCatalogFromNetwork(nativeFetch);
+      const catalogErrors = await OfflineSync.syncCatalogFromApis(nativeFetch);
+      if (catalogErrors.length) {
+        console.warn("[offline] avisos catálogo:", catalogErrors.join(", "));
+      }
 
       OfflineUI.setBanner("Preparando offline: baixando telas (0%)…", "sync");
       const pages = await OfflineSession.precachePagesClient(
@@ -238,15 +244,18 @@ const OfflineApp = (() => {
       OfflineUI.setBanner("Preparando offline: finalizando…", "sync");
       await ensureHomeShellCached();
 
-      const dados = await OfflineSync.getDadosCache();
-      const sum = OfflineSync.summarizeDados(dados);
+      const status = await OfflineSync.getCatalogStatus();
       const parts = [];
-      if (sum.areas) parts.push(`${sum.areas} área(s)`);
-      if (sum.produtos) parts.push(`${sum.produtos} produto(s)`);
-      if (sum.maquinas) parts.push(`${sum.maquinas} máquina(s)`);
+      if (status.areas) parts.push(`${status.areas} área(s)`);
+      if (status.produtos) parts.push(`${status.produtos} produto(s)`);
 
-      if (!sum.areas && !sum.produtos) {
-        throw new Error("Nenhuma área ou produto foi baixado. Cadastre-os online ou verifique a propriedade ativa.");
+      if (!status.areas && !status.produtos) {
+        const propHint = status.propriedade
+          ? ` Propriedade ativa: ${status.propriedade}.`
+          : " Cadastre uma propriedade ativa no sistema.";
+        throw new Error(
+          "Nenhuma área ou produto foi baixado." + propHint + " Cadastre áreas e produtos online e tente de novo."
+        );
       }
 
       scheduleCatalogRefill();

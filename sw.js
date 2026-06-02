@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v3";
-const CACHE_PAGES = "caderno-pages-v3";
+const CACHE_STATIC = "caderno-static-v4";
+const CACHE_PAGES = "caderno-pages-v4";
 
 const STATIC_ASSETS = [
   "/css/style.css",

@@ -8,6 +8,8 @@ const OfflineSync = (() => {
     "salvar_controle_agua.php",
     "salvar_coleta_analise.php",
     "salvar_defensivo_hidroponia.php",
+    "salvar_estufa.php",
+    "salvar_bancada.php",
     "salvar_erradicacao.php",
     "salvar_fertilizante.php",
     "salvar_fertilizante_hidroponia.php",
@@ -100,9 +102,29 @@ const OfflineSync = (() => {
 
   let memDados = null;
 
+  const CATALOG_KEYS = ["areas", "produtos", "herbicidas", "fertilizantes", "fungicidas", "inseticidas"];
+
+  async function putCatalogSlice(cacheKey, arr) {
+    if (!cacheKey || !Array.isArray(arr)) return;
+    await OfflineDB.putCache(`catalog_${cacheKey}`, arr);
+  }
+
+  async function getCatalogSlice(cacheKey) {
+    const direct = await OfflineDB.getCache(`catalog_${cacheKey}`);
+    if (Array.isArray(direct) && direct.length) return direct;
+    return null;
+  }
+
   async function putDadosCache(data) {
     memDados = data;
     await OfflineDB.putCache("dados_offline", data);
+    if (data && typeof data === "object") {
+      await Promise.all(
+        CATALOG_KEYS.map(async (key) => {
+          if (Array.isArray(data[key])) await putCatalogSlice(key, data[key]);
+        })
+      );
+    }
     return data;
   }
 
@@ -115,13 +137,15 @@ const OfflineSync = (() => {
     return putDadosCache(data);
   }
 
-  async function getDadosCache() {
-    if (memDados) return memDados;
+  async function getDadosCache(forceReload = false) {
+    if (!forceReload && memDados) return memDados;
     memDados = await OfflineDB.getCache("dados_offline");
     return memDados;
   }
 
   async function getCachedList(cacheKey) {
+    const direct = await getCatalogSlice(cacheKey);
+    if (direct) return direct;
     const dados = await getDadosCache();
     const list = dados?.[cacheKey];
     return Array.isArray(list) ? list : null;
@@ -129,12 +153,36 @@ const OfflineSync = (() => {
 
   async function mergeDadosSlice(cacheKey, arr) {
     if (!cacheKey || !Array.isArray(arr)) return;
-    let dados = await getDadosCache();
-    if (!dados?.ok) {
-      dados = { ok: true, atualizado_em: new Date().toISOString() };
-    }
+    await putCatalogSlice(cacheKey, arr);
+    let dados = (await getDadosCache()) || { ok: true, atualizado_em: new Date().toISOString() };
     dados[cacheKey] = arr;
     await putDadosCache(dados);
+  }
+
+  /** Baixa cada API buscar_* e grava no IndexedDB (redundância ao dados.php). */
+  async function syncCatalogFromApis(fetchFn) {
+    const fn = fetchFn || window.__nativeFetch || fetch;
+    const errors = [];
+
+    for (const [file, cacheKey] of Object.entries(CACHE_MAP)) {
+      try {
+        const r = await fn(apiUrl(file), { credentials: "same-origin" });
+        if (!r.ok) {
+          errors.push(`${cacheKey}:${r.status}`);
+          continue;
+        }
+        const data = await r.json();
+        if (!Array.isArray(data)) {
+          errors.push(`${cacheKey}:formato`);
+          continue;
+        }
+        await mergeDadosSlice(cacheKey, data);
+      } catch {
+        errors.push(`${cacheKey}:rede`);
+      }
+    }
+
+    return errors;
   }
 
   async function warmDadosCache() {
@@ -156,11 +204,10 @@ const OfflineSync = (() => {
   }
 
   async function refillCatalogSelects() {
-    const dados = await getDadosCache();
-    if (!dados) return false;
-
-    const areas = Array.isArray(dados.areas) ? dados.areas : [];
-    const produtos = Array.isArray(dados.produtos) ? dados.produtos : [];
+    await getDadosCache(true);
+    const areas = (await getCachedList("areas")) || [];
+    const produtos = (await getCachedList("produtos")) || [];
+    if (!areas.length && !produtos.length) return false;
 
     document.querySelectorAll(".area-select").forEach((sel) => {
       const valorAtual = sel.value;
@@ -189,12 +236,19 @@ const OfflineSync = (() => {
     return areas.length > 0 || produtos.length > 0;
   }
 
-  async function warmCatalogFromNetwork(fetchFn = fetch) {
-    await Promise.all(
-      getCatalogFetchUrls().map((url) =>
-        fetchFn(url, { credentials: "same-origin" }).catch(() => null)
-      )
-    );
+  async function warmCatalogFromNetwork(fetchFn) {
+    return syncCatalogFromApis(fetchFn || window.__nativeFetch || fetch);
+  }
+
+  async function getCatalogStatus() {
+    const areas = (await getCachedList("areas")) || [];
+    const produtos = (await getCachedList("produtos")) || [];
+    const dados = await getDadosCache();
+    return {
+      areas: areas.length,
+      produtos: produtos.length,
+      propriedade: dados?.propriedade?.nome || null,
+    };
   }
 
   function summarizeDados(dados) {
@@ -268,6 +322,8 @@ const OfflineSync = (() => {
     hasCatalogData,
     getCatalogFetchUrls,
     warmCatalogFromNetwork,
+    syncCatalogFromApis,
+    getCatalogStatus,
     summarizeDados,
     putDadosCache,
     enqueue,
