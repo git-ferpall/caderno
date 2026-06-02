@@ -214,6 +214,14 @@
     padding-right: 36px;
 }
 
+.offline-sync-item-main {
+    cursor: pointer;
+}
+
+.offline-sync-item-main:hover .offline-sync-item-tipo {
+    text-decoration: underline;
+}
+
 .offline-sync-remove {
     position: absolute;
     top: 8px;

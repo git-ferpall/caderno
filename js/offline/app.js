@@ -45,6 +45,9 @@ const OfflineApp = (() => {
       await updatePendingUI();
       OfflineUI.setBanner("Apontamento salvo neste aparelho. Sincroniza com internet.", "ok");
       OfflineUI.showOfflineSavedPopup();
+      if (typeof OfflineBackgroundSync !== "undefined") {
+        OfflineBackgroundSync.register();
+      }
       return jsonResponse({
         ok: true,
         offline: true,
@@ -218,6 +221,9 @@ const OfflineApp = (() => {
     if (enabled !== true || !navigator.onLine) return;
     try {
       await OfflineSync.refreshDados(nativeFetch);
+      if (typeof OfflineCatalogMeta !== "undefined") {
+        await OfflineCatalogMeta.warnIfNeeded();
+      }
     } catch (e) {
       console.warn("[offline] cache dados:", e);
     }
@@ -302,7 +308,12 @@ const OfflineApp = (() => {
 
       scheduleCatalogRefill();
 
-      await OfflineDB.putCache("offline_prepared", { at: Date.now() });
+      const dados = await OfflineSync.getDadosCache();
+      if (typeof OfflineCatalogMeta !== "undefined") {
+        await OfflineCatalogMeta.savePreparedMeta(dados);
+      } else {
+        await OfflineDB.putCache("offline_prepared", { at: Date.now() });
+      }
 
       const msg =
         `Pronto para offline: ${pages.ok}/${pages.total} telas` +
@@ -391,6 +402,9 @@ const OfflineApp = (() => {
     }
 
     bindEvents();
+    if (typeof OfflineBackgroundSync !== "undefined") {
+      OfflineBackgroundSync.installListener(() => runSync());
+    }
     if (typeof OfflineNavigation !== "undefined") {
       OfflineNavigation.install(() => enabled === true);
     }
@@ -402,6 +416,9 @@ const OfflineApp = (() => {
       await ensureHomeShellCached();
     }
     await refreshIfOnline();
+    if (typeof OfflineCatalogMeta !== "undefined") {
+      await OfflineCatalogMeta.warnIfNeeded();
+    }
     await warnIfCatalogEmpty();
     if (!navigator.onLine || enabled === true) {
       scheduleCatalogRefill();

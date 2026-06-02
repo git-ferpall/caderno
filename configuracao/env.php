@@ -10,3 +10,6 @@ define('OFFLINE_BOOTSTRAP_ADMINS', '2365');
 // Dias que a sessão offline permanece válida após login online.
 define('OFFLINE_SESSION_DAYS', 30);
 
+// Após quantas horas o catálogo local é considerado desatualizado (aviso ao usuário).
+define('OFFLINE_CATALOG_MAX_AGE_HOURS', 72);
+

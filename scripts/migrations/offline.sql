@@ -23,3 +23,4 @@ CREATE TABLE IF NOT EXISTS offline_usuarios (
 -- INSERT INTO offline_admins (user_id, nome, email) VALUES (2365, 'FABIANO AMARO', 'fbnamr@gmail.com');
 
 -- Fase 2 (idempotência sync): executar também scripts/migrations/offline_fase2.sql
+-- Fase 3 (background sync, catálogo): opcional offline_fase3.sql + OFFLINE_CATALOG_MAX_AGE_HOURS em env.php

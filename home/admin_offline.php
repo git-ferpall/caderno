@@ -84,6 +84,25 @@ if (!$user_id || !offlineIsAdmin($mysqli, $user_id)) {
                         </table>
                     </div>
                 </section>
+
+                <section class="admin-offline-card">
+                    <h2>Sincronizações offline (log)</h2>
+                    <p class="admin-offline-hint" id="admin-sync-stats">Apontamentos já enviados ao servidor a partir da fila local (idempotência).</p>
+
+                    <div class="admin-offline-table-wrap">
+                        <table class="admin-offline-table" id="tabela-sync-log">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Usuário</th>
+                                    <th>Tipo</th>
+                                    <th>ID cliente</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
         </main>
 

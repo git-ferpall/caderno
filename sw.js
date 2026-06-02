@@ -1,5 +1,6 @@
-const CACHE_STATIC = "caderno-static-v5";
-const CACHE_PAGES = "caderno-pages-v5";
+const CACHE_STATIC = "caderno-static-v6";
+const CACHE_PAGES = "caderno-pages-v6";
+const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
   "/css/style.css",
@@ -9,6 +10,8 @@ const STATIC_ASSETS = [
   "/js/script.js",
   "/js/offline/constants.js",
   "/js/offline/connectivity.js",
+  "/js/offline/background-sync.js",
+  "/js/offline/catalog-meta.js",
   "/js/offline/db.js",
   "/js/offline/sync.js",
   "/js/offline/ui.js",
@@ -48,6 +51,20 @@ self.addEventListener("message", (event) => {
     event.waitUntil(caches.delete(CACHE_PAGES));
   }
 });
+
+/** Background Sync — pede às abas abertas que sincronizem a fila */
+self.addEventListener("sync", (event) => {
+  if (event.tag === BG_SYNC_TAG) {
+    event.waitUntil(notifyClientsRunSync());
+  }
+});
+
+async function notifyClientsRunSync() {
+  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  await Promise.all(
+    clients.map((client) => client.postMessage({ type: "RUN_OFFLINE_SYNC" }))
+  );
+}
 
 function isLoginPath(pathname) {
   return pathname === "/" || pathname === "/index.php";

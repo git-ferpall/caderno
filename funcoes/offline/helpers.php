@@ -178,6 +178,12 @@ function offlineTipoLabels(): array
     ];
 }
 
+/** Horas até o catálogo local ser considerado desatualizado (aviso ao usuário). */
+function offlineCatalogMaxAgeHours(): int
+{
+    return defined('OFFLINE_CATALOG_MAX_AGE_HOURS') ? max(1, (int)OFFLINE_CATALOG_MAX_AGE_HOURS) : 72;
+}
+
 function offlineShellPages(): array
 {
     return [

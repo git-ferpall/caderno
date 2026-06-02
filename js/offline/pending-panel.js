@@ -78,6 +78,28 @@ const OfflinePendingPanel = (() => {
     return parts.slice(0, 2).join(" · ");
   }
 
+  function showItemDetail(item) {
+    const tipo = tipoFromUrl(item.url);
+    const data = fmtData(item.criadoEm, item.body);
+    const body = item.body || {};
+    const lines = Object.keys(body)
+      .filter((k) => k !== "client_id" && body[k] != null && body[k] !== "")
+      .map((k) => {
+        const v = body[k];
+        const val = Array.isArray(v) ? v.join(", ") : String(v);
+        return `• ${k}: ${val}`;
+      });
+    const msg = [
+      tipo,
+      `Registrado: ${data}`,
+      "",
+      ...lines,
+      "",
+      "Toque em «Sincronizar agora» com internet para enviar ao servidor.",
+    ].join("\n");
+    alert(msg);
+  }
+
   function setHint(text) {
     const hint = document.querySelector(".offline-sync-hint");
     if (hint) hint.textContent = text;
@@ -155,7 +177,7 @@ const OfflinePendingPanel = (() => {
     panel.setAttribute("aria-hidden", "false");
 
     if (navigator.onLine) {
-      setHint("Com internet: use «Sincronizar agora» para enviar ao servidor.");
+      setHint("Com internet: toque em um item para ver detalhes · use «Sincronizar agora» para enviar.");
     } else {
       setHint("Salvos neste aparelho. Serão enviados quando houver internet.");
     }
@@ -188,6 +210,18 @@ const OfflinePendingPanel = (() => {
     document.getElementById("btn-offline-sync-now")?.addEventListener("click", () => runSyncNow());
 
     document.getElementById("offline-sync-list")?.addEventListener("click", async (e) => {
+      const main = e.target.closest(".offline-sync-item-main");
+      if (main && !e.target.closest("[data-remove-id]")) {
+        const li = main.closest(".offline-sync-item");
+        const id = li?.getAttribute("data-queue-id");
+        if (id && typeof OfflineDB !== "undefined") {
+          const items = await OfflineDB.listFila();
+          const item = items.find((i) => i.id === id);
+          if (item) showItemDetail(item);
+        }
+        return;
+      }
+
       const btn = e.target.closest("[data-remove-id]");
       if (!btn) return;
       const id = btn.getAttribute("data-remove-id");

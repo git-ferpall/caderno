@@ -10,6 +10,8 @@
 <script src="../js/offline/db.js"></script>
 <script src="../js/offline/constants.js"></script>
 <script src="../js/offline/connectivity.js"></script>
+<script src="../js/offline/background-sync.js"></script>
+<script src="../js/offline/catalog-meta.js"></script>
 <script src="../js/offline/session.js"></script>
 <script src="../js/offline/sync.js"></script>
 <script src="../js/offline/ui.js"></script>

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/sync_guard.php';
 
 $admin_id = offlineRequireAdmin($mysqli);
 $acao = $_GET['acao'] ?? $_POST['acao'] ?? '';
@@ -87,6 +88,39 @@ switch ($acao) {
         $stmt->execute();
         $stmt->close();
         offlineJson(['ok' => true, 'msg' => 'Administrador removido.']);
+
+    case 'listar_sync_log':
+        offlineSyncEnsureSchema($mysqli);
+        $limit = min(500, max(1, (int)($_GET['limit'] ?? 150)));
+        $sql = "
+            SELECT l.client_id, l.user_id, l.script, l.criado_em,
+                   (SELECT nome FROM contato_cliente WHERE user_id = l.user_id LIMIT 1) AS usuario_nome
+            FROM offline_sync_log l
+            ORDER BY l.criado_em DESC
+            LIMIT {$limit}
+        ";
+        $res = $mysqli->query($sql);
+        $rows = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+        $countRes = $mysqli->query('SELECT COUNT(*) AS c FROM offline_sync_log');
+        $total = (int)($countRes->fetch_assoc()['c'] ?? 0);
+        offlineJson(['ok' => true, 'logs' => $rows, 'total' => $total]);
+
+    case 'estatisticas_sync':
+        offlineSyncEnsureSchema($mysqli);
+        $stats = [
+            'total' => 0,
+            'ultimos_7_dias' => 0,
+            'por_script' => [],
+        ];
+        $r = $mysqli->query('SELECT COUNT(*) AS c FROM offline_sync_log');
+        $stats['total'] = (int)($r->fetch_assoc()['c'] ?? 0);
+        $r = $mysqli->query("SELECT COUNT(*) AS c FROM offline_sync_log WHERE criado_em >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+        $stats['ultimos_7_dias'] = (int)($r->fetch_assoc()['c'] ?? 0);
+        $r = $mysqli->query('SELECT script, COUNT(*) AS c FROM offline_sync_log GROUP BY script ORDER BY c DESC LIMIT 15');
+        while ($row = $r->fetch_assoc()) {
+            $stats['por_script'][] = $row;
+        }
+        offlineJson(['ok' => true, 'stats' => $stats]);
 
     default:
         offlineJson(['ok' => false, 'msg' => 'Ação inválida.'], 400);

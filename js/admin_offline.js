@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const api = "../funcoes/offline/admin_api.php";
   const tbodyAdmins = document.querySelector("#tabela-admins tbody");
   const tbodyUsuarios = document.querySelector("#tabela-usuarios tbody");
+  const tbodySyncLog = document.querySelector("#tabela-sync-log tbody");
+  const elSyncStats = document.getElementById("admin-sync-stats");
 
   async function apiCall(acao, opts = {}) {
     const method = opts.method || "GET";
@@ -135,6 +137,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function scriptLabel(script) {
+    return String(script || "")
+      .replace("salvar_", "")
+      .replace(".php", "")
+      .replace(/_/g, " ");
+  }
+
+  async function carregarSyncLog() {
+    const [logData, statsData] = await Promise.all([
+      apiCall("listar_sync_log"),
+      apiCall("estatisticas_sync"),
+    ]);
+    if (elSyncStats && statsData.stats) {
+      const s = statsData.stats;
+      const top = (s.por_script || [])
+        .slice(0, 3)
+        .map((x) => `${scriptLabel(x.script)} (${x.c})`)
+        .join(", ");
+      elSyncStats.textContent = `Total: ${s.total} · Últimos 7 dias: ${s.ultimos_7_dias}${top ? ` · Mais frequentes: ${top}` : ""}.`;
+    }
+    if (!tbodySyncLog) return;
+    tbodySyncLog.innerHTML = logData.logs.length
+      ? logData.logs
+          .map(
+            (row) => `<tr>
+          <td>${fmtData(row.criado_em)}</td>
+          <td>${escapeHtml(row.usuario_nome || "—")} <small>(${row.user_id})</small></td>
+          <td>${escapeHtml(scriptLabel(row.script))}</td>
+          <td><code>${escapeHtml(String(row.client_id).slice(0, 12))}…</code></td>
+        </tr>`
+          )
+          .join("")
+      : `<tr><td colspan="4">Nenhuma sincronização registrada ainda.</td></tr>`;
+  }
+
   carregarAdmins().catch((err) => alert(err.message));
   carregarUsuarios().catch((err) => alert(err.message));
+  carregarSyncLog().catch((err) => alert(err.message));
 });
