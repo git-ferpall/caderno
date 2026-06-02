@@ -65,27 +65,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Envio do formulário
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const dados = new FormData(form);
-
-      try {
-        const resp = await fetch("../funcoes/salvar_personalizado.php", {
-          method: "POST",
-          body: dados,
-        });
-        const data = await resp.json();
-        if (data.ok) {
-          showPopup("success", data.msg || "Dados salvos com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento";
-          }, 1200);
-        } else {
-          showPopup("erro", data.msg);
-        }
-      } catch (err) {
-        showPopup("erro", "Erro inesperado ao salvar apontamento.");
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_personalizado.php");
       }
     });
   }

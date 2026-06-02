@@ -55,25 +55,18 @@ document.addEventListener("DOMContentLoaded", () => {
           obs
         });
 
-        const resp = await fetch("../funcoes/salvar_colheita_hidroponia.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            estufa_id,
-            area_id,
-            quantidade: qtd,
-            destino,
-            obs
-          })
-        });
-
-        const data = await resp.json();
-        console.log("📦 Resposta do servidor:", data);
-
-        if (data.ok) {
-          form.classList.add("d-none"); // ✅ Só oculta o form, sem alert
-        } else {
-          alert("❌ " + (data.err || "Erro ao registrar colheita."));
+        const fd = new FormData();
+        fd.append("estufa_id", estufa_id);
+        fd.append("area_id", area_id);
+        fd.append("quantidade", qtd);
+        fd.append("destino", destino);
+        fd.append("obs", obs);
+        if (typeof CadernoSalvar !== "undefined") {
+          await CadernoSalvar.postFormData("salvar_colheita_hidroponia.php", fd, {
+            redirect: false,
+            onSuccess: () => form.classList.add("d-none"),
+            onError: (d) => alert("❌ " + (d?.err || "Erro ao registrar colheita.")),
+          });
         }
       } catch (err) {
         console.error("❌ Erro na comunicação com o servidor:", err);

@@ -81,40 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      form.querySelectorAll('button[type="submit"]').forEach((el) => el.blur());
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const formData = new FormData(form);
-
-      try {
-        const resp = await fetch("/funcoes/salvar_transplantio.php", {
-          method: "POST",
-          body: formData,
-          credentials: "same-origin",
-        });
-        const data = await resp.json();
-
-        if (data.ok) {
-          const msg =
-            data.msg ||
-            (data.offline
-              ? "Salvo no dispositivo. Sincroniza quando houver internet."
-              : "Transplantio salvo com sucesso!");
-          showPopup("success", msg);
-          setTimeout(() => {
-            window.location.href = "/home/apontamento";
-          }, 1200);
-        } else {
-          showPopup("failed", data.err || data.msg || "Erro ao salvar o transplantio.");
-        }
-      } catch (err) {
-        showPopup("failed", "Falha ao salvar: " + (err.message || err));
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_transplantio.php");
       }
     });
   }

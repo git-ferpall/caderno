@@ -113,6 +113,13 @@ const OfflineApp = (() => {
         }
       }
 
+      const syncHeader =
+        (typeof OfflineConstants !== "undefined" && OfflineConstants.SYNC_HEADER) || "X-Offline-Sync";
+      const hdrs = new Headers(init.headers || {});
+      if (hdrs.get(syncHeader) === "1") {
+        return nativeFetch(input, init);
+      }
+
       const salvarUrl = OfflineSync.resolveSalvarUrl(url);
       if (method === "POST" && init.body instanceof FormData && salvarUrl) {
         const canQueue = await canQueueOfflineSave();
@@ -124,6 +131,15 @@ const OfflineApp = (() => {
               503
             );
           }
+          return queueSalvarAndRespond(salvarUrl, init.body);
+        }
+
+        const serverUp =
+          typeof OfflineConnectivity !== "undefined"
+            ? await OfflineConnectivity.hasServerReachable()
+            : navigator.onLine;
+
+        if (!serverUp && canQueue) {
           return queueSalvarAndRespond(salvarUrl, init.body);
         }
 
@@ -223,7 +239,8 @@ const OfflineApp = (() => {
     const n = await OfflineDB.countFila();
     if (typeof OfflinePendingPanel !== "undefined") {
       await OfflinePendingPanel.refresh();
-    } else if (enabled === true || (await canQueueOfflineSave())) {
+    }
+    if (enabled === true || (await canQueueOfflineSave())) {
       await OfflineUI.updateBadge(n);
     }
     if (!navigator.onLine && (enabled === true || (await canQueueOfflineSave()))) {
@@ -249,6 +266,7 @@ const OfflineApp = (() => {
       enabled = true;
 
       OfflineUI.setBanner("Preparando offline: baixando áreas, produtos e listas…", "sync");
+      await OfflineSync.loadManifest(nativeFetch);
       await OfflineSync.refreshDados(nativeFetch);
       const catalogErrors = await OfflineSync.syncCatalogFromApis(nativeFetch);
       if (catalogErrors.length) {
@@ -342,6 +360,7 @@ const OfflineApp = (() => {
     );
 
     window.addEventListener("online", () => {
+      if (typeof OfflineConnectivity !== "undefined") OfflineConnectivity.invalidate();
       if (enabled !== true) return;
       OfflineUI.hideBanner();
       refreshIfOnline().then(runSync);
@@ -356,6 +375,7 @@ const OfflineApp = (() => {
 
   async function init() {
     if (typeof OfflineSync !== "undefined") {
+      await OfflineSync.loadManifest(nativeFetch).catch(() => {});
       await OfflineSync.warmDadosCache();
     }
 
@@ -392,7 +412,13 @@ const OfflineApp = (() => {
 
   patchFetch();
 
-  return { init, isEnabled: () => enabled === true, prepareForOffline, isPreparing: () => preparing };
+  return {
+    init,
+    isEnabled: () => enabled === true,
+    prepareForOffline,
+    isPreparing: () => preparing,
+    runSync,
+  };
 })();
 
 document.addEventListener("DOMContentLoaded", () => {

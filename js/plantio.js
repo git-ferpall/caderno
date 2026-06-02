@@ -204,28 +204,9 @@ document.querySelector(".add-produto").addEventListener("click", () => {
       const dados = new FormData(form);
       dados.append("incluir_colheita", incluir_colheita ? "1" : "0");
 
-      fetch("/funcoes/salvar_plantio.php", {
-        method: "POST",
-        body: dados,
-        credentials: "same-origin",
-      })
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.ok) {
-            const msg = res.msg || (res.offline
-              ? "Salvo no dispositivo. Sincroniza quando houver internet."
-              : "Plantio salvo com sucesso!");
-            showPopup("success", msg);
-            setTimeout(() => {
-              window.location.href = "/home/apontamento";
-            }, 1200);
-          } else {
-            showPopup("failed", res.err || res.msg || "Erro ao salvar o plantio.");
-          }
-        })
-        .catch((err) => {
-          showPopup("failed", "Falha na comunicação: " + (err.message || err));
-        });
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.postFormData("salvar_plantio.php", dados);
+      }
     };
 
     popupConfirm.querySelector("#btn-yes").onclick = () => enviarFormulario(true);

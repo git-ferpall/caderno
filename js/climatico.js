@@ -1,31 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-clima");
 
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-
-    const dados = new FormData(form);
-
-    fetch("../funcoes/salvar_clima.php", {
-      method: "POST",
-      body: dados
-    })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
-          showPopup("success", res.msg || "Registro climático salvo com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento";
-          }, 1200);
-
-        } else {
-          showPopup("failed", res.err || "Erro ao salvar registro climático.");
-        }
-      })
-      .catch(err => {
-        showPopup("failed", "Falha na comunicação: " + err);
-      });
+    if (typeof CadernoSalvar !== "undefined") {
+      CadernoSalvar.submitForm(form, "salvar_clima.php");
+    }
   });
 });
 

@@ -204,31 +204,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Envio do formulário ===
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(form);
-
-      try {
-        const resp = await fetch("../funcoes/salvar_moscas_frutas.php", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await resp.json();
-
-        if (data.ok) {
-          showPopup("success", data.msg || "Registro salvo com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento";
-          }, 1200);
-
-        } else {
-          showPopup("failed", data.msg || "Erro ao salvar apontamento.");
-        }
-
-      } catch (err) {
-        showPopup("failed", "Erro inesperado ao salvar apontamento.");
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_moscas_frutas.php");
       }
     });
   }

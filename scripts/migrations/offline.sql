@@ -21,3 +21,5 @@ CREATE TABLE IF NOT EXISTS offline_usuarios (
 
 -- Primeiro admin (user_id do JWT / contato_cliente.user_id — NÃO é contato_cliente.id):
 -- INSERT INTO offline_admins (user_id, nome, email) VALUES (2365, 'FABIANO AMARO', 'fbnamr@gmail.com');
+
+-- Fase 2 (idempotência sync): executar também scripts/migrations/offline_fase2.sql

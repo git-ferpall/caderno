@@ -107,6 +107,7 @@ function offlineSalvarEndpoints(): array
     return [
         'salvar_adubacao_calcario.php',
         'salvar_adubacao_organica.php',
+        'salvar_bancada.php',
         'salvar_clima.php',
         'salvar_colheita.php',
         'salvar_colheita_hidroponia.php',
@@ -114,6 +115,7 @@ function offlineSalvarEndpoints(): array
         'salvar_coleta_analise.php',
         'salvar_defensivo_hidroponia.php',
         'salvar_erradicacao.php',
+        'salvar_estufa.php',
         'salvar_fertilizante.php',
         'salvar_fertilizante_hidroponia.php',
         'salvar_fungicida.php',
@@ -128,5 +130,79 @@ function offlineSalvarEndpoints(): array
         'salvar_revisao_maquinas.php',
         'salvar_transplantio.php',
         'salvar_visita_tecnica.php',
+    ];
+}
+
+/** GET buscar_* → chave no bundle dados.php / IndexedDB */
+function offlineCatalogMap(): array
+{
+    return [
+        'buscar_areas.php' => 'areas',
+        'buscar_produtos.php' => 'produtos',
+        'buscar_herbicidas.php' => 'herbicidas',
+        'buscar_fertilizantes.php' => 'fertilizantes',
+        'buscar_fungicidas.php' => 'fungicidas',
+        'buscar_inseticidas.php' => 'inseticidas',
+    ];
+}
+
+/** Labels para painel de fila offline */
+function offlineTipoLabels(): array
+{
+    return [
+        'salvar_plantio' => 'Plantio',
+        'salvar_transplantio' => 'Transplantio',
+        'salvar_colheita' => 'Colheita',
+        'salvar_clima' => 'Climático',
+        'salvar_fertilizante' => 'Fertilizante',
+        'salvar_herbicida' => 'Herbicida',
+        'salvar_fungicida' => 'Fungicida',
+        'salvar_inseticida' => 'Inseticida',
+        'salvar_adubacao_calcario' => 'Adubação (calcário)',
+        'salvar_adubacao_organica' => 'Adubação orgânica',
+        'salvar_irrigacao' => 'Irrigação',
+        'salvar_controle_agua' => 'Controle de água',
+        'salvar_moscas_frutas' => 'Mosca-das-frutas',
+        'salvar_pragas_doencas' => 'Pragas e doenças',
+        'salvar_manejo_integrado' => 'Manejo integrado',
+        'salvar_erradicacao' => 'Erradicação',
+        'salvar_revisao_maquinas' => 'Revisão de máquinas',
+        'salvar_coleta_analise' => 'Coleta e análise',
+        'salvar_visita_tecnica' => 'Visita técnica',
+        'salvar_personalizado' => 'Personalizado',
+        'salvar_colheita_hidroponia' => 'Colheita hidroponia',
+        'salvar_fertilizante_hidroponia' => 'Fertilizante hidroponia',
+        'salvar_defensivo_hidroponia' => 'Defensivo hidroponia',
+        'salvar_estufa' => 'Hidroponia (estufa)',
+        'salvar_bancada' => 'Hidroponia (bancada)',
+    ];
+}
+
+function offlineShellPages(): array
+{
+    return [
+        '/home',
+        '/home/apontamento',
+        '/home/Plantio',
+        '/home/Transplantio',
+        '/home/Colheita',
+        '/home/Climatico',
+        '/home/Fertilizante',
+        '/home/Herbicida',
+        '/home/Fungicida',
+        '/home/Inseticida',
+        '/home/AdubacaoCalcario',
+        '/home/AdubacaoOrganica',
+        '/home/Irrigacao',
+        '/home/ControleAgua',
+        '/home/MoscaFrutas',
+        '/home/PragasDoencas',
+        '/home/ManejoIntegrado',
+        '/home/Erradicacao',
+        '/home/RevisaoMaquinas',
+        '/home/ColetaAnalise',
+        '/home/VisitaTecnica',
+        '/home/Personalizado',
+        '/home/hidroponia',
     ];
 }

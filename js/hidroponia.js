@@ -20,16 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const res = await fetch("../funcoes/salvar_estufa.php", {
-        method: "POST",
-        body: new URLSearchParams({ nome, area_m2: area, obs })
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        location.reload();
-      } else {
-        alert("Erro: " + data.err);
+      const fd = new FormData();
+      fd.append("nome", nome);
+      fd.append("area_m2", area);
+      fd.append("obs", obs);
+      if (typeof CadernoSalvar !== "undefined") {
+        await CadernoSalvar.postFormData("salvar_estufa.php", fd, {
+          redirect: false,
+          onSuccess: () => location.reload(),
+          onError: (d) => alert("Erro: " + (d?.err || d?.msg || "falha")),
+        });
       }
     });
   }
@@ -62,29 +62,22 @@ document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
         }
 
         try {
-            const res = await fetch("../funcoes/salvar_bancada.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({
-                    estufa_id: idEstufa,
-                    nome: nome,
-                    produto_id: produto_id,
-                    obs: obs,
-                    barea: barea,
-                    barea_unidade: barea_unidade
-                })
-            });
-
-            const text = await res.text();
-            console.log("Resposta bruta:", text);
-
-            const data = JSON.parse(text);
-            if (data && data.ok) {
-                location.reload();
-            } else {
-                console.error("Erro ao salvar bancada:", data);
-                const msg = data && data.err ? data.err : "Erro inesperado ao salvar a bancada.";
-                alert(msg);
+            const fd = new FormData();
+            fd.append("estufa_id", idEstufa);
+            fd.append("nome", nome);
+            fd.append("produto_id", produto_id);
+            fd.append("obs", obs);
+            fd.append("barea", barea);
+            fd.append("barea_unidade", barea_unidade);
+            if (typeof CadernoSalvar !== "undefined") {
+              await CadernoSalvar.postFormData("salvar_bancada.php", fd, {
+                redirect: false,
+                onSuccess: () => location.reload(),
+                onError: (d) => {
+                  const msg = d?.err || d?.msg || "Erro inesperado ao salvar a bancada.";
+                  alert(msg);
+                },
+              });
             }
 
         } catch (err) {

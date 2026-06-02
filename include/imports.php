@@ -8,6 +8,8 @@
 <script src="../js/popups.js"></script>
 <script src="../js/script.js"></script>
 <script src="../js/offline/db.js"></script>
+<script src="../js/offline/constants.js"></script>
+<script src="../js/offline/connectivity.js"></script>
 <script src="../js/offline/session.js"></script>
 <script src="../js/offline/sync.js"></script>
 <script src="../js/offline/ui.js"></script>

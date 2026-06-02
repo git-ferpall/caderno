@@ -198,6 +198,47 @@
     line-height: 1.35;
 }
 
+.offline-sync-actions {
+    display: flex;
+    justify-content: center;
+    padding: 0 12px 12px;
+}
+
+.offline-sync-btn {
+    width: 100%;
+    max-width: 280px;
+}
+
+.offline-sync-item {
+    position: relative;
+    padding-right: 36px;
+}
+
+.offline-sync-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.08);
+    color: #334155;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.offline-sync-remove:hover {
+    background: rgba(185, 28, 28, 0.15);
+    color: #b91c1c;
+}
+
+.offline-sync-item-err {
+    color: #b91c1c;
+    font-size: 11px;
+}
+
 .offline-sync-hint {
     margin: 10px 0 0;
     font-size: 11px;

@@ -40,6 +40,13 @@ const OfflineSession = (() => {
 
   async function save(config) {
     if (!config?.habilitado) return null;
+
+    const prev = await load();
+    if (prev?.user_id && config.user_id && prev.user_id !== config.user_id && typeof OfflineDB !== "undefined") {
+      if (OfflineDB.clearFilaAll) await OfflineDB.clearFilaAll();
+      await OfflineDB.putCache("offline_prepared", null);
+    }
+
     const days = config.session_days || DEFAULT_DAYS;
     const session = {
       user_id: config.user_id,
@@ -63,10 +70,42 @@ const OfflineSession = (() => {
 
   async function clear() {
     await OfflineDB.putCache(SESSION_KEY, null);
+    await OfflineDB.putCache("offline_prepared", null);
+    await OfflineDB.putCache("offline_manifest", null);
+    if (typeof OfflineConnectivity !== "undefined") OfflineConnectivity.invalidate();
     if ("serviceWorker" in navigator) {
       const reg = await navigator.serviceWorker.ready.catch(() => null);
       reg?.active?.postMessage({ type: "CLEAR_PAGE_CACHE" });
     }
+  }
+
+  /**
+   * Antes de sair — avisa se há fila local (dados permanecem no aparelho).
+   */
+  async function clearBeforeLogout(event) {
+    if (typeof OfflineDB === "undefined") {
+      await clear();
+      return true;
+    }
+    let n = 0;
+    try {
+      n = await OfflineDB.countFila();
+    } catch {
+      n = 0;
+    }
+    if (n > 0) {
+      const msg =
+        n === 1
+          ? "Há 1 apontamento não sincronizado neste aparelho. Se sair, ele continua na fila local até você sincronizar com o mesmo usuário."
+          : `Há ${n} apontamentos não sincronizados neste aparelho. Se sair, eles continuam na fila até sincronizar.`;
+      const ok = confirm(msg + "\n\nDeseja sair mesmo assim?");
+      if (!ok) {
+        event?.preventDefault();
+        return false;
+      }
+    }
+    await clear();
+    return true;
   }
 
   async function requestPrecache() {
@@ -131,6 +170,7 @@ const OfflineSession = (() => {
     load,
     save,
     clear,
+    clearBeforeLogout,
     requestPrecache,
     precachePagesClient,
     tryEnterOffline,

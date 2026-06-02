@@ -180,6 +180,11 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 </div>
                             </div>
                             <div class="main-tabela offline-sync-body">
+                                <div class="offline-sync-actions">
+                                    <button type="button" id="btn-offline-sync-now" class="main-btn fundo-verde offline-sync-btn">
+                                        <span class="main-btn-text">Sincronizar agora</span>
+                                    </button>
+                                </div>
                                 <ul class="offline-sync-list" id="offline-sync-list"></ul>
                                 <p class="offline-sync-hint">Salvos neste aparelho. Serão enviados ao servidor quando houver internet.</p>
                             </div>

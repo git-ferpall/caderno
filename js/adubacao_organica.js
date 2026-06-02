@@ -197,30 +197,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-adubacao-organica");
 
   if (form) {
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const dados = new FormData(form);
-
-      fetch("../funcoes/salvar_adubacao_organica.php", {
-        method: "POST",
-        body: dados
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok) {
-            showPopup("success", res.msg || "Adubação orgânica registrada com sucesso!");
-
-            setTimeout(() => {
-              window.location.href = "apontamento";
-            }, 1200);
-
-          } else {
-            showPopup("failed", res.err || "Erro ao salvar adubação orgânica.");
-          }
-        })
-        .catch(() => {
-          showPopup("failed", "Falha na comunicação com o servidor.");
-        });
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_adubacao_organica.php");
+      }
     });
   }
 });

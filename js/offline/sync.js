@@ -1,5 +1,5 @@
 const OfflineSync = (() => {
-  const SALVAR_PATHS = [
+  const DEFAULT_SALVAR = [
     "salvar_adubacao_calcario.php",
     "salvar_adubacao_organica.php",
     "salvar_clima.php",
@@ -27,7 +27,7 @@ const OfflineSync = (() => {
     "salvar_visita_tecnica.php",
   ];
 
-  const CACHE_MAP = {
+  const DEFAULT_CATALOG = {
     "buscar_areas.php": "areas",
     "buscar_produtos.php": "produtos",
     "buscar_herbicidas.php": "herbicidas",
@@ -35,6 +35,40 @@ const OfflineSync = (() => {
     "buscar_fungicidas.php": "fungicidas",
     "buscar_inseticidas.php": "inseticidas",
   };
+
+  let SALVAR_PATHS = [...DEFAULT_SALVAR];
+  let CACHE_MAP = { ...DEFAULT_CATALOG };
+  let TIPO_LABELS = {};
+
+  function applyManifest(m) {
+    if (m && Array.isArray(m.salvar) && m.salvar.length) SALVAR_PATHS = m.salvar;
+    if (m && m.catalog && typeof m.catalog === "object") CACHE_MAP = m.catalog;
+    if (m && m.tipos && typeof m.tipos === "object") TIPO_LABELS = m.tipos;
+  }
+
+  async function loadManifest(fetchFn) {
+    const fn = fetchFn || window.__nativeFetch || fetch;
+    try {
+      const r = await fn(apiUrl("offline/manifest.php"), { credentials: "same-origin" });
+      if (r.ok) {
+        const m = await r.json();
+        if (m.ok) {
+          applyManifest(m);
+          await OfflineDB.putCache("offline_manifest", m);
+          return m;
+        }
+      }
+    } catch (e) {
+      console.warn("[offline] manifest:", e);
+    }
+    const cached = await OfflineDB.getCache("offline_manifest");
+    if (cached) applyManifest(cached);
+    return cached;
+  }
+
+  function getTipoLabels() {
+    return { ...TIPO_LABELS };
+  }
 
   function uuid() {
     return crypto.randomUUID?.() || `off-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -102,7 +136,22 @@ const OfflineSync = (() => {
 
   let memDados = null;
 
-  const CATALOG_KEYS = ["areas", "produtos", "herbicidas", "fertilizantes", "fungicidas", "inseticidas"];
+  const CATALOG_KEYS = [
+    "areas",
+    "produtos",
+    "maquinas",
+    "herbicidas",
+    "fertilizantes",
+    "fungicidas",
+    "inseticidas",
+  ];
+
+  const DEFENSIVO_SELECTORS = [
+    { selectId: "fungicida", cacheKey: "fungicidas", placeholder: "Selecione o fungicida" },
+    { selectId: "herbicida", cacheKey: "herbicidas", placeholder: "Selecione o herbicida" },
+    { selectId: "inseticida", cacheKey: "inseticidas", placeholder: "Selecione o inseticida" },
+    { selectId: "fertilizante", cacheKey: "fertilizantes", placeholder: "Selecione o fertilizante" },
+  ];
 
   async function putCatalogSlice(cacheKey, arr) {
     if (!cacheKey || !Array.isArray(arr)) return;
@@ -225,26 +274,62 @@ const OfflineSync = (() => {
     });
   }
 
+  async function refillDefensivoSelects() {
+    for (const { selectId, cacheKey, placeholder } of DEFENSIVO_SELECTORS) {
+      const sel = document.getElementById(selectId);
+      if (!sel) continue;
+      const list = (await getCachedList(cacheKey)) || [];
+      if (!list.length) continue;
+      fillSelectList(sel, list, (item) => item.nome, placeholder);
+      if (typeof DefensivoOutro !== "undefined") {
+        DefensivoOutro.afterCatalogLoaded(selectId);
+      }
+    }
+  }
+
+  async function refillMaquinaSelects() {
+    const maquinas = (await getCachedList("maquinas")) || [];
+    if (!maquinas.length) return;
+    document.querySelectorAll("select#maquina, select[name='maquina']").forEach((sel) => {
+      fillSelectList(
+        sel,
+        maquinas,
+        (item) => (item.tipo ? `${item.nome} (${item.tipo})` : item.nome),
+        "Selecione a máquina"
+      );
+    });
+  }
+
   async function refillCatalogSelects() {
     await getDadosCache(true);
     const areas = (await getCachedList("areas")) || [];
     const produtos = (await getCachedList("produtos")) || [];
-    if (!areas.length && !produtos.length) return false;
+    const hasDefensivos = DEFENSIVO_SELECTORS.some((d) => document.getElementById(d.selectId));
+    const hasMaquina = document.querySelector("select#maquina, select[name='maquina']");
 
-    document.querySelectorAll(AREA_SELECTORS).forEach((sel) => {
-      const ph = sel.classList.contains("area-origem-select")
-        ? "Selecione a área de origem"
-        : sel.classList.contains("area-destino-select")
-          ? "Selecione a área de destino"
-          : "Selecione a área";
-      fillSelectList(sel, areas, areaOptionLabel, ph);
-    });
+    if (!areas.length && !produtos.length && !hasDefensivos && !hasMaquina) return false;
 
-    document.querySelectorAll(PRODUTO_SELECTORS).forEach((sel) => {
-      fillSelectList(sel, produtos, (item) => item.nome, "Selecione o produto");
-    });
+    if (areas.length) {
+      document.querySelectorAll(AREA_SELECTORS).forEach((sel) => {
+        const ph = sel.classList.contains("area-origem-select")
+          ? "Selecione a área de origem"
+          : sel.classList.contains("area-destino-select")
+            ? "Selecione a área de destino"
+            : "Selecione a área";
+        fillSelectList(sel, areas, areaOptionLabel, ph);
+      });
+    }
 
-    return areas.length > 0 || produtos.length > 0;
+    if (produtos.length) {
+      document.querySelectorAll(PRODUTO_SELECTORS).forEach((sel) => {
+        fillSelectList(sel, produtos, (item) => item.nome, "Selecione o produto");
+      });
+    }
+
+    await refillDefensivoSelects();
+    await refillMaquinaSelects();
+
+    return areas.length > 0 || produtos.length > 0 || hasDefensivos || !!hasMaquina;
   }
 
   async function warmCatalogFromNetwork(fetchFn) {
@@ -276,11 +361,18 @@ const OfflineSync = (() => {
     };
   }
 
+  function scriptFromSalvarUrl(url) {
+    const m = String(url).match(/salvar_[a-z0-9_]+\.php/i);
+    return m ? m[0] : null;
+  }
+
   async function enqueue(url, formData) {
     const absUrl = resolveSalvarUrl(url) || String(url);
+    const id = uuid();
     const body = await formDataToObject(formData);
+    body.client_id = id;
     await OfflineDB.addFila({
-      id: uuid(),
+      id,
       url: absUrl,
       body,
       criadoEm: Date.now(),
@@ -288,24 +380,50 @@ const OfflineSync = (() => {
     });
   }
 
-  async function syncAll(onProgress) {
+  async function syncOneItem(item, fetchFn) {
+    const fn = fetchFn || window.__nativeFetch || fetch;
+    const syncHeader =
+      (typeof OfflineConstants !== "undefined" && OfflineConstants.SYNC_HEADER) || "X-Offline-Sync";
+    const script = scriptFromSalvarUrl(item.url);
+    if (!script) {
+      return { ok: false, err: "URL de salvamento inválida" };
+    }
+
+    const fd = objectToFormData(item.body);
+    fd.append("client_id", item.id);
+    fd.append("_offline_script", script);
+
+    const r = await fn(apiUrl("offline/forward.php"), {
+      method: "POST",
+      body: fd,
+      credentials: "same-origin",
+      headers: { [syncHeader]: "1" },
+    });
+    const res = await r.json().catch(() => ({}));
+    if (res.ok) {
+      await OfflineDB.removeFila(item.id);
+      return { ok: true, res };
+    }
+    item.tentativas = (item.tentativas || 0) + 1;
+    item.lastError = res.err || res.msg || `HTTP ${r.status}`;
+    await OfflineDB.addFila(item);
+    return { ok: false, res, item };
+  }
+
+  async function syncAll(onProgress, fetchFn) {
     const items = await OfflineDB.listFila();
     let ok = 0;
     let fail = 0;
 
     for (const item of items) {
       try {
-        const fd = objectToFormData(item.body);
-        const postUrl = resolveSalvarUrl(item.url) || item.url;
-        const r = await fetch(postUrl, { method: "POST", body: fd, credentials: "same-origin" });
-        const res = await r.json();
-        if (res.ok) {
-          await OfflineDB.removeFila(item.id);
-          ok++;
-        } else {
-          fail++;
-        }
-      } catch {
+        const result = await syncOneItem(item, fetchFn);
+        if (result.ok) ok++;
+        else fail++;
+      } catch (e) {
+        item.tentativas = (item.tentativas || 0) + 1;
+        item.lastError = e?.message || "rede";
+        await OfflineDB.addFila(item);
         fail++;
       }
       if (typeof onProgress === "function") onProgress({ ok, fail, total: items.length });
@@ -313,9 +431,19 @@ const OfflineSync = (() => {
     return { ok, fail, total: items.length };
   }
 
+  async function removeFromQueue(id) {
+    await OfflineDB.removeFila(id);
+  }
+
   return {
-    SALVAR_PATHS,
-    CACHE_MAP,
+    SALVAR_PATHS: () => [...SALVAR_PATHS],
+    CACHE_MAP: () => ({ ...CACHE_MAP }),
+    loadManifest,
+    applyManifest,
+    getTipoLabels,
+    DEFENSIVO_SELECTORS,
+    DEFAULT_SALVAR,
+    DEFAULT_CATALOG,
     isSalvarUrl,
     resolveSalvarUrl,
     isRelatorioUrl,
@@ -327,6 +455,8 @@ const OfflineSync = (() => {
     refreshDados,
     getDadosCache,
     refillCatalogSelects,
+    refillMaquinaSelects,
+    refillDefensivoSelects,
     AREA_SELECTORS,
     PRODUTO_SELECTORS,
     fillSelectList,
@@ -342,6 +472,9 @@ const OfflineSync = (() => {
     putDadosCache,
     enqueue,
     syncAll,
+    syncOneItem,
+    removeFromQueue,
+    scriptFromSalvarUrl,
   };
 })();
 

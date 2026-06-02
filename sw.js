@@ -7,6 +7,8 @@ const STATIC_ASSETS = [
   "/js/main.js",
   "/js/popups.js",
   "/js/script.js",
+  "/js/offline/constants.js",
+  "/js/offline/connectivity.js",
   "/js/offline/db.js",
   "/js/offline/sync.js",
   "/js/offline/ui.js",

@@ -1,8 +1,8 @@
 /**
- * Painel na home — apontamentos na fila offline (só visível sem internet).
+ * Painel na home — fila offline (online e offline).
  */
 const OfflinePendingPanel = (() => {
-  const TIPO_LABELS = {
+  const FALLBACK_TIPOS = {
     salvar_plantio: "Plantio",
     salvar_transplantio: "Transplantio",
     salvar_colheita: "Colheita",
@@ -30,11 +30,22 @@ const OfflinePendingPanel = (() => {
     salvar_bancada: "Hidroponia (bancada)",
   };
 
+  let syncing = false;
+
+  function tipoLabels() {
+    if (typeof OfflineSync !== "undefined" && OfflineSync.getTipoLabels) {
+      const fromManifest = OfflineSync.getTipoLabels();
+      if (Object.keys(fromManifest).length) return { ...FALLBACK_TIPOS, ...fromManifest };
+    }
+    return FALLBACK_TIPOS;
+  }
+
   function tipoFromUrl(url) {
     const m = String(url).match(/salvar_([^.]+)\.php/i);
     if (!m) return "Apontamento";
     const key = `salvar_${m[1]}`;
-    if (TIPO_LABELS[key]) return TIPO_LABELS[key];
+    const labels = tipoLabels();
+    if (labels[key]) return labels[key];
     return m[1].replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
@@ -67,8 +78,40 @@ const OfflinePendingPanel = (() => {
     return parts.slice(0, 2).join(" · ");
   }
 
-  function shouldShowPanel() {
-    return !navigator.onLine;
+  function setHint(text) {
+    const hint = document.querySelector(".offline-sync-hint");
+    if (hint) hint.textContent = text;
+  }
+
+  async function runSyncNow() {
+    if (syncing) return;
+    const btn = document.getElementById("btn-offline-sync-now");
+    if (btn) btn.disabled = true;
+    syncing = true;
+
+    if (typeof OfflineConnectivity !== "undefined") {
+      const up = await OfflineConnectivity.hasServerReachable(true);
+      if (!up) {
+        if (typeof OfflineUI !== "undefined") {
+          OfflineUI.setBanner("Sem conexão com o servidor. Tente de novo com internet.", "warn");
+        }
+        syncing = false;
+        if (btn) btn.disabled = false;
+        return;
+      }
+    }
+
+    if (typeof OfflineApp !== "undefined" && OfflineApp.runSync) {
+      await OfflineApp.runSync();
+    } else if (typeof OfflineSync !== "undefined") {
+      if (typeof OfflineUI !== "undefined") OfflineUI.setBanner("Sincronizando apontamentos...", "sync");
+      await OfflineSync.syncAll();
+      if (typeof OfflineUI !== "undefined") OfflineUI.hideBanner();
+    }
+
+    syncing = false;
+    if (btn) btn.disabled = false;
+    await refresh();
   }
 
   async function refresh() {
@@ -76,15 +119,6 @@ const OfflinePendingPanel = (() => {
     const list = document.getElementById("offline-sync-list");
     const countEl = document.getElementById("offline-sync-count");
     if (!panel || !list) return;
-
-    const badge = document.getElementById("offline-pending-badge");
-    if (badge) badge.classList.add("d-none");
-
-    if (!shouldShowPanel()) {
-      panel.classList.add("d-none");
-      panel.setAttribute("aria-hidden", "true");
-      return;
-    }
 
     let items = [];
     if (typeof OfflineDB !== "undefined") {
@@ -97,6 +131,19 @@ const OfflinePendingPanel = (() => {
 
     if (countEl) countEl.textContent = String(items.length);
 
+    const badge = document.getElementById("offline-pending-badge");
+    if (badge) {
+      if (items.length > 0 && navigator.onLine) {
+        badge.textContent =
+          items.length === 1
+            ? "1 apontamento aguardando sync"
+            : `${items.length} apontamentos aguardando sync`;
+        badge.classList.remove("d-none");
+      } else {
+        badge.classList.add("d-none");
+      }
+    }
+
     if (!items.length) {
       panel.classList.add("d-none");
       panel.setAttribute("aria-hidden", "true");
@@ -107,23 +154,54 @@ const OfflinePendingPanel = (() => {
     panel.classList.remove("d-none");
     panel.setAttribute("aria-hidden", "false");
 
+    if (navigator.onLine) {
+      setHint("Com internet: use «Sincronizar agora» para enviar ao servidor.");
+    } else {
+      setHint("Salvos neste aparelho. Serão enviados quando houver internet.");
+    }
+
     list.innerHTML = items
       .map((item) => {
         const tipo = tipoFromUrl(item.url);
         const data = fmtData(item.criadoEm, item.body);
         const extra = resumoBody(item.body);
-        return `<li class="offline-sync-item">
+        const tent = item.tentativas ? ` · ${item.tentativas} tentativa(s)` : "";
+        const errHint = item.lastError
+          ? `<span class="offline-sync-item-meta offline-sync-item-err">${item.lastError}${tent}</span>`
+          : tent
+            ? `<span class="offline-sync-item-meta">${tent.replace(/^ · /, "")}</span>`
+            : "";
+        return `<li class="offline-sync-item" data-queue-id="${item.id}">
           <div class="offline-sync-item-main">
             <strong class="offline-sync-item-tipo">${tipo}</strong>
             <span class="offline-sync-item-data">${data}</span>
           </div>
           ${extra ? `<span class="offline-sync-item-meta">${extra}</span>` : ""}
+          ${errHint}
+          <button type="button" class="offline-sync-remove" data-remove-id="${item.id}" title="Remover da fila">×</button>
         </li>`;
       })
       .join("");
   }
 
   function bindEvents() {
+    document.getElementById("btn-offline-sync-now")?.addEventListener("click", () => runSyncNow());
+
+    document.getElementById("offline-sync-list")?.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-remove-id]");
+      if (!btn) return;
+      const id = btn.getAttribute("data-remove-id");
+      if (!id) return;
+      if (!confirm("Remover este apontamento da fila local? Ele não será enviado ao servidor.")) return;
+      if (typeof OfflineSync !== "undefined" && OfflineSync.removeFromQueue) {
+        await OfflineSync.removeFromQueue(id);
+      } else if (typeof OfflineDB !== "undefined") {
+        await OfflineDB.removeFila(id);
+      }
+      await refresh();
+      if (typeof OfflineUI !== "undefined") OfflineUI.updateBadge(await OfflineDB.countFila());
+    });
+
     window.addEventListener("offline", () => refresh());
     window.addEventListener("online", () => refresh());
     document.addEventListener("DOMContentLoaded", () => refresh());
@@ -131,7 +209,7 @@ const OfflinePendingPanel = (() => {
 
   bindEvents();
 
-  return { refresh, shouldShowPanel };
+  return { refresh, runSyncNow };
 })();
 
 window.OfflinePendingPanel = OfflinePendingPanel;

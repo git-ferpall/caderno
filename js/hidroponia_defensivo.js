@@ -106,27 +106,20 @@ document.addEventListener("DOMContentLoaded", () => {
           obs
         });
 
-        const resp = await fetch("../funcoes/salvar_defensivo_hidroponia.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            estufa_id,
-            area_id: bancada_nome,
-            produto_id,
-            produto_outro,
-            dose,
-            motivo,
-            obs
-          })
-        });
-
-        const data = await resp.json();
-        console.log("📦 Resposta do servidor:", data);
-
-        if (data.ok) {
-          form.classList.add("d-none");
-        } else {
-          alert("❌ " + (data.err || "Erro ao registrar defensivo."));
+        const fd = new FormData();
+        fd.append("estufa_id", estufa_id);
+        fd.append("area_id", bancada_nome);
+        fd.append("produto_id", produto_id);
+        fd.append("produto_outro", produto_outro);
+        fd.append("dose", dose);
+        fd.append("motivo", motivo);
+        fd.append("obs", obs);
+        if (typeof CadernoSalvar !== "undefined") {
+          await CadernoSalvar.postFormData("salvar_defensivo_hidroponia.php", fd, {
+            redirect: false,
+            onSuccess: () => form.classList.add("d-none"),
+            onError: (d) => alert("❌ " + (d?.err || "Erro ao registrar defensivo.")),
+          });
         }
       } catch (err) {
         console.error("❌ Erro na comunicação com o servidor:", err);

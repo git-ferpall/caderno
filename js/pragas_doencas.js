@@ -181,31 +181,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Submit ===
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const dados = new FormData(form);
-
-      try {
-        const resp = await fetch("../funcoes/salvar_pragas_doencas.php", {
-          method: "POST",
-          body: dados
-        });
-
-        const res = await resp.json();
-
-        if (res.ok) {
-          showPopup("success", res.msg || "Apontamento de pragas/doenças salvo com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento";
-          }, 1200);
-
-        } else {
-          showPopup("failed", res.msg || "Erro ao salvar apontamento.");
-        }
-
-      } catch (err) {
-        showPopup("failed", "Erro inesperado ao salvar apontamento.");
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_pragas_doencas.php");
       }
     });
   }

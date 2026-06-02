@@ -156,27 +156,22 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("💾 Salvando fertilizante:", { estufa_id, area_id, produto_id, dose, tipo, obs });
 
       try {
-        const resp = await fetch("../funcoes/salvar_fertilizante_hidroponia.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            estufa_id,
-            area_id,
-            produto_id: produto_id === "outro" ? 0 : produto_id,
-            dose,
-            tipo,
-            obs,
-          }),
-        });
-
-        const data = await resp.json();
-        console.log("📦 Resposta do servidor:", data);
-
-        if (data.ok) {
-          form.classList.add("d-none");
-          location.reload();
-        } else {
-          alert("❌ " + (data.err || "Erro ao salvar fertilizante."));
+        const fd = new FormData();
+        fd.append("estufa_id", estufa_id);
+        fd.append("area_id", area_id);
+        fd.append("produto_id", produto_id === "outro" ? "0" : produto_id);
+        fd.append("dose", dose);
+        fd.append("tipo", tipo);
+        fd.append("obs", obs);
+        if (typeof CadernoSalvar !== "undefined") {
+          await CadernoSalvar.postFormData("salvar_fertilizante_hidroponia.php", fd, {
+            redirect: false,
+            onSuccess: () => {
+              form.classList.add("d-none");
+              location.reload();
+            },
+            onError: (d) => alert("❌ " + (d?.err || "Erro ao salvar fertilizante.")),
+          });
         }
       } catch (err) {
         console.error("❌ Erro na comunicação com o servidor:", err);

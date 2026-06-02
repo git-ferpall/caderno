@@ -74,7 +74,12 @@ const OfflineDB = (() => {
     return items.length;
   }
 
-  return { putCache, getCache, addFila, listFila, removeFila, countFila };
+  async function clearFilaAll() {
+    const items = await listFila();
+    await Promise.all(items.map((item) => removeFila(item.id)));
+  }
+
+  return { putCache, getCache, addFila, listFila, removeFila, countFila, clearFilaAll };
 })();
 
 window.OfflineDB = OfflineDB;
