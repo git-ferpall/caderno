@@ -31,7 +31,7 @@ if (!$user_id || !offlineIsAdmin($mysqli, $user_id)) {
             <div class="container admin-offline-shell">
                 <header class="admin-offline-header">
                     <h1>Modo offline</h1>
-                    <p>Controle quais clientes podem registrar apontamentos sem internet. Relatórios continuam exigindo conexão.</p>
+                    <p>Offline está <strong>habilitado por padrão</strong> para todos os clientes. Use o painel abaixo apenas para <strong>desativar</strong> exceções. Relatórios continuam exigindo conexão.</p>
                 </header>
 
                 <section class="admin-offline-card">
@@ -62,8 +62,8 @@ if (!$user_id || !offlineIsAdmin($mysqli, $user_id)) {
                 </section>
 
                 <section class="admin-offline-card">
-                    <h2>Clientes com offline</h2>
-                    <p class="admin-offline-hint">Habilite o modo offline por cliente (user_id do Caderno).</p>
+                    <h2>Clientes</h2>
+                    <p class="admin-offline-hint">Todos começam com offline ativo. Desmarque apenas quem não deve usar apontamentos sem internet.</p>
 
                     <form class="admin-offline-search" id="form-busca-usuario">
                         <input type="search" name="q" placeholder="Buscar por nome, e-mail ou ID..." autocomplete="off">
@@ -77,7 +77,7 @@ if (!$user_id || !offlineIsAdmin($mysqli, $user_id)) {
                                     <th>ID</th>
                                     <th>Cliente / propriedade</th>
                                     <th>E-mail</th>
-                                    <th>Offline</th>
+                                    <th>Offline (padrão: ativo)</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

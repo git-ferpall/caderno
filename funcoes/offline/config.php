@@ -26,6 +26,7 @@ $session_days = defined('OFFLINE_SESSION_DAYS') ? (int)OFFLINE_SESSION_DAYS : 30
 offlineJson([
     'ok' => true,
     'habilitado' => $habilitado,
+    'padrao_habilitado' => true,
     'is_admin' => $is_admin,
     'user_id' => $user_id,
     'nome' => $nome,

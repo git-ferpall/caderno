@@ -150,7 +150,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                     <div id="offline-enter-wrap" class="offline-enter-wrap d-none">
                         <div class="offline-enter-divider">ou</div>
                         <button type="button" id="btn-offline-enter" class="fbotao main-btn fundo-azul offline-enter-btn">Continuar offline</button>
-                        <p class="offline-enter-hint">Disponível neste aparelho após login com internet.</p>
+                        <p class="offline-enter-hint">Disponível neste aparelho após login com internet (offline ativo por padrão).</p>
                     </div>
                 </form>
             </div>

@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS offline_admins (
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- offline_usuarios: só grava exceções. Sem registro = offline ATIVO (padrão).
+-- habilitado = 0  →  cliente bloqueado manualmente pelo admin
 CREATE TABLE IF NOT EXISTS offline_usuarios (
     user_id INT UNSIGNED NOT NULL PRIMARY KEY,
     habilitado TINYINT(1) NOT NULL DEFAULT 1,

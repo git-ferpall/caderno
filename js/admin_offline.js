@@ -53,8 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
     tbodyUsuarios.innerHTML = data.usuarios.length
       ? data.usuarios
           .map((u) => {
-            const checked = Number(u.offline_habilitado) === 1 ? "checked" : "";
+            const checked = Number(u.offline_habilitado) !== 0 ? "checked" : "";
             const label = u.propriedade_ativa || u.nome_razao || "—";
+            const statusLabel = checked ? "Ativo (padrão)" : "Desativado";
             return `<tr>
           <td>${u.user_id}</td>
           <td>${escapeHtml(label)}</td>
@@ -62,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>
             <label class="admin-offline-toggle">
               <input type="checkbox" data-toggle-offline="${u.user_id}" ${checked}>
-              <span>${checked ? "Ativo" : "Inativo"}</span>
+              <span>${statusLabel}</span>
             </label>
           </td>
         </tr>`;
@@ -127,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         body: { user_id: userId, habilitar },
       });
-      if (label) label.textContent = input.checked ? "Ativo" : "Inativo";
+      if (label) label.textContent = input.checked ? "Ativo (padrão)" : "Desativado";
     } catch (err) {
       input.checked = !input.checked;
       alert(err.message);

@@ -82,7 +82,12 @@ function offlineIsEnabled(mysqli $mysqli, int $user_id): bool
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-    return $row && (int)$row['habilitado'] === 1;
+
+    // Padrão: habilitado para todos; só bloqueia se houver registro explícito com habilitado = 0
+    if (!$row) {
+        return true;
+    }
+    return (int)$row['habilitado'] === 1;
 }
 
 function offlineRequireAdmin(mysqli $mysqli): int

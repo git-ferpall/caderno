@@ -15,7 +15,7 @@ switch ($acao) {
                    MAX(p.nome_razao) AS nome_razao,
                    MAX(p.email) AS email,
                    MAX(CASE WHEN p.ativo = 1 THEN p.nome_razao END) AS propriedade_ativa,
-                   COALESCE(MAX(ou.habilitado), 0) AS offline_habilitado,
+                   COALESCE(MAX(ou.habilitado), 1) AS offline_habilitado,
                    MAX(ou.atualizado_em) AS atualizado_em
             FROM propriedades p
             LEFT JOIN offline_usuarios ou ON ou.user_id = p.user_id
@@ -35,12 +35,9 @@ switch ($acao) {
             offlineJson(['ok' => false, 'msg' => 'user_id inválido.'], 400);
         }
         if ($habilitar) {
-            $stmt = $mysqli->prepare("
-                INSERT INTO offline_usuarios (user_id, habilitado, habilitado_por)
-                VALUES (?, 1, ?)
-                ON DUPLICATE KEY UPDATE habilitado = 1, habilitado_por = VALUES(habilitado_por), atualizado_em = NOW()
-            ");
-            $stmt->bind_param('ii', $target, $admin_id);
+            // Volta ao padrão (todos habilitados): remove exceção de bloqueio
+            $stmt = $mysqli->prepare("DELETE FROM offline_usuarios WHERE user_id = ? AND habilitado = 0");
+            $stmt->bind_param('i', $target);
         } else {
             $stmt = $mysqli->prepare("
                 INSERT INTO offline_usuarios (user_id, habilitado, habilitado_por)
@@ -51,7 +48,7 @@ switch ($acao) {
         }
         $stmt->execute();
         $stmt->close();
-        offlineJson(['ok' => true, 'msg' => $habilitar ? 'Offline habilitado.' : 'Offline desabilitado.']);
+        offlineJson(['ok' => true, 'msg' => $habilitar ? 'Offline reativado (padrão).' : 'Offline desabilitado para este cliente.']);
 
     case 'listar_admins':
         $rows = $mysqli->query("SELECT user_id, nome, email, criado_em FROM offline_admins ORDER BY criado_em ASC")->fetch_all(MYSQLI_ASSOC);
