@@ -26,12 +26,25 @@ if (!headers_sent()) {
 }
         .hidro-bancada-produtos .form-box-produto { margin-bottom: 6px; }
         .hidro-bancada-produtos .linha { align-items: flex-start; }
-        .item-bancada-qr { margin-top: 8px; }
-        .btn-qr-bancada { font-size: 14px; padding: 8px 14px; margin-top: 6px; }
-        .popup-qr-bancada { text-align: center; max-width: 340px; }
-        .popup-qr-bancada canvas { margin: 12px auto; display: block; border-radius: 8px; }
-        .popup-qr-bancada-url { font-size: 12px; word-break: break-all; color: #666; margin: 8px 0 16px; }
+        .popup-qr-bancada { text-align: center; max-width: 360px; padding: 24px 20px; }
+        .popup-qr-bancada-nome { font-size: 1.35rem; font-weight: bold; margin: 0 0 4px; color: var(--branco, #fff); }
+        .popup-qr-bancada-estufa { font-size: 0.9rem; opacity: 0.9; margin: 0 0 16px; }
+        .popup-qr-bancada-preview {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 0 auto 12px;
+            max-width: 280px;
+        }
+        .popup-qr-bancada-preview canvas { display: block; margin: 0 auto; }
+        .popup-qr-bancada-hint { font-size: 13px; opacity: 0.85; margin-bottom: 16px; }
+        .popup-qr-bancada-url { font-size: 11px; word-break: break-all; color: #aaa; margin-bottom: 12px; }
         .culturas-lista { line-height: 1.5; }
+        .icon-qr-bancada {
+            background: center / 70% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-2v2h-2v-2h-2v-2h3zm-3 4h2v2h-2v-2zm4 0h2v4h-4v-2h2v-2z'/%3E%3C/svg%3E");
+            width: 100%;
+            height: 100%;
+        }
     </style>    
 </head>
 <body>
@@ -123,15 +136,6 @@ if (!headers_sent()) {
                                         <div class="item-bancada-header-box ' . $bancada_has_obs . '">
                                             <div class="item-bancada-header-title">Observações</div>
                                             <div class="item-bancada-header-text">' . htmlspecialchars($bancada_obs) . '</div>
-                                        </div>
-
-                                        <div class="item-bancada-header-box item-bancada-qr">
-                                            <div class="item-bancada-header-title">Acesso rápido</div>
-                                            <button type="button" class="main-btn fundo-azul btn-qr-bancada"
-                                                data-bancada-id="' . (int) $bancada['id'] . '"
-                                                data-bancada-nome="' . $bancada_nome_attr . '">
-                                                <span class="main-btn-text">Gerar QR Code</span>
-                                            </button>
                                         </div>
 
                                     </div>
@@ -335,6 +339,16 @@ if (!headers_sent()) {
                                             <div class="item-bancada-option-title">Histórico</div>
                                         </button>
 
+                                        <button type="button" class="item-bancada-option bancada-qrcode v5 btn-qr-bancada"
+                                            data-bancada-id="' . (int) $bancada['id'] . '"
+                                            data-bancada-nome="' . $bancada_nome_attr . '"
+                                            data-estufa-nome="' . htmlspecialchars($estufa['nome'], ENT_QUOTES, 'UTF-8') . '">
+                                            <div class="item-bancada-icon-box">
+                                                <div class="item-bancada-icon icon-qr-bancada" aria-hidden="true"></div>
+                                            </div>
+                                            <div class="item-bancada-option-title">QR Code</div>
+                                        </button>
+
                                         <div class="main-form form-historico d-none" id="' . $form_id . '-historico">
                                             <div class="historico-none">Nenhum registro encontrado.</div>
                                         </div>
@@ -492,13 +506,16 @@ if (!headers_sent()) {
     <!-- Popup QR Code da bancada -->
     <div id="popup-qr-bancada-overlay" class="popup d-none">
         <div class="popup-box popup-qr-bancada">
-            <h2 class="popup-title" id="popup-qr-bancada-title">QR Code da bancada</h2>
-            <p class="popup-text">Escaneie para abrir esta bancada direto no celular.</p>
-            <canvas id="qr-bancada-canvas" width="240" height="240" aria-label="QR Code"></canvas>
-            <p class="popup-qr-bancada-url" id="qr-bancada-url"></p>
+            <h2 class="popup-qr-bancada-nome" id="popup-qr-bancada-nome">Bancada</h2>
+            <p class="popup-qr-bancada-estufa" id="popup-qr-bancada-estufa"></p>
+            <div class="popup-qr-bancada-preview">
+                <canvas id="qr-bancada-canvas" width="240" height="240" aria-label="QR Code"></canvas>
+            </div>
+            <p class="popup-qr-bancada-hint">Escaneie para abrir esta bancada direto no celular.</p>
+            <p class="popup-qr-bancada-url d-none" id="qr-bancada-url"></p>
             <div class="popup-actions">
                 <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="btn-qr-bancada-fechar">Fechar</button>
-                <button type="button" class="popup-btn fundo-verde" id="btn-qr-bancada-copiar">Copiar link</button>
+                <button type="button" class="popup-btn fundo-verde" id="btn-qr-bancada-baixar">Baixar imagem</button>
             </div>
         </div>
     </div>

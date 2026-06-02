@@ -271,8 +271,10 @@ $(document).ready(function () {
     });
 
     $('.item-bancada-option').on('click', function () {
-        const $main = $('.item-bancada');
         const $botao = $(this);
+        if ($botao.hasClass('bancada-qrcode')) return;
+
+        const $main = $('.item-bancada');
         const $bancadas = $('.item-bancada-option');
         const $bancada = $(this).closest('.item-bancada-options');
         const $header = $('.item-bancada-header');

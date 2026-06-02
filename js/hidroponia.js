@@ -125,20 +125,85 @@ function buildBancadaUrl(bancadaId) {
   return `${window.location.origin}/home/hidroponia?b=${bancadaId}`;
 }
 
-function initQrBancada() {
-  let urlAtual = "";
+const qrBancadaState = {
+  bancadaNome: "",
+  estufaNome: "",
+  url: "",
+};
 
+function sanitizeFilename(name) {
+  return (
+    String(name || "bancada")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9-_]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "bancada"
+  );
+}
+
+function baixarImagemQrBancada() {
+  const qrCanvas = document.getElementById("qr-bancada-canvas");
+  if (!qrCanvas) return;
+
+  const w = 420;
+  const h = 540;
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = w;
+  exportCanvas.height = h;
+  const ctx = exportCanvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = "#1a8a7a";
+  ctx.fillRect(0, 0, w, 88);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.font = "bold 26px Arial, Helvetica, sans-serif";
+  ctx.fillText(qrBancadaState.bancadaNome || "Bancada", w / 2, 38);
+
+  if (qrBancadaState.estufaNome) {
+    ctx.font = "15px Arial, Helvetica, sans-serif";
+    ctx.fillText(qrBancadaState.estufaNome, w / 2, 64);
+  }
+
+  const qrSize = 280;
+  const x = (w - qrSize) / 2;
+  ctx.drawImage(qrCanvas, x, 108, qrSize, qrSize);
+
+  ctx.fillStyle = "#444444";
+  ctx.font = "13px Arial, Helvetica, sans-serif";
+  ctx.fillText("Caderno Frutag — Hidroponia", w / 2, h - 36);
+  ctx.fillStyle = "#777777";
+  ctx.font = "12px Arial, Helvetica, sans-serif";
+  ctx.fillText("Escaneie para abrir no celular", w / 2, h - 16);
+
+  const link = document.createElement("a");
+  link.download = `QR-${sanitizeFilename(qrBancadaState.bancadaNome)}.png`;
+  link.href = exportCanvas.toDataURL("image/png");
+  link.click();
+}
+
+function initQrBancada() {
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-qr-bancada");
     if (!btn) return;
 
+    e.preventDefault();
+    e.stopPropagation();
+
     const bancadaId = btn.dataset.bancadaId;
     const bancadaNome = btn.dataset.bancadaNome || "Bancada";
+    const estufaNome = btn.dataset.estufaNome || "";
     if (!bancadaId) return;
 
     const overlay = document.getElementById("popup-qr-bancada-overlay");
     const canvas = document.getElementById("qr-bancada-canvas");
-    const title = document.getElementById("popup-qr-bancada-title");
+    const nomeEl = document.getElementById("popup-qr-bancada-nome");
+    const estufaEl = document.getElementById("popup-qr-bancada-estufa");
     const urlEl = document.getElementById("qr-bancada-url");
 
     if (!overlay || !canvas || typeof QRCode === "undefined") {
@@ -156,11 +221,20 @@ function initQrBancada() {
         return;
       }
 
-      urlAtual = data.url || buildBancadaUrl(bancadaId);
-      if (title) title.textContent = `QR Code — Bancada ${bancadaNome}`;
-      if (urlEl) urlEl.textContent = urlAtual;
+      qrBancadaState.url = data.url || buildBancadaUrl(bancadaId);
+      qrBancadaState.bancadaNome = data.bancada_nome || bancadaNome;
+      qrBancadaState.estufaNome = data.estufa_nome || estufaNome;
 
-      await QRCode.toCanvas(canvas, urlAtual, { width: 240, margin: 2, errorCorrectionLevel: "M" });
+      if (nomeEl) nomeEl.textContent = qrBancadaState.bancadaNome;
+      if (estufaEl) estufaEl.textContent = qrBancadaState.estufaNome;
+      if (urlEl) urlEl.textContent = qrBancadaState.url;
+
+      await QRCode.toCanvas(canvas, qrBancadaState.url, {
+        width: 240,
+        margin: 2,
+        errorCorrectionLevel: "M",
+      });
+
       overlay.classList.remove("d-none");
     } catch (err) {
       console.error(err);
@@ -172,16 +246,14 @@ function initQrBancada() {
     document.getElementById("popup-qr-bancada-overlay")?.classList.add("d-none");
   });
 
-  document.getElementById("btn-qr-bancada-copiar")?.addEventListener("click", async () => {
-    const urlEl = document.getElementById("qr-bancada-url");
-    const text = urlEl?.textContent?.trim();
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Link copiado!");
-    } catch {
-      prompt("Copie o link:", text);
+  document.getElementById("popup-qr-bancada-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "popup-qr-bancada-overlay") {
+      e.currentTarget.classList.add("d-none");
     }
+  });
+
+  document.getElementById("btn-qr-bancada-baixar")?.addEventListener("click", () => {
+    baixarImagemQrBancada();
   });
 }
 
