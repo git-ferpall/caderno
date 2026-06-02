@@ -16,36 +16,6 @@ if (!headers_sent()) {
     <link rel="stylesheet" href="../css/style.css">
 
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
-    <style>
-        .item-bancada.bancada-selecionada {
-        background-color: #4caf50 !important;
-        color: white !important;
-        border: 2px solid #2e7d32;
-        transform: scale(1.02);
-        transition: all 0.2s ease-in-out;
-}
-        .hidro-bancada-produtos .form-box-produto { margin-bottom: 6px; }
-        .hidro-bancada-produtos .linha { align-items: flex-start; }
-        .popup-qr-bancada { text-align: center; max-width: 360px; padding: 24px 20px; }
-        .popup-qr-bancada-nome { font-size: 1.35rem; font-weight: bold; margin: 0 0 4px; color: var(--branco, #fff); }
-        .popup-qr-bancada-estufa { font-size: 0.9rem; opacity: 0.9; margin: 0 0 16px; }
-        .popup-qr-bancada-preview {
-            background: #fff;
-            border-radius: 12px;
-            padding: 16px;
-            margin: 0 auto 12px;
-            max-width: 280px;
-        }
-        .popup-qr-bancada-preview canvas { display: block; margin: 0 auto; }
-        .popup-qr-bancada-hint { font-size: 13px; opacity: 0.85; margin-bottom: 16px; }
-        .popup-qr-bancada-url { font-size: 11px; word-break: break-all; color: #aaa; margin-bottom: 12px; }
-        .culturas-lista { line-height: 1.5; }
-        .icon-qr-bancada {
-            background: center / 70% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-2v2h-2v-2h-2v-2h3zm-3 4h2v2h-2v-2zm4 0h2v4h-4v-2h2v-2z'/%3E%3C/svg%3E");
-            width: 100%;
-            height: 100%;
-        }
-    </style>    
 </head>
 <body>
     <?php include '../include/loading.php' ?> 
