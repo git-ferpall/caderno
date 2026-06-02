@@ -69,9 +69,11 @@ function carregarHidroponia(): array {
                 b.nome,
                 b.produto_id,
                 COALESCE(p.nome, 'Não informado') AS produto_nome,
-                b.obs
+                b.obs,
+                COALESCE(a.tamanho, 0) AS area_m2
             FROM bancadas b
             LEFT JOIN produtos p ON p.id = b.produto_id
+            LEFT JOIN areas a ON a.id = b.area_id
             WHERE b.estufa_id = ?
             ORDER BY b.nome ASC
         ");
@@ -81,12 +83,14 @@ function carregarHidroponia(): array {
 
         while ($bancada = $r_banc->fetch_assoc()) {
             $bancada_id = (int) $bancada['id'];
-            $produtos = hidroponiaListarProdutosBancada($mysqli, $bancada_id, (int) $bancada['produto_id']);
+            $area_m2 = (float) ($bancada['area_m2'] ?? 0);
+            $produtos = hidroponiaListarProdutosBancada($mysqli, $bancada_id, (int) $bancada['produto_id'], $area_m2);
             $bancadas[] = [
                 'id'          => $bancada_id,
                 'nome'        => $bancada['nome'],
                 'produto_id'  => $produtos ? (int) $produtos[0]['id'] : (int) $bancada['produto_id'],
                 'produtos'    => $produtos,
+                'area_m2'     => $area_m2,
                 'cultura'     => hidroponiaFormatCulturas($produtos, $bancada['produto_nome'] ?? 'Não informado'),
                 'obs'         => $bancada['obs'] ?? '',
             ];

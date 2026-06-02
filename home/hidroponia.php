@@ -83,6 +83,12 @@ if (!headers_sent()) {
                                 $bancada_has_obs = ($bancada['obs'] == '') ? '' : 'v2';
                                 $bancada_nome_attr = htmlspecialchars((string) $bancada['nome'], ENT_QUOTES, 'UTF-8');
                                 $bancada_nome_js = addslashes((string) $bancada['nome']);
+                                $area_m2 = (float) ($bancada['area_m2'] ?? 0);
+                                $produtos_json_attr = htmlspecialchars(
+                                    json_encode($produtos, JSON_UNESCAPED_UNICODE),
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                );
 
                                 $form_id = 'e-' . $estufa['id'] . '-b-' . $bancada['nome'];
 
@@ -98,9 +104,23 @@ if (!headers_sent()) {
                                 <div class="item-bancada-content d-none" id="item-bancada-' . $bancada['nome'] . '-content-estufa-' . $estufa['id'] . '">
                                     <div class="item-bancada-header">
 
-                                        <div class="item-bancada-header-box">
+                                        <div class="item-bancada-header-box item-bancada-cultivos-box">
                                             <div class="item-bancada-header-title">Cultura(s)/espécie(s)</div>
-                                            <div class="item-bancada-header-text culturas-lista">' . htmlspecialchars($cultura) . '</div>
+                                            <div class="item-bancada-cultivos-row">
+                                                <div class="item-bancada-cultivos-main">
+                                                    <div class="item-bancada-header-text culturas-lista" data-culturas-bancada="' . (int) $bancada['id'] . '">' . htmlspecialchars($cultura) . '</div>
+                                                    <div class="hidro-mini-preview" data-mini-preview="' . (int) $bancada['id'] . '" data-produtos=\'' . $produtos_json_attr . '\'></div>
+                                                </div>
+                                                <button type="button" class="btn-edit-cultivos"
+                                                    data-bancada-id="' . (int) $bancada['id'] . '"
+                                                    data-bancada-nome="' . $bancada_nome_attr . '"
+                                                    data-area-m2="' . $area_m2 . '"
+                                                    data-produtos=\'' . $produtos_json_attr . '\'
+                                                    title="Editar produtos cultivados">
+                                                    <span class="btn-edit-cultivos-icon" aria-hidden="true">✎</span>
+                                                    Cultivos
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div class="item-bancada-header-box ' . $bancada_has_obs . '">
@@ -385,17 +405,13 @@ if (!headers_sent()) {
 
                                         <div class="form-campo hidro-bancada-produtos">
                                             <label class="item-label">Cultura(s)/Produto(s)</label>
-                                            <div class="linha">
-                                                <div class="lista-produtos-bancada" id="lista-produtos-estufa-' . $estufa['id'] . '">
-                                                    <div class="form-box form-box-produto">
-                                                        <select name="produto_id[]" class="form-select form-text produto-select" required>
-                                                            <option value="">Selecione o produto</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="add-btn add-produto-bancada" data-estufa-id="' . $estufa['id'] . '" title="Adicionar produto">
-                                                    <div class="btn-icon icon-plus cor-branco"></div>
+                                            <div class="hidro-cultivos-draft" data-estufa-id="' . $estufa['id'] . '">
+                                                <div class="hidro-cultivos-resumo" id="cultivos-resumo-estufa-' . $estufa['id'] . '">Nenhum produto configurado</div>
+                                                <div class="hidro-mini-preview hidro-mini-preview-draft" id="cultivos-preview-estufa-' . $estufa['id'] . '"></div>
+                                                <button type="button" class="btn-config-cultivos" data-estufa-id="' . $estufa['id'] . '">
+                                                    Configurar cultivos
                                                 </button>
+                                                <input type="hidden" name="produtos_json" id="produtos-json-estufa-' . $estufa['id'] . '" value="">
                                             </div>
                                         </div>
 
@@ -473,6 +489,37 @@ if (!headers_sent()) {
         <?php include '../include/imports.php' ?>
     </div>
 
+    <!-- Popup produtos cultivados -->
+    <div id="popup-cultivos-overlay" class="popup d-none">
+        <div class="popup-box popup-cultivos">
+            <div class="popup-cultivos-grid">
+                <div class="popup-cultivos-form">
+                    <h2 class="popup-cultivos-title">Produtos cultivados</h2>
+                    <p class="popup-cultivos-meta">
+                        Bancada <strong id="pc-bancada-nome">—</strong>
+                        · <span id="pc-area-total">0</span> m²
+                    </p>
+                    <div id="pc-rows" class="popup-cultivos-rows"></div>
+                    <button type="button" class="popup-cultivos-add" id="pc-add">+ Adicionar produto</button>
+                    <div class="popup-cultivos-total">
+                        Total: <strong><span id="pc-sum-area">0</span> m²</strong>
+                        (<span id="pc-sum-pct">0</span>%)
+                    </div>
+                    <p class="popup-cultivos-aviso d-none" id="pc-aviso"></p>
+                    <div class="popup-actions">
+                        <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="pc-cancel">Cancelar</button>
+                        <button type="button" class="popup-btn fundo-verde" id="pc-save">Salvar</button>
+                    </div>
+                </div>
+                <div class="popup-cultivos-preview">
+                    <h3 class="popup-cultivos-preview-title">Prévia da bancada</h3>
+                    <div id="pc-preview-bar" class="hidro-preview-bar" role="img" aria-label="Prévia visual da divisão da bancada"></div>
+                    <ul id="pc-preview-legend" class="hidro-preview-legend"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Popup QR Code da bancada -->
     <div id="popup-qr-bancada-overlay" class="popup d-none">
         <div class="popup-box popup-qr-bancada">
@@ -491,6 +538,7 @@ if (!headers_sent()) {
     </div>
 
     <script src="../js/vendor/qrcodejs.min.js"></script>
+    <script src="../js/hidroponia-produtos.js"></script>
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>

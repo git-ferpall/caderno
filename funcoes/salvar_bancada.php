@@ -46,10 +46,36 @@ $barea = isset($_POST['barea']) ? (float)$_POST['barea'] : 0;
 $barea_unidade = isset($_POST['barea_unidade']) ? $_POST['barea_unidade'] : 'm2';
 
 $produto_ids = [];
-if (isset($_POST['produto_id']) && is_array($_POST['produto_id'])) {
-    $produto_ids = array_map('intval', $_POST['produto_id']);
-} elseif (isset($_POST['produto_id'])) {
-    $produto_ids = [(int) $_POST['produto_id']];
+$produtos_json = isset($_POST['produtos_json']) ? trim((string) $_POST['produtos_json']) : '';
+$produtos_detalhe = [];
+
+if ($produtos_json !== '') {
+    $decoded = json_decode($produtos_json, true);
+    if (is_array($decoded)) {
+        foreach ($decoded as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $pid = (int) ($item['produto_id'] ?? $item['id'] ?? 0);
+            if ($pid <= 0) {
+                continue;
+            }
+            $produtos_detalhe[] = [
+                'produto_id' => $pid,
+                'area_m2' => isset($item['area_m2']) ? (float) $item['area_m2'] : 0.0,
+                'percentual' => isset($item['percentual']) ? (float) $item['percentual'] : 0.0,
+            ];
+            $produto_ids[] = $pid;
+        }
+    }
+}
+
+if (!$produto_ids) {
+    if (isset($_POST['produto_id']) && is_array($_POST['produto_id'])) {
+        $produto_ids = array_map('intval', $_POST['produto_id']);
+    } elseif (isset($_POST['produto_id'])) {
+        $produto_ids = [(int) $_POST['produto_id']];
+    }
 }
 $produto_ids = array_values(array_unique(array_filter($produto_ids, static fn ($id) => $id > 0)));
 $produto_id = $produto_ids[0] ?? 0;
@@ -124,7 +150,10 @@ try {
         throw new Exception('Erro ao salvar a bancada.');
     }
 
-    hidroponiaSalvarProdutosBancada($mysqli, $bancada_id, $produto_ids);
+    hidroponiaSalvarProdutosBancadaDetalhe($mysqli, $bancada_id, $produtos_detalhe ?: array_map(
+        static fn ($id) => ['produto_id' => $id],
+        $produto_ids
+    ), $barea);
 
     // ✅ Confirma transação
     $mysqli->commit();

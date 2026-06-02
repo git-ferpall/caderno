@@ -5,10 +5,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   initEstufaSave();
   initBancadaSave();
-  initAddProdutoBancada();
   initQrBancada();
   abrirBancadaPorQr();
-  carregarProdutos();
 });
 
 function initEstufaSave() {
@@ -60,17 +58,14 @@ function initBancadaSave() {
         "";
       const barea = container.querySelector("[name='barea']")?.value.trim() || "";
       const barea_unidade = container.querySelector("[name='barea_unidade']")?.value || "m2";
-
-      const produto_ids = [...container.querySelectorAll('select[name="produto_id[]"]')]
-        .map((s) => s.value.trim())
-        .filter(Boolean);
+      const produtos_json = document.getElementById(`produtos-json-estufa-${idEstufa}`)?.value.trim() || "";
 
       if (!nome) {
         alert("Informe o nome/número da bancada");
         return;
       }
-      if (!produto_ids.length) {
-        alert("Selecione ao menos um produto (cultura)");
+      if (!produtos_json) {
+        alert("Configure ao menos um produto cultivado");
         return;
       }
 
@@ -80,7 +75,7 @@ function initBancadaSave() {
       fd.append("obs", obs);
       fd.append("barea", barea);
       fd.append("barea_unidade", barea_unidade);
-      produto_ids.forEach((id) => fd.append("produto_id[]", id));
+      fd.append("produtos_json", produtos_json);
 
       if (typeof CadernoSalvar !== "undefined") {
         await CadernoSalvar.postFormData("salvar_bancada.php", fd, {
@@ -90,34 +85,6 @@ function initBancadaSave() {
         });
       }
     });
-  });
-}
-
-function initAddProdutoBancada() {
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".add-produto-bancada");
-    if (!btn) return;
-    e.preventDefault();
-
-    const estufaId = btn.dataset.estufaId;
-    const lista = document.getElementById(`lista-produtos-estufa-${estufaId}`);
-    const original = lista?.querySelector("select");
-    if (!lista || !original) return;
-
-    const novo = original.cloneNode(true);
-    novo.value = "";
-    novo.required = true;
-    const wrapper = document.createElement("div");
-    wrapper.className = "form-box form-box-produto";
-    wrapper.appendChild(novo);
-    lista.appendChild(wrapper);
-    carregarProdutos(novo);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (e.target.id?.startsWith("bancada-add-estufa-")) {
-      setTimeout(carregarProdutos, 300);
-    }
   });
 }
 
