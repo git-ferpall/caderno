@@ -2,6 +2,104 @@ const OfflineUI = (() => {
   let banner = null;
   let badge = null;
 
+  const SUCCESS_COPY = {
+    online: {
+      title: "Dados salvos com sucesso!",
+      subtitle: "Seu apontamento foi registrado no sistema.",
+    },
+    offline: {
+      title: "Apontamento salvo com sucesso!",
+      subtitle:
+        "Os dados ficaram guardados neste aparelho e serão enviados automaticamente quando a internet voltar.",
+    },
+  };
+
+  function hideOverlayPopups() {
+    document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => el.classList.add("d-none"));
+  }
+
+  function ensureSuccessSubtitle(popup) {
+    let sub = popup.querySelector(".popup-text");
+    if (!sub) {
+      sub = document.createElement("p");
+      sub.className = "popup-text";
+      popup.querySelector(".popup-title")?.insertAdjacentElement("afterend", sub);
+    }
+    return sub;
+  }
+
+  /** Popup verde padrão do sistema (#popup-success). mode: "online" | "offline" */
+  function showSuccessPopup(mode = "online", onOk) {
+    const copy = SUCCESS_COPY[mode] || SUCCESS_COPY.online;
+    const overlay = document.getElementById("popup-overlay");
+    const popup = document.getElementById("popup-success");
+
+    if (!overlay || !popup) {
+      alert(copy.title + (copy.subtitle ? "\n\n" + copy.subtitle : ""));
+      if (typeof onOk === "function") onOk();
+      return;
+    }
+
+    hideOverlayPopups();
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+
+    const titleEl = popup.querySelector(".popup-title");
+    if (titleEl) titleEl.textContent = copy.title;
+
+    const subEl = ensureSuccessSubtitle(popup);
+    if (copy.subtitle) {
+      subEl.textContent = copy.subtitle;
+      subEl.classList.remove("d-none");
+    } else {
+      subEl.textContent = "";
+      subEl.classList.add("d-none");
+    }
+
+    const btnOk = document.getElementById("btn-ok") || popup.querySelector(".popup-btn");
+    if (btnOk) {
+      btnOk.onclick = () => {
+        if (typeof closePopup === "function") closePopup();
+        else {
+          popup.classList.add("d-none");
+          overlay.classList.add("d-none");
+        }
+        if (typeof onOk === "function") onOk();
+      };
+    }
+  }
+
+  function showFailedPopup(message, title) {
+    const overlay = document.getElementById("popup-overlay");
+    const popup = document.getElementById("popup-failed");
+
+    if (!overlay || !popup) {
+      alert(message || "Não foi possível salvar.");
+      return;
+    }
+
+    hideOverlayPopups();
+    overlay.classList.remove("d-none");
+    popup.classList.remove("d-none");
+
+    const titleEl = popup.querySelector(".popup-title");
+    if (titleEl && title) titleEl.textContent = title;
+
+    const textEl = popup.querySelector(".popup-text");
+    if (textEl) textEl.textContent = message;
+
+    const btn = popup.querySelector(".popup-btn");
+    if (btn) {
+      btn.onclick = () => {
+        if (typeof closePopup === "function") closePopup();
+        else {
+          popup.classList.add("d-none");
+          overlay.classList.add("d-none");
+        }
+      };
+    }
+  }
+
   function ensureBanner() {
     if (banner) return banner;
     banner = document.createElement("div");
@@ -42,18 +140,9 @@ const OfflineUI = (() => {
     }
   }
 
-  function showOfflineSavedPopup() {
-    const msg = "Salvo no dispositivo. Será enviado quando houver internet.";
-    setBanner(msg, "ok");
-    if (typeof showPopup === "function") {
-      try {
-        showPopup("success", msg);
-        return;
-      } catch {
-        /* fallback */
-      }
-    }
-    alert(msg);
+  function showOfflineSavedPopup(onOk) {
+    setBanner("Apontamento salvo neste aparelho.", "ok");
+    showSuccessPopup("offline", onOk);
   }
 
   function warnIncognitoIfNeeded() {
@@ -115,6 +204,8 @@ const OfflineUI = (() => {
     setBanner,
     hideBanner,
     updateBadge,
+    showSuccessPopup,
+    showFailedPopup,
     showOfflineSavedPopup,
     blockRelatoriosPage,
     warnIncognitoIfNeeded,

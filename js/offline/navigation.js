@@ -1,7 +1,7 @@
 const OfflineNavigation = (() => {
   const CACHE_PAGES =
     (typeof OfflineConstants !== "undefined" && OfflineConstants.CACHE_PAGES) ||
-    "caderno-pages-v7";
+    "caderno-pages-v9";
 
   function normalizeAppPath(pathname) {
     const base = (pathname || "/").replace(/\/$/, "") || "/";

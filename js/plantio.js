@@ -165,55 +165,7 @@ document.querySelector(".add-produto").addEventListener("click", () => {
   carregarAreas();
   carregarProdutos();
 
-  // === Submit do formulário ===
-  const form = document.getElementById("form-plantio");
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const overlay = document.getElementById("popup-overlay");
-    let popupConfirm = document.getElementById("popup-confirm-plantio");
-
-    if (!popupConfirm) {
-      popupConfirm = document.createElement("div");
-      popupConfirm.className = "popup-box d-none";
-      popupConfirm.id = "popup-confirm-plantio";
-      popupConfirm.innerHTML = `
-        <h2 class="popup-title">Gerar também colheita?</h2>
-        <p class="popup-text">
-          Deseja que seja criado automaticamente um apontamento de <b>colheita</b> 
-          com status <b>PENDENTE</b> para este plantio?
-        </p>
-        <div class="popup-actions">
-          <button class="popup-btn fundo-cinza-b cor-preto" id="btn-no">Não</button>
-          <button class="popup-btn fundo-verde" id="btn-yes">Sim</button>
-        </div>
-      `;
-      overlay.appendChild(popupConfirm);
-    }
-
-    // Oculta outros popups
-    document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
-    overlay.classList.remove("d-none");
-    popupConfirm.classList.remove("d-none");
-
-    const enviarFormulario = (incluir_colheita) => {
-      overlay.classList.add("d-none");
-      popupConfirm.classList.add("d-none");
-      form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((el) => el.blur());
-
-      const dados = new FormData(form);
-      dados.append("incluir_colheita", incluir_colheita ? "1" : "0");
-
-      if (typeof CadernoSalvar !== "undefined") {
-        CadernoSalvar.postFormData("salvar_plantio.php", dados);
-      } else {
-        alert("Erro: módulo de salvamento não carregou. Atualize a página (Ctrl+F5).");
-      }
-    };
-
-    popupConfirm.querySelector("#btn-yes").onclick = () => enviarFormulario(true);
-    popupConfirm.querySelector("#btn-no").onclick = () => enviarFormulario(false);
-  });
+  // Submit: CadernoSalvar (salvar-form.js) trata plantio + popup colheita offline/online.
 });
 
 // === Função padrão de popup ===
