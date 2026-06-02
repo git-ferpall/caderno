@@ -1,5 +1,5 @@
 const OfflineApp = (() => {
-  let enabled = false;
+  let enabled = null;
   let syncing = false;
   const nativeFetch = window.fetch.bind(window);
 
@@ -8,6 +8,74 @@ const OfflineApp = (() => {
       status,
       headers: { "Content-Type": "application/json; charset=utf-8" },
     });
+  }
+
+  function isCatalogGet(method, url) {
+    return method === "GET" && !!OfflineSync.getCacheKeyFromUrl(url);
+  }
+
+  async function serveCatalogFromCache(cacheKey) {
+    const list = await OfflineSync.getCachedList(cacheKey);
+    return jsonResponse(list ?? []);
+  }
+
+  async function patchFetch() {
+    if (window.__offlineFetchPatched) return;
+    window.__offlineFetchPatched = true;
+
+    window.fetch = async function offlineFetch(input, init = {}) {
+      const url = typeof input === "string" ? input : input.url;
+      const method = (init.method || "GET").toUpperCase();
+      const cacheKey = OfflineSync.getCacheKeyFromUrl(url);
+
+      if (enabled === true && OfflineSync.isRelatorioUrl(url) && !navigator.onLine) {
+        return jsonResponse({ ok: false, msg: "Relatórios exigem conexão com a internet." }, 503);
+      }
+
+      if (isCatalogGet(method, url)) {
+        if (!navigator.onLine) {
+          return serveCatalogFromCache(cacheKey);
+        }
+
+        try {
+          const res = await nativeFetch(input, init);
+          if (res.ok) {
+            res
+              .clone()
+              .json()
+              .then((data) => {
+                if (Array.isArray(data)) OfflineSync.mergeDadosSlice(cacheKey, data);
+              })
+              .catch(() => {});
+          }
+          return res;
+        } catch {
+          const cached = await OfflineSync.getCachedList(cacheKey);
+          if (cached) return jsonResponse(cached);
+          throw new Error("Sem conexão e sem dados locais de " + cacheKey);
+        }
+      }
+
+      if (
+        enabled === true &&
+        !navigator.onLine &&
+        method === "POST" &&
+        init.body instanceof FormData &&
+        OfflineSync.isSalvarUrl(url)
+      ) {
+        await OfflineSync.enqueue(url, init.body);
+        await updatePendingUI();
+        OfflineUI.setBanner("Sem internet — apontamento salvo no dispositivo.", "info");
+        OfflineUI.showOfflineSavedPopup();
+        return jsonResponse({
+          ok: true,
+          offline: true,
+          msg: "Salvo localmente. Sincroniza quando houver internet.",
+        });
+      }
+
+      return nativeFetch(input, init);
+    };
   }
 
   async function loadConfig() {
@@ -42,7 +110,7 @@ const OfflineApp = (() => {
   }
 
   async function refreshIfOnline() {
-    if (!enabled || !navigator.onLine) return;
+    if (enabled !== true || !navigator.onLine) return;
     try {
       await OfflineSync.refreshDados();
     } catch (e) {
@@ -50,8 +118,20 @@ const OfflineApp = (() => {
     }
   }
 
+  async function warnIfCatalogEmpty() {
+    if (!navigator.onLine && enabled === true) {
+      const dados = await OfflineSync.getDadosCache();
+      if (!OfflineSync.hasCatalogData(dados)) {
+        OfflineUI.setBanner(
+          "Áreas e produtos não estão neste aparelho. Abra o Caderno com internet uma vez para baixá-los.",
+          "warn"
+        );
+      }
+    }
+  }
+
   async function updatePendingUI() {
-    if (!enabled) return;
+    if (enabled !== true) return;
     const n = await OfflineDB.countFila();
     await OfflineUI.updateBadge(n);
     if (!navigator.onLine) {
@@ -60,7 +140,7 @@ const OfflineApp = (() => {
   }
 
   async function runSync() {
-    if (!enabled || syncing || !navigator.onLine) return;
+    if (enabled !== true || syncing || !navigator.onLine) return;
     syncing = true;
     OfflineUI.setBanner("Sincronizando apontamentos...", "sync");
     try {
@@ -81,62 +161,25 @@ const OfflineApp = (() => {
     }
   }
 
-  function patchFetch() {
-    window.fetch = async function offlineFetch(input, init = {}) {
-      const url = typeof input === "string" ? input : input.url;
-      const method = (init.method || "GET").toUpperCase();
-
-      if (enabled && OfflineSync.isRelatorioUrl(url) && !navigator.onLine) {
-        return jsonResponse({ ok: false, msg: "Relatórios exigem conexão com a internet." }, 503);
-      }
-
-      if (enabled && method === "GET") {
-        const cacheKey = OfflineSync.getCacheKeyFromUrl(url);
-        if (cacheKey && !navigator.onLine) {
-          const dados = await OfflineSync.getDadosCache();
-          if (dados && Array.isArray(dados[cacheKey])) {
-            return jsonResponse(dados[cacheKey]);
-          }
-          return jsonResponse([], 200);
-        }
-      }
-
-      if (
-        enabled &&
-        !navigator.onLine &&
-        method === "POST" &&
-        init.body instanceof FormData &&
-        OfflineSync.isSalvarUrl(url)
-      ) {
-        await OfflineSync.enqueue(url, init.body);
-        await updatePendingUI();
-        OfflineUI.setBanner("Sem internet — apontamento salvo no dispositivo.", "info");
-        OfflineUI.showOfflineSavedPopup();
-        return jsonResponse({
-          ok: true,
-          offline: true,
-          msg: "Salvo localmente. Sincroniza quando houver internet.",
-        });
-      }
-
-      return nativeFetch(input, init);
-    };
-  }
-
   function bindEvents() {
     window.addEventListener("online", () => {
-      if (!enabled) return;
+      if (enabled !== true) return;
       OfflineUI.hideBanner();
       refreshIfOnline().then(runSync);
     });
 
     window.addEventListener("offline", () => {
-      if (!enabled) return;
+      if (enabled !== true) return;
       OfflineUI.setBanner("Modo offline — apontamentos serão salvos no dispositivo.", "info");
+      warnIfCatalogEmpty();
     });
   }
 
   async function init() {
+    if (typeof OfflineSync !== "undefined") {
+      await OfflineSync.warmDadosCache();
+    }
+
     if (typeof OfflineSession !== "undefined") {
       await OfflineSession.registerServiceWorker();
     }
@@ -144,10 +187,9 @@ const OfflineApp = (() => {
     const config = await loadConfig();
     if (!config.habilitado) return;
 
-    patchFetch();
     bindEvents();
     if (typeof OfflineNavigation !== "undefined") {
-      OfflineNavigation.install(() => enabled);
+      OfflineNavigation.install(() => enabled === true);
     }
     OfflineUI.blockRelatoriosPage();
     if (navigator.onLine && typeof OfflineSession !== "undefined") {
@@ -155,10 +197,13 @@ const OfflineApp = (() => {
     }
     await refreshIfOnline();
     await updatePendingUI();
+    await warnIfCatalogEmpty();
     if (navigator.onLine) await runSync();
   }
 
-  return { init, isEnabled: () => enabled };
+  patchFetch();
+
+  return { init, isEnabled: () => enabled === true };
 })();
 
 document.addEventListener("DOMContentLoaded", () => {

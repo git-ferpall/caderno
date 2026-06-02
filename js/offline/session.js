@@ -49,6 +49,13 @@ const OfflineSession = (() => {
       expiresAt: Date.now() + days * 24 * 60 * 60 * 1000,
     };
     await OfflineDB.putCache(SESSION_KEY, session);
+    if (navigator.onLine && typeof OfflineSync !== "undefined") {
+      try {
+        await OfflineSync.refreshDados();
+      } catch (e) {
+        console.warn("[offline] refresh dados no login:", e);
+      }
+    }
     await requestPrecache();
     return session;
   }

@@ -78,16 +78,50 @@ const OfflineSync = (() => {
     return fd;
   }
 
-  async function refreshDados() {
-    const r = await fetch("../funcoes/offline/dados.php", { credentials: "same-origin" });
-    const data = await r.json();
-    if (!data.ok) throw new Error(data.msg || "Falha ao cachear dados");
+  let memDados = null;
+
+  async function putDadosCache(data) {
+    memDados = data;
     await OfflineDB.putCache("dados_offline", data);
     return data;
   }
 
+  async function refreshDados() {
+    const r = await fetch("../funcoes/offline/dados.php", { credentials: "same-origin" });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.msg || "Falha ao cachear dados");
+    return putDadosCache(data);
+  }
+
   async function getDadosCache() {
-    return OfflineDB.getCache("dados_offline");
+    if (memDados) return memDados;
+    memDados = await OfflineDB.getCache("dados_offline");
+    return memDados;
+  }
+
+  async function getCachedList(cacheKey) {
+    const dados = await getDadosCache();
+    const list = dados?.[cacheKey];
+    return Array.isArray(list) ? list : null;
+  }
+
+  async function mergeDadosSlice(cacheKey, arr) {
+    if (!cacheKey || !Array.isArray(arr)) return;
+    let dados = await getDadosCache();
+    if (!dados?.ok) {
+      dados = { ok: true, atualizado_em: new Date().toISOString() };
+    }
+    dados[cacheKey] = arr;
+    await putDadosCache(dados);
+  }
+
+  async function warmDadosCache() {
+    await getDadosCache();
+  }
+
+  function hasCatalogData(dados) {
+    if (!dados) return false;
+    return ["areas", "produtos"].some((k) => Array.isArray(dados[k]) && dados[k].length > 0);
   }
 
   async function enqueue(url, formData) {
@@ -135,6 +169,11 @@ const OfflineSync = (() => {
     objectToFormData,
     refreshDados,
     getDadosCache,
+    getCachedList,
+    mergeDadosSlice,
+    warmDadosCache,
+    hasCatalogData,
+    putDadosCache,
     enqueue,
     syncAll,
   };
