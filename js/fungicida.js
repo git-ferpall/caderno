@@ -58,49 +58,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Carregar FUNGICIDAS ===
   function carregarFungicidas() {
-    fetch("../funcoes/buscar_fungicidas.php")
-      .then(r => r.json())
-      .then(data => {
+    fetch("/funcoes/buscar_fungicidas.php", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
         const sel = document.getElementById("fungicida");
         if (!sel) return;
-
         sel.innerHTML = '<option value="">Selecione o fungicida</option>';
-
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = item.nome;
-          sel.appendChild(opt);
-        });
-
-        // adiciona opção "Outro"
-        const outro = document.createElement("option");
-        outro.value = "outro";
-        outro.textContent = "Outro (digitar manualmente)";
-        sel.appendChild(outro);
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.nome;
+            sel.appendChild(opt);
+          });
+        }
+        if (typeof DefensivoOutro !== "undefined") {
+          DefensivoOutro.afterCatalogLoaded("fungicida");
+        }
       })
-      .catch(err => console.error("Erro ao carregar fungicidas:", err));
+      .catch((err) => {
+        console.error("Erro ao carregar fungicidas:", err);
+        if (typeof DefensivoOutro !== "undefined") {
+          DefensivoOutro.afterCatalogLoaded("fungicida");
+        }
+      });
   }
 
-carregarFungicidas();
-
-  // 👇 ADICIONE AQUI
-  const fungicidaSelect = document.getElementById("fungicida");
-  const fungicidaOutro = document.getElementById("fungicida_outro");
-
-  if (fungicidaSelect && fungicidaOutro) {
-    fungicidaSelect.addEventListener("change", () => {
-      if (fungicidaSelect.value === "outro") {
-        fungicidaOutro.style.display = "block";
-        fungicidaOutro.required = true;
-        fungicidaOutro.focus();
-      } else {
-        fungicidaOutro.style.display = "none";
-        fungicidaOutro.required = false;
-        fungicidaOutro.value = "";
-      }
-    });
-  }
+  carregarFungicidas();
 
   
   // === Submit do formulário principal ===

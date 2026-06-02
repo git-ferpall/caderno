@@ -133,6 +133,84 @@
     color: #888;
 }
 
+/* Home — fila aguardando sync (só offline) */
+.offline-sync-panel {
+    margin-top: 0;
+}
+
+.offline-sync-panel .offline-sync-header {
+    background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.offline-sync-panel .offline-sync-count {
+    background: #fff;
+    color: #d35400;
+    font-weight: 800;
+}
+
+.offline-sync-panel .offline-sync-body {
+    padding: 12px 14px 14px;
+}
+
+.offline-sync-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.offline-sync-item {
+    background: #fff8f0;
+    border: 1px solid #ffd9b3;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.offline-sync-item-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 12px;
+}
+
+.offline-sync-item-tipo {
+    font-size: 14px;
+    color: #1a2b3c;
+}
+
+.offline-sync-item-data {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.offline-sync-item-meta {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.35;
+}
+
+.offline-sync-hint {
+    margin: 10px 0 0;
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+    text-align: center;
+}
+
+body.page-home #offline-pending-badge,
+#home #offline-pending-badge {
+    display: none !important;
+}
+
 /* Menu — baixar para offline (mesmo padrão dos outros itens) */
 #btn-offline-prepare {
     text-decoration: none;

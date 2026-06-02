@@ -14,3 +14,5 @@
 <script src="../js/offline/navigation.js"></script>
 <script src="../js/offline/app.js"></script>
 <script src="../js/offline/catalog-ui.js"></script>
+<script src="../js/offline/pending-panel.js"></script>
+<script src="../js/offline/defensivo-outro.js"></script>

@@ -171,6 +171,19 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <p class="nenhum-apontamento">Nenhum apontamento concluído</p>
                             </div>
                         </div>
+
+                        <div id="offline-sync-panel" class="apontamento-collapse offline-sync-panel manejos-panel active d-none" aria-hidden="true">
+                            <div class="apontamento-header offline-sync-header">
+                                <div class="apontamento-title">
+                                    <span class="apontamento-count offline-sync-count" id="offline-sync-count">0</span>
+                                    <h2 class="apontamento-title-text">Aguardando sincronização</h2>
+                                </div>
+                            </div>
+                            <div class="main-tabela offline-sync-body">
+                                <ul class="offline-sync-list" id="offline-sync-list"></ul>
+                                <p class="offline-sync-hint">Salvos neste aparelho. Serão enviados ao servidor quando houver internet.</p>
+                            </div>
+                        </div>
                     </div>
                     
                 </div>

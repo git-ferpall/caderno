@@ -193,7 +193,9 @@ const OfflineApp = (() => {
 
   async function updatePendingUI() {
     const n = await OfflineDB.countFila();
-    if (enabled === true || (await canQueueOfflineSave())) {
+    if (typeof OfflinePendingPanel !== "undefined") {
+      await OfflinePendingPanel.refresh();
+    } else if (enabled === true || (await canQueueOfflineSave())) {
       await OfflineUI.updateBadge(n);
     }
     if (!navigator.onLine && (enabled === true || (await canQueueOfflineSave()))) {
@@ -346,11 +348,11 @@ const OfflineApp = (() => {
       await ensureHomeShellCached();
     }
     await refreshIfOnline();
-    await updatePendingUI();
     await warnIfCatalogEmpty();
     if (!navigator.onLine || enabled === true) {
       scheduleCatalogRefill();
     }
+    await updatePendingUI();
     if (navigator.onLine) await runSync();
   }
 

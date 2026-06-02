@@ -370,6 +370,21 @@
     justify-content: center;
 }
 
+/* Defensivo / herbicida — campo "Outro (digitar manualmente)" */
+.main-form input[id$="_outro"] {
+    display: none !important;
+    margin-top: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.main-form input[id$="_outro"].defensivo-outro-open {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 44px;
+}
+
 /* Esconde o input padrão */
 .main-form .form-radio input[type="radio"] {
   display: none;

@@ -145,25 +145,6 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
   <?php include '../include/imports.php'; ?>
   <?php include '../include/footer.php'; ?>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const inputOutro = document.getElementById('fertilizante_outro');
-      const select = document.getElementById('fertilizante');
-
-      // Evita erro se ainda não existir
-      if (!inputOutro || !select) return;
-
-      // Oculta inicialmente
-      inputOutro.style.display = 'none';
-
-      // Mostra/oculta conforme seleção
-      select.addEventListener('change', () => {
-        const outro = select.value === 'outro';
-        inputOutro.style.display = outro ? 'block' : 'none';
-        inputOutro.required = outro;
-      });
-    });
-  </script>
 </body>
 <script src="../js/fertilizante.js"></script>
 </html>

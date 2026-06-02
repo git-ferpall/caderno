@@ -33,26 +33,30 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 // === Carregar FERTILIZANTES ===
 function carregarFertilizantes() {
-  fetch("../funcoes/buscar_fertilizantes.php")
-    .then(r => r.json())
-    .then(data => {
+  fetch("/funcoes/buscar_fertilizantes.php", { credentials: "same-origin" })
+    .then((r) => r.json())
+    .then((data) => {
       const sel = document.getElementById("fertilizante");
       if (!sel) return;
       sel.innerHTML = '<option value="">Selecione o fertilizante</option>';
-      data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        sel.appendChild(opt);
-      });
-
-      // 🔹 Adiciona a opção "Outro" no final da lista
-      const outro = document.createElement("option");
-      outro.value = "outro";
-      outro.textContent = "Outro (digitar manualmente)";
-      sel.appendChild(outro);
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.nome;
+          sel.appendChild(opt);
+        });
+      }
+      if (typeof DefensivoOutro !== "undefined") {
+        DefensivoOutro.afterCatalogLoaded("fertilizante");
+      }
     })
-    .catch(err => console.error("Erro ao carregar fertilizantes:", err));
+    .catch((err) => {
+      console.error("Erro ao carregar fertilizantes:", err);
+      if (typeof DefensivoOutro !== "undefined") {
+        DefensivoOutro.afterCatalogLoaded("fertilizante");
+      }
+    });
 }
 
 

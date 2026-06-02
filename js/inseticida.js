@@ -86,45 +86,33 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // === Carregar inseticidas ===
   function carregarInseticidas() {
-    fetch("../funcoes/buscar_inseticidas.php")
-      .then(r => r.json())
-      .then(data => {
+    fetch("/funcoes/buscar_inseticidas.php", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
         const sel = document.getElementById("inseticida");
-        const outroInput = document.getElementById("inseticida_outro");
         if (!sel) return;
-
-        // limpa e recria as opções
         sel.innerHTML = '<option value="">Selecione o inseticida</option>';
-        data.forEach(item => {
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = item.nome;
-          sel.appendChild(opt);
-        });
-
-        // adiciona a opção "Outro (digitar manualmente)"
-        const outro = document.createElement("option");
-        outro.value = "outro";
-        outro.textContent = "Outro (digitar manualmente)";
-        sel.appendChild(outro);
-
-        // mostra/oculta o campo manual
-        sel.addEventListener("change", () => {
-          if (sel.value === "outro") {
-            outroInput.style.display = "block";
-            outroInput.required = true;
-            outroInput.focus();
-          } else {
-            outroInput.style.display = "none";
-            outroInput.required = false;
-            outroInput.value = "";
-          }
-        });
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.nome;
+            sel.appendChild(opt);
+          });
+        }
+        if (typeof DefensivoOutro !== "undefined") {
+          DefensivoOutro.afterCatalogLoaded("inseticida");
+        }
       })
-      .catch(err => console.error("Erro ao carregar inseticidas:", err));
+      .catch((err) => {
+        console.error("Erro ao carregar inseticidas:", err);
+        if (typeof DefensivoOutro !== "undefined") {
+          DefensivoOutro.afterCatalogLoaded("inseticida");
+        }
+      });
   }
 
-carregarInseticidas();
+  carregarInseticidas();
 
 
   // === Submit do formulário principal ===
