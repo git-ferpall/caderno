@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   "/js/offline/ui.js",
   "/js/offline/session.js",
   "/js/offline/app.js",
+  "/js/offline/navigation.js",
   "/img/logo-icon.png",
   "/img/logo-color.png",
   "/manifest.webmanifest",
@@ -42,13 +43,57 @@ self.addEventListener("message", (event) => {
   }
 });
 
+function isLoginPath(pathname) {
+  return pathname === "/" || pathname === "/index.php";
+}
+
+function pageCacheKeys(pathname, responseUrl) {
+  const keys = new Set();
+  const base = pathname.replace(/\/$/, "") || "/";
+  const paths = [base, `${base}/`, `${base}.php`];
+  if (responseUrl) {
+    const respPath = new URL(responseUrl).pathname.replace(/\/$/, "") || "/";
+    paths.push(respPath, `${respPath}/`, `${respPath}.php`);
+  }
+  if (base.startsWith("/home/") && base !== "/home") {
+    const segment = base.split("/").filter(Boolean).pop();
+    paths.push(`/home/${segment}.php`);
+  }
+  paths.forEach((p) => {
+    keys.add(p);
+    keys.add(self.location.origin + p);
+  });
+  return [...keys];
+}
+
+async function putPageInCache(cache, request, response) {
+  const url = new URL(request.url);
+  const keys = pageCacheKeys(url.pathname, response.url);
+  await Promise.all(
+    keys.map((key) => cache.put(key, response.clone()))
+  );
+}
+
+async function findCachedPage(request) {
+  const cache = await caches.open(CACHE_PAGES);
+  const url = new URL(request.url);
+  const keys = pageCacheKeys(url.pathname, null);
+  for (const key of keys) {
+    const hit = await cache.match(key);
+    if (hit) return hit;
+  }
+  return cache.match(request);
+}
+
 async function precachePages(urls) {
   const cache = await caches.open(CACHE_PAGES);
   await Promise.all(
     urls.map((url) =>
       fetch(url, { credentials: "include" })
-        .then((res) => {
-          if (res.ok) return cache.put(url, res);
+        .then(async (res) => {
+          if (!res.ok || isLoginPath(new URL(res.url).pathname)) return;
+          const req = new Request(url, { credentials: "include" });
+          await putPageInCache(cache, req, res);
         })
         .catch(() => {})
     )
@@ -98,17 +143,33 @@ async function cacheFirstStatic(request) {
   return res;
 }
 
+function offlineSubpageHtml(pathname) {
+  const title = "Tela não disponível offline";
+  const body =
+    pathname.startsWith("/home/") && pathname !== "/home"
+      ? "<p>Esta página ainda não foi salva neste aparelho.</p><p>Com internet, abra <strong>Início</strong> e toque em <strong>Novo apontamento</strong> uma vez; depois o offline funciona aqui.</p>"
+      : "<p>Sem conexão. Faça login com internet pelo menos uma vez neste aparelho.</p>";
+  return `<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><link rel="stylesheet" href="/css/style.css"></head><body class="offline-entry-page"><main class="offline-entry-main"><h1>${title}</h1>${body}<p><a href="/home" class="main-btn fundo-azul">Voltar ao início</a></p></main></body></html>`;
+}
+
 async function networkFirstPage(request) {
+  const url = new URL(request.url);
   try {
     const res = await fetch(request);
-    if (res.ok) {
-      const copy = res.clone();
-      caches.open(CACHE_PAGES).then((cache) => cache.put(request, copy));
+    if (res.ok && !isLoginPath(new URL(res.url).pathname)) {
+      const cache = await caches.open(CACHE_PAGES);
+      putPageInCache(cache, request, res.clone());
     }
     return res;
   } catch {
-    const cached = await caches.match(request);
+    const cached = await findCachedPage(request);
     if (cached) return cached;
+    if (url.pathname.startsWith("/home/") && url.pathname !== "/home") {
+      return new Response(offlineSubpageHtml(url.pathname), {
+        status: 503,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
     const offline = await caches.match("/offline.html");
     if (offline) return offline;
     return new Response("Sem conexão. Abra o Caderno online pelo menos uma vez neste aparelho.", {

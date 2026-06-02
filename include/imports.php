@@ -11,4 +11,5 @@
 <script src="../js/offline/session.js"></script>
 <script src="../js/offline/sync.js"></script>
 <script src="../js/offline/ui.js"></script>
+<script src="../js/offline/navigation.js"></script>
 <script src="../js/offline/app.js"></script>

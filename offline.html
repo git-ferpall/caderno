@@ -33,7 +33,6 @@
                 : "Sessão encontrada neste aparelho.";
             btn.classList.remove("d-none");
             btn.addEventListener("click", () => { window.location.href = "/home"; });
-            if (!navigator.onLine) setTimeout(() => { window.location.href = "/home"; }, 800);
         } else {
             msg.textContent = "Não há sessão offline neste dispositivo.";
             note.classList.remove("d-none");

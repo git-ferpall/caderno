@@ -146,7 +146,13 @@ const OfflineApp = (() => {
 
     patchFetch();
     bindEvents();
+    if (typeof OfflineNavigation !== "undefined") {
+      OfflineNavigation.install(() => enabled);
+    }
     OfflineUI.blockRelatoriosPage();
+    if (navigator.onLine && typeof OfflineSession !== "undefined") {
+      await OfflineSession.requestPrecache();
+    }
     await refreshIfOnline();
     await updatePendingUI();
     if (navigator.onLine) await runSync();
