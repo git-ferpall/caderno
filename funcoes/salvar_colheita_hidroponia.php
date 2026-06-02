@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/hidroponia_helpers.php';
 
 header('Content-Type: application/json; charset=utf-8');
 session_start();
@@ -42,7 +43,7 @@ try {
 
     // === Busca área e produto da bancada ===
     $stmt = $mysqli->prepare("
-        SELECT area_id, produto_id 
+        SELECT id AS bancada_id, area_id, produto_id 
         FROM bancadas 
         WHERE estufa_id = ? AND nome LIKE CONCAT('%', ?, '%') 
         LIMIT 1
@@ -57,7 +58,20 @@ try {
     }
 
     $area_id_real = $res['area_id'];
-    $produto_id_real = $res['produto_id'];
+    $produto_id_real = (int) $res['produto_id'];
+
+    $cultivo_produto_id = isset($_POST['cultivo_produto_id']) ? (int) $_POST['cultivo_produto_id'] : 0;
+    if ($cultivo_produto_id > 0) {
+        $produtos_bancada = hidroponiaListarProdutosBancada(
+            $mysqli,
+            (int) ($res['bancada_id'] ?? 0),
+            $produto_id_real
+        );
+        $ids_ok = array_column($produtos_bancada, 'id');
+        if (in_array($cultivo_produto_id, $ids_ok, true)) {
+            $produto_id_real = $cultivo_produto_id;
+        }
+    }
 
     // === Traduz destino numérico para texto ===
     switch ($destino) {

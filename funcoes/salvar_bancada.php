@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/hidroponia_helpers.php';
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 // 🧾 Grava debug local (para entender o que chega do JS)
@@ -40,10 +41,18 @@ $propriedade_id = (int)$prop['id'];
 // 🧾 Dados recebidos do formulário
 $estufa_id  = isset($_POST['estufa_id']) ? (int)$_POST['estufa_id'] : 0;
 $nome       = isset($_POST['nome']) ? trim($_POST['nome']) : '';
-$produto_id = isset($_POST['produto_id']) ? (int)$_POST['produto_id'] : 0;
 $obs        = isset($_POST['obs']) ? trim($_POST['obs']) : '';
 $barea = isset($_POST['barea']) ? (float)$_POST['barea'] : 0;
 $barea_unidade = isset($_POST['barea_unidade']) ? $_POST['barea_unidade'] : 'm2';
+
+$produto_ids = [];
+if (isset($_POST['produto_id']) && is_array($_POST['produto_id'])) {
+    $produto_ids = array_map('intval', $_POST['produto_id']);
+} elseif (isset($_POST['produto_id'])) {
+    $produto_ids = [(int) $_POST['produto_id']];
+}
+$produto_ids = array_values(array_unique(array_filter($produto_ids, static fn ($id) => $id > 0)));
+$produto_id = $produto_ids[0] ?? 0;
 
 // converte hectares para m²
 if ($barea_unidade === 'ha') {
@@ -59,8 +68,8 @@ if ($nome === '') {
     echo json_encode(['ok' => false, 'err' => 'O nome da bancada é obrigatório']);
     exit;
 }
-if ($produto_id <= 0) {
-    echo json_encode(['ok' => false, 'err' => 'Selecione o produto (cultura) da bancada']);
+if (!$produto_ids) {
+    echo json_encode(['ok' => false, 'err' => 'Selecione ao menos um produto (cultura) da bancada']);
     exit;
 }
 
@@ -114,6 +123,8 @@ try {
     if ($bancada_id <= 0) {
         throw new Exception('Erro ao salvar a bancada.');
     }
+
+    hidroponiaSalvarProdutosBancada($mysqli, $bancada_id, $produto_ids);
 
     // ✅ Confirma transação
     $mysqli->commit();

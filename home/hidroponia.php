@@ -24,6 +24,14 @@ if (!headers_sent()) {
         transform: scale(1.02);
         transition: all 0.2s ease-in-out;
 }
+        .hidro-bancada-produtos .form-box-produto { margin-bottom: 6px; }
+        .hidro-bancada-produtos .linha { align-items: flex-start; }
+        .item-bancada-qr { margin-top: 8px; }
+        .btn-qr-bancada { font-size: 14px; padding: 8px 14px; margin-top: 6px; }
+        .popup-qr-bancada { text-align: center; max-width: 340px; }
+        .popup-qr-bancada canvas { margin: 12px auto; display: block; border-radius: 8px; }
+        .popup-qr-bancada-url { font-size: 12px; word-break: break-all; color: #666; margin: 8px 0 16px; }
+        .culturas-lista { line-height: 1.5; }
     </style>    
 </head>
 <body>
@@ -86,27 +94,44 @@ if (!headers_sent()) {
                         
                         if(!empty($estufa['bancadas']) && is_array($estufa['bancadas'])){
                             foreach ($estufa['bancadas'] as $bancada) {
-                                $cultura = ($bancada['cultura'] == '') ? 'Não informado': $bancada['cultura'];
+                                $produtos = $bancada['produtos'] ?? [];
+                                $cultura = ($bancada['cultura'] ?? '') !== '' ? $bancada['cultura'] : 'Não informado';
                                 $bancada_obs = ($bancada['obs'] == '') ? 'Nenhuma observação' : $bancada['obs'];
                                 $bancada_has_obs = ($bancada['obs'] == '') ? '' : 'v2';
+                                $bancada_nome_attr = htmlspecialchars((string) $bancada['nome'], ENT_QUOTES, 'UTF-8');
+                                $bancada_nome_js = addslashes((string) $bancada['nome']);
 
                                 $form_id = 'e-' . $estufa['id'] . '-b-' . $bancada['nome'];
 
-                                echo '<button type="button" class="item-bancada" id="item-bancada-' . $bancada['nome'] . '-estufa-' . $estufa['id'] . '" onclick="selectBancada(\'' . strval($bancada['nome']) . '\', '. strval($estufa['id']) . ')">
-                                    <div class="item-bancada-title">' . $bancada['nome'] . '</div>
+                                echo '<button type="button" class="item-bancada"
+                                    data-bancada-id="' . (int) $bancada['id'] . '"
+                                    data-estufa-id="' . (int) $estufa['id'] . '"
+                                    data-bancada-nome="' . $bancada_nome_attr . '"
+                                    id="item-bancada-' . $bancada['nome'] . '-estufa-' . $estufa['id'] . '"
+                                    onclick="selectBancada(\'' . $bancada_nome_js . '\', ' . (int) $estufa['id'] . ')">
+                                    <div class="item-bancada-title">' . htmlspecialchars($bancada['nome']) . '</div>
                                 </button>
 
                                 <div class="item-bancada-content d-none" id="item-bancada-' . $bancada['nome'] . '-content-estufa-' . $estufa['id'] . '">
                                     <div class="item-bancada-header">
 
                                         <div class="item-bancada-header-box">
-                                            <div class="item-bancada-header-title">Cultura/espécie</div>
-                                            <div class="item-bancada-header-text">' . $cultura . '</div>
+                                            <div class="item-bancada-header-title">Cultura(s)/espécie(s)</div>
+                                            <div class="item-bancada-header-text culturas-lista">' . htmlspecialchars($cultura) . '</div>
                                         </div>
 
                                         <div class="item-bancada-header-box ' . $bancada_has_obs . '">
                                             <div class="item-bancada-header-title">Observações</div>
-                                            <div class="item-bancada-header-text">' . $bancada_obs . '</div>
+                                            <div class="item-bancada-header-text">' . htmlspecialchars($bancada_obs) . '</div>
+                                        </div>
+
+                                        <div class="item-bancada-header-box item-bancada-qr">
+                                            <div class="item-bancada-header-title">Acesso rápido</div>
+                                            <button type="button" class="main-btn fundo-azul btn-qr-bancada"
+                                                data-bancada-id="' . (int) $bancada['id'] . '"
+                                                data-bancada-nome="' . $bancada_nome_attr . '">
+                                                <span class="main-btn-text">Gerar QR Code</span>
+                                            </button>
                                         </div>
 
                                     </div>
@@ -250,6 +275,18 @@ if (!headers_sent()) {
 
                                         <form action="hidroponia.php" class="main-form form-colheita d-none" id="add-' . $form_id . '-colheita">
 
+                                            ';
+                                if (count($produtos) > 1) {
+                                    echo '<div class="form-campo">
+                                                <label for="col-' . $form_id . '-cultivo">Produto colhido</label>
+                                                <select name="col-' . $form_id . '-cultivo" id="col-' . $form_id . '-cultivo" class="form-select form-text" required>';
+                                    foreach ($produtos as $p) {
+                                        echo '<option value="' . (int) $p['id'] . '">' . htmlspecialchars($p['nome']) . '</option>';
+                                    }
+                                    echo '</select>
+                                            </div>';
+                                }
+                                echo '
                                             <div class="form-campo">
                                                 <label class="item-label" for="col-' . $form_id . '-qtd">Quantidade colhida</label>
                                                 <input type="text" class="form-text onlynum" name="col-' . $form_id . '-qtd" id="col-' . $form_id . '-qtd" placeholder="Quantidade colhida">
@@ -335,13 +372,13 @@ if (!headers_sent()) {
                                 <div class="item-add-box" id="item-add-bancada-estufa-' . $estufa['id'] . '">
                                     <div class="item-add-box-p">
                                         <div class="form-campo">
-                                            <label class="item-label" for="b-nome">Número/Nome da Bancada</label>
-                                            <input type="text" class="form-text" name="enome" id="b-nome" placeholder="Ex: 01, 02..." required>
+                                            <label class="item-label" for="b-nome-estufa-' . $estufa['id'] . '">Número/Nome da Bancada</label>
+                                            <input type="text" class="form-text" name="bnome" id="b-nome-estufa-' . $estufa['id'] . '" placeholder="Ex: 01, 02..." required>
                                         </div>
                                         
                                         
                                         <div class="form-campo">
-                                            <label class="item-label" for="b-area">Área da bancada</label>
+                                            <label class="item-label" for="b-area-estufa-' . $estufa['id'] . '">Área da bancada</label>
 
                                             <div style="display:flex; gap:10px;">
 
@@ -349,7 +386,7 @@ if (!headers_sent()) {
                                                     type="number"
                                                     class="form-text"
                                                     name="barea"
-                                                    id="b-area"
+                                                    id="b-area-estufa-' . $estufa['id'] . '"
                                                     step="0.01"
                                                     placeholder="Ex: 12"
                                                 >
@@ -362,18 +399,25 @@ if (!headers_sent()) {
                                             </div>
                                         </div>
 
-                                        <div class="form-campo">
-                                            <label class="item-label" for="b-produto">Cultura/Produto</label>
-                                            <div class="form-box form-box-produto">
-                                                <select name="bproduto" id="b-produto" class="form-select form-text produto-select" required>
-                                                    <option value="">Selecione o produto</option>
-                                                </select>
+                                        <div class="form-campo hidro-bancada-produtos">
+                                            <label class="item-label">Cultura(s)/Produto(s)</label>
+                                            <div class="linha">
+                                                <div class="lista-produtos-bancada" id="lista-produtos-estufa-' . $estufa['id'] . '">
+                                                    <div class="form-box form-box-produto">
+                                                        <select name="produto_id[]" class="form-select form-text produto-select" required>
+                                                            <option value="">Selecione o produto</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="add-btn add-produto-bancada" data-estufa-id="' . $estufa['id'] . '" title="Adicionar produto">
+                                                    <div class="btn-icon icon-plus cor-branco"></div>
+                                                </button>
                                             </div>
                                         </div>
 
                                         <div class="form-campo">
-                                            <label for="e-obs">Observações</label>
-                                            <textarea class="form-text form-textarea" name="bobs" id="b-obs" placeholder="Insira aqui suas observações..."></textarea>
+                                            <label for="b-obs-estufa-' . $estufa['id'] . '">Observações</label>
+                                            <textarea class="form-text form-textarea" name="bobs" id="b-obs-estufa-' . $estufa['id'] . '" placeholder="Insira aqui suas observações..."></textarea>
                                         </div>
 
                                         <div class="form-submit">
@@ -444,6 +488,22 @@ if (!headers_sent()) {
 
         <?php include '../include/imports.php' ?>
     </div>
+
+    <!-- Popup QR Code da bancada -->
+    <div id="popup-qr-bancada-overlay" class="popup d-none">
+        <div class="popup-box popup-qr-bancada">
+            <h2 class="popup-title" id="popup-qr-bancada-title">QR Code da bancada</h2>
+            <p class="popup-text">Escaneie para abrir esta bancada direto no celular.</p>
+            <canvas id="qr-bancada-canvas" width="240" height="240" aria-label="QR Code"></canvas>
+            <p class="popup-qr-bancada-url" id="qr-bancada-url"></p>
+            <div class="popup-actions">
+                <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="btn-qr-bancada-fechar">Fechar</button>
+                <button type="button" class="popup-btn fundo-verde" id="btn-qr-bancada-copiar">Copiar link</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>

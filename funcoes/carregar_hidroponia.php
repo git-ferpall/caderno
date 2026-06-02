@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/hidroponia_helpers.php';
 
 /**
  * Retorna todas as estufas e bancadas da propriedade ativa,
@@ -79,12 +80,15 @@ function carregarHidroponia(): array {
         $r_banc = $q_banc->get_result();
 
         while ($bancada = $r_banc->fetch_assoc()) {
+            $bancada_id = (int) $bancada['id'];
+            $produtos = hidroponiaListarProdutosBancada($mysqli, $bancada_id, (int) $bancada['produto_id']);
             $bancadas[] = [
-                'id'          => (int)$bancada['id'],
+                'id'          => $bancada_id,
                 'nome'        => $bancada['nome'],
-                'produto_id'  => (int)$bancada['produto_id'],
-                'cultura'     => $bancada['produto_nome'], // compatível com front-end
-                'obs'         => $bancada['obs'] ?? ''
+                'produto_id'  => $produtos ? (int) $produtos[0]['id'] : (int) $bancada['produto_id'],
+                'produtos'    => $produtos,
+                'cultura'     => hidroponiaFormatCulturas($produtos, $bancada['produto_nome'] ?? 'Não informado'),
+                'obs'         => $bancada['obs'] ?? '',
             ];
         }
 

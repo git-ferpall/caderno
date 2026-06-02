@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const qtd = form.querySelector('input[id*="-qtd"]')?.value.trim() || "";
       const destino = form.querySelector('input[name*="-dest"]:checked')?.value || "";
       const obs = form.querySelector('textarea[id*="-obs"]')?.value.trim() || "";
+      const cultivo = form.querySelector('select[id*="-cultivo"]')?.value || "";
 
       if (!estufa_id || !area_id) {
         alert("Erro interno: estufa ou bancada não identificada.");
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("quantidade", qtd);
         fd.append("destino", destino);
         fd.append("obs", obs);
+        if (cultivo) fd.append("cultivo_produto_id", cultivo);
         if (typeof CadernoSalvar !== "undefined") {
           await CadernoSalvar.postFormData("salvar_colheita_hidroponia.php", fd, {
             redirect: false,

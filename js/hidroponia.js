@@ -1,97 +1,209 @@
 /**
- * HIDROPONIA.JS v2.5
- * Sistema Caderno de Campo - Frutag
- * Controle de cadastro, exibição e interação de Estufas e Bancadas
- * Atualizado em 2025-10-28
+ * HIDROPONIA.JS v3.0
+ * Estufas, bancadas (multi-produto), QR Code e deep link ?b={id}
  */
-
 document.addEventListener("DOMContentLoaded", () => {
+  initEstufaSave();
+  initBancadaSave();
+  initAddProdutoBancada();
+  initQrBancada();
+  abrirBancadaPorQr();
+  carregarProdutos();
+});
 
-  // 🟢 Adicionar nova estufa
+function initEstufaSave() {
   const btnAddEstufa = document.getElementById("form-save-estufa");
-  if (btnAddEstufa) {
-    btnAddEstufa.addEventListener("click", async () => {
-      const nome = document.getElementById("e-nome").value.trim();
-      const area = document.getElementById("e-area").value.trim();
-      const obs = document.getElementById("e-obs").value.trim();
+  if (!btnAddEstufa) return;
+
+  btnAddEstufa.addEventListener("click", async () => {
+    const nome = document.getElementById("e-nome")?.value.trim();
+    const area = document.getElementById("e-area")?.value.trim();
+    const obs = document.getElementById("e-obs")?.value.trim();
+
+    if (!nome) {
+      alert("Informe o nome da estufa");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("nome", nome);
+    fd.append("area_m2", area);
+    fd.append("obs", obs);
+
+    if (typeof CadernoSalvar !== "undefined") {
+      await CadernoSalvar.postFormData("salvar_estufa.php", fd, {
+        redirect: false,
+        onSuccess: () => location.reload(),
+        onError: (d) => alert("Erro: " + (d?.err || d?.msg || "falha")),
+      });
+    }
+  });
+}
+
+function initBancadaSave() {
+  document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const btnEl = e.target.closest("button[id^='form-save-bancada-estufa-']");
+      const idEstufa = btnEl.id.split("-").pop();
+      const container = btnEl.closest(".item-add-box");
+      if (!container) return;
+
+      const nome =
+        container.querySelector(`#b-nome-estufa-${idEstufa}`)?.value.trim() ||
+        container.querySelector("[name='bnome']")?.value.trim() ||
+        "";
+      const obs =
+        container.querySelector(`#b-obs-estufa-${idEstufa}`)?.value.trim() ||
+        container.querySelector("[name='bobs']")?.value.trim() ||
+        "";
+      const barea = container.querySelector("[name='barea']")?.value.trim() || "";
+      const barea_unidade = container.querySelector("[name='barea_unidade']")?.value || "m2";
+
+      const produto_ids = [...container.querySelectorAll('select[name="produto_id[]"]')]
+        .map((s) => s.value.trim())
+        .filter(Boolean);
 
       if (!nome) {
-        alert("Informe o nome da estufa");
+        alert("Informe o nome/número da bancada");
+        return;
+      }
+      if (!produto_ids.length) {
+        alert("Selecione ao menos um produto (cultura)");
         return;
       }
 
       const fd = new FormData();
+      fd.append("estufa_id", idEstufa);
       fd.append("nome", nome);
-      fd.append("area_m2", area);
       fd.append("obs", obs);
+      fd.append("barea", barea);
+      fd.append("barea_unidade", barea_unidade);
+      produto_ids.forEach((id) => fd.append("produto_id[]", id));
+
       if (typeof CadernoSalvar !== "undefined") {
-        await CadernoSalvar.postFormData("salvar_estufa.php", fd, {
+        await CadernoSalvar.postFormData("salvar_bancada.php", fd, {
           redirect: false,
           onSuccess: () => location.reload(),
-          onError: (d) => alert("Erro: " + (d?.err || d?.msg || "falha")),
+          onError: (d) => alert(d?.err || d?.msg || "Erro ao salvar a bancada."),
         });
       }
     });
+  });
+}
+
+function initAddProdutoBancada() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".add-produto-bancada");
+    if (!btn) return;
+    e.preventDefault();
+
+    const estufaId = btn.dataset.estufaId;
+    const lista = document.getElementById(`lista-produtos-estufa-${estufaId}`);
+    const original = lista?.querySelector("select");
+    if (!lista || !original) return;
+
+    const novo = original.cloneNode(true);
+    novo.value = "";
+    novo.required = true;
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-box form-box-produto";
+    wrapper.appendChild(novo);
+    lista.appendChild(wrapper);
+    carregarProdutos(novo);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target.id?.startsWith("bancada-add-estufa-")) {
+      setTimeout(carregarProdutos, 300);
+    }
+  });
+}
+
+function buildBancadaUrl(bancadaId) {
+  return `${window.location.origin}/home/hidroponia?b=${bancadaId}`;
+}
+
+function initQrBancada() {
+  let urlAtual = "";
+
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-qr-bancada");
+    if (!btn) return;
+
+    const bancadaId = btn.dataset.bancadaId;
+    const bancadaNome = btn.dataset.bancadaNome || "Bancada";
+    if (!bancadaId) return;
+
+    const overlay = document.getElementById("popup-qr-bancada-overlay");
+    const canvas = document.getElementById("qr-bancada-canvas");
+    const title = document.getElementById("popup-qr-bancada-title");
+    const urlEl = document.getElementById("qr-bancada-url");
+
+    if (!overlay || !canvas || typeof QRCode === "undefined") {
+      alert("Não foi possível gerar o QR Code. Atualize a página.");
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/funcoes/qr_bancada.php?bancada_id=${encodeURIComponent(bancadaId)}`, {
+        credentials: "same-origin",
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        alert(data.err || "Erro ao gerar link.");
+        return;
+      }
+
+      urlAtual = data.url || buildBancadaUrl(bancadaId);
+      if (title) title.textContent = `QR Code — Bancada ${bancadaNome}`;
+      if (urlEl) urlEl.textContent = urlAtual;
+
+      await QRCode.toCanvas(canvas, urlAtual, { width: 240, margin: 2, errorCorrectionLevel: "M" });
+      overlay.classList.remove("d-none");
+    } catch (err) {
+      console.error(err);
+      alert("Falha ao gerar QR Code.");
+    }
+  });
+
+  document.getElementById("btn-qr-bancada-fechar")?.addEventListener("click", () => {
+    document.getElementById("popup-qr-bancada-overlay")?.classList.add("d-none");
+  });
+
+  document.getElementById("btn-qr-bancada-copiar")?.addEventListener("click", async () => {
+    const urlEl = document.getElementById("qr-bancada-url");
+    const text = urlEl?.textContent?.trim();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Link copiado!");
+    } catch {
+      prompt("Copie o link:", text);
+    }
+  });
+}
+
+function abrirBancadaPorQr() {
+  const params = new URLSearchParams(window.location.search);
+  const bancadaId = params.get("b");
+  if (!bancadaId) return;
+
+  const btn = document.querySelector(`.item-bancada[data-bancada-id="${bancadaId}"]`);
+  if (!btn) return;
+
+  const estufaId = parseInt(btn.dataset.estufaId, 10);
+  const nome = btn.dataset.bancadaNome;
+  if (!estufaId || !nome) return;
+
+  selectEstufa(estufaId);
+  selectBancada(nome, estufaId);
+
+  if (window.history?.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
-
-// 🟢 Adicionar nova bancada
-document.querySelectorAll("[id^='form-save-bancada-estufa-']").forEach(btn => {
-    btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-
-        const btnEl = e.target.closest("button[id^='form-save-bancada-estufa-']");
-        const idEstufa = btnEl.id.split("-").pop();
-
-        // procura os campos dentro do mesmo container
-        const container = btnEl.closest(".item-add-box");
-        const nome = container.querySelector("#b-nome")?.value.trim() || "";
-        const produto_id = container.querySelector("#b-produto")?.value.trim() || "";
-        const obs = container.querySelector("#b-obs")?.value.trim() || "";
-
-        const barea = container.querySelector("[name='barea']")?.value.trim() || "";
-        const barea_unidade = container.querySelector("[name='barea_unidade']")?.value || "m2";
-
-        if (!nome) {
-            alert("Informe o nome/número da bancada");
-            return;
-        }
-
-        if (!produto_id) {
-            alert("Selecione o produto (cultura)");
-            return;
-        }
-
-        try {
-            const fd = new FormData();
-            fd.append("estufa_id", idEstufa);
-            fd.append("nome", nome);
-            fd.append("produto_id", produto_id);
-            fd.append("obs", obs);
-            fd.append("barea", barea);
-            fd.append("barea_unidade", barea_unidade);
-            if (typeof CadernoSalvar !== "undefined") {
-              await CadernoSalvar.postFormData("salvar_bancada.php", fd, {
-                redirect: false,
-                onSuccess: () => location.reload(),
-                onError: (d) => {
-                  const msg = d?.err || d?.msg || "Erro inesperado ao salvar a bancada.";
-                  alert(msg);
-                },
-              });
-            }
-
-        } catch (err) {
-            console.error("Falha no envio:", err);
-            alert("Erro de comunicação com o servidor.");
-        }
-    });
-});
-
-});
-
-/* ============================================================
-   🧩 Funções de controle visual de estufas e bancadas
-   ============================================================ */
+}
 
 function selectEstufa(idEstufa) {
   const box = document.getElementById(`estufa-${idEstufa}-box`);
@@ -102,8 +214,8 @@ function selectEstufa(idEstufa) {
 
   const isOpen = !box.classList.contains("d-none");
 
-  document.querySelectorAll(".item-estufa-box").forEach(div => div.classList.add("d-none"));
-  document.querySelectorAll(".edit-btn").forEach(b => {
+  document.querySelectorAll(".item-estufa-box").forEach((div) => div.classList.add("d-none"));
+  document.querySelectorAll(".edit-btn").forEach((b) => {
     b.textContent = "Selecionar";
     b.classList.remove("fechar");
   });
@@ -118,8 +230,9 @@ function selectEstufa(idEstufa) {
     btn.classList.add("fechar");
   }
 
-  const algumaAberta = Array.from(document.querySelectorAll(".item-estufa-box"))
-    .some(div => !div.classList.contains("d-none"));
+  const algumaAberta = Array.from(document.querySelectorAll(".item-estufa-box")).some(
+    (div) => !div.classList.contains("d-none")
+  );
 
   if (formNovaEstufa) {
     if (algumaAberta) formNovaEstufa.classList.add("d-none");
@@ -128,26 +241,19 @@ function selectEstufa(idEstufa) {
 }
 
 function destacarBancadaSelecionada(nomeBancada, idEstufa) {
-  document.querySelectorAll(".item-bancada").forEach(btn => {
-    btn.classList.remove("bancada-selecionada");
-  });
+  document.querySelectorAll(".item-bancada").forEach((btn) => btn.classList.remove("bancada-selecionada"));
 
-  const btnAtual = document.getElementById(`item-bancada-${nomeBancada}-estufa-${idEstufa}`);
+  const btnAtual =
+    document.getElementById(`item-bancada-${nomeBancada}-estufa-${idEstufa}`) ||
+    document.querySelector(`.item-bancada[data-estufa-id="${idEstufa}"][data-bancada-nome="${nomeBancada}"]`);
+
   if (btnAtual) btnAtual.classList.add("bancada-selecionada");
 }
 
 function selectBancada(nomeBancada, idEstufa) {
-  const nomeNormalizado = nomeBancada
-    .toString()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9-_]/g, "");
+  document.querySelectorAll(".item-bancada-content").forEach((div) => div.classList.add("d-none"));
 
-  document.querySelectorAll(".item-bancada-content").forEach(div => div.classList.add("d-none"));
-
-  document.querySelectorAll(".item-estufa-box").forEach(div => {
+  document.querySelectorAll(".item-estufa-box").forEach((div) => {
     if (!div.id.includes(`estufa-${idEstufa}-box`)) div.classList.add("d-none");
   });
 
@@ -157,8 +263,17 @@ function selectBancada(nomeBancada, idEstufa) {
   const formNovaBancada = document.getElementById(`add-bancada-estufa-${idEstufa}`);
   if (formNovaBancada) formNovaBancada.classList.add("d-none");
 
-  const box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`)
-    || document.getElementById(`item-bancada-${nomeNormalizado}-content-estufa-${idEstufa}`);
+  const estufaBox = document.getElementById(`estufa-${idEstufa}-box`);
+  if (estufaBox) estufaBox.classList.remove("d-none");
+
+  const btnBancada =
+    document.getElementById(`item-bancada-${nomeBancada}-estufa-${idEstufa}`) ||
+    document.querySelector(`.item-bancada[data-estufa-id="${idEstufa}"][data-bancada-nome="${nomeBancada}"]`);
+
+  let box = document.getElementById(`item-bancada-${nomeBancada}-content-estufa-${idEstufa}`);
+  if (!box && btnBancada?.nextElementSibling?.classList.contains("item-bancada-content")) {
+    box = btnBancada.nextElementSibling;
+  }
   if (box) box.classList.remove("d-none");
 
   const btn = document.getElementById(`edit-estufa-${idEstufa}`);
@@ -171,8 +286,8 @@ function selectBancada(nomeBancada, idEstufa) {
 }
 
 function voltarEstufa(idEstufa) {
-  document.querySelectorAll(".item-bancada-content").forEach(div => div.classList.add("d-none"));
-  document.querySelectorAll(".item-bancada").forEach(btn => btn.classList.remove("bancada-selecionada"));
+  document.querySelectorAll(".item-bancada-content").forEach((div) => div.classList.add("d-none"));
+  document.querySelectorAll(".item-bancada").forEach((btn) => btn.classList.remove("bancada-selecionada"));
 
   const box = document.getElementById(`estufa-${idEstufa}-box`);
   if (box) box.classList.remove("d-none");
@@ -190,18 +305,21 @@ function voltarEstufa(idEstufa) {
   if (formNovaBancada) formNovaBancada.classList.remove("d-none");
 }
 
-// === Carregar produtos (culturas) ===
-async function carregarProdutos() {
+async function carregarProdutos(selectAlvo = null) {
   try {
-    const resp = await fetch("../funcoes/buscar_produtos.php");
+    const resp = await fetch("/funcoes/buscar_produtos.php", { credentials: "same-origin" });
     const data = await resp.json();
+    if (!Array.isArray(data)) return;
 
-    document.querySelectorAll(".produto-select").forEach(sel => {
+    const selects = selectAlvo ? [selectAlvo] : document.querySelectorAll(".produto-select");
+    selects.forEach((sel) => {
+      const valorAtual = sel.value;
       sel.innerHTML = '<option value="">Selecione o produto</option>';
-      data.forEach(p => {
+      data.forEach((p) => {
         const opt = document.createElement("option");
         opt.value = p.id;
         opt.textContent = p.nome;
+        if (String(p.id) === String(valorAtual)) opt.selected = true;
         sel.appendChild(opt);
       });
     });
@@ -210,10 +328,6 @@ async function carregarProdutos() {
   }
 }
 
-carregarProdutos();
-
-document.addEventListener("click", (e) => {
-  if (e.target.id?.startsWith("bancada-add-estufa-")) {
-    setTimeout(carregarProdutos, 300);
-  }
-});
+window.selectEstufa = selectEstufa;
+window.selectBancada = selectBancada;
+window.voltarEstufa = voltarEstufa;
