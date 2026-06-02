@@ -39,8 +39,15 @@ const OfflineSync = (() => {
   }
 
   function isSalvarUrl(url) {
+    return !!resolveSalvarUrl(url);
+  }
+
+  function resolveSalvarUrl(url) {
     const u = String(url);
-    return SALVAR_PATHS.some((p) => u.includes(`/funcoes/${p}`) || u.includes(`funcoes/${p}`));
+    for (const file of SALVAR_PATHS) {
+      if (u.includes(file)) return apiUrl(file);
+    }
+    return null;
   }
 
   function isRelatorioUrl(url) {
@@ -205,10 +212,11 @@ const OfflineSync = (() => {
   }
 
   async function enqueue(url, formData) {
+    const absUrl = resolveSalvarUrl(url) || String(url);
     const body = await formDataToObject(formData);
     await OfflineDB.addFila({
       id: uuid(),
-      url: String(url),
+      url: absUrl,
       body,
       criadoEm: Date.now(),
       tentativas: 0,
@@ -223,7 +231,8 @@ const OfflineSync = (() => {
     for (const item of items) {
       try {
         const fd = objectToFormData(item.body);
-        const r = await fetch(item.url, { method: "POST", body: fd, credentials: "same-origin" });
+        const postUrl = resolveSalvarUrl(item.url) || item.url;
+        const r = await fetch(postUrl, { method: "POST", body: fd, credentials: "same-origin" });
         const res = await r.json();
         if (res.ok) {
           await OfflineDB.removeFila(item.id);
@@ -243,6 +252,7 @@ const OfflineSync = (() => {
     SALVAR_PATHS,
     CACHE_MAP,
     isSalvarUrl,
+    resolveSalvarUrl,
     isRelatorioUrl,
     getCacheKeyFromUrl,
     getCatalogApiUrl,

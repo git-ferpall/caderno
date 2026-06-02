@@ -195,28 +195,34 @@ document.querySelector(".add-produto").addEventListener("click", () => {
     popupConfirm.classList.remove("d-none");
 
     const enviarFormulario = (incluir_colheita) => {
+      overlay.classList.add("d-none");
+      popupConfirm.classList.add("d-none");
+      form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((el) => el.blur());
+
       const dados = new FormData(form);
       dados.append("incluir_colheita", incluir_colheita ? "1" : "0");
 
-      fetch("../funcoes/salvar_plantio.php", {
+      fetch("/funcoes/salvar_plantio.php", {
         method: "POST",
-        body: dados
+        body: dados,
+        credentials: "same-origin",
       })
-        .then(r => r.json())
-        .then(res => {
+        .then((r) => r.json())
+        .then((res) => {
           if (res.ok) {
-            showPopup("success", res.msg || "Plantio salvo com sucesso!");
-
-            // Pequeno delay só para o usuário ver o popup
+            const msg = res.msg || (res.offline
+              ? "Salvo no dispositivo. Sincroniza quando houver internet."
+              : "Plantio salvo com sucesso!");
+            showPopup("success", msg);
             setTimeout(() => {
-              window.location.href = "apontamento";
+              window.location.href = "/home/apontamento";
             }, 1200);
           } else {
-            showPopup("failed", res.err || "Erro ao salvar o plantio.");
+            showPopup("failed", res.err || res.msg || "Erro ao salvar o plantio.");
           }
         })
-        .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
+        .catch((err) => {
+          showPopup("failed", "Falha na comunicação: " + (err.message || err));
         });
     };
 

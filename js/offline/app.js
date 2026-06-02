@@ -21,6 +21,25 @@ const OfflineApp = (() => {
     return jsonResponse(list ?? []);
   }
 
+  async function canQueueOfflineSave() {
+    if (enabled === true) return true;
+    if (typeof OfflineSession === "undefined") return false;
+    const session = await OfflineSession.load();
+    return OfflineSession.isValid(session);
+  }
+
+  function nativeFetchWithTimeout(input, init = {}, ms = 20000) {
+    if (init.signal) return nativeFetch(input, init);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    return nativeFetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+  }
+
+  function blurFormSubmitters(form) {
+    if (!form || !form.querySelectorAll) return;
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((el) => el.blur());
+  }
+
   async function patchFetch() {
     if (window.__offlineFetchPatched) return;
     window.__offlineFetchPatched = true;
@@ -61,22 +80,44 @@ const OfflineApp = (() => {
         }
       }
 
-      if (
-        enabled === true &&
-        !navigator.onLine &&
-        method === "POST" &&
-        init.body instanceof FormData &&
-        OfflineSync.isSalvarUrl(url)
-      ) {
-        await OfflineSync.enqueue(url, init.body);
-        await updatePendingUI();
-        OfflineUI.setBanner("Sem internet — apontamento salvo no dispositivo.", "info");
-        OfflineUI.showOfflineSavedPopup();
-        return jsonResponse({
-          ok: true,
-          offline: true,
-          msg: "Salvo localmente. Sincroniza quando houver internet.",
-        });
+      const salvarUrl = OfflineSync.resolveSalvarUrl(url);
+      if (method === "POST" && init.body instanceof FormData && salvarUrl) {
+        if (!navigator.onLine) {
+          if (!(await canQueueOfflineSave())) {
+            return jsonResponse(
+              { ok: false, err: "Modo offline indisponível. Faça login com internet." },
+              503
+            );
+          }
+          await OfflineSync.enqueue(salvarUrl, init.body);
+          await updatePendingUI();
+          OfflineUI.setBanner("Sem internet — apontamento salvo no dispositivo.", "info");
+          OfflineUI.showOfflineSavedPopup();
+          return jsonResponse({
+            ok: true,
+            offline: true,
+            msg: "Salvo localmente. Sincroniza quando houver internet.",
+          });
+        }
+        try {
+          return await nativeFetchWithTimeout(salvarUrl, init);
+        } catch (err) {
+          if (await canQueueOfflineSave()) {
+            await OfflineSync.enqueue(salvarUrl, init.body);
+            await updatePendingUI();
+            OfflineUI.setBanner("Sem conexão estável — salvo no dispositivo.", "info");
+            OfflineUI.showOfflineSavedPopup();
+            return jsonResponse({
+              ok: true,
+              offline: true,
+              msg: "Salvo localmente. Sincroniza quando houver internet.",
+            });
+          }
+          return jsonResponse(
+            { ok: false, err: "Falha ao enviar. Verifique a internet e tente novamente." },
+            503
+          );
+        }
       }
 
       return nativeFetch(input, init);
@@ -255,6 +296,16 @@ const OfflineApp = (() => {
   }
 
   function bindEvents() {
+    document.addEventListener(
+      "submit",
+      (e) => {
+        if (e.target instanceof HTMLFormElement) {
+          setTimeout(() => blurFormSubmitters(e.target), 0);
+        }
+      },
+      true
+    );
+
     window.addEventListener("online", () => {
       if (enabled !== true) return;
       OfflineUI.hideBanner();
