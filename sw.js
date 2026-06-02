@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v4";
-const CACHE_PAGES = "caderno-pages-v4";
+const CACHE_STATIC = "caderno-static-v5";
+const CACHE_PAGES = "caderno-pages-v5";
 
 const STATIC_ASSETS = [
   "/css/style.css",
@@ -15,6 +15,8 @@ const STATIC_ASSETS = [
   "/js/offline/navigation.js",
   "/js/offline/catalog-ui.js",
   "/js/offline/pending-panel.js",
+  "/js/offline/defensivo-outro.js",
+  "/js/offline/salvar-form.js",
   "/img/logo-icon.png",
   "/img/logo-color.png",
   "/manifest.webmanifest",

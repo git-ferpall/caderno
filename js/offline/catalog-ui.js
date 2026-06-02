@@ -133,13 +133,12 @@ const OfflineCatalogUI = (() => {
 
         if (!form.checkValidity()) {
           e.preventDefault();
-          e.stopImmediatePropagation();
           form.reportValidity();
-          if (typeof OfflineUI !== "undefined") {
-            OfflineUI.setBanner(
-              "Preencha todos os campos obrigatórios (incluindo área e produto).",
-              "warn"
-            );
+          const msg = "Preencha todos os campos obrigatórios (incluindo área e produto).";
+          if (typeof showPopup === "function") {
+            showPopup("failed", msg);
+          } else if (typeof OfflineUI !== "undefined") {
+            OfflineUI.setBanner(msg, "warn");
           }
         }
       },

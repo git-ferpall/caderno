@@ -118,37 +118,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Submit do formulário principal ===
   const form = document.getElementById("form-inseticida");
   if (form) {
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const dados = new FormData(form);
-
-      // ✅ Se o usuário escolheu "outro", envia o texto digitado no lugar
-      const inseticidaSelect = document.getElementById("inseticida");
-      const inseticidaOutro = document.getElementById("inseticida_outro");
-      if (inseticidaSelect && inseticidaOutro && inseticidaSelect.value === "outro") {
-        dados.set("inseticida", inseticidaOutro.value.trim());
+      const beforeSubmit = (fd) => {
+        const sel = document.getElementById("inseticida");
+        const outro = document.getElementById("inseticida_outro");
+        if (sel && outro && sel.value === "outro") {
+          fd.set("inseticida", outro.value.trim());
+        }
+      };
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_inseticida.php", { beforeSubmit });
       }
-
-      fetch("../funcoes/salvar_inseticida.php", {
-        method: "POST",
-        body: dados
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok) {
-            showPopup("success", res.msg || "Inseticida salvo com sucesso!");
-
-            setTimeout(() => {
-              window.location.href = "apontamento";
-            }, 1200);
-
-          } else {
-            showPopup("failed", res.err || "Erro ao salvar inseticida.");
-          }
-        })
-        .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
-        });
     });
   }
 

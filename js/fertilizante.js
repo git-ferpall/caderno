@@ -111,29 +111,18 @@ function carregarFertilizantes() {
 
   // === Submit do formulário principal (apontamento de fertilizante) ===
   if (form) {
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const dados = new FormData(form);
-
-      fetch("../funcoes/salvar_fertilizante.php", {
-        method: "POST",
-        body: dados
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok) {
-          showPopup("success", res.msg || "✅ Fertilizante salvo com sucesso!");
-
-          setTimeout(() => {
-            window.location.href = "apontamento";
-          }, 1200);
-        } else {
-            showPopup("failed", res.msg || "❌ Erro ao salvar o fertilizante.");
-          }
-        })
-        .catch(err => {
-          showPopup("failed", "Falha na comunicação: " + err);
-        });
+      const beforeSubmit = (fd) => {
+        const sel = document.getElementById("fertilizante");
+        const outro = document.getElementById("fertilizante_outro");
+        if (sel && outro && sel.value === "outro") {
+          fd.set("fertilizante", outro.value.trim());
+        }
+      };
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_fertilizante.php", { beforeSubmit });
+      }
     });
   }
 

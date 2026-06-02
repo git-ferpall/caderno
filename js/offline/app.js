@@ -21,11 +21,45 @@ const OfflineApp = (() => {
     return jsonResponse(list ?? []);
   }
 
+  async function isPreparedOnDevice() {
+    try {
+      const prep = await OfflineDB.getCache("offline_prepared");
+      return !!(prep && prep.at);
+    } catch {
+      return false;
+    }
+  }
+
   async function canQueueOfflineSave() {
     if (enabled === true) return true;
+    if (await isPreparedOnDevice()) return true;
     if (typeof OfflineSession === "undefined") return false;
     const session = await OfflineSession.load();
     return OfflineSession.isValid(session);
+  }
+
+  async function queueSalvarAndRespond(salvarUrl, formData) {
+    try {
+      await OfflineSync.enqueue(salvarUrl, formData);
+      enabled = true;
+      await updatePendingUI();
+      OfflineUI.setBanner("Apontamento salvo neste aparelho. Sincroniza com internet.", "ok");
+      OfflineUI.showOfflineSavedPopup();
+      return jsonResponse({
+        ok: true,
+        offline: true,
+        msg: "Salvo localmente. Sincroniza quando houver internet.",
+      });
+    } catch (e) {
+      console.error("[offline] fila:", e);
+      return jsonResponse(
+        {
+          ok: false,
+          err: "Não foi possível gravar no aparelho. Verifique se não está em aba anônima.",
+        },
+        500
+      );
+    }
   }
 
   function nativeFetchWithTimeout(input, init = {}, ms = 20000) {
@@ -81,37 +115,31 @@ const OfflineApp = (() => {
 
       const salvarUrl = OfflineSync.resolveSalvarUrl(url);
       if (method === "POST" && init.body instanceof FormData && salvarUrl) {
+        const canQueue = await canQueueOfflineSave();
+
         if (!navigator.onLine) {
-          if (!(await canQueueOfflineSave())) {
+          if (!canQueue) {
             return jsonResponse(
-              { ok: false, err: "Modo offline indisponível. Faça login com internet." },
+              { ok: false, err: "Modo offline indisponível. Use «Baixar para offline» com internet." },
               503
             );
           }
-          await OfflineSync.enqueue(salvarUrl, init.body);
-          enabled = true;
-          await updatePendingUI();
-          OfflineUI.setBanner("Apontamento salvo neste aparelho. Sincroniza com internet.", "ok");
-          OfflineUI.showOfflineSavedPopup();
-          return jsonResponse({
-            ok: true,
-            offline: true,
-            msg: "Salvo localmente. Sincroniza quando houver internet.",
-          });
+          return queueSalvarAndRespond(salvarUrl, init.body);
         }
+
+        if (canQueue && (enabled === true || (await isPreparedOnDevice()))) {
+          try {
+            return await nativeFetchWithTimeout(salvarUrl, init, 6000);
+          } catch {
+            return queueSalvarAndRespond(salvarUrl, init.body);
+          }
+        }
+
         try {
-          return await nativeFetchWithTimeout(salvarUrl, init);
+          return await nativeFetchWithTimeout(salvarUrl, init, 20000);
         } catch (err) {
-          if (await canQueueOfflineSave()) {
-            await OfflineSync.enqueue(salvarUrl, init.body);
-            await updatePendingUI();
-            OfflineUI.setBanner("Sem conexão estável — salvo no dispositivo.", "info");
-            OfflineUI.showOfflineSavedPopup();
-            return jsonResponse({
-              ok: true,
-              offline: true,
-              msg: "Salvo localmente. Sincroniza quando houver internet.",
-            });
+          if (canQueue) {
+            return queueSalvarAndRespond(salvarUrl, init.body);
           }
           return jsonResponse(
             { ok: false, err: "Falha ao enviar. Verifique a internet e tente novamente." },
@@ -256,6 +284,8 @@ const OfflineApp = (() => {
 
       scheduleCatalogRefill();
 
+      await OfflineDB.putCache("offline_prepared", { at: Date.now() });
+
       const msg =
         `Pronto para offline: ${pages.ok}/${pages.total} telas` +
         (parts.length ? `, ${parts.join(", ")}` : "") +
@@ -334,7 +364,11 @@ const OfflineApp = (() => {
     }
 
     const config = await loadConfig();
-    if (!config.habilitado) return;
+    const canWork = config.habilitado || (await canQueueOfflineSave());
+    if (!canWork) return;
+    if (!config.habilitado && (await canQueueOfflineSave())) {
+      enabled = true;
+    }
 
     bindEvents();
     if (typeof OfflineNavigation !== "undefined") {
