@@ -13,3 +13,4 @@
 <script src="../js/offline/ui.js"></script>
 <script src="../js/offline/navigation.js"></script>
 <script src="../js/offline/app.js"></script>
+<script src="../js/offline/catalog-ui.js"></script>

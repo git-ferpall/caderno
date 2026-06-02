@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   "/js/offline/session.js",
   "/js/offline/app.js",
   "/js/offline/navigation.js",
+  "/js/offline/catalog-ui.js",
   "/img/logo-icon.png",
   "/img/logo-color.png",
   "/manifest.webmanifest",

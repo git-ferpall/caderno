@@ -3,9 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Função para carregar ÁREAS em todos os selects ===
   function carregarAreas(select = null) {
 
-  fetch("../funcoes/buscar_areas.php")
+  fetch("/funcoes/buscar_areas.php", { credentials: "same-origin" })
     .then(r => r.json())
     .then(data => {
+      if (!Array.isArray(data)) return;
 
       const selects = select ? [select] : document.querySelectorAll(".area-select");
 
@@ -39,9 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Função para carregar PRODUTOS em todos os selects ===
   function carregarProdutos(select = null) {
 
-    fetch("../funcoes/buscar_produtos.php")
+    fetch("/funcoes/buscar_produtos.php", { credentials: "same-origin" })
       .then(r => r.json())
       .then(data => {
+        if (!Array.isArray(data)) return;
 
         const selects = select ? [select] : document.querySelectorAll(".produto-select");
 

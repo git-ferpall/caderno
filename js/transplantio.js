@@ -1,244 +1,153 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-transplantio");
 
+  function preencherAreas(data) {
+    if (!Array.isArray(data)) return;
+
+    document.querySelectorAll(".area-origem-select").forEach((sel) => {
+      const valorAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione a área de origem</option>';
+      data.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.nome} (${item.tipo})`;
+        if (item.id == valorAtual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+
+    document.querySelectorAll(".area-destino-select").forEach((sel) => {
+      const valorAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione a área de destino</option>';
+      data.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.nome} (${item.tipo})`;
+        if (item.id == valorAtual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+  }
+
   function carregarAreas() {
-
-  fetch("../funcoes/buscar_areas.php")
-    .then(r => r.json())
-    .then(data => {
-
-      // ORIGEM
-      document.querySelectorAll(".area-origem-select").forEach(sel => {
-
-        const valorAtual = sel.value;
-
-        sel.innerHTML = '<option value="">Selecione a área de origem</option>';
-
-        data.forEach(item => {
-
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = `${item.nome} (${item.tipo})`;
-
-          if (item.id == valorAtual) {
-            opt.selected = true;
-          }
-
-          sel.appendChild(opt);
-
-        });
-
+    fetch("/funcoes/buscar_areas.php", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          preencherAreas(data);
+          return;
+        }
+        if (typeof OfflineSync !== "undefined") {
+          OfflineSync.refillCatalogSelects();
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar áreas:", err);
+        if (typeof OfflineSync !== "undefined") {
+          OfflineSync.refillCatalogSelects();
+        }
       });
+  }
 
-
-      // DESTINO
-      document.querySelectorAll(".area-destino-select").forEach(sel => {
-
-        const valorAtual = sel.value;
-
-        sel.innerHTML = '<option value="">Selecione a área de destino</option>';
-
-        data.forEach(item => {
-
-          const opt = document.createElement("option");
-          opt.value = item.id;
-          opt.textContent = `${item.nome} (${item.tipo})`;
-
-          if (item.id == valorAtual) {
-            opt.selected = true;
-          }
-
-          sel.appendChild(opt);
-
-        });
-
-      });
-
-    })
-    .catch(err => console.error("Erro ao carregar áreas:", err));
-
-}
-
-  // === Função para carregar produtos ===
   function carregarProdutos() {
-    fetch("../funcoes/buscar_produtos.php")
-      .then(r => r.json())
-      .then(data => {
+    fetch("/funcoes/buscar_produtos.php", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
         const sel = document.getElementById("produto");
         if (!sel) return;
+        if (!Array.isArray(data)) {
+          if (typeof OfflineSync !== "undefined") OfflineSync.refillCatalogSelects();
+          return;
+        }
         sel.innerHTML = '<option value="">Selecione o produto</option>';
-        data.forEach(item => {
+        data.forEach((item) => {
           const opt = document.createElement("option");
           opt.value = item.id;
           opt.textContent = item.nome;
           sel.appendChild(opt);
         });
       })
-      .catch(err => console.error("Erro ao carregar produtos:", err));
-  }
-
-  /* ===============================
-  ADICIONAR ÁREA ORIGEM
-  =============================== */
-
-  const btnAddOrigem = document.querySelector(".add-origem");
-
-  if (btnAddOrigem) {
-
-    btnAddOrigem.addEventListener("click", () => {
-
-      const lista = document.getElementById("lista-origens");
-      const original = lista.querySelector("select");
-
-      if (!original) return;
-
-      const novo = original.cloneNode(true);
-
-      novo.value = "";
-      novo.removeAttribute("id");
-      novo.name = "area_origem[]";
-      novo.classList.add("area-origem-select");
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area linha";
-
-      const btnRemover = document.createElement("button");
-      btnRemover.type = "button";
-      btnRemover.className = "remove-btn";
-      btnRemover.innerHTML = "−";
-
-      btnRemover.onclick = () => {
-
-        const total = document.querySelectorAll("#lista-origens .form-box-area").length;
-
-        if (total > 1) {
-          wrapper.remove();
-        } else {
-          alert("É necessário manter pelo menos uma área de origem.");
-        }
-
-      };
-
-      wrapper.appendChild(novo);
-      wrapper.appendChild(btnRemover);
-
-      lista.appendChild(wrapper);
-
-      carregarAreas();
-
-    });
-
-  }
-
-
-  /* ===============================
-  ADICIONAR ÁREA DESTINO
-  =============================== */
-
-  const btnAddDestino = document.querySelector(".add-destino");
-
-  if (btnAddDestino) {
-
-    btnAddDestino.addEventListener("click", () => {
-
-      const lista = document.getElementById("lista-destinos");
-      const original = lista.querySelector("select");
-
-      if (!original) return;
-
-      const novo = original.cloneNode(true);
-
-      novo.value = "";
-      novo.removeAttribute("id");
-      novo.name = "area_destino[]";
-      novo.classList.add("area-destino-select");
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-box form-box-area linha";
-
-      const btnRemover = document.createElement("button");
-      btnRemover.type = "button";
-      btnRemover.className = "remove-btn";
-      btnRemover.innerHTML = "−";
-
-      btnRemover.onclick = () => {
-
-        const total = document.querySelectorAll("#lista-destinos .form-box-area").length;
-
-        if (total > 1) {
-          wrapper.remove();
-        } else {
-          alert("É necessário manter pelo menos uma área de destino.");
-        }
-
-      };
-
-      wrapper.appendChild(novo);
-      wrapper.appendChild(btnRemover);
-
-      lista.appendChild(wrapper);
-
-      carregarAreas();
-
-    });
-
-  }
-    // === Carregar selects iniciais ===
-    carregarAreas();
-    carregarProdutos();
-
-    // === Submit do formulário ===
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-
-        try {
-          const resp = await fetch("../funcoes/salvar_transplantio.php", {
-            method: "POST",
-            body: formData
-          });
-          const data = await resp.json();
-
-          if (data.ok) {
-            showPopup("success", data.msg || "Transplantio salvo com sucesso!");
-
-            setTimeout(() => {
-              window.location.href = "apontamento";
-            }, 1200);
-          } else {
-            showPopup("failed", data.err || "Erro ao salvar o transplantio.");
-          }
-        } catch (err) {
-          showPopup("failed", "Falha na comunicação: " + err);
-        }
+      .catch((err) => {
+        console.error("Erro ao carregar produtos:", err);
+        if (typeof OfflineSync !== "undefined") OfflineSync.refillCatalogSelects();
       });
-    }
-  });
+  }
 
-// === Função padrão de popup ===
+  carregarAreas();
+  carregarProdutos();
+
+  if (!navigator.onLine && typeof OfflineSync !== "undefined") {
+    setTimeout(() => OfflineSync.refillCatalogSelects(), 500);
+  }
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      form.querySelectorAll('button[type="submit"]').forEach((el) => el.blur());
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      try {
+        const resp = await fetch("/funcoes/salvar_transplantio.php", {
+          method: "POST",
+          body: formData,
+          credentials: "same-origin",
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          const msg =
+            data.msg ||
+            (data.offline
+              ? "Salvo no dispositivo. Sincroniza quando houver internet."
+              : "Transplantio salvo com sucesso!");
+          showPopup("success", msg);
+          setTimeout(() => {
+            window.location.href = "/home/apontamento";
+          }, 1200);
+        } else {
+          showPopup("failed", data.err || data.msg || "Erro ao salvar o transplantio.");
+        }
+      } catch (err) {
+        showPopup("failed", "Falha ao salvar: " + (err.message || err));
+      }
+    });
+  }
+});
+
 function showPopup(tipo, mensagem) {
   const overlay = document.getElementById("popup-overlay");
   const popupSuccess = document.getElementById("popup-success");
   const popupFailed = document.getElementById("popup-failed");
 
-  document.querySelectorAll(".popup-box").forEach(p => p.classList.add("d-none"));
+  document.querySelectorAll(".popup-box").forEach((p) => p.classList.add("d-none"));
   if (overlay) overlay.classList.remove("d-none");
 
   if (tipo === "success") {
     if (popupSuccess) {
       popupSuccess.classList.remove("d-none");
-      popupSuccess.querySelector(".popup-title").textContent = mensagem;
+      const title = popupSuccess.querySelector(".popup-title");
+      if (title) title.textContent = mensagem;
+    } else {
+      alert(mensagem);
     }
   } else {
     if (popupFailed) {
       popupFailed.classList.remove("d-none");
-      popupFailed.querySelector(".popup-text").textContent = mensagem;
+      const text = popupFailed.querySelector(".popup-text");
+      if (text) text.textContent = mensagem;
+    } else {
+      alert(mensagem);
     }
   }
 
   setTimeout(() => {
-    if (overlay) overlay.classList.add("d-none");
+    overlay?.classList.add("d-none");
     popupSuccess?.classList.add("d-none");
     popupFailed?.classList.add("d-none");
   }, 4000);

@@ -203,34 +203,45 @@ const OfflineSync = (() => {
     return item.tipo ? `${item.nome} (${item.tipo})` : String(item.nome ?? "");
   }
 
+  const AREA_SELECTORS =
+    ".area-select, .area-origem-select, .area-destino-select";
+  const PRODUTO_SELECTORS =
+    ".produto-select, select#produto, select[name='produto']:not([name*='[]'])";
+
+  function fillSelectList(select, list, labelFn, placeholder) {
+    const valorAtual = select.value;
+    const firstOpt = select.querySelector("option");
+    const place =
+      firstOpt?.textContent?.trim() ||
+      placeholder ||
+      "Selecione";
+    select.innerHTML = `<option value="">${place}</option>`;
+    list.forEach((item) => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = labelFn(item);
+      if (String(item.id) === String(valorAtual)) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
+
   async function refillCatalogSelects() {
     await getDadosCache(true);
     const areas = (await getCachedList("areas")) || [];
     const produtos = (await getCachedList("produtos")) || [];
     if (!areas.length && !produtos.length) return false;
 
-    document.querySelectorAll(".area-select").forEach((sel) => {
-      const valorAtual = sel.value;
-      sel.innerHTML = '<option value="">Selecione a área</option>';
-      areas.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = areaOptionLabel(item);
-        if (String(item.id) === String(valorAtual)) opt.selected = true;
-        sel.appendChild(opt);
-      });
+    document.querySelectorAll(AREA_SELECTORS).forEach((sel) => {
+      const ph = sel.classList.contains("area-origem-select")
+        ? "Selecione a área de origem"
+        : sel.classList.contains("area-destino-select")
+          ? "Selecione a área de destino"
+          : "Selecione a área";
+      fillSelectList(sel, areas, areaOptionLabel, ph);
     });
 
-    document.querySelectorAll(".produto-select").forEach((sel) => {
-      const valorAtual = sel.value;
-      sel.innerHTML = '<option value="">Selecione o produto</option>';
-      produtos.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.nome;
-        if (String(item.id) === String(valorAtual)) opt.selected = true;
-        sel.appendChild(opt);
-      });
+    document.querySelectorAll(PRODUTO_SELECTORS).forEach((sel) => {
+      fillSelectList(sel, produtos, (item) => item.nome, "Selecione o produto");
     });
 
     return areas.length > 0 || produtos.length > 0;
@@ -316,6 +327,9 @@ const OfflineSync = (() => {
     refreshDados,
     getDadosCache,
     refillCatalogSelects,
+    AREA_SELECTORS,
+    PRODUTO_SELECTORS,
+    fillSelectList,
     getCachedList,
     mergeDadosSlice,
     warmDadosCache,

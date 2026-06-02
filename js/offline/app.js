@@ -89,8 +89,9 @@ const OfflineApp = (() => {
             );
           }
           await OfflineSync.enqueue(salvarUrl, init.body);
+          enabled = true;
           await updatePendingUI();
-          OfflineUI.setBanner("Sem internet — apontamento salvo no dispositivo.", "info");
+          OfflineUI.setBanner("Apontamento salvo neste aparelho. Sincroniza com internet.", "ok");
           OfflineUI.showOfflineSavedPopup();
           return jsonResponse({
             ok: true,
@@ -163,18 +164,10 @@ const OfflineApp = (() => {
     }
   }
 
-  let catalogRefillObserver = null;
-
   function scheduleCatalogRefill() {
     const run = () => OfflineSync.refillCatalogSelects().catch(() => {});
     run();
-    [300, 800, 2000, 5000].forEach((ms) => setTimeout(run, ms));
-
-    if (catalogRefillObserver) return;
-    catalogRefillObserver = new MutationObserver(() => {
-      if (document.querySelector(".area-select, .produto-select")) run();
-    });
-    catalogRefillObserver.observe(document.documentElement, { childList: true, subtree: true });
+    [300, 800, 2000].forEach((ms) => setTimeout(run, ms));
   }
 
   async function refreshIfOnline() {
@@ -199,10 +192,11 @@ const OfflineApp = (() => {
   }
 
   async function updatePendingUI() {
-    if (enabled !== true) return;
     const n = await OfflineDB.countFila();
-    await OfflineUI.updateBadge(n);
-    if (!navigator.onLine) {
+    if (enabled === true || (await canQueueOfflineSave())) {
+      await OfflineUI.updateBadge(n);
+    }
+    if (!navigator.onLine && (enabled === true || (await canQueueOfflineSave()))) {
       OfflineUI.setBanner("Modo offline — apontamentos serão salvos no dispositivo.", "info");
     }
   }

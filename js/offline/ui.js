@@ -43,11 +43,17 @@ const OfflineUI = (() => {
   }
 
   function showOfflineSavedPopup() {
+    const msg = "Salvo no dispositivo. Será enviado quando houver internet.";
+    setBanner(msg, "ok");
     if (typeof showPopup === "function") {
-      showPopup("success", "Salvo no dispositivo. Será enviado quando houver internet.");
-      return;
+      try {
+        showPopup("success", msg);
+        return;
+      } catch {
+        /* fallback */
+      }
     }
-    alert("Salvo no dispositivo. Será enviado quando houver internet.");
+    alert(msg);
   }
 
   function warnIncognitoIfNeeded() {
