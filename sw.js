@@ -23,6 +23,7 @@ const STATIC_ASSETS = [
   "/js/offline/defensivo-outro.js",
   "/js/offline/salvar-form.js",
   "/js/plantio.js",
+  "/js/vendor/qrcodejs.min.js",
   "/img/logo-icon.png",
   "/img/logo-color.png",
   "/manifest.webmanifest",

@@ -520,7 +520,7 @@ if (!headers_sent()) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="../js/vendor/qrcodejs.min.js"></script>
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>

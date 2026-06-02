@@ -187,6 +187,69 @@ function baixarImagemQrBancada() {
   link.click();
 }
 
+function renderQrOnCanvas(canvas, url) {
+  return new Promise((resolve, reject) => {
+    if (typeof QRCode !== "function") {
+      reject(new Error("Biblioteca QR Code não carregou"));
+      return;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden";
+    document.body.appendChild(wrap);
+
+    try {
+      const level = QRCode.CorrectLevel?.M ?? QRCode.CorrectLevel?.H;
+      // eslint-disable-next-line no-new
+      new QRCode(wrap, {
+        text: url,
+        width: 240,
+        height: 240,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: level,
+      });
+
+      const copyToTarget = () => {
+        const srcCanvas = wrap.querySelector("canvas");
+        const img = wrap.querySelector("img");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          wrap.remove();
+          reject(new Error("Canvas indisponível"));
+          return;
+        }
+
+        canvas.width = 240;
+        canvas.height = 240;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 240, 240);
+
+        const done = (source) => {
+          ctx.drawImage(source, 0, 0, 240, 240);
+          wrap.remove();
+          resolve();
+        };
+
+        if (srcCanvas) {
+          done(srcCanvas);
+        } else if (img) {
+          if (img.complete && img.naturalWidth) done(img);
+          else img.onload = () => done(img);
+        } else {
+          wrap.remove();
+          reject(new Error("QR Code não foi gerado"));
+        }
+      };
+
+      setTimeout(copyToTarget, 80);
+    } catch (err) {
+      wrap.remove();
+      reject(err);
+    }
+  });
+}
+
 function initQrBancada() {
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-qr-bancada");
@@ -206,8 +269,13 @@ function initQrBancada() {
     const estufaEl = document.getElementById("popup-qr-bancada-estufa");
     const urlEl = document.getElementById("qr-bancada-url");
 
-    if (!overlay || !canvas || typeof QRCode === "undefined") {
-      alert("Não foi possível gerar o QR Code. Atualize a página.");
+    if (!overlay || !canvas) {
+      alert("Popup de QR Code não encontrado. Atualize a página (Ctrl+F5).");
+      return;
+    }
+
+    if (typeof QRCode !== "function") {
+      alert("Biblioteca de QR Code não carregou. Verifique sua conexão e atualize a página.");
       return;
     }
 
@@ -229,16 +297,11 @@ function initQrBancada() {
       if (estufaEl) estufaEl.textContent = qrBancadaState.estufaNome;
       if (urlEl) urlEl.textContent = qrBancadaState.url;
 
-      await QRCode.toCanvas(canvas, qrBancadaState.url, {
-        width: 240,
-        margin: 2,
-        errorCorrectionLevel: "M",
-      });
-
+      await renderQrOnCanvas(canvas, qrBancadaState.url);
       overlay.classList.remove("d-none");
     } catch (err) {
       console.error(err);
-      alert("Falha ao gerar QR Code.");
+      alert("Falha ao gerar QR Code. Tente novamente.");
     }
   });
 
