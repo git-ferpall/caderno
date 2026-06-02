@@ -50,6 +50,22 @@ const OfflineUI = (() => {
     alert("Salvo no dispositivo. Será enviado quando houver internet.");
   }
 
+  function warnIncognitoIfNeeded() {
+    if (!navigator.onLine) return;
+    const est =
+      navigator.storage && navigator.storage.estimate
+        ? navigator.storage.estimate().catch(() => null)
+        : Promise.resolve(null);
+    est.then((info) => {
+      if (info && info.quota != null && info.quota < 120 * 1024 * 1024) {
+        setBanner(
+          "Modo offline funciona melhor em aba normal do navegador (evite anônima).",
+          "warn"
+        );
+      }
+    }).catch(() => {});
+  }
+
   function blockRelatoriosPage() {
     if (!document.body.classList.contains("page-relatorios")) return;
     if (navigator.onLine) return;
@@ -60,7 +76,14 @@ const OfflineUI = (() => {
     });
   }
 
-  return { setBanner, hideBanner, updateBadge, showOfflineSavedPopup, blockRelatoriosPage };
+  return {
+    setBanner,
+    hideBanner,
+    updateBadge,
+    showOfflineSavedPopup,
+    blockRelatoriosPage,
+    warnIncognitoIfNeeded,
+  };
 })();
 
 window.OfflineUI = OfflineUI;

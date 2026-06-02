@@ -109,6 +109,15 @@ const OfflineApp = (() => {
     }
   }
 
+  async function ensureHomeShellCached() {
+    if (!navigator.onLine) return;
+    try {
+      await nativeFetch("/home", { credentials: "same-origin" });
+    } catch {
+      /* SW grava no cache ao responder */
+    }
+  }
+
   async function refreshIfOnline() {
     if (enabled !== true || !navigator.onLine) return;
     try {
@@ -192,8 +201,10 @@ const OfflineApp = (() => {
       OfflineNavigation.install(() => enabled === true);
     }
     OfflineUI.blockRelatoriosPage();
+    OfflineUI.warnIncognitoIfNeeded();
     if (navigator.onLine && typeof OfflineSession !== "undefined") {
       await OfflineSession.requestPrecache();
+      await ensureHomeShellCached();
     }
     await refreshIfOnline();
     await updatePendingUI();

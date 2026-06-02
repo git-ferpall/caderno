@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v2";
-const CACHE_PAGES = "caderno-pages-v2";
+const CACHE_STATIC = "caderno-static-v3";
+const CACHE_PAGES = "caderno-pages-v3";
 
 const STATIC_ASSETS = [
   "/css/style.css",
@@ -47,10 +47,20 @@ function isLoginPath(pathname) {
   return pathname === "/" || pathname === "/index.php";
 }
 
+/** /home/home (menu antigo) e /home/index → mesma tela que /home */
+function normalizeAppPath(pathname) {
+  const base = (pathname || "/").replace(/\/$/, "") || "/";
+  if (base === "/home/home" || base === "/home/index") return "/home";
+  return base;
+}
+
 function pageCacheKeys(pathname, responseUrl) {
   const keys = new Set();
-  const base = pathname.replace(/\/$/, "") || "/";
+  const base = normalizeAppPath(pathname);
   const paths = [base, `${base}/`, `${base}.php`];
+  if (base === "/home") {
+    paths.push("/home/home", "/home/home/", "/home/home.php", "/home/index.php");
+  }
   if (responseUrl) {
     const respPath = new URL(responseUrl).pathname.replace(/\/$/, "") || "/";
     paths.push(respPath, `${respPath}/`, `${respPath}.php`);
@@ -68,7 +78,7 @@ function pageCacheKeys(pathname, responseUrl) {
 
 async function putPageInCache(cache, request, response) {
   const url = new URL(request.url);
-  const keys = pageCacheKeys(url.pathname, response.url);
+  const keys = pageCacheKeys(normalizeAppPath(url.pathname), response.url);
   await Promise.all(
     keys.map((key) => cache.put(key, response.clone()))
   );
@@ -77,7 +87,7 @@ async function putPageInCache(cache, request, response) {
 async function findCachedPage(request) {
   const cache = await caches.open(CACHE_PAGES);
   const url = new URL(request.url);
-  const keys = pageCacheKeys(url.pathname, null);
+  const keys = pageCacheKeys(normalizeAppPath(url.pathname), null);
   for (const key of keys) {
     const hit = await cache.match(key);
     if (hit) return hit;
@@ -144,12 +154,19 @@ async function cacheFirstStatic(request) {
 }
 
 function offlineSubpageHtml(pathname) {
+  const norm = normalizeAppPath(pathname);
   const title = "Tela não disponível offline";
-  const body =
-    pathname.startsWith("/home/") && pathname !== "/home"
-      ? "<p>Esta página ainda não foi salva neste aparelho.</p><p>Com internet, abra <strong>Início</strong> e toque em <strong>Novo apontamento</strong> uma vez; depois o offline funciona aqui.</p>"
-      : "<p>Sem conexão. Faça login com internet pelo menos uma vez neste aparelho.</p>";
-  return `<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><link rel="stylesheet" href="/css/style.css"></head><body class="offline-entry-page"><main class="offline-entry-main"><h1>${title}</h1>${body}<p><a href="/home" class="main-btn fundo-azul">Voltar ao início</a></p></main></body></html>`;
+  let body;
+  if (norm === "/home") {
+    body =
+      "<p>A tela inicial ainda não foi salva neste aparelho.</p><p>Com internet, abra o <strong>Caderno</strong> e aguarde a home carregar; depois o offline funciona.</p><p><strong>Não use aba anônima</strong> — o modo offline precisa de uma aba normal do navegador.</p>";
+  } else if (norm.startsWith("/home/")) {
+    body =
+      "<p>Esta página ainda não foi salva neste aparelho.</p><p>Com internet, abra <strong>Início</strong> e o formulário desejado uma vez; depois o offline funciona aqui.</p>";
+  } else {
+    body = "<p>Sem conexão. Faça login com internet pelo menos uma vez neste aparelho.</p>";
+  }
+  return `<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><link rel="stylesheet" href="/css/style.css"></head><body class="offline-entry-page"><main class="offline-entry-main"><h1>${title}</h1>${body}<p><a href="/offline.html" class="main-btn fundo-azul">Continuar offline</a></p></main></body></html>`;
 }
 
 async function networkFirstPage(request) {
@@ -164,7 +181,8 @@ async function networkFirstPage(request) {
   } catch {
     const cached = await findCachedPage(request);
     if (cached) return cached;
-    if (url.pathname.startsWith("/home/") && url.pathname !== "/home") {
+    const norm = normalizeAppPath(url.pathname);
+    if (norm === "/home" || (norm.startsWith("/home/") && norm !== "/home")) {
       return new Response(offlineSubpageHtml(url.pathname), {
         status: 503,
         headers: { "Content-Type": "text/html; charset=utf-8" },

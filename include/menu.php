@@ -90,7 +90,7 @@ if (!empty($user_id)) {
 
         <div class="menu-list">
             <ul class="menu-links">
-                <a href="./apontamento"><li class="menu-link fundo-verde">
+                <a href="/home/apontamento"><li class="menu-link fundo-verde">
                     <div class="btn-icon icon-plus cor-branco"></div>
                     <span class="link-title cor-branco">Novo Apontamento</span>
                 </li></a>
@@ -98,43 +98,43 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen cor-branco"></div>
                     <span class="link-title cor-branco">Alterar Propriedade</span>
                 </li></button>
-                <a href="./home"><li class="menu-link fundo-preto">
+                <a href="/home"><li class="menu-link fundo-preto">
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>
-                <a href="./silo"><li class="menu-link fundo-azul">
+                <a href="/home/silo"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>
                     <span class="link-title cor-branco">Silo de Dados</span>
                 </li></a>
-                <a href="./perfil"><li class="menu-link">
+                <a href="/home/perfil"><li class="menu-link">
                     <div class="btn-icon icon-user"></div>
                     <span class="link-title">Dados Pessoais</span>
                 </li></a>
-                <a href="./propriedade"><li class="menu-link">
+                <a href="/home/propriedade"><li class="menu-link">
                     <div class="btn-icon icon-pin"></div>
                     <span class="link-title">Cadastro de Propriedade</span>
                 </li></a>
-                <a href="./produtos"><li class="menu-link">
+                <a href="/home/produtos"><li class="menu-link">
                     <div class="btn-icon icon-fruit"></div>
                     <span class="link-title">Produtos Cultivados</span>
                 </li></a>
-                <a href="./areas"><li class="menu-link">
+                <a href="/home/areas"><li class="menu-link">
                     <div class="btn-icon icon-plant"></div>
                     <span class="link-title">Áreas Cultivadas</span>
                 </li></a>
-                <a href="./maquinas"><li class="menu-link">
+                <a href="/home/maquinas"><li class="menu-link">
                     <div class="btn-icon icon-truck"></div>
                     <span class="link-title">Relação de Máquinas</span>
                 </li></a>
-                <a href="./hidroponia"><li class="menu-link">
+                <a href="/home/hidroponia"><li class="menu-link">
                     <div class="btn-icon icon-water"></div>
                     <span class="link-title">Hidroponia</span>
                 </li></a>
-                <a href="./relatorios"><li class="menu-link">
+                <a href="/home/relatorios"><li class="menu-link">
                     <div class="btn-icon icon-pen"></div>
                     <span class="link-title">Relatórios</span>
                 </li></a>
-                <a href="./timeline"><li class="menu-link">
+                <a href="/home/timeline"><li class="menu-link">
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Linha do tempo</span>
                 </li></a>
@@ -142,7 +142,7 @@ if (!empty($user_id)) {
                 require_once __DIR__ . '/../funcoes/offline/helpers.php';
                 $menuOfflineAdminId = (int)($payload['sub'] ?? 0);
                 if ($menuOfflineAdminId && isset($mysqli) && offlineIsAdmin($mysqli, $menuOfflineAdminId)) : ?>
-                <a href="./admin_offline"><li class="menu-link fundo-azul">
+                <a href="/home/admin_offline"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>
                     <span class="link-title cor-branco">Admin offline</span>
                 </li></a>

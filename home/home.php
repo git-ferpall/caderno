@@ -45,7 +45,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <a href="./timeline" class="home-timeline-btn">
+                        <a href="/home/timeline" class="home-timeline-btn">
                             <span class="home-timeline-icon" aria-hidden="true">📅</span>
                             Linha do tempo
                         </a>
@@ -53,25 +53,25 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
                     <div class="home-actions">
                         <div class="home-actions-primary">
-                            <a href="./apontamento" class="home-action-btn home-action-main home-action-green">
+                            <a href="/home/apontamento" class="home-action-btn home-action-main home-action-green">
                                 <span class="home-action-icon"><div class="btn-icon icon-plus cor-branco"></div></span>
                                 <span class="home-action-text">Novo apontamento</span>
                             </a>
-                            <a href="./silo" class="home-action-btn home-action-main home-action-blue">
+                            <a href="/home/silo" class="home-action-btn home-action-main home-action-blue">
                                 <span class="home-action-icon"><div class="btn-icon icon-silo cor-branco"></div></span>
                                 <span class="home-action-text">Silo de dados</span>
                             </a>
                         </div>
                         <div class="home-actions-secondary">
-                            <a href="./produtos" class="home-action-btn home-action-sm">
+                            <a href="/home/produtos" class="home-action-btn home-action-sm">
                                 <div class="btn-icon icon-fruit"></div>
                                 <span>Produtos</span>
                             </a>
-                            <a href="./areas" class="home-action-btn home-action-sm">
+                            <a href="/home/areas" class="home-action-btn home-action-sm">
                                 <div class="btn-icon icon-plant"></div>
                                 <span>Áreas</span>
                             </a>
-                            <a href="./relatorios" class="home-action-btn home-action-sm">
+                            <a href="/home/relatorios" class="home-action-btn home-action-sm">
                                 <div class="btn-icon icon-pen"></div>
                                 <span>Relatórios</span>
                             </a>
