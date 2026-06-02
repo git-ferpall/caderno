@@ -76,6 +76,38 @@ const OfflineSession = (() => {
     reg.active?.postMessage({ type: "PRECACHE_PAGES", urls: SHELL_PAGES });
   }
 
+  /**
+   * Baixa cada tela no dispositivo (via fetch; o Service Worker grava no cache).
+   * @param {(info: { current: number, total: number, url: string }) => void} [onProgress]
+   * @param {typeof fetch} [fetchFn]
+   */
+  async function precachePagesClient(onProgress, fetchFn = fetch) {
+    let ok = 0;
+    let fail = 0;
+    const total = SHELL_PAGES.length;
+
+    for (let i = 0; i < SHELL_PAGES.length; i++) {
+      const url = SHELL_PAGES[i];
+      onProgress?.({ current: i + 1, total, url });
+      try {
+        const res = await fetchFn(url, { credentials: "same-origin" });
+        const path = new URL(res.url, location.origin).pathname;
+        const isLogin = path === "/" || path === "/index.php";
+        if (res.ok && !isLogin) ok++;
+        else fail++;
+      } catch {
+        fail++;
+      }
+    }
+
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.ready.catch(() => null);
+      reg?.active?.postMessage({ type: "PRECACHE_PAGES", urls: SHELL_PAGES });
+    }
+
+    return { ok, fail, total };
+  }
+
   async function tryEnterOffline() {
     const session = await load();
     if (!isValid(session)) return false;
@@ -99,6 +131,7 @@ const OfflineSession = (() => {
     save,
     clear,
     requestPrecache,
+    precachePagesClient,
     tryEnterOffline,
     registerServiceWorker,
   };

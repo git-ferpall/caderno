@@ -66,6 +66,34 @@ const OfflineUI = (() => {
     }).catch(() => {});
   }
 
+  function installPrepareButton(onPrepare, isEnabled) {
+    const btn = document.getElementById("btn-offline-prepare");
+    if (!btn) return;
+
+    const show = () => {
+      if (isEnabled()) btn.classList.remove("d-none");
+      else btn.classList.add("d-none");
+    };
+    show();
+
+    btn.addEventListener("click", async () => {
+      if (!navigator.onLine) {
+        setBanner("Conecte-se à internet para baixar os dados para offline.", "warn");
+        return;
+      }
+      if (btn.disabled) return;
+      btn.disabled = true;
+      try {
+        await onPrepare();
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    window.addEventListener("online", show);
+    window.addEventListener("offline", show);
+  }
+
   function blockRelatoriosPage() {
     if (!document.body.classList.contains("page-relatorios")) return;
     if (navigator.onLine) return;
@@ -83,6 +111,7 @@ const OfflineUI = (() => {
     showOfflineSavedPopup,
     blockRelatoriosPage,
     warnIncognitoIfNeeded,
+    installPrepareButton,
   };
 })();
 

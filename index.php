@@ -18,120 +18,40 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="manifest" href="/manifest.webmanifest">
-<style>
-           /* POPUP CENTRAL */
-        .alert-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(2px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        animation: fadeIn 0.4s ease;
-        }
-
-        .alert-login {
-        background: #fff;
-        border: 2px solid #ffb3b3;
-        color: #a70000;
-        padding: 25px 30px;
-        border-radius: 12px;
-        font-size: 16px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-        max-width: 420px;
-        width: 90%;
-        text-align: center;
-        animation: popIn 0.3s ease;
-        position: relative;
-        }
-
-        .alert-login .alert-icon {
-        font-size: 40px;
-        margin-bottom: 10px;
-        }
-
-        .alert-login .alert-text {
-        margin-bottom: 10px;
-        line-height: 1.5;
-        }
-
-        .alert-login .alert-text strong {
-        font-weight: 700;
-        }
-
-        .alert-login .alert-close {
-        position: absolute;
-        top: 8px;
-        right: 12px;
-        background: transparent;
-        border: none;
-        font-size: 22px;
-        color: #a70000;
-        cursor: pointer;
-        }
-
-        @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-        }
-
-        @keyframes popIn {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-        }
-        
-
-</style>
 </head>
-<body>
+<body class="page-login">
 
 <?php require 'include/loading.php'; ?>
 
 <div id="conteudo" class="content-login">
+    <div class="login-page-shell">
     <header class="header-login" id="cabecalho">
         <div class="logo-box">
             <a href="/"><img src="img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
-            <a href="https://www.frutag.com.br" target="_blank"><img src="img/logo-frutag.png" alt="Logo Frutag"></a>
+            <a href="https://www.frutag.com.br" target="_blank" rel="noopener"><img src="img/logo-frutag.png" alt="Logo Frutag"></a>
         </div>
+    </header>
 
-        <?php 
-        // 🔹 Exibe mensagens de erro vindas da sessão
-        if (isset($_SESSION['retorno'])): 
-            $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
-        ?>
-            <div class="alert-login" id="alert-login">
-                <div class="alert-icon">⚠️</div>
-                <div class="alert-text">
-                    <strong>Erro ao entrar:</strong> <?= $msg ?>
-                </div>
-                <button class="alert-close" onclick="closeAlert()">×</button>
-            </div>
-
-            <?php unset($_SESSION['retorno']); ?>
-        <?php endif; ?>
-
-        <?php 
-        // 🔹 Exibe mensagens de erro vindas da sessão
-        if (isset($_SESSION['retorno'])): 
-            $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
-        ?>
-        <div class="alert-overlay" id="alert-overlay">
+    <?php if (isset($_SESSION['retorno'])):
+        $msg = htmlspecialchars($_SESSION['retorno']['mensagem']);
+        unset($_SESSION['retorno']);
+    ?>
+    <div class="alert-overlay" id="alert-overlay" role="alertdialog" aria-labelledby="alert-login-title">
         <div class="alert-login" id="alert-login">
-            <button class="alert-close" onclick="closeAlert()">×</button>
-            <div class="alert-icon">⚠️</div>
-            <div class="alert-text">
+            <button type="button" class="alert-close" onclick="closeAlert()" aria-label="Fechar">×</button>
+            <div class="alert-icon" aria-hidden="true">⚠️</div>
+            <div class="alert-text" id="alert-login-title">
                 <strong>Erro ao entrar:</strong><br><?= $msg ?>
             </div>
         </div>
-        </div>
-        <?php unset($_SESSION['retorno']); ?>
-        <?php endif; ?>
-    </header>
+    </div>
+    <?php endif; ?>
 
     <main id="login" class="login">
         <div class="login-box" id="login-box-id">
+            <div class="login-brand-mobile">
+                <img src="img/logo-color.png" alt="Caderno de Campo Frutag" width="140" height="auto">
+            </div>
             <!-- Formulário de Login -->
             <div class="login-content" id="login-form">
                 <h2 class="login-title">Faça seu login</h2>
@@ -195,6 +115,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
             </div>
         </div>
     </main>
+    </div>
 
     <script src="js/script.js"></script>
     <script src="js/jquery.js"></script>
@@ -212,28 +133,13 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
         });
     });
 
-    // 🕒 Oculta automaticamente a mensagem de alerta após 7 segundos
-    setTimeout(() => {
-      const alertBox = document.querySelector('.alert-login');
-      if (alertBox) {
-        alertBox.style.transition = 'opacity 0.5s ease';
-        alertBox.style.opacity = '0';
-        setTimeout(() => alertBox.remove(), 500);
-      }
-    }, 7000);
-    </script>
-    <script>
-    // Função para fechar manualmente o alerta
     function closeAlert() {
-    const alert = document.getElementById('alert-login');
-    if (alert) {
-        alert.style.transition = 'opacity 0.3s ease';
-        alert.style.opacity = '0';
-        setTimeout(() => alert.remove(), 300);
+      const overlay = document.getElementById('alert-overlay');
+      if (!overlay) return;
+      overlay.style.transition = 'opacity 0.3s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 300);
     }
-    }
-
-    // Remove automaticamente após 7 segundos
     setTimeout(closeAlert, 7000);
     </script>
 

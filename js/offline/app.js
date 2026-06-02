@@ -1,6 +1,7 @@
 const OfflineApp = (() => {
   let enabled = null;
   let syncing = false;
+  let preparing = false;
   const nativeFetch = window.fetch.bind(window);
 
   function jsonResponse(obj, status = 200) {
@@ -148,6 +149,73 @@ const OfflineApp = (() => {
     }
   }
 
+  async function prepareForOffline() {
+    if (preparing) return;
+    if (!navigator.onLine) {
+      OfflineUI.setBanner("Conecte-se à internet para baixar para offline.", "warn");
+      return;
+    }
+    if (enabled !== true) {
+      OfflineUI.setBanner("Modo offline não está ativo para este usuário.", "warn");
+      return;
+    }
+
+    preparing = true;
+    try {
+      OfflineUI.setBanner("Preparando offline: verificando sessão…", "sync");
+
+      const config = await loadConfig();
+      if (!config.habilitado) {
+        OfflineUI.setBanner("Modo offline não disponível.", "warn");
+        return;
+      }
+
+      OfflineUI.setBanner("Preparando offline: baixando áreas, produtos e listas…", "sync");
+      await OfflineSync.refreshDados();
+      await OfflineSync.warmCatalogFromNetwork(nativeFetch);
+
+      OfflineUI.setBanner("Preparando offline: baixando telas (0%)…", "sync");
+      const pages = await OfflineSession.precachePagesClient(
+        ({ current, total, url }) => {
+          const pct = Math.round((current / total) * 100);
+          const short = url.replace(/^\//, "");
+          OfflineUI.setBanner(`Preparando offline: telas ${pct}% (${short})…`, "sync");
+        },
+        nativeFetch
+      );
+
+      OfflineUI.setBanner("Preparando offline: finalizando…", "sync");
+      await ensureHomeShellCached();
+
+      const dados = await OfflineSync.getDadosCache();
+      const sum = OfflineSync.summarizeDados(dados);
+      const parts = [];
+      if (sum.areas) parts.push(`${sum.areas} área(s)`);
+      if (sum.produtos) parts.push(`${sum.produtos} produto(s)`);
+      if (sum.maquinas) parts.push(`${sum.maquinas} máquina(s)`);
+
+      const msg =
+        `Pronto para offline: ${pages.ok}/${pages.total} telas` +
+        (parts.length ? `, ${parts.join(", ")}` : "") +
+        (pages.fail ? ` (${pages.fail} tela(s) com aviso)` : "") +
+        ".";
+
+      OfflineUI.setBanner(msg, "ok");
+      if (typeof showPopup === "function") {
+        showPopup("success", msg);
+      }
+      setTimeout(() => OfflineUI.hideBanner(), 6000);
+    } catch (e) {
+      console.warn("[offline] prepare:", e);
+      OfflineUI.setBanner(
+        "Não foi possível concluir o download. Tente de novo com internet estável.",
+        "warn"
+      );
+    } finally {
+      preparing = false;
+    }
+  }
+
   async function runSync() {
     if (enabled !== true || syncing || !navigator.onLine) return;
     syncing = true;
@@ -202,6 +270,7 @@ const OfflineApp = (() => {
     }
     OfflineUI.blockRelatoriosPage();
     OfflineUI.warnIncognitoIfNeeded();
+    OfflineUI.installPrepareButton(() => prepareForOffline(), () => enabled === true);
     if (navigator.onLine && typeof OfflineSession !== "undefined") {
       await OfflineSession.requestPrecache();
       await ensureHomeShellCached();
@@ -214,7 +283,7 @@ const OfflineApp = (() => {
 
   patchFetch();
 
-  return { init, isEnabled: () => enabled === true };
+  return { init, isEnabled: () => enabled === true, prepareForOffline, isPreparing: () => preparing };
 })();
 
 document.addEventListener("DOMContentLoaded", () => {

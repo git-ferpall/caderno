@@ -124,6 +124,32 @@ const OfflineSync = (() => {
     return ["areas", "produtos"].some((k) => Array.isArray(dados[k]) && dados[k].length > 0);
   }
 
+  function getCatalogFetchUrls() {
+    return Object.keys(CACHE_MAP).map((file) => `../funcoes/${file}`);
+  }
+
+  async function warmCatalogFromNetwork(fetchFn = fetch) {
+    await Promise.all(
+      getCatalogFetchUrls().map((url) =>
+        fetchFn(url, { credentials: "same-origin" }).catch(() => null)
+      )
+    );
+  }
+
+  function summarizeDados(dados) {
+    if (!dados) return { areas: 0, produtos: 0, maquinas: 0 };
+    const count = (k) => (Array.isArray(dados[k]) ? dados[k].length : 0);
+    return {
+      areas: count("areas"),
+      produtos: count("produtos"),
+      maquinas: count("maquinas"),
+      herbicidas: count("herbicidas"),
+      fertilizantes: count("fertilizantes"),
+      fungicidas: count("fungicidas"),
+      inseticidas: count("inseticidas"),
+    };
+  }
+
   async function enqueue(url, formData) {
     const body = await formDataToObject(formData);
     await OfflineDB.addFila({
@@ -173,6 +199,9 @@ const OfflineSync = (() => {
     mergeDadosSlice,
     warmDadosCache,
     hasCatalogData,
+    getCatalogFetchUrls,
+    warmCatalogFromNetwork,
+    summarizeDados,
     putDadosCache,
     enqueue,
     syncAll,

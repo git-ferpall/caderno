@@ -138,6 +138,12 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Linha do tempo</span>
                 </li></a>
+                <button type="button" id="btn-offline-prepare" class="offline-prepare-menu d-none">
+                    <li class="menu-link fundo-azul">
+                        <div class="btn-icon icon-silo cor-branco"></div>
+                        <span class="link-title cor-branco">Baixar para offline</span>
+                    </li>
+                </button>
                 <?php
                 require_once __DIR__ . '/../funcoes/offline/helpers.php';
                 $menuOfflineAdminId = (int)($payload['sub'] ?? 0);
