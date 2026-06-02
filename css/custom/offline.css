@@ -1,0 +1,134 @@
+/* Offline — banner e badge de pendências */
+
+.offline-banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 2500;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+}
+
+.offline-banner--info {
+    background: #e8f4fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+.offline-banner--warn {
+    background: #fff3e6;
+    color: #c45a00;
+    border: 1px solid #ffd9b3;
+}
+
+.offline-banner--ok {
+    background: #edf7e6;
+    color: #2e7d32;
+    border: 1px solid #c8e6a8;
+}
+
+.offline-banner--sync {
+    background: #eef6f5;
+    color: var(--azul-e);
+    border: 1px solid #c5e8e4;
+}
+
+.offline-pending-badge {
+    position: fixed;
+    top: max(96px, calc(env(safe-area-inset-top, 0px) + 88px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #fff3e6;
+    color: #c45a00;
+    border: 1px solid #ffd9b3;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    max-width: calc(100vw - 24px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    .offline-pending-badge {
+        top: max(88px, calc(env(safe-area-inset-top, 0px) + 80px));
+        font-size: 11px;
+    }
+}
+
+/* Login — continuar offline */
+.offline-enter-wrap {
+    margin-top: 18px;
+    padding-top: 4px;
+    text-align: center;
+}
+
+.offline-enter-divider {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.offline-enter-btn {
+    width: 100%;
+}
+
+.offline-enter-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.offline-entry-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--grad-azul);
+    padding: 24px;
+}
+
+.offline-entry-main {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.offline-entry-logo {
+    margin-bottom: 20px;
+}
+
+.offline-entry-main h1 {
+    font-size: 22px;
+    margin: 0 0 12px;
+    color: #222;
+}
+
+.offline-entry-main p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin: 0 0 16px;
+}
+
+.offline-entry-note {
+    font-size: 13px;
+    color: #888;
+}

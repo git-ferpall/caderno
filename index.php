@@ -17,6 +17,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <title>Caderno de Campo - Frutag</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
 <style>
            /* POPUP CENTRAL */
         .alert-overlay {
@@ -146,6 +147,11 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                         <button class="fbotao main-btn" id="fcad" type="button" onclick="toggleForm('cad')">Cadastrar</button>
                         <input class="fbotao main-btn" id="fent" type="submit" value="Entrar">
                     </div>
+                    <div id="offline-enter-wrap" class="offline-enter-wrap d-none">
+                        <div class="offline-enter-divider">ou</div>
+                        <button type="button" id="btn-offline-enter" class="fbotao main-btn fundo-azul offline-enter-btn">Continuar offline</button>
+                        <p class="offline-enter-hint">Disponível neste aparelho após login com internet.</p>
+                    </div>
                 </form>
             </div>
 
@@ -230,6 +236,10 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     // Remove automaticamente após 7 segundos
     setTimeout(closeAlert, 7000);
     </script>
+
+    <script src="js/offline/db.js"></script>
+    <script src="js/offline/session.js"></script>
+    <script src="js/offline/login.js"></script>
 
 
 </div>

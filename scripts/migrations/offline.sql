@@ -1,0 +1,21 @@
+-- Offline parcial — controle Frutag + fila local no navegador
+-- Executar uma vez no banco caderno
+
+CREATE TABLE IF NOT EXISTS offline_admins (
+    user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    nome VARCHAR(255) NULL,
+    email VARCHAR(255) NULL,
+    adicionado_por INT UNSIGNED NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS offline_usuarios (
+    user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    habilitado TINYINT(1) NOT NULL DEFAULT 1,
+    habilitado_por INT UNSIGNED NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Primeiro admin (user_id do JWT / contato_cliente.user_id — NÃO é contato_cliente.id):
+-- INSERT INTO offline_admins (user_id, nome, email) VALUES (2365, 'FABIANO AMARO', 'fbnamr@gmail.com');

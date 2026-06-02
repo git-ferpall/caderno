@@ -138,6 +138,15 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Linha do tempo</span>
                 </li></a>
+                <?php
+                require_once __DIR__ . '/../funcoes/offline/helpers.php';
+                $menuOfflineAdminId = (int)($payload['sub'] ?? 0);
+                if ($menuOfflineAdminId && isset($mysqli) && offlineIsAdmin($mysqli, $menuOfflineAdminId)) : ?>
+                <a href="./admin_offline"><li class="menu-link fundo-azul">
+                    <div class="btn-icon icon-silo cor-branco"></div>
+                    <span class="link-title cor-branco">Admin offline</span>
+                </li></a>
+                <?php endif; ?>
                 <!--<a href="./clientes.php"><li class="menu-link">
                     <div class="btn-icon icon-people"></div>
                     <span class="link-title">Painel de Clientes</span>
@@ -147,7 +156,7 @@ if (!empty($user_id)) {
 
         <div class="menu-final">
             <img src="../img/logo-frutag.png" alt="Logo da Frutag" class="menu-logo">
-            <a href="/configuracao/logout.php" class="nav-menu-btn main-btn fundo-vermelho">
+            <a href="/configuracao/logout.php" class="nav-menu-btn main-btn fundo-vermelho" onclick="if(window.OfflineSession)OfflineSession.clear()">
                 <div class="btn-icon icon-exit"></div>
                 <span class="link-title">Sair</span>
             </a>

@@ -57,7 +57,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     }
 </style>    
 </head>
-<body>
+<body class="page-relatorios">
     <?php include '../include/loading.php' ?> 
     <?php include '../include/popups.php' ?> 
     <div id="conteudo">

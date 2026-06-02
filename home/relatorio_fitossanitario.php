@@ -10,7 +10,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
-<body>
+<body class="page-relatorios">
     <?php include '../include/popups.php' ?>
 
     <div id="pdf-loading">

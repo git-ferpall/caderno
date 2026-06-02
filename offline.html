@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caderno — Offline</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+</head>
+<body class="offline-entry-page">
+    <main class="offline-entry-main">
+        <img src="/img/logo-color.png" alt="Frutag" width="160" class="offline-entry-logo">
+        <h1>Sem conexão</h1>
+        <p id="offline-entry-msg">Verificando sessão neste dispositivo…</p>
+        <button type="button" id="offline-entry-btn" class="main-btn fundo-azul d-none">Abrir Caderno offline</button>
+        <p class="offline-entry-note d-none" id="offline-entry-note">
+            Faça login com internet pelo menos uma vez para usar offline depois.
+        </p>
+    </main>
+    <script src="/js/offline/db.js"></script>
+    <script src="/js/offline/session.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        await OfflineSession.registerServiceWorker();
+        const msg = document.getElementById("offline-entry-msg");
+        const btn = document.getElementById("offline-entry-btn");
+        const note = document.getElementById("offline-entry-note");
+        const session = await OfflineSession.load();
+
+        if (OfflineSession.isValid(session)) {
+            msg.textContent = session.nome
+                ? `Olá, ${session.nome}. Você pode continuar offline neste aparelho.`
+                : "Sessão encontrada neste aparelho.";
+            btn.classList.remove("d-none");
+            btn.addEventListener("click", () => { window.location.href = "/home"; });
+            if (!navigator.onLine) setTimeout(() => { window.location.href = "/home"; }, 800);
+        } else {
+            msg.textContent = "Não há sessão offline neste dispositivo.";
+            note.classList.remove("d-none");
+        }
+    });
+    </script>
+</body>
+</html>

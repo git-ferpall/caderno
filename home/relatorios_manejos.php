@@ -19,7 +19,7 @@ $dt_fin = date("Y-m-t");
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
-<body>
+<body class="page-relatorios">
     <?php include '../include/loading.php' ?>
     <?php include '../include/popups.php' ?>
 
