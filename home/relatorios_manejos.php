@@ -45,10 +45,24 @@ $dt_fin = date("Y-m-t");
 
                     <div class="rel-form-card">
                         <div class="rel-form-card-header">
-                            <h3>Relatório de Manejos</h3>
+                            <div class="rel-form-card-badge" aria-hidden="true">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3>Relatório de Manejos</h3>
+                                <p class="rel-form-card-sub">Filtre os registros e exporte um PDF completo</p>
+                            </div>
                         </div>
 
                         <form action="relatorios" class="main-form rel-form-form" id="rel-form">
+                            <div class="rel-form-section">
+                                <span class="rel-form-section-title">Filtros</span>
+
                             <div class="form-campo">
                                 <label for="pf-propriedades">Propriedades</label>
                                 <select name="pfpropriedades[]" id="pf-propriedades" class="form-select form-text f1" multiple required>
@@ -85,6 +99,10 @@ $dt_fin = date("Y-m-t");
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            </div>
+
+                            <div class="rel-form-section">
+                                <span class="rel-form-section-title">Período</span>
 
                             <div class="rel-form-grid-2">
                                 <div class="form-campo">
@@ -96,17 +114,29 @@ $dt_fin = date("Y-m-t");
                                     <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?= $dt_fin ?>" required>
                                 </div>
                             </div>
+                            </div>
 
-                            <div class="form-campo rel-form-checkbox">
-                                <label class="rel-form-checkbox-label" for="pf-resumo-areas">
-                                    <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1">
-                                    <span>Incluir resumo por área no final do relatório</span>
+                            <div class="rel-form-section rel-form-section-options">
+                                <span class="rel-form-section-title">Opções do PDF</span>
+
+                                <label class="rel-form-option-card" for="pf-resumo-areas">
+                                    <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
+                                    <span class="rel-form-option-switch" aria-hidden="true"></span>
+                                    <span class="rel-form-option-body">
+                                        <strong>Resumo por área</strong>
+                                        <small>Agrega os manejos de cada área por tipo, separando concluídos e pendentes.</small>
+                                    </span>
                                 </label>
-                                <p class="rel-form-checkbox-hint">Agrega os manejos de cada área por tipo, separando concluídos e pendentes.</p>
                             </div>
 
                             <div class="form-submit rel-form-submit">
-                                <button class="main-btn fundo-laranja" id="form-pdf-relatorio" type="button">
+                                <button class="main-btn fundo-laranja rel-form-btn-pdf" id="form-pdf-relatorio" type="button">
+                                    <svg class="rel-form-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="12" y1="18" x2="12" y2="12"/>
+                                        <polyline points="9 15 12 18 15 15"/>
+                                    </svg>
                                     <span class="main-btn-text">Gerar PDF</span>
                                 </button>
                             </div>
