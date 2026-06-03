@@ -8,6 +8,21 @@ use Mpdf\Output\Destination;
 
 session_start();
 
+function relatorioPdfErro(string $msg, int $code = 500): void
+{
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'err' => $msg], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if (!class_exists(Mpdf::class)) {
+    relatorioPdfErro(
+        'Biblioteca de PDF (mPDF) não instalada no servidor. Execute: composer require mpdf/mpdf',
+        503
+    );
+}
+
 try {
     $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
@@ -148,12 +163,17 @@ try {
     $pct_emdia      = 100 - $pct_atrasados;
 
     // === PDF ===
+    $tempDir = __DIR__ . '/../../tmp/mpdf';
+    if (!is_dir($tempDir) && !mkdir($tempDir, 0775, true) && !is_dir($tempDir)) {
+        throw new Exception('Não foi possível criar pasta temporária para o PDF.');
+    }
+
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
         'margin_top' => 45,
         'margin_bottom' => 20,
-        'tempDir' => __DIR__ . '/../../tmp/mpdf'
+        'tempDir' => $tempDir
     ]);
 
     $logo_frutag = __DIR__ . '/../../img/logo-frutag.png';
@@ -313,8 +333,9 @@ try {
     if (!empty($atrasados)) $html .= montarTabela("⚠ Pendências Atrasadas", $atrasados, 'atrasado');
 
     $mpdf->WriteHTML($html);
-    $mpdf->Output('relatorio.pdf', Destination::INLINE);
+    header('Content-Type: application/pdf');
+    $mpdf->Output('relatorio_manejos.pdf', Destination::INLINE);
 
-} catch (Exception $e) {
-    echo "<pre>Erro: " . htmlspecialchars($e->getMessage()) . "</pre>";
+} catch (Throwable $e) {
+    relatorioPdfErro($e->getMessage());
 }
