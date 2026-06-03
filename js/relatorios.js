@@ -120,20 +120,22 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
     });
 
     const contentType = resp.headers.get("content-type") || "";
+    const bodyText = await resp.text();
 
     if (!resp.ok || contentType.includes("application/json")) {
       let msg = "Erro ao gerar PDF";
       try {
-        const errData = await resp.json();
+        const errData = JSON.parse(bodyText);
         if (errData?.err) msg = errData.err;
       } catch {
-        const text = await resp.text().catch(() => "");
-        if (text) msg = text.replace(/<[^>]+>/g, " ").trim().slice(0, 300);
+        if (bodyText) {
+          msg = bodyText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 400);
+        }
       }
-      throw new Error(msg);
+      throw new Error(msg || `Erro HTTP ${resp.status}`);
     }
 
-    const blob = await resp.blob();
+    const blob = new Blob([bodyText], { type: contentType || "application/pdf" });
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
 

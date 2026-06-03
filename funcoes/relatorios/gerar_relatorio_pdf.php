@@ -2,7 +2,28 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/mpdf_bootstrap.php';
+if (is_file(__DIR__ . '/mpdf_bootstrap.php')) {
+    require_once __DIR__ . '/mpdf_bootstrap.php';
+} elseif (!function_exists('cadernoMpdfTempDir')) {
+    function cadernoMpdfTempDir(): string
+    {
+        $base = dirname(__DIR__, 2) . '/tmp/mpdf';
+        foreach ([$base, $base . '/mpdf', sys_get_temp_dir() . '/caderno-mpdf', sys_get_temp_dir() . '/caderno-mpdf/mpdf'] as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+            @chmod($dir, 0777);
+        }
+        if (is_writable($base)) {
+            return $base;
+        }
+        $fallback = rtrim(sys_get_temp_dir(), '/\\') . '/caderno-mpdf';
+        if (is_writable($fallback)) {
+            return $fallback;
+        }
+        throw new RuntimeException('Pasta temporária do PDF sem permissão de escrita.');
+    }
+}
 
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
@@ -25,6 +46,9 @@ if (!class_exists(Mpdf::class)) {
 }
 
 try {
+    @ini_set('memory_limit', '512M');
+    @set_time_limit(120);
+
     $user_id = $_SESSION['user_id'] ?? null;
     if (!$user_id) {
         $payload = verify_jwt();
@@ -171,7 +195,8 @@ try {
         'format' => 'A4',
         'margin_top' => 45,
         'margin_bottom' => 20,
-        'tempDir' => $tempDir
+        'tempDir' => $tempDir,
+        'allowRemoteImages' => false,
     ]);
 
     $logo_frutag = __DIR__ . '/../../img/logo-frutag.png';
@@ -220,35 +245,28 @@ try {
         <strong>Atrasados:</strong> ' . $total_atrasados . '
     </div>';
 
-    // === gráficos pizza com destaque nos valores ===
-    function gerarGrafico($titulo, $labels, $data, $cores) {
-        $chart = [
-            'type' => 'pie',
-            'data' => [
-                'labels' => $labels,
-                'datasets' => [[
-                    'data' => $data,
-                    'backgroundColor' => $cores
-                ]]
-            ],
-            'options' => [
-                'plugins' => [
-                    'title' => ['display' => true, 'text' => $titulo, 'font' => ['size' => 15]],
-                    'legend' => ['position' => 'bottom'],
-                    'datalabels' => [
-                        'color' => '#fff',
-                        'font' => ['weight' => 'bold', 'size' => 16],
-                        'formatter' => "(value) => value + '%'"
-                    ]
-                ]
-            ]
-        ];
-        return '<img class="grafico-img" src="https://quickchart.io/chart?c=' . urlencode(json_encode($chart)) . '">';
+    // === Gráficos em HTML (sem dependência externa — funciona no Docker) ===
+    function gerarGraficoHtml(string $titulo, array $labels, array $data, array $cores): string
+    {
+        $html = '<div class="grafico-box" style="display:inline-block;width:46%;margin:1%;vertical-align:top;text-align:left;">';
+        $html .= '<div style="font-weight:bold;text-align:center;margin-bottom:8px;">' . htmlspecialchars($titulo) . '</div>';
+        foreach ($labels as $i => $label) {
+            $pct = max(0, min(100, (int) ($data[$i] ?? 0)));
+            $cor = $cores[$i] ?? '#999';
+            $html .= '<div style="margin:6px 0;font-size:11px;">';
+            $html .= '<span style="display:inline-block;width:10px;height:10px;background:' . $cor . ';margin-right:6px;border-radius:2px;"></span>';
+            $html .= htmlspecialchars($label) . ': <strong>' . $pct . '%</strong>';
+            $html .= '<div style="background:#eee;border-radius:4px;height:10px;margin-top:3px;overflow:hidden;">';
+            $html .= '<div style="width:' . $pct . '%;background:' . $cor . ';height:10px;"></div>';
+            $html .= '</div></div>';
+        }
+        $html .= '</div>';
+        return $html;
     }
 
-    $html .= '<div class="graficos">'
-        . gerarGrafico('Concluídos x Pendentes', ['Concluídos', 'Pendentes'], [$pct_concluidos, $pct_pendentes], ['#4caf50','#ff9800'])
-        . gerarGrafico('Em dia x Atrasados', ['Em dia', 'Atrasados'], [$pct_emdia, $pct_atrasados], ['#4caf50','#e53935'])
+    $html .= '<div class="graficos" style="text-align:center;margin:16px 0;">'
+        . gerarGraficoHtml('Concluídos x Pendentes', ['Concluídos', 'Pendentes'], [$pct_concluidos, $pct_pendentes], ['#4caf50', '#ff9800'])
+        . gerarGraficoHtml('Em dia x Atrasados', ['Em dia', 'Atrasados'], [$pct_emdia, $pct_atrasados], ['#4caf50', '#e53935'])
         . '</div>';
 
     // === Monta as tabelas ===
