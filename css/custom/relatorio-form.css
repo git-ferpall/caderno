@@ -190,15 +190,13 @@
     grid-column: 1 / -1;
 }
 
-.rel-form-grid-datas {
-    margin-bottom: 10px;
+.rel-form-grid-periodo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 12px;
 }
 
-.rel-form-complemento {
-    margin-bottom: 0;
-}
-
-.rel-form-complemento-title {
+.rel-form-campo-label {
     display: block;
     margin-bottom: 5px;
     font-size: 0.8125rem;
@@ -210,10 +208,11 @@
 .rel-form-field-toggle {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 10px;
     width: 100%;
     min-height: 42px;
-    padding: 8px 12px;
+    padding: 0 12px;
     margin-bottom: 0;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -231,11 +230,12 @@
 
 .rel-form-field-toggle:has(.rel-form-option-input:checked) {
     border-color: #2e7d32;
-    background: #fafffe;
+    background: #f6fbf6;
     box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
 }
 
 .rel-form-field-toggle .rel-form-option-switch {
+    order: 2;
     width: 36px;
     height: 20px;
     margin-top: 0;
@@ -253,23 +253,20 @@
     transform: translateX(16px);
 }
 
-.rel-form-field-toggle-text {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 8px;
-    min-width: 0;
-}
-
-.rel-form-field-toggle-text strong {
+.rel-form-field-toggle-label {
+    order: 1;
+    flex: 1;
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 500;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.rel-form-field-toggle-text small {
-    font-size: 0.75rem;
-    color: #64748b;
+.rel-form-field-toggle:has(.rel-form-option-input:checked) .rel-form-field-toggle-label {
+    color: #1b4332;
+    font-weight: 600;
 }
 
 .rel-form-option-card {
@@ -520,6 +517,14 @@
     .rel-form-grid-filters .form-campo:nth-child(4) {
         grid-column: 1 / -1;
     }
+
+    .rel-form-grid-periodo {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .rel-form-grid-periodo .form-campo:last-child {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 640px) {
@@ -547,7 +552,7 @@
 
     .rel-form-grid-2,
     .rel-form-grid-filters,
-    .rel-form-grid-datas {
+    .rel-form-grid-periodo {
         grid-template-columns: 1fr;
     }
 
