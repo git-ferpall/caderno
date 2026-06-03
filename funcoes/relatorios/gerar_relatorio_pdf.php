@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/relatorio_manejos_helpers.php';
 if (is_file(__DIR__ . '/mpdf_bootstrap.php')) {
     require_once __DIR__ . '/mpdf_bootstrap.php';
 } elseif (!function_exists('cadernoMpdfTempDir')) {
@@ -28,8 +29,6 @@ if (is_file(__DIR__ . '/mpdf_bootstrap.php')) {
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
-session_start();
-
 function relatorioPdfErro(string $msg, int $code = 500): void
 {
     http_response_code($code);
@@ -49,143 +48,23 @@ try {
     @ini_set('memory_limit', '512M');
     @set_time_limit(120);
 
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
-    if (!$user_id) throw new Exception("Usuário não autenticado.");
+    $user_id = relatorioManejosUserId();
+    $dados = relatorioManejosCarregar($mysqli, $user_id, $_POST);
 
-    // === Filtros ===
-    $propriedades = $_POST['pfpropriedades'] ?? [];
-    $cultivo = $_POST['pfcult'] ?? '';
-    $area = $_POST['pfarea'] ?? '';
-    $manejo = $_POST['pfmane'] ?? '';
-    $data_ini = $_POST['pfini'] ?? date('Y-m-01');
-    $data_fim = $_POST['pffin'] ?? date('Y-m-t');
-
-    // === Pega todas as propriedades se nada foi selecionado ===
-    if (empty($propriedades)) {
-        $stmtProp = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ?");
-        $stmtProp->bind_param("i", $user_id);
-        $stmtProp->execute();
-        $resProp = $stmtProp->get_result();
-        while ($row = $resProp->fetch_assoc()) $propriedades[] = $row['id'];
-        $stmtProp->close();
-    }
-
-    if (empty($propriedades)) throw new Exception("Nenhuma propriedade encontrada para este usuário.");
-
-    // === Lista os nomes das propriedades selecionadas ===
-    $placeholdersProps = implode(',', array_fill(0, count($propriedades), '?'));
-    $typesProps = str_repeat('i', count($propriedades));
-
-    $stmtProps = $mysqli->prepare("SELECT nome_razao FROM propriedades WHERE id IN ($placeholdersProps)");
-    $stmtProps->bind_param($typesProps, ...$propriedades);
-    $stmtProps->execute();
-    $resProps = $stmtProps->get_result();
-    $nomes_props = [];
-    while ($p = $resProps->fetch_assoc()) $nomes_props[] = $p['nome_razao'];
-    $stmtProps->close();
-
-    // === Query principal ===
-    $placeholders = implode(',', array_fill(0, count($propriedades), '?'));
-
-    $sql = "
-    SELECT 
-            a.id, a.tipo, a.data, a.status, a.observacoes, a.data_conclusao,
-            a.quantidade, a.unidade,
-            ar.nome AS area_nome,
-            p.nome AS produto_nome,
-            prop.nome_razao AS propriedade_nome
-        FROM apontamentos a
-        LEFT JOIN apontamento_detalhes ad_area 
-            ON ad_area.apontamento_id = a.id 
-            AND ad_area.campo = 'area_id'
-        LEFT JOIN areas ar ON ar.id = ad_area.valor
-        LEFT JOIN apontamento_detalhes ad_prod 
-            ON ad_prod.apontamento_id = a.id 
-            AND ad_prod.campo = 'produto_id'
-        LEFT JOIN produtos p ON p.id = ad_prod.valor
-        LEFT JOIN propriedades prop ON prop.id = a.propriedade_id
-        WHERE a.propriedade_id IN ($placeholders)
-        AND COALESCE(a.data_conclusao, a.data) BETWEEN ? AND ?
-    ";
-
-    $params = [];
-    $types  = "";
-
-    // 🔹 Primeiro vêm os IDs (porque estão primeiro na query)
-    foreach ($propriedades as $pid) {
-        $params[] = $pid;
-        $types   .= "i";
-    }
-
-    // 🔹 Depois vêm as datas
-    $params[] = $data_ini;
-    $params[] = $data_fim;
-    $types   .= "ss";
-
-    // 🔹 FILTRO CULTIVO
-    if (!empty($cultivo)) {
-        $sql .= " AND p.nome = ?";
-        $params[] = $cultivo;
-        $types   .= "s";
-    }
-
-    // 🔹 FILTRO ÁREA
-    if (!empty($area)) {
-        $sql .= " AND ar.nome = ?";
-        $params[] = $area;
-        $types   .= "s";
-    }
-
-    // 🔹 FILTRO MANEJO
-    if (!empty($manejo)) {
-        $sql .= " AND a.tipo = ?";
-        $params[] = $manejo;
-        $types   .= "s";
-    }
-
-    $sql .= " ORDER BY a.data DESC";
-
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $res = $stmt->get_result();
-
-    $pendentes = [];
-    $concluidos = [];
-    $atrasados = [];
-    $hoje = strtotime(date('Y-m-d'));
-
-    while ($row = $res->fetch_assoc()) {
-
-        $data_base = !empty($row['data_conclusao']) 
-            ? $row['data_conclusao'] 
-            : $row['data'];
-
-        $data_item = strtotime($data_base);
-
-        if (strtolower($row['status']) === 'concluido') {
-            $concluidos[] = $row;
-        } else {
-            if ($data_item < $hoje) {
-                $atrasados[] = $row;
-            }
-            $pendentes[] = $row;
-        }
-    }
-
-    $total_pendentes = count($pendentes);
-    $total_concluidos = count($concluidos);
-    $total_atrasados = count($atrasados);
-    $total_geral = $total_pendentes + $total_concluidos;
-
-    $pct_concluidos = $total_geral > 0 ? round(($total_concluidos / $total_geral) * 100) : 0;
-    $pct_pendentes  = 100 - $pct_concluidos;
-    $pct_atrasados  = $total_pendentes > 0 ? round(($total_atrasados / $total_pendentes) * 100) : 0;
-    $pct_emdia      = 100 - $pct_atrasados;
+    $nomes_props = $dados['nomes_props'];
+    $concluidos = $dados['concluidos'];
+    $pendentes = $dados['pendentes'];
+    $atrasados = $dados['atrasados'];
+    $total_pendentes = $dados['total_pendentes'];
+    $total_concluidos = $dados['total_concluidos'];
+    $total_atrasados = $dados['total_atrasados'];
+    $total_geral = $dados['total_geral'];
+    $pct_concluidos = $dados['pct_concluidos'];
+    $pct_pendentes = $dados['pct_pendentes'];
+    $pct_atrasados = $dados['pct_atrasados'];
+    $pct_emdia = $dados['pct_emdia'];
+    $data_ini = $dados['data_ini'];
+    $data_fim = $dados['data_fim'];
 
     // === PDF ===
     $tempDir = cadernoMpdfTempDir();
@@ -349,11 +228,14 @@ try {
     if (!empty($atrasados)) $html .= montarTabela("⚠ Pendências Atrasadas", $atrasados, 'atrasado');
 
     $mpdf->WriteHTML($html);
+    $paginasTotais = (int) $mpdf->page;
     if (ob_get_length()) {
         ob_end_clean();
     }
     header('Content-Type: application/pdf');
     header('Content-Disposition: inline; filename="relatorio_manejos.pdf"');
+    header('X-Pdf-Pages: ' . $paginasTotais);
+    header('X-Pdf-Records: ' . (int) $total_geral);
     $mpdf->Output('relatorio_manejos.pdf', Destination::INLINE);
 
 } catch (Throwable $e) {

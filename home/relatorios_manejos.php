@@ -24,9 +24,14 @@ $dt_fin = date("Y-m-t");
     <?php include '../include/popups.php' ?>
 
     <div id="pdf-loading">
-        <div style="text-align:center">
+        <div class="pdf-loading-box">
             <div class="rel-form-spinner"></div>
-            <p style="margin-top:10px;font-weight:bold;color:#2e7d32">Gerando relatório, aguarde...</p>
+            <p class="pdf-loading-title">Gerando relatório, aguarde...</p>
+            <p class="pdf-loading-pages" id="pdf-loading-pages">Calculando páginas...</p>
+            <div class="pdf-progress-track" aria-hidden="true">
+                <div class="pdf-progress-bar" id="pdf-progress-bar"></div>
+            </div>
+            <p class="pdf-loading-pct" id="pdf-loading-pct">0%</p>
         </div>
     </div>
 

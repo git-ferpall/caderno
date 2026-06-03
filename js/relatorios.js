@@ -102,8 +102,34 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
   const btn = document.getElementById("form-pdf-relatorio");
   const form = document.getElementById("rel-form");
   const loading = document.getElementById("pdf-loading");
+  const pagesEl = document.getElementById("pdf-loading-pages");
+  const pctEl = document.getElementById("pdf-loading-pct");
+  const barEl = document.getElementById("pdf-progress-bar");
 
-  if (btn.disabled) return; // evita duplo clique
+  if (btn.disabled) return;
+
+  let progressTimer = null;
+
+  function atualizarProgresso(paginaAtual, paginasTotais, pct) {
+    const total = Math.max(1, paginasTotais || 1);
+    const atual = Math.min(Math.max(0, paginaAtual), total);
+    const percentual = Math.min(100, Math.max(0, pct));
+
+    if (pagesEl) {
+      pagesEl.textContent = percentual >= 100
+        ? `Relatório pronto — ${total} página${total === 1 ? "" : "s"}`
+        : `Página ${atual} de ${total}`;
+    }
+    if (pctEl) pctEl.textContent = `${percentual}%`;
+    if (barEl) barEl.style.width = `${percentual}%`;
+  }
+
+  function pararAnimacao() {
+    if (progressTimer) {
+      clearInterval(progressTimer);
+      progressTimer = null;
+    }
+  }
 
   try {
     btn.disabled = true;
@@ -111,13 +137,39 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
     btn.style.cursor = "not-allowed";
 
     loading.style.display = "flex";
+    atualizarProgresso(0, 1, 0);
 
     const formData = new FormData(form);
+    let paginasEstimadas = 3;
+
+    try {
+      const previewResp = await fetch("../funcoes/relatorios/preview_relatorio_manejos.php", {
+        method: "POST",
+        body: formData
+      });
+      const preview = await previewResp.json();
+      if (preview.ok && preview.paginas_estimadas) {
+        paginasEstimadas = Math.max(1, parseInt(preview.paginas_estimadas, 10));
+      }
+    } catch (previewErr) {
+      console.warn("Preview do relatório indisponível:", previewErr);
+    }
+
+    let paginaSimulada = 0;
+    atualizarProgresso(0, paginasEstimadas, 0);
+
+    progressTimer = setInterval(() => {
+      paginaSimulada = Math.min(paginasEstimadas, paginaSimulada + 1);
+      const pct = Math.min(95, Math.round((paginaSimulada / paginasEstimadas) * 95));
+      atualizarProgresso(paginaSimulada, paginasEstimadas, pct);
+    }, 700);
 
     const resp = await fetch("../funcoes/relatorios/gerar_relatorio_pdf.php", {
       method: "POST",
       body: formData
     });
+
+    pararAnimacao();
 
     const contentType = resp.headers.get("content-type") || "";
 
@@ -135,10 +187,15 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
       throw new Error(msg || `Erro HTTP ${resp.status}`);
     }
 
+    const paginasReais = parseInt(resp.headers.get("X-Pdf-Pages") || paginasEstimadas, 10) || paginasEstimadas;
+    atualizarProgresso(paginasReais, paginasReais, 100);
+
     const blob = await resp.blob();
     if (!blob.size) {
       throw new Error("PDF vazio retornado pelo servidor.");
     }
+
+    await new Promise(r => setTimeout(r, 450));
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -155,6 +212,7 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
     alert("❌ Falha ao gerar PDF: " + err.message);
     console.error(err);
   } finally {
+    pararAnimacao();
     loading.style.display = "none";
     btn.disabled = false;
     btn.style.opacity = "1";

@@ -201,6 +201,53 @@
     font-family: sans-serif;
 }
 
+.pdf-loading-box {
+    text-align: center;
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 8px 16px;
+}
+
+.pdf-loading-title {
+    margin: 12px 0 6px;
+    font-weight: 700;
+    color: #2e7d32;
+    font-size: 15px;
+}
+
+.pdf-loading-pages {
+    margin: 0 0 14px;
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 600;
+}
+
+.pdf-progress-track {
+    width: 100%;
+    max-width: 320px;
+    height: 10px;
+    margin: 0 auto 10px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.pdf-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #43a047, #2e7d32);
+    border-radius: 999px;
+    transition: width 0.35s ease;
+}
+
+.pdf-loading-pct {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #1b4332;
+    letter-spacing: 0.02em;
+}
+
 .rel-form-layout #footer {
     margin-top: auto;
 }
