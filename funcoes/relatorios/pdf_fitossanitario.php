@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require_once __DIR__.'/../../configuracao/configuracao_conexao.php';
 require_once __DIR__.'/../../vendor/autoload.php';
+require_once __DIR__ . '/mpdf_bootstrap.php';
 
 use Mpdf\Mpdf;
 
@@ -292,7 +293,7 @@ $mpdf = new Mpdf([
     'format' => 'A4',
     'margin_top' => 45,
     'margin_bottom' => 20,
-    'tempDir' => __DIR__ . '/../../tmp/mpdf'
+    'tempDir' => cadernoMpdfTempDir()
 ]);
 
 /* ===============================

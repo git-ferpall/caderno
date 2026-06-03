@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require_once __DIR__.'/../../configuracao/configuracao_conexao.php';
 require_once __DIR__.'/../../vendor/autoload.php';
+require_once __DIR__ . '/mpdf_bootstrap.php';
 
 date_default_timezone_set("America/Sao_Paulo");
 
@@ -568,11 +569,7 @@ $chartUrlEvolucao="https://quickchart.io/chart?c=".urlencode(json_encode($chartC
 MPDF
 ===================================================== */
 
-$tempDir=__DIR__.'/../../tmp/mpdf';
-
-if(!is_dir($tempDir)){
-    mkdir($tempDir,0777,true);
-}
+$tempDir = cadernoMpdfTempDir();
 
 $mpdf=new \Mpdf\Mpdf([
 'mode'=>'utf-8',

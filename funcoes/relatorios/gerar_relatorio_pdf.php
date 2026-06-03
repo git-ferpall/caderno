@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../sso/verify_jwt.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/mpdf_bootstrap.php';
 
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
@@ -163,10 +164,7 @@ try {
     $pct_emdia      = 100 - $pct_atrasados;
 
     // === PDF ===
-    $tempDir = __DIR__ . '/../../tmp/mpdf';
-    if (!is_dir($tempDir) && !mkdir($tempDir, 0775, true) && !is_dir($tempDir)) {
-        throw new Exception('Não foi possível criar pasta temporária para o PDF.');
-    }
+    $tempDir = cadernoMpdfTempDir();
 
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
