@@ -118,9 +118,9 @@ $dt_fin = date("Y-m-t");
                                     <div class="form-campo">
                                         <span class="rel-form-campo-label">Resumo por área</span>
                                         <label class="rel-form-field-toggle" for="pf-resumo-areas" title="Agrega manejos por área e tipo, separando concluídos e pendentes">
-                                            <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
-                                            <span class="rel-form-option-switch" aria-hidden="true"></span>
                                             <span class="rel-form-field-toggle-label">Incluir no PDF</span>
+                                            <span class="rel-form-option-switch" aria-hidden="true"></span>
+                                            <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
                                         </label>
                                     </div>
                                 </div>
