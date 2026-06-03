@@ -319,9 +319,14 @@ const OfflineApp = (() => {
         (pages.fail ? ` (${pages.fail} tela(s) com aviso)` : "") +
         ".";
 
+      const dicaOffline =
+        " Sem internet: abra no MESMO navegador (aba normal, não anônima) " +
+        "caderno.frutag.com.br/home ou caderno.frutag.com.br/offline.html — " +
+        "não use aba nova digitando só o domínio se der erro.";
+
       OfflineUI.setBanner(msg, "ok");
       if (typeof showPopup === "function") {
-        showPopup("success", msg);
+        showPopup("success", msg + dicaOffline);
       }
       setTimeout(() => OfflineUI.hideBanner(), 6000);
     } catch (e) {

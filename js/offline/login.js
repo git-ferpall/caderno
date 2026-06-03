@@ -16,9 +16,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  if (!navigator.onLine && valid) {
-    const entered = await OfflineSession.tryEnterOffline();
-    if (entered) return;
+  if (!navigator.onLine) {
+    if (valid) {
+      const entered = await OfflineSession.tryEnterOffline();
+      if (entered) return;
+    }
+    window.location.replace("/offline.html");
+    return;
   }
 
   btn?.addEventListener("click", async () => {

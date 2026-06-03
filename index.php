@@ -18,6 +18,11 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="manifest" href="/manifest.webmanifest">
+    <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    }
+    </script>
 </head>
 <body class="page-login">
 

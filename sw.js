@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v9";
-const CACHE_PAGES = "caderno-pages-v9";
+const CACHE_STATIC = "caderno-static-v10";
+const CACHE_PAGES = "caderno-pages-v10";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -68,8 +68,13 @@ async function notifyClientsRunSync() {
   );
 }
 
+/** Só a raiz sem arquivo — index.php pode ser cacheado para entrar offline */
 function isLoginPath(pathname) {
-  return pathname === "/" || pathname === "/index.php";
+  return pathname === "/";
+}
+
+function isOfflineEntryPath(pathname) {
+  return pathname === "/offline.html" || pathname === "/index.php";
 }
 
 /** /home/home (menu antigo) e /home/index → mesma tela que /home */
@@ -126,7 +131,8 @@ async function precachePages(urls) {
     urls.map((url) =>
       fetch(url, { credentials: "include" })
         .then(async (res) => {
-          if (!res.ok || isLoginPath(new URL(res.url).pathname)) return;
+          const p = new URL(res.url).pathname;
+          if (!res.ok || (isLoginPath(p) && !isOfflineEntryPath(p))) return;
           const req = new Request(url, { credentials: "include" });
           await putPageInCache(cache, req, res);
         })
@@ -198,7 +204,8 @@ async function networkFirstPage(request) {
   const url = new URL(request.url);
   try {
     const res = await fetch(request);
-    if (res.ok && !isLoginPath(new URL(res.url).pathname)) {
+    const resPath = new URL(res.url).pathname;
+    if (res.ok && (!isLoginPath(resPath) || isOfflineEntryPath(resPath))) {
       const cache = await caches.open(CACHE_PAGES);
       putPageInCache(cache, request, res.clone());
     }
@@ -206,6 +213,12 @@ async function networkFirstPage(request) {
   } catch {
     const cached = await findCachedPage(request);
     if (cached) return cached;
+
+    const offline = await caches.match("/offline.html");
+    if (offline && (isLoginPath(url.pathname) || isOfflineEntryPath(url.pathname) || url.pathname === "/index.php")) {
+      return offline;
+    }
+
     const norm = normalizeAppPath(url.pathname);
     if (norm === "/home" || (norm.startsWith("/home/") && norm !== "/home")) {
       return new Response(offlineSubpageHtml(url.pathname), {
@@ -213,9 +226,8 @@ async function networkFirstPage(request) {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     }
-    const offline = await caches.match("/offline.html");
     if (offline) return offline;
-    return new Response("Sem conexão. Abra o Caderno online pelo menos uma vez neste aparelho.", {
+    return new Response("Sem conexão. Use o mesmo navegador onde fez login e «Baixar para offline», ou abra /offline.html", {
       status: 503,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });

@@ -2,6 +2,8 @@ const OfflineSession = (() => {
   const SESSION_KEY = "offline_session";
   const DEFAULT_DAYS = 30;
 
+  const ENTRY_PAGES = ["/offline.html", "/index.php"];
+
   const SHELL_PAGES = [
     "/home",
     "/home/apontamento",
@@ -113,7 +115,7 @@ const OfflineSession = (() => {
     const reg = await navigator.serviceWorker.register("/sw.js").catch(() => null);
     if (!reg) return;
     await navigator.serviceWorker.ready;
-    reg.active?.postMessage({ type: "PRECACHE_PAGES", urls: SHELL_PAGES });
+    reg.active?.postMessage({ type: "PRECACHE_PAGES", urls: [...ENTRY_PAGES, ...SHELL_PAGES] });
   }
 
   /**
@@ -124,16 +126,16 @@ const OfflineSession = (() => {
   async function precachePagesClient(onProgress, fetchFn = fetch) {
     let ok = 0;
     let fail = 0;
-    const total = SHELL_PAGES.length;
+    const urls = [...ENTRY_PAGES, ...SHELL_PAGES];
+    const total = urls.length;
 
-    for (let i = 0; i < SHELL_PAGES.length; i++) {
-      const url = SHELL_PAGES[i];
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
       onProgress?.({ current: i + 1, total, url });
       try {
         const res = await fetchFn(url, { credentials: "same-origin" });
         const path = new URL(res.url, location.origin).pathname;
-        const isLogin = path === "/" || path === "/index.php";
-        if (res.ok && !isLogin) ok++;
+        if (res.ok && path !== "/") ok++;
         else fail++;
       } catch {
         fail++;
@@ -142,7 +144,7 @@ const OfflineSession = (() => {
 
     if ("serviceWorker" in navigator) {
       const reg = await navigator.serviceWorker.ready.catch(() => null);
-      reg?.active?.postMessage({ type: "PRECACHE_PAGES", urls: SHELL_PAGES });
+      reg?.active?.postMessage({ type: "PRECACHE_PAGES", urls });
     }
 
     return { ok, fail, total };
@@ -165,6 +167,7 @@ const OfflineSession = (() => {
   }
 
   return {
+    ENTRY_PAGES,
     SHELL_PAGES,
     isValid,
     load,
