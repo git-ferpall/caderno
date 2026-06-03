@@ -106,7 +106,7 @@ $dt_fin = date("Y-m-t");
                             <div class="rel-form-section">
                                 <span class="rel-form-section-title">Período</span>
 
-                                <div class="rel-form-grid-periodo">
+                                <div class="rel-form-grid-2 rel-form-grid-datas">
                                     <div class="form-campo">
                                         <label for="pf-ini">Data inicial</label>
                                         <input class="form-text only-num" type="date" name="pfini" id="pf-ini" value="<?= $dt_ini ?>" required>
@@ -115,11 +115,14 @@ $dt_fin = date("Y-m-t");
                                         <label for="pf-fin">Data final</label>
                                         <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?= $dt_fin ?>" required>
                                     </div>
+                                </div>
 
-                                    <label class="rel-form-option-card rel-form-option-card--inline" for="pf-resumo-areas">
+                                <div class="form-campo form-campo--full rel-form-complemento">
+                                    <span class="rel-form-complemento-title">Complementos do PDF</span>
+                                    <label class="rel-form-field-toggle" for="pf-resumo-areas">
                                         <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
                                         <span class="rel-form-option-switch" aria-hidden="true"></span>
-                                        <span class="rel-form-option-body">
+                                        <span class="rel-form-field-toggle-text">
                                             <strong>Resumo por área</strong>
                                             <small>Por tipo, concluídos e pendentes</small>
                                         </span>
