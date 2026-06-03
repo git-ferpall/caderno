@@ -46,6 +46,15 @@ function relatorioManejosResumoAreasFlag(array $post): bool
     return !empty($post['pfresumoareas']);
 }
 
+function relatorioHtmlEsc(mixed $valor, string $fallback = '—'): string
+{
+    if ($valor === null || $valor === '') {
+        return htmlspecialchars($fallback, ENT_QUOTES, 'UTF-8');
+    }
+
+    return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
+}
+
 /**
  * @param list<array<string,mixed>> $concluidos
  * @param list<array<string,mixed>> $pendentes
@@ -86,10 +95,11 @@ function relatorioManejosAgregarPorArea(array $concluidos, array $pendentes): ar
     return $resumo;
 }
 
-function relatorioManejosFormatarTipo(string $tipo): string
+function relatorioManejosFormatarTipo(mixed $tipo): string
 {
-    if ($tipo === '—') {
-        return $tipo;
+    $tipo = trim((string) $tipo);
+    if ($tipo === '' || $tipo === '—') {
+        return '—';
     }
     return ucfirst(str_replace('_', ' ', $tipo));
 }
@@ -106,7 +116,7 @@ function relatorioManejosHtmlResumoAreas(array $resumoAreas): string
         $totConcluido = 0;
         $totPendente = 0;
 
-        $html .= '<h3 style="color:#2e7d32;font-size:13px;margin:18px 0 8px;">' . htmlspecialchars($areaNome) . '</h3>';
+        $html .= '<h3 style="color:#2e7d32;font-size:13px;margin:18px 0 8px;">' . relatorioHtmlEsc($areaNome) . '</h3>';
         $html .= '<table><thead><tr>
             <th>Tipo de manejo</th>
             <th style="text-align:center;width:90px;">Concluídos</th>
@@ -120,7 +130,7 @@ function relatorioManejosHtmlResumoAreas(array $resumoAreas): string
             $totConcluido += $c;
             $totPendente += $p;
             $html .= '<tr>
-                <td>' . htmlspecialchars(relatorioManejosFormatarTipo($tipo)) . '</td>
+                <td>' . relatorioHtmlEsc(relatorioManejosFormatarTipo($tipo)) . '</td>
                 <td style="text-align:center;">' . $c . '</td>
                 <td style="text-align:center;">' . $p . '</td>
                 <td style="text-align:center;"><strong>' . ($c + $p) . '</strong></td>

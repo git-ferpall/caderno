@@ -210,13 +210,13 @@ try {
             $html .= '<tr' . $extra . '>
                 <td>' . (!empty($d['data']) ? date('d/m/Y', strtotime($d['data'])) : '—') . '</td>
                 <td>' . (!empty($d['data_conclusao']) ? date('d/m/Y', strtotime($d['data_conclusao'])) : '—') . '</td>
-                <td>' . htmlspecialchars($d['propriedade_nome'] ?? '—') . '</td>
-                <td>' . htmlspecialchars($d['area_nome'] ?? '—') . '</td>
-                <td>' . htmlspecialchars($d['produto_nome'] ?? '—') . '</td>
+                <td>' . relatorioHtmlEsc($d['propriedade_nome'] ?? null) . '</td>
+                <td>' . relatorioHtmlEsc($d['area_nome'] ?? null) . '</td>
+                <td>' . relatorioHtmlEsc($d['produto_nome'] ?? null) . '</td>
                 <td>' . formatarQuantidadeColhida($d) . '</td>
-                <td>' . ucfirst($d['tipo'] ?? '—') . '</td>
-                <td>' . ucfirst($d['status'] ?? '—') . '</td>
-                <td>' . htmlspecialchars($d['observacoes'] ?? '—') . '</td>
+                <td>' . relatorioHtmlEsc(relatorioManejosFormatarTipo($d['tipo'] ?? null)) . '</td>
+                <td>' . relatorioHtmlEsc(relatorioManejosFormatarTipo($d['status'] ?? null)) . '</td>
+                <td>' . relatorioHtmlEsc($d['observacoes'] ?? null) . '</td>
             </tr>';
         }
 
