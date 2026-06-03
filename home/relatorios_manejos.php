@@ -106,7 +106,7 @@ $dt_fin = date("Y-m-t");
                             <div class="rel-form-section">
                                 <span class="rel-form-section-title">Período</span>
 
-                                <div class="rel-form-grid-periodo">
+                                <div class="rel-form-grid-2 rel-form-grid-datas">
                                     <div class="form-campo">
                                         <label for="pf-ini">Data inicial</label>
                                         <input class="form-text only-num" type="date" name="pfini" id="pf-ini" value="<?= $dt_ini ?>" required>
@@ -115,15 +115,42 @@ $dt_fin = date("Y-m-t");
                                         <label for="pf-fin">Data final</label>
                                         <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?= $dt_fin ?>" required>
                                     </div>
-                                    <div class="form-campo">
-                                        <span class="rel-form-campo-label">Resumo por área</span>
-                                        <label class="rel-form-field-toggle" for="pf-resumo-areas" title="Agrega manejos por área e tipo, separando concluídos e pendentes">
-                                            <span class="rel-form-field-toggle-label">Incluir no PDF</span>
-                                            <span class="rel-form-option-switch" aria-hidden="true"></span>
-                                            <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
-                                        </label>
-                                    </div>
                                 </div>
+
+                                <label class="rel-form-resumo-card" for="pf-resumo-areas">
+                                    <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
+
+                                    <div class="rel-form-resumo-preview" aria-hidden="true">
+                                        <div class="rel-form-resumo-preview-sheet">
+                                            <div class="rel-form-resumo-preview-title">Área Norte</div>
+                                            <div class="rel-form-resumo-preview-line"><i></i><span>Irrigação</span><b>4</b><b>1</b></div>
+                                            <div class="rel-form-resumo-preview-line"><i></i><span>Poda</span><b>2</b><b>0</b></div>
+                                            <div class="rel-form-resumo-preview-title">Área Sul</div>
+                                            <div class="rel-form-resumo-preview-line"><i></i><span>Colheita</span><b>3</b><b>2</b></div>
+                                        </div>
+                                        <div class="rel-form-resumo-preview-legend">
+                                            <span><em class="ok"></em> Concl.</span>
+                                            <span><em class="pend"></em> Pend.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="rel-form-resumo-body">
+                                        <span class="rel-form-resumo-kicker">Extra no PDF</span>
+                                        <span class="rel-form-resumo-title">Resumo por área</span>
+                                        <p class="rel-form-resumo-desc">Inclui uma página consolidada no final do relatório, agrupando os manejos de cada área por tipo.</p>
+                                        <div class="rel-form-resumo-tags">
+                                            <span>Por área</span>
+                                            <span>Por tipo de manejo</span>
+                                            <span>Concluídos e pendentes</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="rel-form-resumo-action">
+                                        <span class="rel-form-resumo-state rel-form-resumo-state--off">Não incluir</span>
+                                        <span class="rel-form-resumo-state rel-form-resumo-state--on">Incluir no PDF</span>
+                                        <span class="rel-form-option-switch" aria-hidden="true"></span>
+                                    </div>
+                                </label>
                             </div>
 
                             <div class="form-submit rel-form-submit">
