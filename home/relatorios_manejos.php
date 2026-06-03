@@ -97,6 +97,14 @@ $dt_fin = date("Y-m-t");
                                 </div>
                             </div>
 
+                            <div class="form-campo rel-form-checkbox">
+                                <label class="rel-form-checkbox-label" for="pf-resumo-areas">
+                                    <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1">
+                                    <span>Incluir resumo por área no final do relatório</span>
+                                </label>
+                                <p class="rel-form-checkbox-hint">Agrega os manejos de cada área por tipo, separando concluídos e pendentes.</p>
+                            </div>
+
                             <div class="form-submit rel-form-submit">
                                 <button class="main-btn fundo-laranja" id="form-pdf-relatorio" type="button">
                                     <span class="main-btn-text">Gerar PDF</span>

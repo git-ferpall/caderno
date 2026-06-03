@@ -124,6 +124,39 @@
     gap: 12px;
 }
 
+.rel-form-checkbox {
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.rel-form-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: 1.4;
+}
+
+.rel-form-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: #2e7d32;
+    flex-shrink: 0;
+}
+
+.rel-form-checkbox-hint {
+    margin: 6px 0 0 28px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.45;
+}
+
 .rel-form-submit {
     margin-top: 4px;
     padding-top: 4px;

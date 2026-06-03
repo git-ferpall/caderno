@@ -65,6 +65,8 @@ try {
     $pct_emdia = $dados['pct_emdia'];
     $data_ini = $dados['data_ini'];
     $data_fim = $dados['data_fim'];
+    $resumo_areas = $dados['resumo_areas'];
+    $resumo_por_area = $dados['resumo_por_area'];
 
     // === PDF ===
     $tempDir = cadernoMpdfTempDir();
@@ -226,6 +228,10 @@ try {
     $html .= montarTabela("Manejos Concluídos", $concluidos);
     $html .= montarTabela("Manejos Pendentes", $pendentes);
     if (!empty($atrasados)) $html .= montarTabela("⚠ Pendências Atrasadas", $atrasados, 'atrasado');
+
+    if ($resumo_areas) {
+        $html .= relatorioManejosHtmlResumoAreas($resumo_por_area);
+    }
 
     $mpdf->WriteHTML($html);
     $paginasTotais = (int) $mpdf->page;

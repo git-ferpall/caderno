@@ -20,7 +20,7 @@ function relatorioManejosUserId(): int
     return (int) $user_id;
 }
 
-function relatorioManejosEstimarPaginas(int $concluidos, int $pendentes, int $atrasados): int
+function relatorioManejosEstimarPaginas(int $concluidos, int $pendentes, int $atrasados, bool $comResumoAreas = false, int $qtdAreas = 0): int
 {
     $linhasPorPagina = 16;
     $paginas = 2;
@@ -34,8 +34,108 @@ function relatorioManejosEstimarPaginas(int $concluidos, int $pendentes, int $at
     if ($atrasados > 0) {
         $paginas += max(1, (int) ceil($atrasados / $linhasPorPagina));
     }
+    if ($comResumoAreas && $qtdAreas > 0) {
+        $paginas += max(1, (int) ceil($qtdAreas * 1.5));
+    }
 
     return max(1, $paginas);
+}
+
+function relatorioManejosResumoAreasFlag(array $post): bool
+{
+    return !empty($post['pfresumoareas']);
+}
+
+/**
+ * @param list<array<string,mixed>> $concluidos
+ * @param list<array<string,mixed>> $pendentes
+ * @return array<string, array<string, array{concluido: int, pendente: int}>>
+ */
+function relatorioManejosAgregarPorArea(array $concluidos, array $pendentes): array
+{
+    $resumo = [];
+
+    $inc = static function (array $row, string $status) use (&$resumo): void {
+        $area = trim((string) ($row['area_nome'] ?? ''));
+        if ($area === '') {
+            $area = 'Sem área';
+        }
+        $tipo = trim((string) ($row['tipo'] ?? ''));
+        if ($tipo === '') {
+            $tipo = '—';
+        }
+        if (!isset($resumo[$area][$tipo])) {
+            $resumo[$area][$tipo] = ['concluido' => 0, 'pendente' => 0];
+        }
+        $resumo[$area][$tipo][$status]++;
+    };
+
+    foreach ($concluidos as $row) {
+        $inc($row, 'concluido');
+    }
+    foreach ($pendentes as $row) {
+        $inc($row, 'pendente');
+    }
+
+    ksort($resumo, SORT_NATURAL | SORT_FLAG_CASE);
+    foreach ($resumo as &$tipos) {
+        ksort($tipos, SORT_NATURAL | SORT_FLAG_CASE);
+    }
+    unset($tipos);
+
+    return $resumo;
+}
+
+function relatorioManejosFormatarTipo(string $tipo): string
+{
+    if ($tipo === '—') {
+        return $tipo;
+    }
+    return ucfirst(str_replace('_', ' ', $tipo));
+}
+
+function relatorioManejosHtmlResumoAreas(array $resumoAreas): string
+{
+    if (!$resumoAreas) {
+        return '';
+    }
+
+    $html = '<h2>Resumo por Área</h2>';
+
+    foreach ($resumoAreas as $areaNome => $tipos) {
+        $totConcluido = 0;
+        $totPendente = 0;
+
+        $html .= '<h3 style="color:#2e7d32;font-size:13px;margin:18px 0 8px;">' . htmlspecialchars($areaNome) . '</h3>';
+        $html .= '<table><thead><tr>
+            <th>Tipo de manejo</th>
+            <th style="text-align:center;width:90px;">Concluídos</th>
+            <th style="text-align:center;width:90px;">Pendentes</th>
+            <th style="text-align:center;width:70px;">Total</th>
+        </tr></thead><tbody>';
+
+        foreach ($tipos as $tipo => $contagens) {
+            $c = (int) $contagens['concluido'];
+            $p = (int) $contagens['pendente'];
+            $totConcluido += $c;
+            $totPendente += $p;
+            $html .= '<tr>
+                <td>' . htmlspecialchars(relatorioManejosFormatarTipo($tipo)) . '</td>
+                <td style="text-align:center;">' . $c . '</td>
+                <td style="text-align:center;">' . $p . '</td>
+                <td style="text-align:center;"><strong>' . ($c + $p) . '</strong></td>
+            </tr>';
+        }
+
+        $html .= '</tbody><tfoot><tr style="background:#f1f8e9;font-weight:bold;">
+            <td>Total da área</td>
+            <td style="text-align:center;">' . $totConcluido . '</td>
+            <td style="text-align:center;">' . $totPendente . '</td>
+            <td style="text-align:center;">' . ($totConcluido + $totPendente) . '</td>
+        </tr></tfoot></table>';
+    }
+
+    return $html;
 }
 
 /**
@@ -54,6 +154,8 @@ function relatorioManejosEstimarPaginas(int $concluidos, int $pendentes, int $at
  *   pct_emdia: int,
  *   data_ini: string,
  *   data_fim: string,
+ *   resumo_areas: bool,
+ *   resumo_por_area: array<string, array<string, array{concluido: int, pendente: int}>>,
  *   paginas_estimadas: int
  * }
  */
@@ -178,6 +280,11 @@ function relatorioManejosCarregar(mysqli $mysqli, int $user_id, array $post): ar
     $pct_atrasados = $total_pendentes > 0 ? (int) round(($total_atrasados / $total_pendentes) * 100) : 0;
     $pct_emdia = 100 - $pct_atrasados;
 
+    $resumo_areas = relatorioManejosResumoAreasFlag($post);
+    $resumo_por_area = $resumo_areas
+        ? relatorioManejosAgregarPorArea($concluidos, $pendentes)
+        : [];
+
     return [
         'nomes_props' => $nomes_props,
         'concluidos' => $concluidos,
@@ -193,6 +300,14 @@ function relatorioManejosCarregar(mysqli $mysqli, int $user_id, array $post): ar
         'pct_emdia' => $pct_emdia,
         'data_ini' => $data_ini,
         'data_fim' => $data_fim,
-        'paginas_estimadas' => relatorioManejosEstimarPaginas($total_concluidos, $total_pendentes, $total_atrasados),
+        'resumo_areas' => $resumo_areas,
+        'resumo_por_area' => $resumo_por_area,
+        'paginas_estimadas' => relatorioManejosEstimarPaginas(
+            $total_concluidos,
+            $total_pendentes,
+            $total_atrasados,
+            $resumo_areas,
+            count($resumo_por_area)
+        ),
     ];
 }
