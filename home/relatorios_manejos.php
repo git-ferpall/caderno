@@ -63,70 +63,68 @@ $dt_fin = date("Y-m-t");
                             <div class="rel-form-section">
                                 <span class="rel-form-section-title">Filtros</span>
 
-                            <div class="form-campo">
-                                <label for="pf-propriedades">Propriedades</label>
-                                <select name="pfpropriedades[]" id="pf-propriedades" class="form-select form-text f1" multiple required>
-                                    <option value="">Carregando...</option>
-                                </select>
-                            </div>
+                                <div class="rel-form-grid-filters">
+                                    <div class="form-campo form-campo--full">
+                                        <label for="pf-propriedades">Propriedades</label>
+                                        <select name="pfpropriedades[]" id="pf-propriedades" class="form-select form-text f1" multiple required>
+                                            <option value="">Carregando...</option>
+                                        </select>
+                                    </div>
 
-                            <div class="form-campo">
-                                <label for="pf-cult">Cultivos</label>
-                                <select name="pfcult" id="pf-cult" class="form-select form-text f1" required>
-                                    <option value="" selected>Todos os cultivos</option>
-                                    <?php foreach ($cultivos as $cultivo): ?>
-                                        <option value="<?= strtolower($cultivo) ?>"><?= htmlspecialchars($cultivo) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                                    <div class="form-campo">
+                                        <label for="pf-cult">Cultivos</label>
+                                        <select name="pfcult" id="pf-cult" class="form-select form-text f1" required>
+                                            <option value="" selected>Todos os cultivos</option>
+                                            <?php foreach ($cultivos as $cultivo): ?>
+                                                <option value="<?= strtolower($cultivo) ?>"><?= htmlspecialchars($cultivo) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
 
-                            <div class="form-campo">
-                                <label for="pf-area">Áreas</label>
-                                <select name="pfarea" id="pf-area" class="form-select form-text f1" required>
-                                    <option value="" selected>Todas as áreas</option>
-                                    <?php foreach ($areas as $area): ?>
-                                        <option value="<?= strtolower($area) ?>"><?= htmlspecialchars($area) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                                    <div class="form-campo">
+                                        <label for="pf-area">Áreas</label>
+                                        <select name="pfarea" id="pf-area" class="form-select form-text f1" required>
+                                            <option value="" selected>Todas as áreas</option>
+                                            <?php foreach ($areas as $area): ?>
+                                                <option value="<?= strtolower($area) ?>"><?= htmlspecialchars($area) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
 
-                            <div class="form-campo">
-                                <label for="pf-mane">Tipos de manejo</label>
-                                <select name="pfmane" id="pf-mane" class="form-select form-text f1" required>
-                                    <option value="" selected>Todos os tipos de manejo</option>
-                                    <?php foreach ($manejos as $manejo): ?>
-                                        <option value="<?= strtolower($manejo) ?>"><?= htmlspecialchars($manejo) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                                    <div class="form-campo">
+                                        <label for="pf-mane">Tipos de manejo</label>
+                                        <select name="pfmane" id="pf-mane" class="form-select form-text f1" required>
+                                            <option value="" selected>Todos os tipos</option>
+                                            <?php foreach ($manejos as $manejo): ?>
+                                                <option value="<?= strtolower($manejo) ?>"><?= htmlspecialchars($manejo) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="rel-form-section">
                                 <span class="rel-form-section-title">Período</span>
 
-                            <div class="rel-form-grid-2">
-                                <div class="form-campo">
-                                    <label for="pf-ini">Data inicial</label>
-                                    <input class="form-text only-num" type="date" name="pfini" id="pf-ini" value="<?= $dt_ini ?>" required>
-                                </div>
-                                <div class="form-campo">
-                                    <label for="pf-fin">Data final</label>
-                                    <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?= $dt_fin ?>" required>
-                                </div>
-                            </div>
-                            </div>
+                                <div class="rel-form-grid-periodo">
+                                    <div class="form-campo">
+                                        <label for="pf-ini">Data inicial</label>
+                                        <input class="form-text only-num" type="date" name="pfini" id="pf-ini" value="<?= $dt_ini ?>" required>
+                                    </div>
+                                    <div class="form-campo">
+                                        <label for="pf-fin">Data final</label>
+                                        <input class="form-text only-num" type="date" name="pffin" id="pf-fin" value="<?= $dt_fin ?>" required>
+                                    </div>
 
-                            <div class="rel-form-section rel-form-section-options">
-                                <span class="rel-form-section-title">Opções do PDF</span>
-
-                                <label class="rel-form-option-card" for="pf-resumo-areas">
-                                    <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
-                                    <span class="rel-form-option-switch" aria-hidden="true"></span>
-                                    <span class="rel-form-option-body">
-                                        <strong>Resumo por área</strong>
-                                        <small>Agrega os manejos de cada área por tipo, separando concluídos e pendentes.</small>
-                                    </span>
-                                </label>
+                                    <label class="rel-form-option-card rel-form-option-card--inline" for="pf-resumo-areas">
+                                        <input type="checkbox" name="pfresumoareas" id="pf-resumo-areas" value="1" class="rel-form-option-input">
+                                        <span class="rel-form-option-switch" aria-hidden="true"></span>
+                                        <span class="rel-form-option-body">
+                                            <strong>Resumo por área</strong>
+                                            <small>Por tipo, concluídos e pendentes</small>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
 
                             <div class="form-submit rel-form-submit">
