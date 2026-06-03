@@ -120,9 +120,9 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
     });
 
     const contentType = resp.headers.get("content-type") || "";
-    const bodyText = await resp.text();
 
     if (!resp.ok || contentType.includes("application/json")) {
+      const bodyText = await resp.text();
       let msg = "Erro ao gerar PDF";
       try {
         const errData = JSON.parse(bodyText);
@@ -135,9 +135,21 @@ document.getElementById("form-pdf-relatorio").addEventListener("click", async (e
       throw new Error(msg || `Erro HTTP ${resp.status}`);
     }
 
-    const blob = new Blob([bodyText], { type: contentType || "application/pdf" });
+    const blob = await resp.blob();
+    if (!blob.size) {
+      throw new Error("PDF vazio retornado pelo servidor.");
+    }
+
     const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.download = "relatorio_manejos.pdf";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
 
   } catch (err) {
     alert("❌ Falha ao gerar PDF: " + err.message);

@@ -349,7 +349,11 @@ try {
     if (!empty($atrasados)) $html .= montarTabela("⚠ Pendências Atrasadas", $atrasados, 'atrasado');
 
     $mpdf->WriteHTML($html);
+    if (ob_get_length()) {
+        ob_end_clean();
+    }
     header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="relatorio_manejos.pdf"');
     $mpdf->Output('relatorio_manejos.pdf', Destination::INLINE);
 
 } catch (Throwable $e) {
