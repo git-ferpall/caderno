@@ -360,6 +360,16 @@
     renderMiniPreview(preview, produtos);
   }
 
+  function lockBodyScroll() {
+    document.documentElement.classList.add("popup-scroll-lock");
+    document.body.classList.add("popup-scroll-lock");
+  }
+
+  function unlockBodyScroll() {
+    document.documentElement.classList.remove("popup-scroll-lock");
+    document.body.classList.remove("popup-scroll-lock");
+  }
+
   async function abrirPopup(opts) {
     if (!catalogoProdutos.length) {
       await carregarCatalogo();
@@ -400,10 +410,12 @@
 
     renderRows();
     document.getElementById("popup-cultivos-overlay")?.classList.remove("d-none");
+    lockBodyScroll();
   }
 
   function fecharPopup() {
     document.getElementById("popup-cultivos-overlay")?.classList.add("d-none");
+    unlockBodyScroll();
   }
 
   async function salvarPopup() {

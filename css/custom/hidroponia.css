@@ -702,31 +702,42 @@
   }
 }
 
-/* —— Mobile: bottom sheet, prévia compacta no topo —— */
+/* —— Mobile: tela cheia — prévia fixa, rodapé fixo, só produtos rolam —— */
 @media (max-width: 767px) {
   #popup-cultivos-overlay.popup {
     padding: 0;
-    align-items: flex-end;
+    align-items: stretch;
   }
 
   #popup-cultivos-overlay.popup .popup-box.popup-cultivos {
     width: 100%;
     max-width: 100%;
-    max-height: 94dvh;
-    border-radius: 18px 18px 0 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 100dvh;
+    border-radius: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   #popup-cultivos-overlay .popup-cultivos-grid {
+    flex: 1 1 0;
     flex-direction: column;
-    max-height: 94dvh;
-    height: 94dvh;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   #popup-cultivos-overlay .popup-cultivos-preview {
     order: -1;
-    padding: 12px 14px 10px;
+    flex: 0 0 auto;
     flex-shrink: 0;
+    padding: 12px 14px 10px;
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
 
   #popup-cultivos-overlay .popup-cultivos-preview-title {
@@ -772,18 +783,48 @@
   }
 
   #popup-cultivos-overlay .popup-cultivos-form {
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    width: 100%;
+  }
+
+  #popup-cultivos-overlay .popup-cultivos-header {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    padding: 14px 16px 10px;
+    z-index: 2;
+    background: var(--grad-azul);
   }
 
   #popup-cultivos-overlay .popup-cultivos-title {
     font-size: 1.1rem;
+    margin-bottom: 4px;
   }
 
   #popup-cultivos-overlay .popup-cultivos-meta {
-    margin-bottom: 0;
+    margin: 0;
     font-size: 0.82rem;
+  }
+
+  #popup-cultivos-overlay .popup-cultivos-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 4px 16px 12px;
+  }
+
+  #popup-cultivos-overlay .popup-cultivos-footer {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    z-index: 3;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
   }
 
   #popup-cultivos-overlay .popup-cultivos-row {
@@ -835,6 +876,10 @@
     font-size: 0.95rem;
     min-height: 48px;
   }
+
+  #popup-cultivos-overlay .popup-cultivos-total {
+    margin-bottom: 4px;
+  }
 }
 
 #popup-cultivos-overlay .popup-cultivos-title {
@@ -845,9 +890,15 @@
 }
 
 #popup-cultivos-overlay .popup-cultivos-meta {
-  margin: 0 0 16px;
+  margin: 0;
   font-size: 0.88rem;
   opacity: 0.92;
+}
+
+@media (min-width: 768px) {
+  #popup-cultivos-overlay .popup-cultivos-meta {
+    margin: 0 0 16px;
+  }
 }
 
 #popup-cultivos-overlay .popup-cultivos-rows {
