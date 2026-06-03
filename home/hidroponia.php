@@ -90,6 +90,24 @@ if (!headers_sent()) {
                                     'UTF-8'
                                 );
 
+                                $culturas_chips = '<div class="culturas-chips" data-culturas-bancada="' . (int) $bancada['id'] . '">';
+                                if (!empty($produtos)) {
+                                    foreach ($produtos as $p) {
+                                        $nome_chip = htmlspecialchars((string) ($p['nome'] ?? ''), ENT_QUOTES, 'UTF-8');
+                                        $cor_chip = htmlspecialchars((string) ($p['cor'] ?? '#13b0a6'), ENT_QUOTES, 'UTF-8');
+                                        $meta_chip = '';
+                                        if (!empty($p['percentual']) && (float) $p['percentual'] > 0) {
+                                            $meta_chip = '<span class="culturas-chip-meta">' . rtrim(rtrim(number_format((float) $p['percentual'], 1, ',', '.'), '0'), ',') . '%</span>';
+                                        } elseif (!empty($p['area_m2']) && (float) $p['area_m2'] > 0) {
+                                            $meta_chip = '<span class="culturas-chip-meta">' . rtrim(rtrim(number_format((float) $p['area_m2'], 2, ',', '.'), '0'), ',') . ' m²</span>';
+                                        }
+                                        $culturas_chips .= '<span class="culturas-chip" style="--chip-cor:' . $cor_chip . '"><span class="culturas-chip-nome">' . $nome_chip . '</span>' . $meta_chip . '</span>';
+                                    }
+                                } else {
+                                    $culturas_chips .= '<span class="culturas-chip culturas-chip-vazio">' . htmlspecialchars($cultura, ENT_QUOTES, 'UTF-8') . '</span>';
+                                }
+                                $culturas_chips .= '</div>';
+
                                 $form_id = 'e-' . $estufa['id'] . '-b-' . $bancada['nome'];
 
                                 echo '<button type="button" class="item-bancada"
@@ -108,7 +126,7 @@ if (!headers_sent()) {
                                             <div class="item-bancada-header-title">Cultura(s)/espécie(s)</div>
                                             <div class="item-bancada-cultivos-row">
                                                 <div class="item-bancada-cultivos-main">
-                                                    <div class="item-bancada-header-text culturas-lista" data-culturas-bancada="' . (int) $bancada['id'] . '">' . htmlspecialchars($cultura) . '</div>
+                                                    ' . $culturas_chips . '
                                                     <div class="hidro-mini-preview" data-mini-preview="' . (int) $bancada['id'] . '" data-produtos=\'' . $produtos_json_attr . '\'></div>
                                                 </div>
                                                 <button type="button" class="btn-edit-cultivos"

@@ -104,6 +104,47 @@
   line-height: 1.35;
 }
 
+#hidroponia .culturas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+#hidroponia .culturas-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 10px;
+  background: rgba(19, 176, 166, 0.1);
+  border: 1px solid rgba(19, 176, 166, 0.22);
+  border-left: 4px solid var(--chip-cor, var(--azul-e));
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--azul-e);
+  line-height: 1.3;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#hidroponia .culturas-chip-nome {
+  word-break: break-word;
+}
+
+#hidroponia .culturas-chip-meta {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.85;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#hidroponia .culturas-chip-vazio {
+  opacity: 0.7;
+  border-left-color: rgba(0, 0, 0, 0.15);
+}
+
 /* —— Seção bancadas —— */
 #hidroponia .item-bancadas-title {
   width: 100%;
@@ -444,6 +485,90 @@
   font-weight: 600;
   color: var(--preto);
   line-height: 1.4;
+}
+
+/* Card de cultivos na bancada — mobile */
+@media (max-width: 767px) {
+  #hidroponia .item-bancada-content .item-bancada-header-box {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 14px !important;
+  }
+
+  #hidroponia .item-bancada-content .item-bancada-header-box .item-bancada-header-title {
+    width: 100%;
+    text-align: left;
+  }
+
+  #hidroponia .item-bancada-content .item-bancada-header-box .item-bancada-header-text {
+    text-align: left;
+    width: 100%;
+  }
+
+  #hidroponia .item-bancada-cultivos-box {
+    flex: none;
+    width: 100%;
+  }
+
+  #hidroponia .item-bancada-cultivos-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+  }
+
+  #hidroponia .item-bancada-cultivos-main {
+    width: 100%;
+    gap: 10px;
+  }
+
+  #hidroponia .culturas-chips {
+    gap: 6px;
+  }
+
+  #hidroponia .culturas-chip {
+    font-size: 0.85rem;
+    padding: 8px 12px 8px 10px;
+    flex: 1 1 calc(50% - 6px);
+    min-width: min(100%, 140px);
+  }
+
+  #hidroponia .hidro-mini-preview-bar {
+    height: 10px;
+  }
+
+  #hidroponia .btn-edit-cultivos,
+  #hidroponia .btn-config-cultivos {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    min-height: 46px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+
+  #hidroponia .item-bancadas-box .item-bancada-content {
+    padding: 14px 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  #hidroponia .item-bancada-cultivos-box {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  #hidroponia .item-bancada-cultivos-box .item-bancada-header-title {
+    flex: 0 0 auto;
+    max-width: 38%;
+    padding-top: 4px;
+  }
+
+  #hidroponia .item-bancada-cultivos-row {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 #popup-cultivos-overlay {

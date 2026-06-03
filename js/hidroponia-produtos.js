@@ -86,6 +86,50 @@
       }
       renderMiniPreview(el, produtos);
     });
+    document.querySelectorAll("[data-culturas-bancada]").forEach((el) => {
+      const wrap = el.closest(".item-bancada-cultivos-main");
+      const preview = wrap?.querySelector("[data-mini-preview]");
+      let produtos = [];
+      try {
+        produtos = JSON.parse(preview?.dataset.produtos || "[]");
+      } catch (_) {
+        produtos = [];
+      }
+      if (produtos.length) {
+        renderCulturasChips(el, produtos);
+      }
+    });
+  }
+
+  function renderCulturasChips(container, produtos) {
+    if (!container) return;
+    const enriched = enriquecerRows(
+      (produtos || []).map((p, i) => ({
+        produto_id: p.id || p.produto_id,
+        nome: p.nome,
+        area_m2: p.area_m2,
+        percentual: p.percentual,
+        cor: p.cor || corPorIndice(i),
+      })),
+      0
+    );
+
+    if (!enriched.length) {
+      container.innerHTML = '<span class="culturas-chip culturas-chip-vazio">Não informado</span>';
+      return;
+    }
+
+    container.innerHTML = enriched
+      .map((p) => {
+        let meta = "";
+        if (p.percentual > 0) {
+          meta = `<span class="culturas-chip-meta">${fmtNum(p.percentual, 1)}%</span>`;
+        } else if (p.area_m2 > 0) {
+          meta = `<span class="culturas-chip-meta">${fmtNum(p.area_m2)} m²</span>`;
+        }
+        return `<span class="culturas-chip" style="--chip-cor:${p.cor}"><span class="culturas-chip-nome">${escapeHtml(p.nome)}</span>${meta}</span>`;
+      })
+      .join("");
   }
 
   function renderMiniPreview(container, produtos) {
@@ -403,7 +447,9 @@
       }
 
       const culturasEl = document.querySelector(`[data-culturas-bancada="${popupState.bancadaId}"]`);
-      if (culturasEl && data.cultura) culturasEl.textContent = data.cultura;
+      if (culturasEl && data.produtos) {
+        renderCulturasChips(culturasEl, data.produtos);
+      }
 
       const mini = document.querySelector(`[data-mini-preview="${popupState.bancadaId}"]`);
       if (mini && data.produtos) {
