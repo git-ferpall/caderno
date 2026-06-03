@@ -143,7 +143,7 @@
 
       const li = document.createElement("li");
       li.innerHTML = `<span class="hidro-legend-cor" style="background:${p.cor}"></span>
-        <span class="hidro-legend-nome">${escapeHtml(p.nome)}</span>
+        <span class="hidro-legend-nome">${escapeHtml(p.nome)}<span class="hidro-legend-pct"> · ${fmtNum(p.percentual, 1)}%</span></span>
         <span class="hidro-legend-val">${fmtNum(p.area_m2)} m² · ${fmtNum(p.percentual, 1)}%</span>`;
       legend.appendChild(li);
     });

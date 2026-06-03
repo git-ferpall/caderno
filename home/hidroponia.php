@@ -493,28 +493,32 @@ if (!headers_sent()) {
     <div id="popup-cultivos-overlay" class="popup d-none">
         <div class="popup-box popup-cultivos">
             <div class="popup-cultivos-grid">
-                <div class="popup-cultivos-form">
-                    <h2 class="popup-cultivos-title">Produtos cultivados</h2>
-                    <p class="popup-cultivos-meta">
-                        Bancada <strong id="pc-bancada-nome">—</strong>
-                        · <span id="pc-area-total">0</span> m²
-                    </p>
-                    <div id="pc-rows" class="popup-cultivos-rows"></div>
-                    <button type="button" class="popup-cultivos-add" id="pc-add">+ Adicionar produto</button>
-                    <div class="popup-cultivos-total">
-                        Total: <strong><span id="pc-sum-area">0</span> m²</strong>
-                        (<span id="pc-sum-pct">0</span>%)
-                    </div>
-                    <p class="popup-cultivos-aviso d-none" id="pc-aviso"></p>
-                    <div class="popup-actions">
-                        <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="pc-cancel">Cancelar</button>
-                        <button type="button" class="popup-btn fundo-verde" id="pc-save">Salvar</button>
-                    </div>
-                </div>
                 <div class="popup-cultivos-preview">
                     <h3 class="popup-cultivos-preview-title">Prévia da bancada</h3>
                     <div id="pc-preview-bar" class="hidro-preview-bar" role="img" aria-label="Prévia visual da divisão da bancada"></div>
                     <ul id="pc-preview-legend" class="hidro-preview-legend"></ul>
+                </div>
+                <div class="popup-cultivos-form">
+                    <header class="popup-cultivos-header">
+                        <h2 class="popup-cultivos-title">Produtos cultivados</h2>
+                        <p class="popup-cultivos-meta">
+                            Bancada <strong id="pc-bancada-nome">—</strong>
+                            · <span id="pc-area-total">0</span> m²
+                        </p>
+                    </header>
+                    <div class="popup-cultivos-scroll">
+                        <div id="pc-rows" class="popup-cultivos-rows"></div>
+                        <button type="button" class="popup-cultivos-add" id="pc-add">+ Adicionar produto</button>
+                        <div class="popup-cultivos-total">
+                            Total: <strong><span id="pc-sum-area">0</span> m²</strong>
+                            (<span id="pc-sum-pct">0</span>%)
+                        </div>
+                        <p class="popup-cultivos-aviso d-none" id="pc-aviso"></p>
+                    </div>
+                    <div class="popup-cultivos-footer popup-actions">
+                        <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="pc-cancel">Cancelar</button>
+                        <button type="button" class="popup-btn fundo-verde" id="pc-save">Salvar</button>
+                    </div>
                 </div>
             </div>
         </div>
