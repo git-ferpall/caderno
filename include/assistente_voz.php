@@ -26,7 +26,7 @@
         <div id="assistente-voz-confirmacao" class="assistente-voz-confirmacao d-none">
             <p id="assistente-voz-resumo" class="assistente-voz-resumo"></p>
             <div class="assistente-voz-acoes">
-                <button type="button" id="assistente-voz-confirmar" class="main-btn fundo-verde">
+                <button type="button" id="assistente-voz-confirmar" class="main-btn fundo-laranja">
                     <span class="main-btn-text">Confirmar</span>
                 </button>
                 <button type="button" id="assistente-voz-cancelar" class="main-btn fundo-cinza">
