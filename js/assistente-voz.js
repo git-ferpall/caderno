@@ -85,6 +85,36 @@
     window.setTimeout(() => elAvatar?.classList.remove('assistente-voz-avatar--sucesso'), 900);
   }
 
+  async function lerRespostaApi(resp) {
+    const raw = await resp.text();
+    if (!raw) {
+      if (resp.status === 401) {
+        return { ok: false, err: 'Sessão expirada. Faça login de novo.' };
+      }
+      if (resp.status >= 500) {
+        return { ok: false, err: 'Erro interno no servidor (HTTP ' + resp.status + ').' };
+      }
+      return { ok: false, err: 'Resposta vazia do servidor (HTTP ' + resp.status + ').' };
+    }
+    try {
+      return JSON.parse(raw);
+    } catch (_) {
+      const trecho = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+      return {
+        ok: false,
+        err: trecho || 'Resposta inválida do servidor (HTTP ' + resp.status + ').',
+      };
+    }
+  }
+
+  function tratarErroApi(errMsg) {
+    showDigitando(false);
+    cardAcaoPendente = null;
+    addMsg(errMsg, 'bot');
+    setHint(errMsg, 'erro');
+    falarNatural(errMsg);
+  }
+
   function fecharFormsCards(wrap, exceto) {
     if (!wrap) return;
     wrap.querySelectorAll('.assistente-voz-card-form').forEach((el) => {
@@ -479,23 +509,15 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await resp.json();
+      const data = await lerRespostaApi(resp);
       if (!data.ok) {
-        showDigitando(false);
-        cardAcaoPendente = null;
-        const errMsg = data.err || 'Erro ao processar.';
-        addMsg(errMsg, 'bot');
-        setHint(errMsg, 'erro');
-        falarNatural(errMsg);
+        tratarErroApi(data.err || 'Erro ao processar.');
         return;
       }
       tratarResposta(data);
     } catch (err) {
       console.error(err);
-      showDigitando(false);
-      cardAcaoPendente = null;
-      addMsg('Falha na comunicação.', 'bot');
-      setHint('Sem conexão', 'erro');
+      tratarErroApi('Falha na comunicação. Verifique a internet e tente de novo.');
     }
   }
 
@@ -950,21 +972,15 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await resp.json();
+      const data = await lerRespostaApi(resp);
       if (!data.ok) {
-        showDigitando(false);
-        const errMsg = data.err || 'Erro ao processar.';
-        addMsg(errMsg, 'bot');
-        setHint(errMsg, 'erro');
-        falarNatural(errMsg);
+        tratarErroApi(data.err || 'Erro ao processar.');
         return;
       }
       tratarResposta(data);
     } catch (err) {
       console.error(err);
-      showDigitando(false);
-      addMsg('Falha na comunicação.', 'bot');
-      setHint('Sem conexão', 'erro');
+      tratarErroApi('Falha na comunicação. Verifique a internet e tente de novo.');
     }
   }
 
@@ -1088,23 +1104,17 @@
 
     try {
       const resp = await fetch(API_PROCESSAR, { method: 'POST', body: fd, credentials: 'same-origin' });
-      const data = await resp.json();
+      const data = await lerRespostaApi(resp);
 
       if (!data.ok) {
-        showDigitando(false);
-        const errMsg = data.err || 'Erro ao processar áudio.';
-        addMsg(errMsg, 'bot');
-        setHint(errMsg, 'erro');
-        falarNatural(errMsg);
+        tratarErroApi(data.err || 'Erro ao processar áudio.');
         return;
       }
 
       tratarResposta(data);
     } catch (err) {
       console.error(err);
-      showDigitando(false);
-      addMsg('Falha na comunicação com o servidor.', 'bot');
-      setHint('Sem conexão — tente de novo', 'erro');
+      tratarErroApi('Falha na comunicação com o servidor. Verifique a internet e tente de novo.');
     } finally {
       setGravarBusy(false);
     }

@@ -67,7 +67,7 @@ function iaUsuarioPulouCampo(string $texto): bool
 {
     $t = iaNormalizarTexto($texto);
     return (bool) preg_match(
-        '/\b(?:pular|pul[ae]r|n[aã]o|sem|nenhum|nao|dispens|ignor|pr[oó]ximo|deixa|skip)\b/u',
+        '/\b(?:pular|pul[ae]r|n[aã]o|sem|nenhum|nenhuma|nao|dispens|ignor|pr[oó]ximo|deixa|skip)\b/u',
         $t
     );
 }
@@ -742,12 +742,6 @@ function iaUnidadePadraoPorTipo(string $tipo): ?string
         'fertilizante' => 'kg',
         default => null,
     };
-}
-
-function iaUsuarioPulouCampo(string $texto): bool
-{
-    $t = iaNormalizarTexto($texto);
-    return (bool) preg_match('/\b(?:pular|nenhum|nenhuma|nao|não|sem|skip)\b/u', $t);
 }
 
 function iaResolverEscolhaPendente(string $texto, array $opcoes): ?array

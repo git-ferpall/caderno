@@ -142,7 +142,6 @@ final class IaPipeline
                 'executado' => false,
                 'consulta' => $resultado['consulta'] ?? null,
                 'consulta_dados' => $resultado['dados'] ?? null,
-                'consulta_dados' => $resultado['dados'] ?? null,
                 'msg' => $msgFinal,
             ];
         }
