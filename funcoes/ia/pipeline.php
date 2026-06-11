@@ -22,7 +22,7 @@ final class IaPipeline
         ?array $intentParcial = null,
         ?string $campoDialogo = null
     ): array {
-        $transcricao = iaTranscreverAudio($filePath, $mime);
+        $transcricao = iaTranscreverAudio($filePath, $mime, $campoDialogo);
         return $this->processFromText($transcricao, $transcricao, $intentParcial, $campoDialogo);
     }
 
@@ -33,6 +33,7 @@ final class IaPipeline
         ?string $campoDialogo = null
     ): array {
         $contexto = iaContextoUsuario($this->mysqli, $this->user_id);
+        $texto = iaCorrigirTranscricaoPt(trim($texto), $campoDialogo);
 
         if ($intentParcial !== null && $campoDialogo !== null && $campoDialogo !== '') {
             $intent = iaMesclarRespostaDialogo($intentParcial, $campoDialogo, $texto, $contexto);

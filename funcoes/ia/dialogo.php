@@ -23,7 +23,7 @@ function iaProximaPergunta(array $intent, array $resolucao, array $contexto): ?a
     if ($tipo === '') {
         return [
             'campo' => 'tipo',
-            'pergunta' => 'Qual tipo de manejo você quer registrar? Irrigação, colheita ou semeadura?',
+            'pergunta' => 'Qual tipo de manejo? Plantio, semeadura, colheita ou irrigação?',
         ];
     }
 
@@ -151,14 +151,17 @@ function iaExtrairNumero(string $texto): ?float
 
 function iaNormalizarTipoManejo(string $texto): ?string
 {
-    $t = iaNormalizarTexto($texto);
+    $t = iaNormalizarTexto(iaCorrigirTranscricaoPt($texto, 'tipo'));
     if (str_contains($t, 'irrig')) {
         return 'irrigacao';
     }
     if (str_contains($t, 'colh')) {
         return 'colheita';
     }
-    if (str_contains($t, 'sem') || str_contains($t, 'plant')) {
+    if (preg_match('/\b(?:plant(?:io|ei|ar|o)?|plan(?:to|tei)?|semead|sem(?:ei|ead)?)\b/u', $t)) {
+        return 'semeadura';
+    }
+    if (preg_match('/\bplan\s*[12]\b/u', $t)) {
         return 'semeadura';
     }
     if (str_contains($t, 'personal')) {

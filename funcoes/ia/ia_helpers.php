@@ -113,6 +113,9 @@ function iaOpenAiMultipart(string $url, array $payload, string $filePath, string
     if (!empty($payload['response_format'])) {
         $fields['response_format'] = (string) $payload['response_format'];
     }
+    if (!empty($payload['prompt'])) {
+        $fields['prompt'] = (string) $payload['prompt'];
+    }
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -147,20 +150,79 @@ function iaCurlExec($ch): array
     return is_array($decoded) ? $decoded : [];
 }
 
-function iaTranscreverAudio(string $filePath, string $mime = 'audio/webm'): string
+function iaWhisperPrompt(?string $campoDialogo = null): string
+{
+    $base = 'Português do Brasil. Agricultura e hidroponia: plantio, semeadura, colheita, irrigação, '
+        . 'bancada, talhão, canteiro, bandeja, replantio, litros, quilos, mudas, sementes, caixas.';
+
+    return match ($campoDialogo) {
+        'tipo' => $base . ' Tipos de manejo: plantio, semeadura, colheita, irrigação.',
+        'area' => $base . ' Nomes de áreas, talhões e bancadas da propriedade.',
+        'produto' => $base . ' Nomes de culturas e produtos agrícolas.',
+        'quantidade' => $base . ' Quantidades em litros, quilos, bandejas, sementes.',
+        'tipo_semeadura' => $base . ' Direta, bandeja, canteiro, replantio.',
+        default => $base,
+    };
+}
+
+/**
+ * Corrige transcrições do Whisper que confundem pt-BR com pseudo-inglês.
+ */
+function iaCorrigirTranscricaoPt(string $texto, ?string $campoDialogo = null): string
+{
+    $t = trim($texto);
+    if ($t === '') {
+        return $t;
+    }
+
+    $correcoesGerais = [
+        '/\bseeding\b/iu' => 'semeadura',
+        '/\bharvest\b/iu' => 'colheita',
+        '/\birrigation\b/iu' => 'irrigação',
+        '/\bwatering\b/iu' => 'irrigação',
+        '/\bbed\s*(?:one|1)\b/iu' => 'bancada 1',
+        '/\bbed\s*(?:two|2)\b/iu' => 'bancada 2',
+        '/\bbed\s*(?:three|3)\b/iu' => 'bancada 3',
+    ];
+
+    foreach ($correcoesGerais as $pattern => $replacement) {
+        $t = preg_replace($pattern, $replacement, $t) ?? $t;
+    }
+
+    if ($campoDialogo !== 'area' && $campoDialogo !== 'produto') {
+        $correcoesPlantio = [
+            '/\bplan\s*(?:2|two|to|too)\b/iu' => 'plantio',
+            '/\bplane?\s*two\b/iu' => 'plantio',
+            '/\bplanta\s*(?:2|dois)\b/iu' => 'plantio',
+            '/\bplant\s*(?:2|two|to)\b/iu' => 'plantio',
+        ];
+        foreach ($correcoesPlantio as $pattern => $replacement) {
+            $t = preg_replace($pattern, $replacement, $t) ?? $t;
+        }
+        if ($campoDialogo === 'tipo' && preg_match('/\bplan\b/iu', $t) && !preg_match('/\bplant(?:io|ei|ar)\b/iu', $t)) {
+            $t = preg_replace('/\bplan\b/iu', 'plantio', $t) ?? $t;
+        }
+    }
+
+    return trim($t);
+}
+
+function iaTranscreverAudio(string $filePath, string $mime = 'audio/webm', ?string $campoDialogo = null): string
 {
     $model = iaModel('OPENAI_WHISPER_MODEL', 'whisper-1');
     $resp = iaOpenAiRequest('/audio/transcriptions', [
         'model' => $model,
         'language' => 'pt',
         'response_format' => 'json',
+        'prompt' => iaWhisperPrompt($campoDialogo),
     ], $filePath, $mime);
 
     $text = trim((string) ($resp['text'] ?? ''));
     if ($text === '') {
         throw new RuntimeException('Não foi possível transcrever o áudio. Tente falar mais perto do microfone.');
     }
-    return $text;
+
+    return iaCorrigirTranscricaoPt($text, $campoDialogo);
 }
 
 function iaInterpretarComando(string $transcricao, array $contexto): array
@@ -169,12 +231,18 @@ function iaInterpretarComando(string $transcricao, array $contexto): array
     $hoje = date('Y-m-d');
 
     $system = <<<PROMPT
-Você é o assistente do Caderno Frutag (agricultura/hidroponia). Interprete comandos de voz em português e responda SOMENTE com JSON válido (sem markdown).
+Você é o assistente do Caderno Frutag (agricultura/hidroponia). Interprete comandos de voz SOMENTE em português brasileiro e responda SOMENTE com JSON válido (sem markdown).
+
+IMPORTANTE — idioma e erros de transcrição:
+- O áudio é sempre pt-BR. Nunca interprete como inglês.
+- O Whisper pode errar e gerar pseudo-inglês. Exemplos: "plan 2" = plantio, "bed two" = bancada 2, "seeding" = semeadura.
+- "plantio" e "semeadura" são sinônimos → use tipo "semeadura".
+- Não coloque em area_nomes termos que são tipos de manejo (plantio, colheita, irrigação etc.).
 
 Schema:
 {
   "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "desconhecido",
-  "tipo": "irrigacao|colheita|semeadura|plantio|personalizado|...",
+  "tipo": "irrigacao|colheita|semeadura|personalizado|...",
   "data": "YYYY-MM-DD ou null",
   "area_nomes": ["string"],
   "produto_nomes": ["string"],
@@ -251,6 +319,10 @@ function iaNormalizarIntent(array $intent): array
     ];
 
     $intent = array_merge($defaults, $intent);
+
+    if (in_array((string) ($intent['tipo'] ?? ''), ['plantio', 'plant'], true)) {
+        $intent['tipo'] = 'semeadura';
+    }
 
     $intent['acao'] = in_array($intent['acao'], ['criar_apontamento', 'concluir_apontamento', 'listar_pendentes', 'desconhecido'], true)
         ? $intent['acao'] : 'desconhecido';
