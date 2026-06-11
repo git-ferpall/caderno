@@ -72,6 +72,23 @@
     scrollChat();
   }
 
+  function fecharFormsCards(wrap, exceto) {
+    if (!wrap) return;
+    wrap.querySelectorAll('.assistente-voz-card-form').forEach((el) => {
+      if (exceto && el === exceto) return;
+      el.classList.add('d-none');
+    });
+    wrap.querySelectorAll('.assistente-voz-card--expandido').forEach((el) => {
+      if (exceto && el.contains(exceto)) return;
+      el.classList.remove('assistente-voz-card--expandido');
+      el.querySelector('.assistente-voz-card-detalhe')?.classList.add('d-none');
+    });
+  }
+
+  function formatarTipoCard(tipo) {
+    return (tipo || 'manejo').replace(/_/g, ' ');
+  }
+
   function renderConsultaCards(dados) {
     if (!elChat || !dados) return;
     const pendentes = dados.pendentes || dados.amostra;
@@ -81,15 +98,19 @@
     wrap.className = 'assistente-voz-cards';
 
     pendentes.slice(0, 6).forEach((p) => {
-      const card = document.createElement('div');
+      const card = document.createElement('article');
       card.className = 'assistente-voz-card';
-      const tipo = (p.tipo || 'manejo').replace(/_/g, ' ');
+      card.dataset.id = String(p.id);
+      card.dataset.tipo = p.tipo || '';
+
+      const tipo = formatarTipoCard(p.tipo);
       const qtd =
         p.quantidade && Number(p.quantidade) > 0
           ? ' · ' + p.quantidade + (p.unidade ? ' ' + p.unidade : '')
           : '';
+      const obs = (p.observacoes || '').trim();
 
-      card.innerHTML =
+      let corpo =
         '<div class="assistente-voz-card-corpo">' +
         '<strong>' +
         tipo +
@@ -101,21 +122,38 @@
         qtd +
         '</div>';
 
+      if (obs) {
+        corpo +=
+          '<p class="assistente-voz-card-obs-preview">Obs: ' +
+          obs.replace(/</g, '&lt;') +
+          '</p>';
+      }
+
+      corpo +=
+        '<div class="assistente-voz-card-detalhe d-none" aria-live="polite"></div>' +
+        '<div class="assistente-voz-card-form d-none" aria-live="polite"></div>';
+
+      card.innerHTML = corpo;
+
       const actions = document.createElement('div');
       actions.className = 'assistente-voz-card-actions';
 
-      ['detalhar', 'concluir', 'editar'].forEach((acao) => {
+      [
+        { acao: 'detalhar', label: 'Detalhar' },
+        { acao: 'concluir', label: 'Concluir', prim: true },
+        { acao: 'editar', label: 'Obs' },
+      ].forEach(({ acao, label, prim }) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className =
-          'assistente-voz-card-btn' + (acao === 'concluir' ? ' assistente-voz-card-btn--prim' : '');
+        btn.className = 'assistente-voz-card-btn' + (prim ? ' assistente-voz-card-btn--prim' : '');
         btn.dataset.acao = acao;
         btn.dataset.id = String(p.id);
-        btn.textContent = acao === 'detalhar' ? 'Detalhar' : acao === 'concluir' ? 'Concluir' : 'Obs';
+        btn.textContent = label;
         actions.appendChild(btn);
       });
 
       card.appendChild(actions);
+      card._pendente = p;
       wrap.appendChild(card);
     });
 
@@ -124,28 +162,172 @@
     scrollChat();
   }
 
+  function montarDetalheCard(p) {
+    const linhas = [
+      ['Tipo', formatarTipoCard(p.tipo)],
+      ['Data', p.data || '—'],
+      ['Área', p.areas || '—'],
+      ['Produto', p.produto || '—'],
+    ];
+    if (p.quantidade && Number(p.quantidade) > 0) {
+      linhas.push(['Quantidade', p.quantidade + (p.unidade ? ' ' + p.unidade : '')]);
+    }
+    linhas.push(['Observações', (p.observacoes || '').trim() || 'Nenhuma']);
+
+    return (
+      '<dl class="assistente-voz-card-dl">' +
+      linhas
+        .map(
+          ([k, v]) =>
+            '<div><dt>' + k + '</dt><dd>' + String(v).replace(/</g, '&lt;') + '</dd></div>'
+        )
+        .join('') +
+      '</dl>'
+    );
+  }
+
+  function abrirFormObs(card, p) {
+    const formWrap = card.querySelector('.assistente-voz-card-form');
+    if (!formWrap) return;
+
+    fecharFormsCards(card.closest('.assistente-voz-cards'), formWrap);
+    formWrap.replaceChildren();
+
+    const label = document.createElement('label');
+    label.className = 'assistente-voz-card-form-label';
+    label.textContent = 'Observação';
+
+    const ta = document.createElement('textarea');
+    ta.className = 'assistente-voz-card-textarea';
+    ta.rows = 2;
+    ta.maxLength = 500;
+    ta.placeholder = 'Digite a observação…';
+    ta.value = p.observacoes || '';
+
+    const acoes = document.createElement('div');
+    acoes.className = 'assistente-voz-card-form-acoes';
+
+    const btnCancel = document.createElement('button');
+    btnCancel.type = 'button';
+    btnCancel.className = 'assistente-voz-card-btn';
+    btnCancel.dataset.form = 'cancelar';
+    btnCancel.textContent = 'Cancelar';
+
+    const btnSalvar = document.createElement('button');
+    btnSalvar.type = 'button';
+    btnSalvar.className = 'assistente-voz-card-btn assistente-voz-card-btn--prim';
+    btnSalvar.dataset.form = 'salvar-obs';
+    btnSalvar.textContent = 'Salvar';
+
+    acoes.append(btnCancel, btnSalvar);
+    formWrap.append(label, ta, acoes);
+    formWrap.classList.remove('d-none');
+
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    scrollChat();
+  }
+
+  function abrirFormConcluirColheita(card, p) {
+    const formWrap = card.querySelector('.assistente-voz-card-form');
+    if (!formWrap) return;
+
+    fecharFormsCards(card.closest('.assistente-voz-cards'), formWrap);
+
+    formWrap.innerHTML =
+      '<label class="assistente-voz-card-form-label">Quanto colheu?</label>' +
+      '<div class="assistente-voz-card-form-linha">' +
+      '<input type="number" class="assistente-voz-card-input" min="0" step="0.01" inputmode="decimal" placeholder="Ex: 150">' +
+      '<span class="assistente-voz-card-form-un">kg</span>' +
+      '</div>' +
+      '<div class="assistente-voz-card-form-acoes">' +
+      '<button type="button" class="assistente-voz-card-btn" data-form="cancelar">Cancelar</button>' +
+      '<button type="button" class="assistente-voz-card-btn assistente-voz-card-btn--prim" data-form="salvar-qtd">Confirmar colheita</button>' +
+      '</div>';
+
+    formWrap.classList.remove('d-none');
+    formWrap.querySelector('input')?.focus();
+    scrollChat();
+  }
+
   function onCardAcaoClick(e) {
-    const btn = e.target.closest('[data-acao]');
-    if (!btn) return;
+    const formBtn = e.target.closest('[data-form]');
+    if (formBtn) {
+      const card = formBtn.closest('.assistente-voz-card');
+      const p = card?._pendente;
+      const id = parseInt(card?.dataset.id || '0', 10);
+      const formWrap = card?.querySelector('.assistente-voz-card-form');
+      const acaoForm = formBtn.dataset.form;
 
-    const id = parseInt(btn.dataset.id, 10);
-    const acao = btn.dataset.acao;
-    if (!id || !acao) return;
+      if (acaoForm === 'cancelar') {
+        formWrap?.classList.add('d-none');
+        return;
+      }
 
-    if (acao === 'editar') {
-      const obs = window.prompt('Observação para este apontamento:', '');
-      if (obs === null || obs.trim() === '') return;
-      enviarAcaoRapida(
-        { tipo: 'editar_obs', apontamento_id: id, observacoes: obs.trim() },
-        'Editar observação #' + id
-      );
+      if (acaoForm === 'salvar-obs' && id && formWrap) {
+        const obs = formWrap.querySelector('textarea')?.value?.trim() || '';
+        if (!obs) return;
+        formWrap.classList.add('d-none');
+        enviarAcaoRapida(
+          { tipo: 'editar_obs', apontamento_id: id, observacoes: obs },
+          'Salvar observação — ' + formatarTipoCard(p?.tipo)
+        );
+        return;
+      }
+
+      if (acaoForm === 'salvar-qtd' && id && formWrap) {
+        const qtd = parseFloat(formWrap.querySelector('input')?.value || '0');
+        if (!qtd || qtd <= 0) return;
+        formWrap.classList.add('d-none');
+        enviarAcaoRapida(
+          { tipo: 'concluir', apontamento_id: id, quantidade: qtd, unidade: 'kg' },
+          'Concluir colheita — ' + qtd + ' kg'
+        );
+      }
       return;
     }
 
-    enviarAcaoRapida(
-      { tipo: acao === 'concluir' ? 'concluir' : 'detalhar', apontamento_id: id },
-      (acao === 'concluir' ? 'Concluir' : 'Detalhar') + ' #' + id
-    );
+    const btn = e.target.closest('[data-acao]');
+    if (!btn) return;
+
+    const card = btn.closest('.assistente-voz-card');
+    const p = card?._pendente;
+    const id = parseInt(btn.dataset.id, 10);
+    const acao = btn.dataset.acao;
+    if (!id || !acao || !card) return;
+
+    if (acao === 'detalhar') {
+      const det = card.querySelector('.assistente-voz-card-detalhe');
+      if (!det || !p) return;
+      fecharFormsCards(card.closest('.assistente-voz-cards'));
+      const aberto = !det.classList.contains('d-none');
+      if (aberto) {
+        det.classList.add('d-none');
+        card.classList.remove('assistente-voz-card--expandido');
+      } else {
+        det.innerHTML = montarDetalheCard(p);
+        det.classList.remove('d-none');
+        card.classList.add('assistente-voz-card--expandido');
+      }
+      scrollChat();
+      return;
+    }
+
+    if (acao === 'editar') {
+      abrirFormObs(card, p);
+      return;
+    }
+
+    if (acao === 'concluir') {
+      if ((p?.tipo || card.dataset.tipo) === 'colheita') {
+        abrirFormConcluirColheita(card, p);
+        return;
+      }
+      enviarAcaoRapida(
+        { tipo: 'concluir', apontamento_id: id },
+        'Concluir — ' + formatarTipoCard(p?.tipo)
+      );
+    }
   }
 
   async function enviarAcaoRapida(acaoRapida, rotulo) {

@@ -10,12 +10,15 @@ function iaMapAcaoRapida(array $acao): array
     $id = (int) ($acao['apontamento_id'] ?? 0);
 
     return match ($tipo) {
-        'concluir' => [
+        'concluir' => array_filter([
             'acao' => 'concluir_apontamento',
             'apontamento_id' => $id,
+            'quantidade' => isset($acao['quantidade']) && is_numeric($acao['quantidade'])
+                ? (float) $acao['quantidade'] : null,
+            'unidade' => !empty($acao['unidade']) ? (string) $acao['unidade'] : null,
             'confianca' => 1.0,
             'mensagem' => 'Vou concluir esse pendente.',
-        ],
+        ], static fn ($v) => $v !== null),
         'detalhar' => [
             'acao' => 'consultar',
             'consulta' => 'detalhar_pendente',
