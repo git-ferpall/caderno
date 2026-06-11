@@ -132,6 +132,62 @@
     return (tipo || 'manejo').replace(/_/g, ' ');
   }
 
+  function formatarDataCurta(data) {
+    if (!data) return '';
+    const m = String(data).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : data;
+  }
+
+  function rotuloPendenteEscolha(p) {
+    const partes = [formatarTipoCard(p.tipo)];
+    if (p.produto) partes.push(p.produto);
+    if (p.areas) partes.push(p.areas);
+    if (p.data) partes.push(formatarDataCurta(p.data));
+    return partes.join(' · ');
+  }
+
+  function renderEscolhaPendentes(opcoes) {
+    if (!elChat || !opcoes?.length) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'assistente-voz-escolha';
+    wrap.setAttribute('role', 'listbox');
+    wrap.setAttribute('aria-label', 'Escolha o pendente');
+
+    opcoes.forEach((p, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'assistente-voz-escolha-item';
+      btn.setAttribute('role', 'option');
+
+      const num = document.createElement('span');
+      num.className = 'assistente-voz-escolha-num';
+      num.textContent = String(i + 1);
+
+      const txt = document.createElement('span');
+      txt.className = 'assistente-voz-escolha-txt';
+      txt.textContent = rotuloPendenteEscolha(p);
+
+      btn.append(num, txt);
+      btn.addEventListener('click', () => {
+        wrap.querySelectorAll('.assistente-voz-escolha-item').forEach((el) => {
+          el.disabled = true;
+        });
+        btn.classList.add('assistente-voz-escolha-item--ativa');
+        selecionarPendenteDialogo(p, i);
+      });
+      wrap.appendChild(btn);
+    });
+
+    elChat.appendChild(wrap);
+    scrollChat();
+  }
+
+  function selecionarPendenteDialogo(p, index) {
+    const rotulo = index + 1 + ' — ' + rotuloPendenteEscolha(p);
+    enviarComandoTexto(String(index + 1), rotulo);
+  }
+
   function renderConsultaCards(dados) {
     if (!elChat || !dados) return;
     const pendentes = dados.pendentes || dados.amostra;
@@ -761,7 +817,14 @@
       updateProgresso(data.dialogo_passo, data.dialogo_total);
       resetConfirmacao();
       addMsg(pergunta, 'bot');
-      setHint('Responda abaixo ou toque para falar', 'dialogo');
+
+      if (campoDialogo === 'pendente_escolha' && data.intent_parcial._pendentes_opcao?.length) {
+        renderEscolhaPendentes(data.intent_parcial._pendentes_opcao);
+        setHint('Toque na opção ou diga o número (ex: 1, 2…)', 'dialogo');
+      } else {
+        setHint('Responda abaixo ou toque para falar', 'dialogo');
+      }
+
       falarNatural(fala, autoGravarResposta);
       return;
     }
@@ -950,12 +1013,12 @@
     document.dispatchEvent(new CustomEvent('caderno:apontamento-atualizado'));
   }
 
-  async function enviarComandoTexto(texto) {
+  async function enviarComandoTexto(texto, rotuloExibicao) {
     const t = (texto || '').trim();
     if (!t) return;
 
     pararFala();
-    addMsg(t, 'user');
+    addMsg(rotuloExibicao || t, 'user');
     setHint('Processando…', 'processando');
     showDigitando(true);
 

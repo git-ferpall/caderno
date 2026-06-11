@@ -515,6 +515,74 @@ body.assistente-voz-aberto {
   max-width: 90%;
 }
 
+.assistente-voz-escolha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.5rem 2rem;
+  max-width: 92%;
+}
+
+.assistente-voz-escolha-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #bae6fd;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.assistente-voz-escolha-item:hover:not(:disabled) {
+  background: #f0f9ff;
+  border-color: #38bdf8;
+}
+
+.assistente-voz-escolha-item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.assistente-voz-escolha-item--ativa {
+  background: #e0f2fe;
+  border-color: #0284c7;
+}
+
+.assistente-voz-escolha-item:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.assistente-voz-escolha-num {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: #0369a1;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.assistente-voz-escolha-item--ativa .assistente-voz-escolha-num {
+  background: #0284c7;
+}
+
+.assistente-voz-escolha-txt {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.1rem;
+}
+
 .assistente-voz-card {
   position: relative;
   overflow: hidden;

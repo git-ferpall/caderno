@@ -269,15 +269,9 @@ function iaProximaPerguntaConcluir(array $intent, array $resolucao, array $conte
     $intent = iaPrepararIntentConcluir($intent, $contexto);
 
     if (empty($intent['apontamento_id']) && !empty($intent['_pendentes_opcao'])) {
-        $linhas = [];
-        foreach ($intent['_pendentes_opcao'] as $i => $p) {
-            $n = $i + 1;
-            $tipo = iaTiposManejo()[$p['tipo'] ?? ''] ?? ($p['tipo'] ?? 'manejo');
-            $linhas[] = "{$n} — {$tipo}" . (!empty($p['areas']) ? ' em ' . $p['areas'] : '') . ' (' . ($p['data'] ?? '') . ')';
-        }
         return [
             'campo' => 'pendente_escolha',
-            'pergunta' => 'Qual pendente concluir? ' . implode('; ', $linhas),
+            'pergunta' => 'Qual pendente concluir? Toque na lista ou diga o número.',
         ];
     }
 
@@ -526,6 +520,24 @@ function iaCamposDialogoOrdem(array $intent): array
 
 function iaProgressoDialogo(array $intent, string $campoAtual): array
 {
+    if (($intent['acao'] ?? '') === 'concluir_apontamento') {
+        $campos = [];
+        if (!empty($intent['_pendentes_opcao'])) {
+            $campos[] = 'pendente_escolha';
+        }
+        $tipoColheita = (string) ($intent['_concluir_tipo'] ?? $intent['tipo'] ?? '');
+        if ($tipoColheita === 'colheita') {
+            $campos[] = 'quantidade';
+        }
+        if ($campos) {
+            $idx = array_search($campoAtual, $campos, true);
+            return [
+                'passo' => $idx === false ? 1 : $idx + 1,
+                'total' => count($campos),
+            ];
+        }
+    }
+
     $ordem = iaCamposDialogoOrdem($intent);
     $idx = array_search($campoAtual, $ordem, true);
     $passo = $idx === false ? 1 : $idx + 1;
@@ -604,6 +616,16 @@ function iaMontarFalaAssistente(array $intent, string $pergunta, string $campoAt
         }
     } elseif ($campoAtual === 'tipo') {
         $partes[] = 'Me fala qual manejo você quer registrar.';
+    } elseif ($campoAtual === 'pendente_escolha' && !empty($intent['_pendentes_opcao'])) {
+        $lista = [];
+        foreach ($intent['_pendentes_opcao'] as $i => $p) {
+            $n = $i + 1;
+            $tipo = iaTiposManejo()[$p['tipo'] ?? ''] ?? ($p['tipo'] ?? 'manejo');
+            $lista[] = "{$n}, {$tipo}"
+                . (!empty($p['areas']) ? ' em ' . $p['areas'] : '')
+                . (!empty($p['data']) ? ', ' . iaFormatarDataFala((string) $p['data']) : '');
+        }
+        $partes[] = 'Tenho ' . count($lista) . ' opções: ' . implode('. ', $lista) . '.';
     }
 
     $partes[] = $pergunta;
@@ -750,22 +772,59 @@ function iaResolverEscolhaPendente(string $texto, array $opcoes): ?array
         return null;
     }
     $t = iaNormalizarTexto($texto);
+    $limpo = trim($texto);
+
+    if (preg_match('/^\d+$/u', $limpo)) {
+        $num = (int) $limpo;
+        if ($num >= 1 && $num <= count($opcoes)) {
+            return $opcoes[$num - 1] ?? null;
+        }
+        foreach ($opcoes as $op) {
+            if ((int) ($op['id'] ?? 0) === $num) {
+                return $op;
+            }
+        }
+    }
+
     if (preg_match('/\b(\d+)\b/u', $t, $m)) {
-        $idx = (int) $m[1] - 1;
-        return $opcoes[$idx] ?? null;
+        $num = (int) $m[1];
+        if ($num >= 1 && $num <= count($opcoes)) {
+            return $opcoes[$num - 1] ?? null;
+        }
+        foreach ($opcoes as $op) {
+            if ((int) ($op['id'] ?? 0) === $num) {
+                return $op;
+            }
+        }
     }
-    if (preg_match('/\b(?:primeir[oa]|1)\b/u', $t)) {
-        return $opcoes[0] ?? null;
+
+    $ordinais = [
+        '/\b(?:primeir[oa]|1)\b/u' => 0,
+        '/\b(?:segund[oa]|2)\b/u' => 1,
+        '/\b(?:terceir[oa]|3)\b/u' => 2,
+        '/\b(?:quart[oa]|4)\b/u' => 3,
+        '/\b(?:quint[oa]|5)\b/u' => 4,
+        '/\b(?:sext[oa]|6)\b/u' => 5,
+        '/\b(?:s[eé]tim[oa]|7)\b/u' => 6,
+        '/\b(?:oitav[oa]|8)\b/u' => 7,
+    ];
+    foreach ($ordinais as $padrao => $idx) {
+        if (preg_match($padrao, $t)) {
+            return $opcoes[$idx] ?? null;
+        }
     }
-    if (preg_match('/\b(?:segund[oa]|2)\b/u', $t)) {
-        return $opcoes[1] ?? null;
-    }
+
     foreach ($opcoes as $op) {
         $area = iaNormalizarTexto((string) ($op['areas'] ?? ''));
         if ($area !== '' && str_contains($t, $area)) {
             return $op;
         }
+        $tipo = iaNormalizarTexto((string) ($op['tipo'] ?? ''));
+        if ($tipo !== '' && str_contains($t, $tipo)) {
+            return $op;
+        }
     }
+
     return null;
 }
 
