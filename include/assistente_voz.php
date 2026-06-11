@@ -23,6 +23,11 @@
         <p id="assistente-voz-status" class="assistente-voz-status">Toque no botão laranja e permita o microfone quando o navegador solicitar.</p>
         <p id="assistente-voz-transcricao" class="assistente-voz-transcricao d-none"></p>
 
+        <div id="assistente-voz-dialogo" class="assistente-voz-dialogo d-none" role="status">
+            <p id="assistente-voz-pergunta" class="assistente-voz-pergunta"></p>
+            <p class="assistente-voz-dialogo-hint">Toque em <strong>Gravar</strong> e responda em voz alta.</p>
+        </div>
+
         <div id="assistente-voz-confirmacao" class="assistente-voz-confirmacao d-none">
             <p id="assistente-voz-resumo" class="assistente-voz-resumo"></p>
             <div class="assistente-voz-acoes">

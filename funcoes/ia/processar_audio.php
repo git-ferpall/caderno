@@ -23,9 +23,19 @@ if ($size <= 0 || $size > 25 * 1024 * 1024) {
     iaJson(['ok' => false, 'err' => 'Áudio inválido ou muito grande (máx. 25 MB).'], 400);
 }
 
+$intentParcial = null;
+$campoDialogo = trim((string) ($_POST['campo_dialogo'] ?? ''));
+
+if (!empty($_POST['intent_parcial'])) {
+    $decoded = json_decode((string) $_POST['intent_parcial'], true);
+    if (is_array($decoded)) {
+        $intentParcial = iaNormalizarIntent($decoded);
+    }
+}
+
 try {
     $pipeline = new IaPipeline($mysqli, $user_id);
-    iaJson($pipeline->processFromAudio($tmp, $mime));
+    iaJson($pipeline->processFromAudio($tmp, $mime, $intentParcial, $campoDialogo ?: null));
 } catch (Throwable $e) {
     iaJson(['ok' => false, 'err' => $e->getMessage()], 500);
 }

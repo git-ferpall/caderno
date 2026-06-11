@@ -69,6 +69,10 @@ function waProcessarTexto(mysqli $mysqli, string $waId, string $texto): void
 
     $sessao = waCarregarSessao($mysqli, $waId);
     if ($sessao) {
+        if (($sessao['modo'] ?? '') === 'dialogo') {
+            waContinuarDialogo($mysqli, $waId, $sessao, $texto);
+            return;
+        }
         if (waIsSim($texto)) {
             waConfirmarSessao($mysqli, $waId, $sessao);
             return;
@@ -78,7 +82,7 @@ function waProcessarTexto(mysqli $mysqli, string $waId, string $texto): void
             waSendText($waId, 'Ok, cancelado. Pode gravar ou digitar outro comando.');
             return;
         }
-        waSendText($waId, 'Há uma confirmação pendente. Responda *SIM* ou *NÃO*, ou envie *NÃO* para cancelar.');
+        waSendText($waId, 'Há uma confirmação pendente. Responda *SIM* ou *NÃO*.');
         return;
     }
 
@@ -101,7 +105,7 @@ function waProcessarTexto(mysqli $mysqli, string $waId, string $texto): void
 function waProcessarAudio(mysqli $mysqli, string $waId, string $mediaId): void
 {
     $sessao = waCarregarSessao($mysqli, $waId);
-    if ($sessao) {
+    if ($sessao && ($sessao['modo'] ?? '') === 'confirmar') {
         waSendText($waId, 'Há uma confirmação pendente. Responda *SIM* ou *NÃO* antes de enviar outro áudio.');
         return;
     }
@@ -125,13 +129,47 @@ function waProcessarAudio(mysqli $mysqli, string $waId, string $mediaId): void
         file_put_contents($tmp, $media['binary']);
 
         $pipeline = new IaPipeline($mysqli, (int) $vinculo['user_id']);
-        $resultado = $pipeline->processFromAudio($tmp, $media['mime']);
+
+        if ($sessao && ($sessao['modo'] ?? '') === 'dialogo') {
+            $resultado = $pipeline->processFromAudio(
+                $tmp,
+                $media['mime'],
+                $sessao['intent'],
+                $sessao['campo_dialogo'] ?: null
+            );
+        } else {
+            $resultado = $pipeline->processFromAudio($tmp, $media['mime']);
+        }
+
         waResponderPipeline($mysqli, $waId, (int) $vinculo['user_id'], $resultado);
     } catch (Throwable $e) {
         waLog('audio: ' . $e->getMessage());
         waSendText($waId, '❌ ' . $e->getMessage());
     } finally {
         @unlink($tmp);
+    }
+}
+
+function waContinuarDialogo(mysqli $mysqli, string $waId, array $sessao, string $texto): void
+{
+    if (waIsNao($texto)) {
+        waLimparSessao($mysqli, $waId);
+        waSendText($waId, 'Ok, cancelado. Envie outro comando quando quiser.');
+        return;
+    }
+
+    try {
+        $pipeline = new IaPipeline($mysqli, (int) $sessao['user_id']);
+        $resultado = $pipeline->processFromText(
+            $texto,
+            $texto,
+            $sessao['intent'],
+            $sessao['campo_dialogo'] ?: null
+        );
+        waResponderPipeline($mysqli, $waId, (int) $sessao['user_id'], $resultado);
+    } catch (Throwable $e) {
+        waLog('dialogo: ' . $e->getMessage());
+        waSendText($waId, '❌ ' . $e->getMessage());
     }
 }
 
@@ -161,6 +199,7 @@ function waResponderPipeline(mysqli $mysqli, string $waId, int $user_id, array $
     $msg = trim((string) ($resultado['msg'] ?? ''));
 
     if ($resultado['executado'] ?? false) {
+        waLimparSessao($mysqli, $waId);
         $texto = '✅ ' . ($msg ?: 'Registrado com sucesso!');
         if ($transcricao !== '') {
             $texto .= "\n\n📝 _" . $transcricao . '_';
@@ -169,10 +208,21 @@ function waResponderPipeline(mysqli $mysqli, string $waId, int $user_id, array $
         return;
     }
 
-    if ($resultado['precisa_confirmacao'] ?? false) {
+    if ($resultado['precisa_dialogo'] ?? false) {
         $intent = $resultado['intent'] ?? [];
         $resolucao = $resultado['resolucao'] ?? [];
-        waSalvarSessao($mysqli, $waId, $user_id, $intent, $resolucao, $resumo);
+        $campo = (string) ($resultado['campo_dialogo'] ?? '');
+        $pergunta = (string) ($resultado['pergunta'] ?? $msg);
+        waSalvarSessao($mysqli, $waId, $user_id, $intent, $resolucao, $resumo, 30, 'dialogo', $campo ?: null);
+        waSendText($waId, '❓ ' . $pergunta);
+        return;
+    }
+
+    if ($resultado['precisa_confirmacao'] ?? false) {
+        waLimparSessao($mysqli, $waId);
+        $intent = $resultado['intent'] ?? [];
+        $resolucao = $resultado['resolucao'] ?? [];
+        waSalvarSessao($mysqli, $waId, $user_id, $intent, $resolucao, $resumo, 30, 'confirmar');
 
         $texto = "⚠️ *Confirme o manejo:*\n" . $resumo;
         if ($transcricao !== '' && $transcricao !== $resumo) {

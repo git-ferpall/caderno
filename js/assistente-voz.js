@@ -9,7 +9,10 @@
   let chunks = [];
   let gravando = false;
   let intentPendente = null;
+  let intentParcial = null;
+  let campoDialogo = null;
   let micPronto = false;
+  let falando = false;
 
   const fab = document.getElementById('assistente-voz-btn');
   const panel = document.getElementById('assistente-voz-panel');
@@ -19,6 +22,8 @@
   const btnCancelar = document.getElementById('assistente-voz-cancelar');
   const elStatus = document.getElementById('assistente-voz-status');
   const elTranscricao = document.getElementById('assistente-voz-transcricao');
+  const elDialogo = document.getElementById('assistente-voz-dialogo');
+  const elPergunta = document.getElementById('assistente-voz-pergunta');
   const elConfirmacao = document.getElementById('assistente-voz-confirmacao');
   const elResumo = document.getElementById('assistente-voz-resumo');
   const elGravarTexto = document.getElementById('assistente-voz-gravar-texto');
@@ -33,8 +38,121 @@
   function resetConfirmacao() {
     intentPendente = null;
     elConfirmacao.classList.add('d-none');
+  }
+
+  function resetDialogo() {
+    intentParcial = null;
+    campoDialogo = null;
+    elDialogo?.classList.add('d-none');
+    if (elPergunta) elPergunta.textContent = '';
+  }
+
+  function resetTranscricao() {
     elTranscricao.classList.add('d-none');
     elTranscricao.textContent = '';
+  }
+
+  function resetTudo() {
+    resetConfirmacao();
+    resetDialogo();
+    resetTranscricao();
+  }
+
+  function pararFala() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    falando = false;
+  }
+
+  /** Fala a resposta usando voz do sistema (pt-BR). */
+  function falar(texto, onEnd) {
+    if (!texto || !('speechSynthesis' in window)) {
+      if (typeof onEnd === 'function') onEnd();
+      return;
+    }
+
+    pararFala();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = 'pt-BR';
+    u.rate = 0.95;
+    u.pitch = 1;
+
+    const voices = window.speechSynthesis.getVoices();
+    const pt = voices.find((v) => v.lang.startsWith('pt'));
+    if (pt) u.voice = pt;
+
+    u.onend = () => {
+      falando = false;
+      if (typeof onEnd === 'function') onEnd();
+    };
+    u.onerror = () => {
+      falando = false;
+      if (typeof onEnd === 'function') onEnd();
+    };
+
+    falando = true;
+    window.speechSynthesis.speak(u);
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
+
+  function mostrarDialogo(pergunta) {
+    resetConfirmacao();
+    if (elPergunta) elPergunta.textContent = pergunta;
+    elDialogo?.classList.remove('d-none');
+    setStatus('Aguardando sua resposta…', 'dialogo');
+  }
+
+  function tratarResposta(data) {
+    if (data.transcricao) {
+      elTranscricao.textContent = '“' + data.transcricao + '”';
+      elTranscricao.classList.remove('d-none');
+    }
+
+    if (data.executado) {
+      const msg = data.msg || 'Pronto!';
+      resetTudo();
+      setStatus(msg, 'sucesso');
+      falar(msg);
+      notificarAtualizacao();
+      return;
+    }
+
+    if (data.precisa_dialogo && data.intent_parcial) {
+      intentParcial = data.intent_parcial;
+      campoDialogo = data.campo_dialogo || null;
+      const pergunta = data.pergunta || data.msg || 'Preciso de mais uma informação.';
+      mostrarDialogo(pergunta);
+      falar(pergunta, () => {
+        if (micPronto && !gravando) {
+          setStatus('Pode falar — gravando em instantes…', 'dialogo');
+          setTimeout(() => {
+            if (intentParcial && !gravando) iniciarGravacao();
+          }, 600);
+        }
+      });
+      return;
+    }
+
+    if (data.precisa_confirmacao && data.intent) {
+      resetDialogo();
+      intentPendente = data.intent;
+      elResumo.textContent = data.resumo || data.msg || 'Confirmar ação?';
+      elConfirmacao.classList.remove('d-none');
+      const confMsg = 'Confirme se está correto, ou ajuste gravando de novo.';
+      setStatus(confMsg, 'confirmacao');
+      falar('Entendi. ' + (data.resumo || '') + ' Está correto? Toque em confirmar ou grave de novo.');
+      return;
+    }
+
+    resetDialogo();
+    const errMsg = data.msg || data.intent?.mensagem || 'Não entendi. Tente reformular.';
+    setStatus(errMsg, 'erro');
+    falar(errMsg);
   }
 
   function mensagemMicrofoneBloqueado() {
@@ -171,7 +289,8 @@
     panel.classList.add('d-none');
     fab.setAttribute('aria-expanded', 'false');
     pararGravacao();
-    resetConfirmacao();
+    pararFala();
+    resetTudo();
     setStatus('Toque no microfone e fale seu comando.');
   }
 
@@ -199,9 +318,12 @@
   }
 
   async function iniciarGravacao() {
-    if (gravando) return;
+    if (gravando || falando) return;
 
-    resetConfirmacao();
+    if (!intentParcial) {
+      resetConfirmacao();
+      resetTranscricao();
+    }
 
     if (typeof MediaRecorder === 'undefined') {
       setStatus('Seu navegador não suporta gravação de áudio.', 'erro');
@@ -226,7 +348,7 @@
       btnGravar.classList.add('assistente-voz-gravar--ativo');
       btnGravar.setAttribute('aria-pressed', 'true');
       elGravarTexto.textContent = 'Parar';
-      setStatus('Gravando… fale agora.');
+      setStatus(intentParcial ? 'Gravando sua resposta…' : 'Gravando… fale agora.');
     } catch (_) {
       /* mensagem já definida em tratarErroMicrofone */
     }
@@ -260,35 +382,23 @@
     const fd = new FormData();
     fd.append('audio', blob, 'comando.webm');
 
+    if (intentParcial && campoDialogo) {
+      fd.append('intent_parcial', JSON.stringify(intentParcial));
+      fd.append('campo_dialogo', campoDialogo);
+    }
+
     try {
       const resp = await fetch(API_PROCESSAR, { method: 'POST', body: fd, credentials: 'same-origin' });
       const data = await resp.json();
 
       if (!data.ok) {
-        setStatus(data.err || 'Erro ao processar áudio.', 'erro');
+        const errMsg = data.err || 'Erro ao processar áudio.';
+        setStatus(errMsg, 'erro');
+        falar(errMsg);
         return;
       }
 
-      if (data.transcricao) {
-        elTranscricao.textContent = '“' + data.transcricao + '”';
-        elTranscricao.classList.remove('d-none');
-      }
-
-      if (data.executado) {
-        setStatus(data.msg || 'Pronto!', 'sucesso');
-        notificarAtualizacao();
-        return;
-      }
-
-      if (data.precisa_confirmacao && data.intent) {
-        intentPendente = data.intent;
-        elResumo.textContent = data.resumo || data.msg || 'Confirmar ação?';
-        elConfirmacao.classList.remove('d-none');
-        setStatus('Confirme se está correto.', 'confirmacao');
-        return;
-      }
-
-      setStatus(data.msg || data.intent?.mensagem || 'Não entendi. Tente reformular.', 'erro');
+      tratarResposta(data);
     } catch (err) {
       console.error(err);
       setStatus('Falha na comunicação com o servidor.', 'erro');
@@ -302,6 +412,7 @@
 
     setStatus('Executando…', 'processando');
     btnConfirmar.disabled = true;
+    pararFala();
 
     try {
       const resp = await fetch(API_EXECUTAR, {
@@ -313,11 +424,15 @@
       const data = await resp.json();
 
       if (data.ok && data.executado) {
-        setStatus(data.msg || 'Pronto!', 'sucesso');
-        resetConfirmacao();
+        const msg = data.msg || 'Pronto!';
+        resetTudo();
+        setStatus(msg, 'sucesso');
+        falar(msg);
         notificarAtualizacao();
       } else {
-        setStatus(data.msg || data.err || 'Não foi possível executar.', 'erro');
+        const errMsg = data.msg || data.err || 'Não foi possível executar.';
+        setStatus(errMsg, 'erro');
+        falar(errMsg);
       }
     } catch (err) {
       console.error(err);
@@ -330,7 +445,6 @@
   fab.addEventListener('click', () => {
     if (panel.classList.contains('d-none')) {
       abrirPanel();
-      // Solicita microfone no mesmo clique — exige gesto do usuário para o prompt aparecer
       garantirPermissaoMicrofone().catch(() => {});
     } else {
       fecharPanel();
@@ -347,9 +461,13 @@
   btnConfirmar?.addEventListener('click', confirmarIntent);
 
   btnCancelar?.addEventListener('click', () => {
-    resetConfirmacao();
+    pararFala();
+    resetTudo();
     setStatus(micPronto ? 'Grave de novo e fale o comando.' : 'Toque em Gravar após permitir o microfone.');
   });
 
-  window.addEventListener('pagehide', liberarStream);
+  window.addEventListener('pagehide', () => {
+    liberarStream();
+    pararFala();
+  });
 })();

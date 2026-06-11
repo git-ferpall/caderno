@@ -143,6 +143,33 @@
   color: #333;
 }
 
+.assistente-voz-status--dialogo {
+  color: var(--azul-e);
+  font-weight: 500;
+}
+
+.assistente-voz-dialogo {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: linear-gradient(135deg, rgba(19, 176, 166, 0.12), rgba(233, 92, 36, 0.08));
+  border-radius: 10px;
+  border-left: 3px solid var(--azul);
+}
+
+.assistente-voz-pergunta {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--azul-e);
+  line-height: 1.35;
+}
+
+.assistente-voz-dialogo-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #555;
+}
+
 .assistente-voz-resumo {
   margin: 0 0 0.75rem;
   font-size: 0.875rem;

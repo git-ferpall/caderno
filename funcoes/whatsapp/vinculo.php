@@ -86,8 +86,14 @@ function waResolverUsuario(mysqli $mysqli, string $waId): ?array
     return waBuscarVinculoAtivo($mysqli, $waId);
 }
 
-function waSalvarSessao(mysqli $mysqli, string $waId, int $user_id, array $intent, array $resolucao, string $resumo, int $ttlMin = 30): void
+function waSalvarSessao(mysqli $mysqli, string $waId, int $user_id, array $intent, array $resolucao, string $resumo, int $ttlMin = 30, string $modo = 'confirmar', ?string $campoDialogo = null): void
 {
+    if ($modo === 'dialogo' && $campoDialogo) {
+        $resolucao['_sessao'] = ['modo' => 'dialogo', 'campo' => $campoDialogo];
+    } else {
+        $resolucao['_sessao'] = ['modo' => 'confirmar'];
+    }
+
     $intentJson = json_encode($intent, JSON_UNESCAPED_UNICODE);
     $resolucaoJson = json_encode($resolucao, JSON_UNESCAPED_UNICODE);
 
@@ -136,6 +142,8 @@ function waCarregarSessao(mysqli $mysqli, string $waId): ?array
         'intent' => $intent,
         'resolucao' => $resolucao,
         'resumo' => (string) $row['resumo'],
+        'modo' => (string) ($resolucao['_sessao']['modo'] ?? 'confirmar'),
+        'campo_dialogo' => (string) ($resolucao['_sessao']['campo'] ?? ''),
     ];
 }
 
