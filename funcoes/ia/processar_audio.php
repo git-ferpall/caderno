@@ -27,9 +27,13 @@ $intentParcial = null;
 $campoDialogo = trim((string) ($_POST['campo_dialogo'] ?? ''));
 
 if (!empty($_POST['intent_parcial'])) {
-    $decoded = json_decode((string) $_POST['intent_parcial'], true);
+    $raw = (string) $_POST['intent_parcial'];
+    if (strlen($raw) > 65536) {
+        iaJson(['ok' => false, 'err' => 'Dados do diálogo muito grandes. Feche o assistente e abra de novo.'], 400);
+    }
+    $decoded = json_decode($raw, true);
     if (is_array($decoded)) {
-        $intentParcial = iaNormalizarIntent($decoded);
+        $intentParcial = iaSanitizarIntentParcial($decoded);
     }
 }
 

@@ -25,18 +25,55 @@ function iaAuthUserId(): int
     if (!$user_id) {
         iaJson(['ok' => false, 'err' => 'Usuário não autenticado.'], 401);
     }
-    return (int) $user_id;
+    $id = (int) $user_id;
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+    return $id;
 }
 
 function iaOpenAiKey(): string
 {
-    $key = defined('OPENAI_API_KEY') ? (string) OPENAI_API_KEY : '';
+    $key = defined('OPENAI_API_KEY') ? trim((string) OPENAI_API_KEY) : '';
+    if (stripos($key, 'Bearer ') === 0) {
+        $key = trim(substr($key, 7));
+    }
     if ($key === '') {
         throw new RuntimeException(
             'Assistente por voz não configurado. Defina OPENAI_API_KEY no servidor.'
         );
     }
+    if (strlen($key) > 512 || str_contains($key, "\n") || str_contains($key, 'OPENAI_')) {
+        throw new RuntimeException(
+            'OPENAI_API_KEY inválida no servidor. Deve conter apenas a chave sk-… (sem outras variáveis no mesmo valor).'
+        );
+    }
     return $key;
+}
+
+function iaOpenAiCurlOpts($ch, array $headers): void
+{
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_PROXY => '',
+        CURLOPT_HTTPPROXYTUNNEL => false,
+        CURLOPT_USERAGENT => 'CadernoFrutag-IA/1.0',
+        CURLOPT_ENCODING => '',
+    ]);
+}
+
+function iaOpenAiErroHttp(int $status, string $msg): never
+{
+    if ($status === 431) {
+        throw new RuntimeException(
+            'Erro 431: cabeçalhos HTTP grandes. Verifique OPENAI_API_KEY no .env (somente sk-…), '
+            . 'limpe cookies do site e, no nginx, aumente large_client_header_buffers.'
+        );
+    }
+    throw new RuntimeException('OpenAI erro ' . $status . ': ' . $msg);
 }
 
 function iaModel(string $constant, string $default): string
@@ -75,14 +112,10 @@ function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPat
     }
 
     $headers[] = 'Content-Type: application/json';
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
-
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => $headers,
-        CURLOPT_TIMEOUT => 90,
-    ]);
+    $headers[] = 'Accept: application/json';
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
+    iaOpenAiCurlOpts($ch, $headers);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 90);
 
     return iaCurlExec($ch);
 }
@@ -118,13 +151,9 @@ function iaOpenAiMultipart(string $url, array $payload, string $filePath, string
     }
 
     $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . iaOpenAiKey()],
-        CURLOPT_POSTFIELDS => $fields,
-        CURLOPT_TIMEOUT => 120,
-    ]);
+    iaOpenAiCurlOpts($ch, ['Authorization: Bearer ' . iaOpenAiKey()]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
 
     return iaCurlExec($ch);
 }
@@ -143,8 +172,9 @@ function iaCurlExec($ch): array
 
     $decoded = json_decode((string) $body, true);
     if ($status >= 400) {
-        $msg = is_array($decoded) ? ($decoded['error']['message'] ?? $body) : $body;
-        throw new RuntimeException('OpenAI erro ' . $status . ': ' . $msg);
+        $msg = is_array($decoded) ? ($decoded['error']['message'] ?? $body) : (string) $body;
+        $msg = trim(strip_tags(substr($msg, 0, 500)));
+        iaOpenAiErroHttp($status, $msg !== '' ? $msg : 'erro desconhecido');
     }
 
     return is_array($decoded) ? $decoded : [];
@@ -278,10 +308,11 @@ Regras:
 - Use acao=desconhecido apenas se a intenção for realmente incompreensível (não use só por faltar campos).
 PROMPT;
 
+    require_once __DIR__ . '/contexto_usuario.php';
     $userPayload = json_encode([
         'transcricao' => $transcricao,
-        'contexto' => $contexto,
-    ], JSON_UNESCAPED_UNICODE);
+        'contexto' => iaContextoParaIa($contexto),
+    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
     $resp = iaOpenAiRequest('/chat/completions', [
         'model' => $model,
@@ -300,6 +331,24 @@ PROMPT;
     }
 
     return iaNormalizarIntent($intent);
+}
+
+/** Mantém só campos do intent no diálogo (evita POST gigante). */
+function iaSanitizarIntentParcial(?array $intent): ?array
+{
+    if ($intent === null) {
+        return null;
+    }
+
+    $intent = iaNormalizarIntent($intent);
+    $permitidos = [
+        'acao', 'tipo', 'data', 'area_nomes', 'produto_nomes', 'quantidade', 'unidade',
+        'variedade', 'tipo_semeadura', 'tempo_irrigacao', 'unidade_tempo', 'titulo',
+        'descricao', 'observacoes', 'previsao_dias', 'confianca', 'mensagem',
+        '_data_respondida', '_previsao_respondida', '_obs_respondida',
+    ];
+
+    return array_intersect_key($intent, array_flip($permitidos));
 }
 
 function iaNormalizarIntent(array $intent): array

@@ -64,7 +64,6 @@ final class IaPipeline
                 'ok' => true,
                 'transcricao' => $transcricao,
                 'intent' => $intentCliente,
-                'resolucao' => $resolucao,
                 'resumo' => $resumo,
                 'precisa_dialogo' => true,
                 'precisa_confirmacao' => false,
@@ -76,7 +75,6 @@ final class IaPipeline
                 'intent_parcial' => $intentCliente,
                 'executado' => false,
                 'msg' => $pergunta,
-                'resultado' => null,
             ];
         }
 
@@ -94,7 +92,6 @@ final class IaPipeline
             'ok' => true,
             'transcricao' => $transcricao,
             'intent' => iaLimparIntentCliente($intent),
-            'resolucao' => $resolucao,
             'resumo' => $resumo,
             'precisa_dialogo' => false,
             'precisa_confirmacao' => $precisaConfirmacao,
@@ -106,7 +103,6 @@ final class IaPipeline
             'intent_parcial' => $precisaConfirmacao ? iaLimparIntentCliente($intent) : null,
             'executado' => (bool) ($resultado['executado'] ?? false),
             'msg' => $resultado['msg'] ?? ($intent['mensagem'] ?? $resumo),
-            'resultado' => $resultado,
         ];
     }
 

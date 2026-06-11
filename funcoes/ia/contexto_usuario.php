@@ -105,3 +105,17 @@ function iaListarPendentesResumo(mysqli $mysqli, int $propriedade_id, int $limit
 
     return $itens;
 }
+
+/** Contexto reduzido para a OpenAI (evita payload enorme). */
+function iaContextoParaIa(array $contexto, int $maxAreas = 40, int $maxProdutos = 40): array
+{
+    $areas = array_slice($contexto['areas'] ?? [], 0, $maxAreas);
+    $produtos = array_slice($contexto['produtos'] ?? [], 0, $maxProdutos);
+
+    return [
+        'propriedade' => ($contexto['propriedade']['nome'] ?? null) ?: null,
+        'areas' => array_values(array_map(static fn ($a) => (string) ($a['nome'] ?? ''), $areas)),
+        'produtos' => array_values(array_map(static fn ($p) => (string) ($p['nome'] ?? ''), $produtos)),
+        'hoje' => (string) ($contexto['hoje'] ?? date('Y-m-d')),
+    ];
+}
