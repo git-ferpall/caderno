@@ -64,6 +64,11 @@
             <div id="assistente-voz-ondas" class="assistente-voz-ondas d-none" aria-hidden="true">
                 <span></span><span></span><span></span><span></span><span></span>
             </div>
+            <form id="assistente-voz-texto-form" class="assistente-voz-texto-form" autocomplete="off">
+                <input type="text" id="assistente-voz-texto" class="assistente-voz-texto-input"
+                    placeholder="Digite ou fale seu comando…" aria-label="Comando por texto" maxlength="500">
+                <button type="submit" id="assistente-voz-texto-enviar" class="assistente-voz-texto-btn" aria-label="Enviar">➤</button>
+            </form>
             <button type="button" id="assistente-voz-gravar" class="assistente-voz-gravar" aria-pressed="false">
                 <span class="assistente-voz-gravar-ring" aria-hidden="true"></span>
                 <span class="assistente-voz-gravar-icon" aria-hidden="true">

@@ -14,6 +14,10 @@ function iaConsultasPermitidas(): array
         'ultimo_manejo',
         'resumo_manejos',
         'total_colheita',
+        'colheita_por_produto',
+        'colheita_comparar',
+        'manejo_por_area',
+        'detalhar_pendente',
     ];
 }
 
@@ -66,6 +70,21 @@ function iaRepararIntentConsulta(array $intent, string $texto): array
         $intent = iaIntentConsulta('resumo_manejos', $intent);
         $intent['periodo'] = iaDetectarPeriodoTexto($t);
         return $intent;
+    }
+
+    if (preg_match('/compar|versus|vs\b|m[eê]s passado/u', $t) && preg_match('/colh/u', $t)) {
+        return iaIntentConsulta('colheita_comparar', $intent);
+    }
+
+    if (preg_match('/colh.*(?:tomate|produto|cultura)|quanto colh.* de /u', $t)) {
+        $intent = iaIntentConsulta('colheita_por_produto', $intent);
+        $intent['periodo'] = iaDetectarPeriodoTexto($t);
+        return $intent;
+    }
+
+    if (preg_match('/(?:ultim[ao]|quando).*?(?:herbi|irrig|plant|manejo).*?(?:bancada|area|área|talh)/u', $t)
+        || preg_match('/(?:bancada|area|área).*?(?:ultim[ao]|herbi|irrig)/u', $t)) {
+        return iaIntentConsulta('manejo_por_area', $intent);
     }
 
     if (($intent['acao'] ?? '') === 'listar_pendentes') {
@@ -146,6 +165,10 @@ function iaExecutarConsulta(mysqli $mysqli, int $user_id, array $intent, array $
         'ultimo_manejo' => iaConsultaUltimoManejo($mysqli, $propriedade_id, $intent, $contexto),
         'resumo_manejos' => iaConsultaResumoManejos($mysqli, $propriedade_id, (string) ($intent['periodo'] ?? '30_dias')),
         'total_colheita' => iaConsultaTotalColheita($mysqli, $propriedade_id, $intent, $contexto),
+        'colheita_por_produto' => iaConsultaColheitaPorProduto($mysqli, $propriedade_id, $intent, $contexto),
+        'colheita_comparar' => iaConsultaColheitaComparar($mysqli, $propriedade_id, $intent),
+        'manejo_por_area' => iaConsultaManejoPorArea($mysqli, $propriedade_id, $intent, $contexto),
+        'detalhar_pendente' => iaConsultaDetalharPendente($mysqli, $propriedade_id, $intent),
         default => ['ok' => false, 'executado' => false, 'msg' => 'Consulta não reconhecida.'],
     };
 }
@@ -180,7 +203,7 @@ function iaConsultaContarPendentes(mysqli $mysqli, int $propriedade_id): array
             . '. ' . ($lista ? "Alguns: {$lista}{$resto}" : '')
             . ' Quer que eu detalhe ou marque algum como feito?',
         'consulta' => 'contar_pendentes',
-        'dados' => ['total' => $total, 'amostra' => $itens],
+        'dados' => ['total' => $total, 'amostra' => $itens, 'pendentes' => $itens],
     ];
 }
 
@@ -532,4 +555,267 @@ function iaResumoRapidoPropriedade(mysqli $mysqli, int $propriedade_id): array
         'pendentes' => $pendentes,
         'ultima_colheita' => $ultimaColheita,
     ];
+}
+
+function iaConsultaColheitaPorProduto(mysqli $mysqli, int $propriedade_id, array $intent, array $contexto): array
+{
+    require_once __DIR__ . '/resolver_entidades.php';
+    $resolucao = iaResolverEntidades($intent, $contexto);
+    $produtoIds = $resolucao['produto_ids'] ?? [];
+    $prodNome = trim((string) (($intent['produto_nomes'][0] ?? '') ?: ''));
+
+    if (!$produtoIds && $prodNome === '') {
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Qual produto ou cultura você quer consultar na colheita?',
+            'consulta' => 'colheita_por_produto',
+            'dados' => null,
+        ];
+    }
+
+    [$inicio, $fim] = iaIntervaloPeriodo((string) ($intent['periodo'] ?? 'mes'));
+    $labelPeriodo = iaLabelPeriodo((string) ($intent['periodo'] ?? 'mes'));
+
+    if ($produtoIds) {
+        $pid = (int) $produtoIds[0];
+        $stmt = $mysqli->prepare("
+            SELECT SUM(a.quantidade) AS total, a.unidade, COUNT(*) AS n, p.nome
+            FROM apontamentos a
+            JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo IN ('produto','produto_id')
+            JOIN produtos p ON p.id = ad.valor
+            WHERE a.propriedade_id = ? AND a.tipo = 'colheita' AND ad.valor = ?
+              AND a.data BETWEEN ? AND ? AND a.quantidade > 0
+            GROUP BY a.unidade, p.nome
+        ");
+        $stmt->bind_param('iiss', $propriedade_id, $pid, $inicio, $fim);
+    } else {
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Não encontrei esse produto no cadastro. Tente o nome exato da cultura.',
+            'consulta' => 'colheita_por_produto',
+            'dados' => null,
+        ];
+    }
+
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $linhas = [];
+    $nomeProd = $prodNome;
+    while ($row = $res->fetch_assoc()) {
+        $nomeProd = (string) ($row['nome'] ?? $prodNome);
+        $linhas[] = iaFormatarQuantidade((float) $row['total'], (string) ($row['unidade'] ?: 'kg'))
+            . ' em ' . (int) $row['n'] . ' colheita' . ((int) $row['n'] > 1 ? 's' : '');
+    }
+    $stmt->close();
+
+    if (!$linhas) {
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => "{$labelPeriodo} não encontrei colheita de {$nomeProd}.",
+            'consulta' => 'colheita_por_produto',
+            'dados' => null,
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'executado' => true,
+        'msg' => "{$labelPeriodo}, colheita de {$nomeProd}: " . implode('; ', $linhas) . '.',
+        'consulta' => 'colheita_por_produto',
+        'dados' => ['produto' => $nomeProd, 'periodo' => $intent['periodo'] ?? 'mes'],
+    ];
+}
+
+function iaConsultaColheitaComparar(mysqli $mysqli, int $propriedade_id, array $intent): array
+{
+    $mesAtualInicio = date('Y-m-01');
+    $mesAtualFim = date('Y-m-d');
+    $mesPassadoInicio = date('Y-m-01', strtotime('first day of last month'));
+    $mesPassadoFim = date('Y-m-t', strtotime('last month'));
+
+    $atual = iaSomaColheitaPeriodo($mysqli, $propriedade_id, $mesAtualInicio, $mesAtualFim);
+    $anterior = iaSomaColheitaPeriodo($mysqli, $propriedade_id, $mesPassadoInicio, $mesPassadoFim);
+
+    if (!$atual && !$anterior) {
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Não encontrei colheitas com quantidade neste mês nem no mês passado.',
+            'consulta' => 'colheita_comparar',
+            'dados' => null,
+        ];
+    }
+
+    $msg = 'Este mês: ' . ($atual ?: 'nenhum registro') . '. Mês passado: ' . ($anterior ?: 'nenhum registro') . '.';
+    if ($atual && $anterior) {
+        $msg .= ' ' . iaTextoComparacaoColheita($atual, $anterior);
+    }
+
+    return [
+        'ok' => true,
+        'executado' => true,
+        'msg' => $msg,
+        'consulta' => 'colheita_comparar',
+        'dados' => ['atual' => $atual, 'anterior' => $anterior],
+    ];
+}
+
+function iaSomaColheitaPeriodo(mysqli $mysqli, int $propriedade_id, string $inicio, string $fim): ?string
+{
+    $stmt = $mysqli->prepare("
+        SELECT unidade, SUM(quantidade) AS total
+        FROM apontamentos
+        WHERE propriedade_id = ? AND tipo = 'colheita' AND data BETWEEN ? AND ? AND quantidade > 0
+        GROUP BY unidade
+    ");
+    $stmt->bind_param('iss', $propriedade_id, $inicio, $fim);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $partes = [];
+    while ($row = $res->fetch_assoc()) {
+        $partes[] = iaFormatarQuantidade((float) $row['total'], (string) ($row['unidade'] ?: 'kg'));
+    }
+    $stmt->close();
+    return $partes ? implode(' + ', $partes) : null;
+}
+
+function iaTextoComparacaoColheita(string $atual, string $anterior): string
+{
+    if ($atual === $anterior) {
+        return 'Está igual ao mês passado.';
+    }
+    return 'Há diferença entre os períodos — compare pelos totais na mesma unidade quando possível.';
+}
+
+function iaConsultaDetalharPendente(mysqli $mysqli, int $propriedade_id, array $intent): array
+{
+    $id = (int) ($intent['apontamento_id'] ?? 0);
+    if ($id <= 0) {
+        return ['ok' => false, 'executado' => false, 'msg' => 'Informe qual pendente detalhar.'];
+    }
+
+    $row = iaBuscarApontamentoPorId($mysqli, $propriedade_id, $id);
+    if (!$row) {
+        return ['ok' => true, 'executado' => true, 'msg' => 'Pendente não encontrado.', 'consulta' => 'detalhar_pendente', 'dados' => null];
+    }
+
+    return [
+        'ok' => true,
+        'executado' => true,
+        'msg' => iaFormatarDetalheApontamento($row),
+        'consulta' => 'detalhar_pendente',
+        'dados' => $row,
+    ];
+}
+
+function iaBuscarApontamentoPorId(mysqli $mysqli, int $propriedade_id, int $id): ?array
+{
+    $stmt = $mysqli->prepare("
+        SELECT a.id, a.tipo, a.data, a.quantidade, a.unidade, a.status, a.observacoes
+        FROM apontamentos a
+        WHERE a.id = ? AND a.propriedade_id = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param('ii', $id, $propriedade_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return $row ? iaEnriquecerApontamento($mysqli, $row) : null;
+}
+
+function iaFormatarDetalheApontamento(array $row): string
+{
+    $tipo = iaTiposManejo()[$row['tipo'] ?? ''] ?? ucfirst((string) ($row['tipo'] ?? 'manejo'));
+    $partes = [
+        "Detalhes do pendente #{$row['id']}:",
+        "Tipo: {$tipo}",
+        'Data: ' . iaFormatarDataConsulta((string) ($row['data'] ?? '')),
+    ];
+    if (!empty($row['areas'])) {
+        $partes[] = 'Área: ' . $row['areas'];
+    }
+    if (!empty($row['produto'])) {
+        $partes[] = 'Produto: ' . $row['produto'];
+    }
+    if (!empty($row['quantidade']) && is_numeric($row['quantidade'])) {
+        $partes[] = 'Quantidade: ' . iaFormatarQuantidade((float) $row['quantidade'], (string) ($row['unidade'] ?: ''));
+    }
+    $obs = trim((string) ($row['observacoes'] ?? ''));
+    $partes[] = $obs !== '' ? 'Obs: ' . $obs : 'Sem observações.';
+    $partes[] = 'Toque em Concluir no card ou diga "marca como feito".';
+
+    return implode(' ', $partes);
+}
+
+function iaConsultaManejoPorArea(mysqli $mysqli, int $propriedade_id, array $intent, array $contexto): array
+{
+    require_once __DIR__ . '/resolver_entidades.php';
+    $resolucao = iaResolverEntidades($intent, $contexto);
+    $tipo = (string) ($intent['tipo'] ?? '');
+    if ($tipo === '') {
+        $tipo = iaNormalizarTipoManejo((string) (($intent['produto_nomes'][0] ?? '') . ' ' . implode(' ', $intent['area_nomes'] ?? []))) ?? '';
+    }
+
+    $areaIds = $resolucao['area_ids'] ?? [];
+    if (!$areaIds) {
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Em qual área ou bancada você quer consultar?',
+            'consulta' => 'manejo_por_area',
+            'dados' => null,
+        ];
+    }
+
+    $areaId = (int) $areaIds[0];
+    $row = iaBuscarUltimoApontamentoArea($mysqli, $propriedade_id, $areaId, $tipo !== '' ? $tipo : null);
+    if (!$row) {
+        $areaNome = $intent['area_nomes'][0] ?? 'área';
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => "Não encontrei manejos registrados na {$areaNome}.",
+            'consulta' => 'manejo_por_area',
+            'dados' => null,
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'executado' => true,
+        'msg' => iaFormatarRespostaUltimoManejo($row, (string) $row['tipo']),
+        'consulta' => 'manejo_por_area',
+        'dados' => $row,
+    ];
+}
+
+function iaBuscarUltimoApontamentoArea(mysqli $mysqli, int $propriedade_id, int $area_id, ?string $tipo = null): ?array
+{
+    $sql = "
+        SELECT a.id, a.tipo, a.data, a.quantidade, a.unidade, a.status, a.observacoes,
+               COALESCE(a.data_conclusao, a.data) AS data_ref
+        FROM apontamentos a
+        JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo = 'area_id' AND ad.valor = ?
+        WHERE a.propriedade_id = ?
+    ";
+    $types = 'ii';
+    $params = [$area_id, $propriedade_id];
+    if ($tipo) {
+        $sql .= ' AND a.tipo = ?';
+        $types .= 's';
+        $params[] = $tipo;
+    }
+    $sql .= ' ORDER BY a.data_ref DESC, a.id DESC LIMIT 1';
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return $row ? iaEnriquecerApontamento($mysqli, $row) : null;
 }

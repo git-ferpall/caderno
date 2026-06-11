@@ -259,73 +259,60 @@ function iaTranscreverAudio(string $filePath, string $mime = 'audio/webm', ?stri
     return iaCorrigirTranscricaoPt($text, $campoDialogo);
 }
 
-function iaInterpretarComando(string $transcricao, array $contexto): array
+function iaInterpretarComando(string $transcricao, array $contexto, ?array $memoria = null): array
 {
     $model = iaModel('OPENAI_CHAT_MODEL', 'gpt-4o-mini');
     $hoje = date('Y-m-d');
 
     $system = <<<PROMPT
-Você é o agente inteligente do Caderno Frutag — um assistente de campo que REGISTRA manejos e CONSULTA dados do caderno do produtor. Interprete comandos de voz SOMENTE em português brasileiro e responda SOMENTE com JSON válido (sem markdown).
-
-IMPORTANTE — idioma e erros de transcrição:
-- O áudio é sempre pt-BR. Nunca interprete como inglês.
-- O Whisper pode errar: "plan 2" = plantio, "bed two" = bancada 2.
-- "plantio" e "semeadura" são tipos diferentes.
-
-Você NÃO é um formulário rígido. Diferencie:
-- AÇÃO (registrar, concluir) → criar_apontamento ou concluir_apontamento
-- PERGUNTA (quantos, quanto, qual, última, resumo) → consultar
+Você é o agente inteligente do Caderno Frutag — assistente de campo que REGISTRA, CONSULTA e GERENCIA manejos. Interprete SOMENTE pt-BR e responda SOMENTE JSON válido.
 
 Schema:
 {
-  "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "consultar" | "desconhecido",
-  "consulta": "contar_pendentes|listar_pendentes|ultima_colheita|ultimo_manejo|resumo_manejos|total_colheita|null",
+  "acao": "criar_apontamento|concluir_apontamento|cancelar_apontamento|editar_apontamento|consultar|listar_pendentes|desconhecido",
+  "consulta": "contar_pendentes|listar_pendentes|ultima_colheita|ultimo_manejo|resumo_manejos|total_colheita|colheita_por_produto|colheita_comparar|manejo_por_area|null",
   "periodo": "semana|mes|30_dias|7_dias|ano|null",
   "tipo": "irrigacao|colheita|semeadura|plantio|herbicida|fungicida|inseticida|fertilizante|personalizado|null",
+  "apontamento_id": number ou null,
   "data": "YYYY-MM-DD ou null",
   "previsao_dias": number ou null,
   "insumo_nome": "string ou null",
   "area_nomes": ["string"],
   "produto_nomes": ["string"],
   "quantidade": number ou null,
-  "unidade": "litros|kg|sementes|bandejas|mudas|caixas|sacas|m3|horas|minutos|null",
-  "variedade": "string ou null",
+  "unidade": "litros|kg|sementes|bandejas|mudas|caixas|sacas|m3|null",
   "tipo_semeadura": "Direta|Bandeja|Canteiro|Replantio|null",
   "tempo_irrigacao": number ou null,
-  "unidade_tempo": "horas|minutos|null",
-  "titulo": "string ou null",
   "observacoes": "string ou null",
-  "apontamento_ref": {"tipo":"string","area_nome":"string","produto_nome":"string ou null","data":"YYYY-MM-DD ou null"} ou null,
   "confianca": 0.0 a 1.0,
-  "mensagem": "resumo curto para o usuário em português"
+  "mensagem": "resumo curto em português"
 }
 
-Consultas (acao=consultar):
-- "quantos pendentes" / "tenho apontamento pendente?" → consulta=contar_pendentes
-- "o que está pendente" / "lista pendentes" → consulta=listar_pendentes
-- "quanto colhi na última colheita" / "última colheita" → consulta=ultima_colheita
-- "última irrigação" / "último herbicida" → consulta=ultimo_manejo + tipo
-- "resumo do mês" / "quantos manejos essa semana" → consulta=resumo_manejos + periodo
-- "quanto colhi esse mês" → consulta=total_colheita + periodo
-
 Ações:
-- criar_apontamento: registrar/lançar/aplicar manejo (mesmo faltando campos — o diálogo completa).
-- concluir_apontamento: marcar pendente como feito.
-- listar_pendentes: legado — prefira consultar com listar_pendentes.
+- criar_apontamento: registrar manejo (faltando campos → diálogo completa).
+- concluir_apontamento: marcar pendente como feito ("concluir irrigação", "marca como feito").
+- cancelar_apontamento: desfazer/cancelar último apontamento.
+- editar_apontamento: alterar/adicionar observação ("add obs no último", "editar observação").
+- consultar: perguntas sobre pendentes, colheitas, resumos, comparativos.
 
-Regras:
-- Hoje é {$hoje}.
-- Perguntas sobre dados NUNCA são criar_apontamento.
-- Se disser só "herbicida" ou "colheita" sem ser pergunta → criar_apontamento.
-- Campo mensagem: tom de agente prestativo, natural e curto.
-- Use acao=desconhecido só se realmente incompreensível.
+Consultas:
+- contar_pendentes, listar_pendentes, ultima_colheita, ultimo_manejo (+tipo), resumo_manejos (+periodo), total_colheita, colheita_por_produto (+produto_nomes), colheita_comparar, manejo_por_area (+area_nomes +tipo).
+
+Use memoria_conversa para follow-ups ("marca o primeiro" após listar pendentes).
+Hoje é {$hoje}. Perguntas ≠ criar_apontamento. Tom natural de agente prestativo.
 PROMPT;
 
     require_once __DIR__ . '/contexto_usuario.php';
-    $userPayload = json_encode([
+    require_once __DIR__ . '/memoria.php';
+    $payload = [
         'transcricao' => $transcricao,
         'contexto' => iaContextoParaIa($contexto),
-    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    ];
+    if ($memoria) {
+        $payload['memoria_conversa'] = iaMemoriaParaIa($memoria);
+    }
+
+    $userPayload = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
     $resp = iaOpenAiRequest('/chat/completions', [
         'model' => $model,
@@ -357,8 +344,9 @@ function iaSanitizarIntentParcial(?array $intent): ?array
     $permitidos = [
         'acao', 'tipo', 'consulta', 'periodo', 'data', 'area_nomes', 'produto_nomes', 'quantidade', 'unidade',
         'variedade', 'tipo_semeadura', 'tempo_irrigacao', 'unidade_tempo', 'titulo',
-        'descricao', 'observacoes', 'previsao_dias', 'insumo_nome', 'confianca', 'mensagem',
-        '_data_respondida', '_previsao_respondida', '_obs_respondida',
+        'descricao', 'observacoes', 'previsao_dias', 'insumo_nome', 'apontamento_id', 'confianca', 'mensagem',
+        '_data_respondida', '_previsao_respondida', '_obs_respondida', '_tempo_respondido',
+        '_pendentes_opcao', '_concluir_tipo', '_cancel_confirmado',
     ];
 
     return array_intersect_key($intent, array_flip($permitidos));
@@ -385,6 +373,9 @@ function iaNormalizarIntent(array $intent): array
         'observacoes' => null,
         'previsao_dias' => null,
         'insumo_nome' => null,
+        'apontamento_id' => null,
+        '_tempo_respondido' => false,
+        '_cancel_confirmado' => false,
         '_data_respondida' => false,
         '_previsao_respondida' => false,
         '_obs_respondida' => false,
@@ -395,8 +386,12 @@ function iaNormalizarIntent(array $intent): array
 
     $intent = array_merge($defaults, $intent);
 
-    $intent['acao'] = in_array($intent['acao'], ['criar_apontamento', 'concluir_apontamento', 'listar_pendentes', 'consultar', 'desconhecido'], true)
-        ? $intent['acao'] : 'desconhecido';
+    $acoes = ['criar_apontamento', 'concluir_apontamento', 'cancelar_apontamento', 'editar_apontamento', 'listar_pendentes', 'consultar', 'desconhecido'];
+    $intent['acao'] = in_array($intent['acao'], $acoes, true) ? $intent['acao'] : 'desconhecido';
+
+    if (!empty($intent['apontamento_id'])) {
+        $intent['apontamento_id'] = (int) $intent['apontamento_id'];
+    }
 
     if ($intent['acao'] === 'consultar') {
         require_once __DIR__ . '/consultas.php';

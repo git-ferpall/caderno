@@ -41,6 +41,9 @@ function iaContextoUsuario(mysqli $mysqli, int $user_id): array
 
     $pendentes = iaListarPendentesResumo($mysqli, $propriedade_id, 15);
 
+    require_once __DIR__ . '/consultas.php';
+    $resumo_rapido = iaResumoRapidoPropriedade($mysqli, $propriedade_id);
+
     return [
         'propriedade' => ['id' => $propriedade_id, 'nome' => $prop['nome_razao'] ?? ''],
         'areas' => $areas,
@@ -50,6 +53,7 @@ function iaContextoUsuario(mysqli $mysqli, int $user_id): array
         'inseticidas' => iaCarregarCatalogo($mysqli, 'inseticidas', 'ativo'),
         'fertilizantes' => iaCarregarCatalogo($mysqli, 'fertilizantes', 'status'),
         'pendentes' => $pendentes,
+        'resumo_rapido' => $resumo_rapido,
         'tipos_manejo' => iaTiposManejo(),
         'hoje' => date('Y-m-d'),
     ];
@@ -102,6 +106,9 @@ function iaListarPendentesResumo(mysqli $mysqli, int $propriedade_id, int $limit
             a.id,
             a.tipo,
             a.data,
+            a.quantidade,
+            a.unidade,
+            a.observacoes,
             GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas,
             (
                 SELECT p.nome
@@ -132,6 +139,9 @@ function iaListarPendentesResumo(mysqli $mysqli, int $propriedade_id, int $limit
             'data' => $row['data'],
             'areas' => $row['areas'] ?: '',
             'produto' => $row['produto_nome'] ?: '',
+            'quantidade' => $row['quantidade'] ?? null,
+            'unidade' => $row['unidade'] ?? '',
+            'observacoes' => $row['observacoes'] ?? '',
         ];
     }
     $stmt->close();
@@ -152,8 +162,9 @@ function iaContextoParaIa(array $contexto, int $maxAreas = 40, int $maxProdutos 
         'herbicidas' => array_slice(array_column($contexto['herbicidas'] ?? [], 'nome'), 0, 25),
         'fungicidas' => array_slice(array_column($contexto['fungicidas'] ?? [], 'nome'), 0, 25),
         'hoje' => (string) ($contexto['hoje'] ?? date('Y-m-d')),
-        'resumo' => [
-            'pendentes' => count($contexto['pendentes'] ?? []),
-        ],
+        'resumo' => array_merge(
+            ['pendentes' => count($contexto['pendentes'] ?? [])],
+            ($contexto['resumo_rapido'] ?? [])
+        ),
     ];
 }

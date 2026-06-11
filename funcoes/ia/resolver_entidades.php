@@ -114,7 +114,8 @@ function iaMelhorMatch(string $nome, array $catalogo, float $minScore = 0.0): ar
 
 function iaPrecisaConfirmacao(array $intent, array $resolucao): bool
 {
-    if (in_array($intent['acao'] ?? '', ['consultar', 'listar_pendentes'], true)) {
+    $acao = $intent['acao'] ?? '';
+    if (in_array($acao, ['consultar', 'listar_pendentes', 'concluir_apontamento', 'cancelar_apontamento', 'editar_apontamento'], true)) {
         return false;
     }
     $conf = (float) ($resolucao['confianca'] ?? $intent['confianca'] ?? 0);
@@ -124,7 +125,7 @@ function iaPrecisaConfirmacao(array $intent, array $resolucao): bool
     if ($resolucao['faltando'] ?? []) {
         return true;
     }
-    if ($conf < 0.72) {
+    if ($conf < 0.82) {
         return true;
     }
     if (($resolucao['ambiguidades'] ?? []) && $conf < 0.85) {
@@ -185,6 +186,8 @@ function iaResumoIntent(array $intent, array $resolucao, array $contexto): strin
             $detalheObs
         ),
         'concluir_apontamento' => sprintf('Concluir %s em %s', $tipo ?: 'manejo', $areas),
+        'cancelar_apontamento' => 'Cancelar apontamento',
+        'editar_apontamento' => 'Editar observação do apontamento',
         'listar_pendentes' => 'Listar manejos pendentes',
         'consultar' => 'Consulta: ' . ($intent['consulta'] ?? 'dados'),
         default => $intent['mensagem'] ?? 'Comando não reconhecido',

@@ -170,17 +170,25 @@ function waDownloadMedia(string $mediaId): array
 function waHelpMessage(): string
 {
     return implode("\n", [
-        '📋 *Caderno Frutag — WhatsApp (piloto)*',
+        '📋 *Caderno Frutag — Agente de campo*',
         '',
-        'Envie *áudio* ou *texto* com o manejo, por exemplo:',
-        '• "Registrei colheita de alface na estufa 1, 10 kg"',
-        '• "Irriguei o canteiro 2 hoje"',
-        '• "Semeadura de rúcula na bancada 3, pendente"',
-        '• "Listar pendentes"',
+        '*Registrar:* áudio ou texto',
+        '• "Herbicida ontem na bancada 1"',
+        '• "Colheita de alface, 10 kg"',
         '',
-        'Se eu pedir confirmação, responda *SIM* ou *NÃO*.',
+        '*Consultar:*',
+        '• "Quantos pendentes tenho?"',
+        '• "Quanto colhi na última colheita?"',
+        '• "Resumo do mês"',
         '',
-        'Comandos: *AJUDA* | *VINCULAR* (associar este número à sua conta)',
+        '*Gerenciar:*',
+        '• "Concluir irrigação pendente"',
+        '• "Marca o primeiro como feito"',
+        '• "Editar observação do último"',
+        '• "Cancelar último apontamento"',
+        '',
+        'Confirmação: *SIM* ou *NÃO*',
+        'Comandos: *AJUDA* | *RESUMO* | *VINCULAR*',
     ]);
 }
 
@@ -194,4 +202,23 @@ function waIsNao(string $text): bool
 {
     $t = mb_strtolower(trim($text));
     return in_array($t, ['nao', 'não', 'n', 'cancelar', 'cancela', 'no'], true);
+}
+
+/** Envia briefing uma vez por dia quando usuário cumprimenta. */
+function waBriefingSeSaudacao(mysqli $mysqli, string $waId, int $user_id, string $texto): void
+{
+    $t = mb_strtolower(trim($texto));
+    if (!preg_match('/^(oi|olá|ola|bom dia|boa tarde|boa noite|e aí|eai|hey|hello)\b/u', $t)) {
+        return;
+    }
+
+    $flag = sys_get_temp_dir() . '/wa_brief_' . md5($waId . date('Y-m-d')) . '.flag';
+    if (is_file($flag)) {
+        return;
+    }
+
+    require_once __DIR__ . '/../ia/briefing.php';
+    $msg = iaGerarBriefing($mysqli, $user_id);
+    waSendText($waId, '🌱 ' . $msg);
+    @file_put_contents($flag, '1');
 }

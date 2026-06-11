@@ -57,6 +57,17 @@ function waProcessarTexto(mysqli $mysqli, string $waId, string $texto): void
         return;
     }
 
+    if ($cmd === 'RESUMO' || $cmd === 'BRIEFING') {
+        $vinculo = waResolverUsuario($mysqli, $waId);
+        if (!$vinculo) {
+            waSendText($waId, waMensagemNaoVinculado());
+            return;
+        }
+        require_once __DIR__ . '/../ia/briefing.php';
+        waSendText($waId, '🌱 ' . iaGerarBriefing($mysqli, (int) $vinculo['user_id']));
+        return;
+    }
+
     if ($cmd === 'VINCULAR' || $cmd === 'VINCULO' || $cmd === 'VÍNCULO') {
         $vinculo = waResolverUsuario($mysqli, $waId);
         if ($vinculo) {
@@ -94,6 +105,7 @@ function waProcessarTexto(mysqli $mysqli, string $waId, string $texto): void
 
     try {
         $pipeline = new IaPipeline($mysqli, (int) $vinculo['user_id']);
+        waBriefingSeSaudacao($mysqli, $waId, (int) $vinculo['user_id'], $texto);
         $resultado = $pipeline->processFromText($texto);
         waResponderPipeline($mysqli, $waId, (int) $vinculo['user_id'], $resultado);
     } catch (Throwable $e) {

@@ -21,6 +21,8 @@ class ApontamentoExecutor
         return match ($acao) {
             'criar_apontamento' => $this->criar($intent, $resolucao),
             'concluir_apontamento' => $this->concluir($intent, $resolucao),
+            'cancelar_apontamento' => $this->cancelar($intent),
+            'editar_apontamento' => $this->editar($intent),
             'listar_pendentes' => $this->listarPendentes(),
             'consultar' => $this->consultar($intent),
             default => [
@@ -478,6 +480,87 @@ class ApontamentoExecutor
     {
         $contexto = iaContextoUsuario($this->mysqli, $this->user_id);
         return iaExecutarConsulta($this->mysqli, $this->user_id, $intent, $contexto);
+    }
+
+    private function cancelar(array $intent): array
+    {
+        $id = (int) ($intent['apontamento_id'] ?? 0);
+        if ($id <= 0) {
+            $propId = $this->propriedadeId();
+            $stmt = $this->mysqli->prepare('SELECT id FROM apontamentos WHERE propriedade_id = ? ORDER BY id DESC LIMIT 1');
+            $stmt->bind_param('i', $propId);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            $id = (int) ($row['id'] ?? 0);
+        }
+
+        if ($id <= 0) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Não encontrei apontamento para cancelar.'];
+        }
+
+        if (!apontamentoPertenceUsuario($this->mysqli, $id, $this->user_id)) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
+        }
+
+        $this->mysqli->begin_transaction();
+        try {
+            $stmt = $this->mysqli->prepare('DELETE FROM apontamento_detalhes WHERE apontamento_id = ?');
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $stmt->close();
+
+            $stmt = $this->mysqli->prepare('DELETE FROM apontamentos WHERE id = ?');
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $stmt->close();
+
+            $this->mysqli->commit();
+            return [
+                'ok' => true,
+                'executado' => true,
+                'msg' => 'Apontamento cancelado com sucesso.',
+                'apontamento_id' => $id,
+            ];
+        } catch (Throwable $e) {
+            $this->mysqli->rollback();
+            throw $e;
+        }
+    }
+
+    private function editar(array $intent): array
+    {
+        $id = (int) ($intent['apontamento_id'] ?? 0);
+        if ($id <= 0) {
+            $propId = $this->propriedadeId();
+            $stmt = $this->mysqli->prepare('SELECT id FROM apontamentos WHERE propriedade_id = ? ORDER BY id DESC LIMIT 1');
+            $stmt->bind_param('i', $propId);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            $id = (int) ($row['id'] ?? 0);
+        }
+
+        $obs = trim((string) ($intent['observacoes'] ?? ''));
+        if ($obs === '') {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Informe a observação que deseja salvar.'];
+        }
+
+        if ($id <= 0 || !apontamentoPertenceUsuario($this->mysqli, $id, $this->user_id)) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
+        }
+
+        $stmt = $this->mysqli->prepare('UPDATE apontamentos SET observacoes = ? WHERE id = ?');
+        $stmt->bind_param('si', $obs, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Observação atualizada no apontamento.',
+            'apontamento_id' => $id,
+        ];
     }
 
     private function buscarPendentePorRef(array $intent, array $resolucao): ?int

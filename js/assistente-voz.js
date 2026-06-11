@@ -2,10 +2,12 @@
   'use strict';
 
   const API_PROCESSAR = '/funcoes/ia/processar_audio.php';
+  const API_PROCESSAR_TEXTO = '/funcoes/ia/processar_texto.php';
+  const API_BRIEFING = '/funcoes/ia/briefing_agente.php';
   const API_EXECUTAR = '/funcoes/ia/executar_intent.php';
 
   const SAUDACAO =
-    'Oi! Sou seu agente no Caderno Frutag. Posso registrar manejos ou consultar o caderno — por exemplo: quantos pendentes tenho, ou quanto colhi na última colheita.';
+    'Oi! Sou seu agente no Caderno Frutag. Posso registrar manejos, consultar pendentes e colheitas, ou marcar como feito. Fale ou digite abaixo.';
 
   let mediaRecorder = null;
   let audioStream = null;
@@ -41,6 +43,9 @@
   const elProgresso = document.getElementById('assistente-voz-progresso');
   const elProgressoFill = document.getElementById('assistente-voz-progresso-fill');
   const elProgressoLabel = document.getElementById('assistente-voz-progresso-label');
+  const formTexto = document.getElementById('assistente-voz-texto-form');
+  const inputTexto = document.getElementById('assistente-voz-texto');
+  const btnTextoEnviar = document.getElementById('assistente-voz-texto-enviar');
 
   if (!fab || !panel) return;
 
@@ -65,6 +70,119 @@
     div.textContent = texto;
     elChat.appendChild(div);
     scrollChat();
+  }
+
+  function renderConsultaCards(dados) {
+    if (!elChat || !dados) return;
+    const pendentes = dados.pendentes || dados.amostra;
+    if (!pendentes || !pendentes.length) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'assistente-voz-cards';
+
+    pendentes.slice(0, 6).forEach((p) => {
+      const card = document.createElement('div');
+      card.className = 'assistente-voz-card';
+      const tipo = (p.tipo || 'manejo').replace(/_/g, ' ');
+      const qtd =
+        p.quantidade && Number(p.quantidade) > 0
+          ? ' · ' + p.quantidade + (p.unidade ? ' ' + p.unidade : '')
+          : '';
+
+      card.innerHTML =
+        '<div class="assistente-voz-card-corpo">' +
+        '<strong>' +
+        tipo +
+        '</strong> — ' +
+        (p.produto ? p.produto + ' · ' : '') +
+        (p.areas || '—') +
+        ' · ' +
+        (p.data || '') +
+        qtd +
+        '</div>';
+
+      const actions = document.createElement('div');
+      actions.className = 'assistente-voz-card-actions';
+
+      ['detalhar', 'concluir', 'editar'].forEach((acao) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className =
+          'assistente-voz-card-btn' + (acao === 'concluir' ? ' assistente-voz-card-btn--prim' : '');
+        btn.dataset.acao = acao;
+        btn.dataset.id = String(p.id);
+        btn.textContent = acao === 'detalhar' ? 'Detalhar' : acao === 'concluir' ? 'Concluir' : 'Obs';
+        actions.appendChild(btn);
+      });
+
+      card.appendChild(actions);
+      wrap.appendChild(card);
+    });
+
+    wrap.addEventListener('click', onCardAcaoClick);
+    elChat.appendChild(wrap);
+    scrollChat();
+  }
+
+  function onCardAcaoClick(e) {
+    const btn = e.target.closest('[data-acao]');
+    if (!btn) return;
+
+    const id = parseInt(btn.dataset.id, 10);
+    const acao = btn.dataset.acao;
+    if (!id || !acao) return;
+
+    if (acao === 'editar') {
+      const obs = window.prompt('Observação para este apontamento:', '');
+      if (obs === null || obs.trim() === '') return;
+      enviarAcaoRapida(
+        { tipo: 'editar_obs', apontamento_id: id, observacoes: obs.trim() },
+        'Editar observação #' + id
+      );
+      return;
+    }
+
+    enviarAcaoRapida(
+      { tipo: acao === 'concluir' ? 'concluir' : 'detalhar', apontamento_id: id },
+      (acao === 'concluir' ? 'Concluir' : 'Detalhar') + ' #' + id
+    );
+  }
+
+  async function enviarAcaoRapida(acaoRapida, rotulo) {
+    pararFala();
+    if (rotulo) addMsg(rotulo, 'user');
+    setHint('Processando…', 'processando');
+    showDigitando(true);
+
+    const payload = { acao_rapida: acaoRapida, texto: rotulo || '' };
+    if (intentParcial && campoDialogo) {
+      payload.intent_parcial = intentParcial;
+      payload.campo_dialogo = campoDialogo;
+    }
+
+    try {
+      const resp = await fetch(API_PROCESSAR_TEXTO, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        showDigitando(false);
+        const errMsg = data.err || 'Erro ao processar.';
+        addMsg(errMsg, 'bot');
+        setHint(errMsg, 'erro');
+        falarNatural(errMsg);
+        return;
+      }
+      tratarResposta(data);
+    } catch (err) {
+      console.error(err);
+      showDigitando(false);
+      addMsg('Falha na comunicação.', 'bot');
+      setHint('Sem conexão', 'erro');
+    }
   }
 
   function showDigitando(show) {
@@ -272,6 +390,7 @@
       const msg = data.fala || data.msg || 'Pronto! Manejo registrado.';
       resetTudo();
       addMsg(msg, 'bot');
+      if (data.consulta_dados) renderConsultaCards(data.consulta_dados);
       setHint(msg, 'sucesso');
       falarNatural(msg);
       notificarAtualizacao();
@@ -287,7 +406,7 @@
       updateProgresso(data.dialogo_passo, data.dialogo_total);
       resetConfirmacao();
       addMsg(pergunta, 'bot');
-      setHint('Toque para responder', 'dialogo');
+      setHint('Responda abaixo ou toque para falar', 'dialogo');
       falarNatural(fala, autoGravarResposta);
       return;
     }
@@ -447,8 +566,8 @@
     fab.classList.add('assistente-voz-fab--oculto');
     fab.setAttribute('aria-expanded', 'true');
     document.body.classList.add('assistente-voz-aberto');
-    saudarSeNecessario();
-    setHint('Toque no botão laranja e fale seu comando', '');
+    carregarBriefingSeNecessario().then(() => saudarSeNecessario());
+    setHint('Fale ou digite seu comando', '');
   }
 
   function fecharPanel() {
@@ -470,8 +589,68 @@
   function notificarAtualizacao() {
     if (typeof window.carregarManejos === 'function') {
       window.carregarManejos();
+    } else if (/apontamento\.php/i.test(window.location.pathname)) {
+      window.location.reload();
     }
     document.dispatchEvent(new CustomEvent('caderno:apontamento-atualizado'));
+  }
+
+  async function enviarComandoTexto(texto) {
+    const t = (texto || '').trim();
+    if (!t) return;
+
+    pararFala();
+    addMsg(t, 'user');
+    setHint('Processando…', 'processando');
+    showDigitando(true);
+
+    const payload = { texto: t };
+    if (intentParcial && campoDialogo) {
+      payload.intent_parcial = intentParcial;
+      payload.campo_dialogo = campoDialogo;
+    }
+
+    try {
+      const resp = await fetch(API_PROCESSAR_TEXTO, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        showDigitando(false);
+        const errMsg = data.err || 'Erro ao processar.';
+        addMsg(errMsg, 'bot');
+        setHint(errMsg, 'erro');
+        falarNatural(errMsg);
+        return;
+      }
+      tratarResposta(data);
+    } catch (err) {
+      console.error(err);
+      showDigitando(false);
+      addMsg('Falha na comunicação.', 'bot');
+      setHint('Sem conexão', 'erro');
+    }
+  }
+
+  async function carregarBriefingSeNecessario() {
+    const chave = 'assistente_briefing_' + new Date().toISOString().slice(0, 10);
+    if (sessionStorage.getItem(chave)) return;
+
+    try {
+      const resp = await fetch(API_BRIEFING, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (data.ok && data.msg) {
+        sessionStorage.setItem(chave, '1');
+        addMsg(data.msg, 'bot');
+        falarNatural(data.msg);
+        saudacaoFeita = true;
+      }
+    } catch (_) {
+      /* briefing opcional */
+    }
   }
 
   function iniciarGravacao() {
@@ -656,6 +835,13 @@
     pararFala();
     if (gravando) pararGravacao();
     else iniciarGravacao();
+  });
+
+  formTexto?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = inputTexto?.value || '';
+    if (inputTexto) inputTexto.value = '';
+    enviarComandoTexto(t);
   });
 
   btnConfirmar?.addEventListener('click', confirmarIntent);

@@ -119,7 +119,7 @@ function iaNormalizarDataResposta(string $texto): ?string
  */
 function iaRepararIntentParaDialogo(array $intent, string $texto): array
 {
-    if (($intent['acao'] ?? '') === 'consultar') {
+    if (in_array($intent['acao'] ?? '', ['consultar', 'cancelar_apontamento'], true)) {
         return $intent;
     }
 
@@ -218,16 +218,142 @@ function iaFraseAberturaDialogo(string $tipo): string
 }
 
 /**
- * Próxima pergunta para completar o apontamento (null = pronto para confirmar).
+ * Próxima pergunta para completar o intent (null = pronto para confirmar/executar).
  *
  * @return array{campo: string, pergunta: string}|null
  */
 function iaProximaPergunta(array $intent, array $resolucao, array $contexto): ?array
 {
+    return match ($intent['acao'] ?? '') {
+        'criar_apontamento' => iaProximaPerguntaCriar($intent, $resolucao, $contexto),
+        'concluir_apontamento' => iaProximaPerguntaConcluir($intent, $resolucao, $contexto),
+        'cancelar_apontamento' => iaProximaPerguntaCancelar($intent),
+        'editar_apontamento' => iaProximaPerguntaEditar($intent),
+        default => null,
+    };
+}
+
+function iaPrepararIntentConcluir(array $intent, array $contexto): array
+{
+    if (!empty($intent['apontamento_id']) && empty($intent['_concluir_tipo'])) {
+        foreach ($contexto['pendentes'] ?? [] as $p) {
+            if ((int) ($p['id'] ?? 0) === (int) $intent['apontamento_id']) {
+                $intent['_concluir_tipo'] = (string) ($p['tipo'] ?? '');
+                break;
+            }
+        }
+    }
+
+    if (!empty($intent['apontamento_id'])) {
+        return $intent;
+    }
+
+    $pendentes = $contexto['pendentes'] ?? [];
+    $tipo = (string) ($intent['tipo'] ?? '');
+    if ($tipo !== '') {
+        $pendentes = array_values(array_filter($pendentes, static fn ($p) => ($p['tipo'] ?? '') === $tipo));
+    }
+
+    if (count($pendentes) === 1) {
+        $intent['apontamento_id'] = (int) $pendentes[0]['id'];
+        $intent['_concluir_tipo'] = (string) $pendentes[0]['tipo'];
+    } elseif (count($pendentes) > 1) {
+        $intent['_pendentes_opcao'] = array_slice($pendentes, 0, 8);
+    }
+
+    return $intent;
+}
+
+function iaProximaPerguntaConcluir(array $intent, array $resolucao, array $contexto): ?array
+{
+    $intent = iaPrepararIntentConcluir($intent, $contexto);
+
+    if (empty($intent['apontamento_id']) && !empty($intent['_pendentes_opcao'])) {
+        $linhas = [];
+        foreach ($intent['_pendentes_opcao'] as $i => $p) {
+            $n = $i + 1;
+            $tipo = iaTiposManejo()[$p['tipo'] ?? ''] ?? ($p['tipo'] ?? 'manejo');
+            $linhas[] = "{$n} — {$tipo}" . (!empty($p['areas']) ? ' em ' . $p['areas'] : '') . ' (' . ($p['data'] ?? '') . ')';
+        }
+        return [
+            'campo' => 'pendente_escolha',
+            'pergunta' => 'Qual pendente concluir? ' . implode('; ', $linhas),
+        ];
+    }
+
+    if (empty($intent['apontamento_id'])) {
+        return null;
+    }
+
+    $tipo = (string) ($intent['_concluir_tipo'] ?? $intent['tipo'] ?? '');
+    if ($tipo === '' && !empty($intent['apontamento_id'])) {
+        foreach ($contexto['pendentes'] ?? [] as $p) {
+            if ((int) ($p['id'] ?? 0) === (int) $intent['apontamento_id']) {
+                $tipo = (string) ($p['tipo'] ?? '');
+                break;
+            }
+        }
+    }
+
+    if ($tipo === 'colheita') {
+        $qtd = $intent['quantidade'] ?? null;
+        if ($qtd === null || !is_numeric($qtd) || (float) $qtd <= 0) {
+            return [
+                'campo' => 'quantidade',
+                'pergunta' => 'Quanto colheu? Informe a quantidade para concluir a colheita.',
+            ];
+        }
+    }
+
+    return null;
+}
+
+function iaProximaPerguntaCancelar(array $intent): ?array
+{
+    if (empty($intent['apontamento_id']) && empty($intent['_cancel_confirmado'])) {
+        return [
+            'campo' => 'cancel_confirmacao',
+            'pergunta' => 'Confirma cancelar o último apontamento? Diga sim ou não.',
+        ];
+    }
+    return null;
+}
+
+function iaProximaPerguntaEditar(array $intent): ?array
+{
+    if (trim((string) ($intent['observacoes'] ?? '')) === '') {
+        return [
+            'campo' => 'observacoes',
+            'pergunta' => 'Qual observação você quer salvar nesse apontamento?',
+        ];
+    }
+    return null;
+}
+
+function iaMarcarFlagsDialogoPreenchidos(array $intent): array
+{
+    if (!empty($intent['data']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $intent['data'])) {
+        $intent['_data_respondida'] = true;
+    }
+    if (!empty($intent['area_nomes'])) {
+        /* resolvido depois */
+    }
+    if (array_key_exists('previsao_dias', $intent) && $intent['previsao_dias'] !== null) {
+        $intent['_previsao_respondida'] = true;
+    }
+    if (!empty($intent['observacoes']) || ($intent['_obs_respondida'] ?? false)) {
+        $intent['_obs_respondida'] = true;
+    }
+    return $intent;
+}
+
+function iaProximaPerguntaCriar(array $intent, array $resolucao, array $contexto): ?array
+{
     if (($intent['acao'] ?? '') !== 'criar_apontamento') {
         return null;
     }
 
+    $intent = iaMarcarFlagsDialogoPreenchidos($intent);
     $tipo = (string) ($intent['tipo'] ?? '');
 
     if ($tipo === '') {
@@ -308,6 +434,20 @@ function iaProximaPergunta(array $intent, array $resolucao, array $contexto): ?a
         }
     }
 
+    if ($tipo === 'semeadura' && empty($intent['tipo_semeadura'])) {
+        return [
+            'campo' => 'tipo_semeadura',
+            'pergunta' => 'Qual o tipo de semeadura? Direta, bandeja, canteiro ou replantio?',
+        ];
+    }
+
+    if ($tipo === 'irrigacao' && empty($intent['_tempo_respondido'])) {
+        return [
+            'campo' => 'tempo_irrigacao',
+            'pergunta' => 'Quanto tempo durou a irrigação? Em horas ou minutos — ou diga pular.',
+        ];
+    }
+
     if ($tipo === 'plantio' && empty($intent['_previsao_respondida'])) {
         return [
             'campo' => 'previsao',
@@ -363,17 +503,19 @@ function iaCamposDialogoOrdem(array $intent): array
     $campos[] = 'area';
     if ($tipo === 'personalizado') {
         $campos[] = 'titulo';
+    } elseif (iaTipoUsaInsumo($tipo)) {
+        $campos[] = 'insumo';
     } elseif ($tipo !== '') {
         $campos[] = 'produto';
     }
-    if (iaTipoUsaInsumo($tipo)) {
-        $campos[] = 'insumo';
-    }
-    if (in_array($tipo, ['irrigacao', 'colheita', 'semeadura', 'plantio'], true)) {
+    if (in_array($tipo, ['irrigacao', 'colheita', 'semeadura', 'plantio'], true) || iaTipoUsaInsumo($tipo)) {
         $campos[] = 'quantidade';
     }
-    if (iaTipoUsaInsumo($tipo)) {
-        $campos[] = 'quantidade';
+    if ($tipo === 'semeadura') {
+        $campos[] = 'tipo_semeadura';
+    }
+    if ($tipo === 'irrigacao') {
+        $campos[] = 'tempo_irrigacao';
     }
     if ($tipo === 'plantio') {
         $campos[] = 'previsao';
@@ -602,6 +744,37 @@ function iaUnidadePadraoPorTipo(string $tipo): ?string
     };
 }
 
+function iaUsuarioPulouCampo(string $texto): bool
+{
+    $t = iaNormalizarTexto($texto);
+    return (bool) preg_match('/\b(?:pular|nenhum|nenhuma|nao|não|sem|skip)\b/u', $t);
+}
+
+function iaResolverEscolhaPendente(string $texto, array $opcoes): ?array
+{
+    if (!$opcoes) {
+        return null;
+    }
+    $t = iaNormalizarTexto($texto);
+    if (preg_match('/\b(\d+)\b/u', $t, $m)) {
+        $idx = (int) $m[1] - 1;
+        return $opcoes[$idx] ?? null;
+    }
+    if (preg_match('/\b(?:primeir[oa]|1)\b/u', $t)) {
+        return $opcoes[0] ?? null;
+    }
+    if (preg_match('/\b(?:segund[oa]|2)\b/u', $t)) {
+        return $opcoes[1] ?? null;
+    }
+    foreach ($opcoes as $op) {
+        $area = iaNormalizarTexto((string) ($op['areas'] ?? ''));
+        if ($area !== '' && str_contains($t, $area)) {
+            return $op;
+        }
+    }
+    return null;
+}
+
 /**
  * Incorpora a resposta falada/digitada no intent parcial.
  */
@@ -619,10 +792,10 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
             break;
 
         case 'data':
-            $intent['_data_respondida'] = true;
             $data = iaNormalizarDataResposta($texto);
             if ($data) {
                 $intent['data'] = $data;
+                $intent['_data_respondida'] = true;
             }
             break;
 
@@ -684,6 +857,35 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
 
         case 'titulo':
             $intent['titulo'] = $texto;
+            break;
+
+        case 'tempo_irrigacao':
+            $intent['_tempo_respondido'] = true;
+            if (!iaUsuarioPulouCampo($texto)) {
+                $num = iaExtrairNumero($texto);
+                if ($num !== null && $num > 0) {
+                    $intent['tempo_irrigacao'] = $num;
+                    $intent['unidade_tempo'] = preg_match('/min/u', iaNormalizarTexto($texto)) ? 'minutos' : 'horas';
+                }
+            }
+            break;
+
+        case 'pendente_escolha':
+            $escolha = iaResolverEscolhaPendente($texto, $intent['_pendentes_opcao'] ?? []);
+            if ($escolha) {
+                $intent['apontamento_id'] = (int) $escolha['id'];
+                $intent['_concluir_tipo'] = (string) ($escolha['tipo'] ?? '');
+                unset($intent['_pendentes_opcao']);
+            }
+            break;
+
+        case 'cancel_confirmacao':
+            if (preg_match('/\b(?:sim|confirmo|pode|ok)\b/u', iaNormalizarTexto($texto))) {
+                $intent['_cancel_confirmado'] = true;
+            } else {
+                $intent['acao'] = 'desconhecido';
+                $intent['mensagem'] = 'Ok, mantive o apontamento.';
+            }
             break;
     }
 
