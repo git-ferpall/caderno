@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/https.php';
 require_once __DIR__ . '/http.php';
 require_once __DIR__ . '/recaptcha.php'; // 🔒 chaves do Google
 
@@ -141,7 +142,8 @@ if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
  * 6️⃣  Define o cookie JWT (AUTH_COOKIE)
  * ==================================================
  */
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? '') === '443');
 $cookieOptions = [
     'expires'  => time() + 3600,
     'path'     => '/',
@@ -156,8 +158,12 @@ error_log("AUTH_COOKIE setado (secure=" . ($cookieOptions['secure'] ? '1' : '0')
 
 /**
  * ==================================================
- * 7️⃣  Redireciona para a próxima página
+ * 7️⃣  Redireciona para a home (evita loop / → /home/ via SW)
  * ==================================================
  */
-header('Location: ' . ($next ?: '/'));
+$destino = trim((string) $next);
+if ($destino === '' || $destino === '/') {
+    $destino = '/home/';
+}
+header('Location: ' . $destino);
 exit;
