@@ -18,6 +18,9 @@
   let micPronto = false;
   let falando = false;
   let saudacaoFeita = false;
+  /** Incrementado ao cancelar — impede falarNatural de continuar após parar. */
+  let falaSessaoId = 0;
+  let falaTimeoutId = null;
 
   const fab = document.getElementById('assistente-voz-btn');
   const backdrop = document.getElementById('assistente-voz-backdrop');
@@ -116,6 +119,11 @@
   }
 
   function pararFala() {
+    falaSessaoId += 1;
+    if (falaTimeoutId !== null) {
+      clearTimeout(falaTimeoutId);
+      falaTimeoutId = null;
+    }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -130,6 +138,8 @@
     }
 
     pararFala();
+    const sessao = falaSessaoId;
+
     const u = new SpeechSynthesisUtterance(texto);
     u.lang = 'pt-BR';
     u.rate = 0.9;
@@ -139,13 +149,18 @@
     const pt = voices.find((v) => v.lang.startsWith('pt-BR')) || voices.find((v) => v.lang.startsWith('pt'));
     if (pt) u.voice = pt;
 
-    u.onstart = () => setAvatarFalando(true);
+    u.onstart = () => {
+      if (sessao !== falaSessaoId) return;
+      setAvatarFalando(true);
+    };
     u.onend = () => {
+      if (sessao !== falaSessaoId) return;
       falando = false;
       setAvatarFalando(false);
       if (typeof onEnd === 'function') onEnd();
     };
     u.onerror = () => {
+      if (sessao !== falaSessaoId) return;
       falando = false;
       setAvatarFalando(false);
       if (typeof onEnd === 'function') onEnd();
@@ -155,6 +170,7 @@
     try {
       window.speechSynthesis.speak(u);
     } catch (_) {
+      if (sessao !== falaSessaoId) return;
       falando = false;
       setAvatarFalando(false);
       if (typeof onEnd === 'function') onEnd();
@@ -175,13 +191,52 @@
       falar(texto, onEnd);
       return;
     }
+
+    pararFala();
+    const sessao = falaSessaoId;
     let i = 0;
+
     function proxima() {
+      if (sessao !== falaSessaoId) return;
       if (i >= partes.length) {
         if (typeof onEnd === 'function') onEnd();
         return;
       }
-      falar(partes[i++], () => setTimeout(proxima, 320));
+      const frase = partes[i++];
+      const u = new SpeechSynthesisUtterance(frase);
+      u.lang = 'pt-BR';
+      u.rate = 0.9;
+      u.pitch = 1.02;
+      const voices = window.speechSynthesis.getVoices();
+      const pt = voices.find((v) => v.lang.startsWith('pt-BR')) || voices.find((v) => v.lang.startsWith('pt'));
+      if (pt) u.voice = pt;
+
+      u.onstart = () => {
+        if (sessao !== falaSessaoId) return;
+        setAvatarFalando(true);
+        falando = true;
+      };
+      u.onend = () => {
+        if (sessao !== falaSessaoId) return;
+        falando = false;
+        setAvatarFalando(false);
+        falaTimeoutId = setTimeout(proxima, 320);
+      };
+      u.onerror = () => {
+        if (sessao !== falaSessaoId) return;
+        falando = false;
+        setAvatarFalando(false);
+        falaTimeoutId = setTimeout(proxima, 320);
+      };
+
+      falando = true;
+      try {
+        window.speechSynthesis.speak(u);
+      } catch (_) {
+        if (sessao !== falaSessaoId) return;
+        falando = false;
+        setAvatarFalando(false);
+      }
     }
     proxima();
   }
@@ -598,6 +653,7 @@
   btnGravar?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    pararFala();
     if (gravando) pararGravacao();
     else iniciarGravacao();
   });
