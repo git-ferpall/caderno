@@ -20,7 +20,7 @@
             <button type="button" id="assistente-voz-fechar" class="assistente-voz-fechar" aria-label="Fechar">&times;</button>
         </div>
 
-        <p id="assistente-voz-status" class="assistente-voz-status">Toque no microfone e fale seu comando.</p>
+        <p id="assistente-voz-status" class="assistente-voz-status">Toque no botão laranja e permita o microfone quando o navegador solicitar.</p>
         <p id="assistente-voz-transcricao" class="assistente-voz-transcricao d-none"></p>
 
         <div id="assistente-voz-confirmacao" class="assistente-voz-confirmacao d-none">

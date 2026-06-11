@@ -16,3 +16,7 @@
 </IfModule>
 
 DirectoryIndex index.php index.html
+
+<IfModule mod_headers.c>
+    Header set Permissions-Policy "microphone=(self), camera=()"
+</IfModule>

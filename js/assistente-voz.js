@@ -5,9 +5,11 @@
   const API_EXECUTAR = '../funcoes/ia/executar_intent.php';
 
   let mediaRecorder = null;
+  let audioStream = null;
   let chunks = [];
   let gravando = false;
   let intentPendente = null;
+  let micPronto = false;
 
   const fab = document.getElementById('assistente-voz-btn');
   const panel = document.getElementById('assistente-voz-panel');
@@ -33,6 +35,131 @@
     elConfirmacao.classList.add('d-none');
     elTranscricao.classList.add('d-none');
     elTranscricao.textContent = '';
+  }
+
+  function mensagemMicrofoneBloqueado() {
+    return 'Microfone bloqueado. Clique no cadeado ou ícone ao lado da URL do site, permita o microfone e recarregue a página.';
+  }
+
+  function getMicStream() {
+    if (!window.isSecureContext) {
+      return Promise.reject(Object.assign(new Error('SECURE_CONTEXT'), { code: 'SECURE_CONTEXT' }));
+    }
+
+    const modern = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+    if (modern) {
+      return navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+    }
+
+    const legacy =
+      navigator.getUserMedia ||
+      navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia ||
+      navigator.msGetUserMedia;
+
+    if (!legacy) {
+      return Promise.reject(Object.assign(new Error('UNSUPPORTED'), { code: 'UNSUPPORTED' }));
+    }
+
+    return new Promise((resolve, reject) => {
+      legacy.call(navigator, { audio: true }, resolve, reject);
+    });
+  }
+
+  async function consultarPermissaoMicrofone() {
+    if (!navigator.permissions || !navigator.permissions.query) {
+      return null;
+    }
+    try {
+      return await navigator.permissions.query({ name: 'microphone' });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function tratarErroMicrofone(err) {
+    console.error('[assistente-voz]', err);
+
+    const nome = err && (err.name || err.code || '');
+
+    if (nome === 'SECURE_CONTEXT') {
+      setStatus('O microfone só funciona em HTTPS. Acesse o site com conexão segura.', 'erro');
+      return;
+    }
+
+    if (nome === 'UNSUPPORTED') {
+      setStatus('Seu navegador não suporta gravação de áudio. Tente Chrome, Edge ou Safari atualizado.', 'erro');
+      return;
+    }
+
+    if (nome === 'NotFoundError' || nome === 'DevicesNotFoundError') {
+      setStatus('Nenhum microfone encontrado neste dispositivo.', 'erro');
+      return;
+    }
+
+    if (nome === 'NotReadableError' || nome === 'TrackStartError') {
+      setStatus('Microfone em uso por outro aplicativo. Feche outros apps e tente de novo.', 'erro');
+      return;
+    }
+
+    if (
+      nome === 'NotAllowedError' ||
+      nome === 'PermissionDeniedError' ||
+      nome === 'SecurityError'
+    ) {
+      setStatus(mensagemMicrofoneBloqueado(), 'erro');
+      return;
+    }
+
+    setStatus('Não foi possível acessar o microfone. Verifique as permissões do navegador.', 'erro');
+  }
+
+  function liberarStream() {
+    if (audioStream) {
+      audioStream.getTracks().forEach((t) => t.stop());
+      audioStream = null;
+    }
+    micPronto = false;
+  }
+
+  async function garantirPermissaoMicrofone() {
+    if (audioStream && micPronto) {
+      return audioStream;
+    }
+
+    const perm = await consultarPermissaoMicrofone();
+    if (perm && perm.state === 'denied') {
+      setStatus(mensagemMicrofoneBloqueado(), 'erro');
+      throw new Error('DENIED');
+    }
+
+    setStatus('Aguardando permissão do microfone…', 'processando');
+
+    try {
+      audioStream = await getMicStream();
+      micPronto = true;
+
+      if (perm) {
+        perm.onchange = () => {
+          if (perm.state === 'denied') {
+            liberarStream();
+            setStatus(mensagemMicrofoneBloqueado(), 'erro');
+          }
+        };
+      }
+
+      setStatus('Microfone liberado. Toque em Gravar e fale seu comando.');
+      return audioStream;
+    } catch (err) {
+      micPronto = false;
+      tratarErroMicrofone(err);
+      throw err;
+    }
   }
 
   function abrirPanel() {
@@ -61,9 +188,12 @@
       'audio/webm',
       'audio/ogg;codecs=opus',
       'audio/mp4',
+      'audio/aac',
     ];
     for (const t of tipos) {
-      if (MediaRecorder.isTypeSupported(t)) return t;
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t)) {
+        return t;
+      }
     }
     return '';
   }
@@ -73,15 +203,17 @@
 
     resetConfirmacao();
 
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (typeof MediaRecorder === 'undefined') {
       setStatus('Seu navegador não suporta gravação de áudio.', 'erro');
       return;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await garantirPermissaoMicrofone();
       const mime = escolherMime();
-      mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      mediaRecorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
 
       chunks = [];
       mediaRecorder.ondataavailable = (e) => {
@@ -95,9 +227,8 @@
       btnGravar.setAttribute('aria-pressed', 'true');
       elGravarTexto.textContent = 'Parar';
       setStatus('Gravando… fale agora.');
-    } catch (err) {
-      console.error(err);
-      setStatus('Permita o acesso ao microfone para usar o assistente.', 'erro');
+    } catch (_) {
+      /* mensagem já definida em tratarErroMicrofone */
     }
   }
 
@@ -110,8 +241,9 @@
     elGravarTexto.textContent = 'Gravar';
 
     try {
-      mediaRecorder.stop();
-      mediaRecorder.stream.getTracks().forEach((t) => t.stop());
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
     } catch (_) { /* ignore */ }
   }
 
@@ -198,19 +330,26 @@
   fab.addEventListener('click', () => {
     if (panel.classList.contains('d-none')) {
       abrirPanel();
+      // Solicita microfone no mesmo clique — exige gesto do usuário para o prompt aparecer
+      garantirPermissaoMicrofone().catch(() => {});
     } else {
       fecharPanel();
     }
   });
 
   btnFechar?.addEventListener('click', fecharPanel);
+
   btnGravar?.addEventListener('click', () => {
     if (gravando) pararGravacao();
     else iniciarGravacao();
   });
+
   btnConfirmar?.addEventListener('click', confirmarIntent);
+
   btnCancelar?.addEventListener('click', () => {
     resetConfirmacao();
-    setStatus('Comando cancelado. Grave novamente.');
+    setStatus(micPronto ? 'Comando cancelado. Grave novamente.' : 'Toque em Gravar após permitir o microfone.');
   });
+
+  window.addEventListener('pagehide', liberarStream);
 })();
