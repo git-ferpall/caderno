@@ -2,7 +2,16 @@
 
 <div id="assistente-voz" class="assistente-voz" aria-live="polite">
     <button type="button" id="assistente-voz-btn" class="assistente-voz-fab" aria-label="Assistente por voz" title="Assistente por voz">
-        <span class="assistente-voz-fab-icon" aria-hidden="true">🎤</span>
+        <span class="assistente-voz-fab-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="3" width="6" height="11" rx="3"/>
+                <path d="M5 11a7 7 0 0 0 14 0"/>
+                <path d="M12 18v3"/>
+                <path d="M8.5 21h7"/>
+                <path class="assistente-voz-wave assistente-voz-wave--1" d="M3.5 11c0-2.2.8-3.5 1.2-4"/>
+                <path class="assistente-voz-wave assistente-voz-wave--2" d="M20.5 11c0-2.2-.8-3.5-1.2-4"/>
+            </svg>
+        </span>
     </button>
 
     <div id="assistente-voz-panel" class="assistente-voz-panel d-none" role="dialog" aria-labelledby="assistente-voz-titulo">
@@ -28,7 +37,11 @@
 
         <div class="assistente-voz-controles">
             <button type="button" id="assistente-voz-gravar" class="assistente-voz-gravar" aria-pressed="false">
-                <span class="assistente-voz-gravar-icon" aria-hidden="true">●</span>
+                <span class="assistente-voz-gravar-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="6"/>
+                    </svg>
+                </span>
                 <span id="assistente-voz-gravar-texto">Gravar</span>
             </button>
         </div>
