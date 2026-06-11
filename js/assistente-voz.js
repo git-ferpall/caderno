@@ -5,50 +5,54 @@
   const API_EXECUTAR = '/funcoes/ia/executar_intent.php';
 
   const SAUDACAO =
-    'Olá! Sou o assistente Frutag. Fale o manejo que quer registrar — por exemplo: adicionar plantio, colheita ou irrigação.';
+    'Olá! Sou o assistente Frutag. Toque no botão laranja e fale o manejo — por exemplo: adicionar plantio, colheita ou irrigação.';
 
   let mediaRecorder = null;
   let audioStream = null;
   let chunks = [];
   let gravando = false;
+  let preparandoMic = false;
   let intentPendente = null;
   let intentParcial = null;
   let campoDialogo = null;
   let micPronto = false;
   let falando = false;
-  let panelAberto = false;
   let saudacaoFeita = false;
 
   const fab = document.getElementById('assistente-voz-btn');
+  const backdrop = document.getElementById('assistente-voz-backdrop');
   const panel = document.getElementById('assistente-voz-panel');
   const btnFechar = document.getElementById('assistente-voz-fechar');
   const btnGravar = document.getElementById('assistente-voz-gravar');
   const btnConfirmar = document.getElementById('assistente-voz-confirmar');
   const btnCancelar = document.getElementById('assistente-voz-cancelar');
   const elStatus = document.getElementById('assistente-voz-status');
+  const elHint = document.getElementById('assistente-voz-hint');
   const elChat = document.getElementById('assistente-voz-chat');
   const elDigitando = document.getElementById('assistente-voz-digitando');
   const elConfirmacao = document.getElementById('assistente-voz-confirmacao');
   const elResumo = document.getElementById('assistente-voz-resumo');
   const elGravarTexto = document.getElementById('assistente-voz-gravar-texto');
   const elAvatar = document.getElementById('assistente-voz-avatar');
+  const elOndas = document.getElementById('assistente-voz-ondas');
   const elProgresso = document.getElementById('assistente-voz-progresso');
   const elProgressoFill = document.getElementById('assistente-voz-progresso-fill');
   const elProgressoLabel = document.getElementById('assistente-voz-progresso-label');
 
   if (!fab || !panel) return;
 
-  function setStatus(msg, tipo) {
-    if (elStatus) {
-      elStatus.textContent = msg;
-      elStatus.className = 'assistente-voz-status assistente-voz-status--sr' + (tipo ? ' assistente-voz-status--' + tipo : '');
-    }
+  function setHint(msg, tipo) {
+    if (!elHint) return;
+    elHint.textContent = msg;
+    elHint.className = 'assistente-voz-hint' + (tipo ? ' assistente-voz-hint--' + tipo : '');
+  }
+
+  function setStatus(msg) {
+    if (elStatus) elStatus.textContent = msg;
   }
 
   function scrollChat() {
-    if (elChat) {
-      elChat.scrollTop = elChat.scrollHeight;
-    }
+    if (elChat) elChat.scrollTop = elChat.scrollHeight;
   }
 
   function addMsg(texto, tipo) {
@@ -65,8 +69,18 @@
     if (show) scrollChat();
   }
 
+  function showOndas(show) {
+    elOndas?.classList.toggle('d-none', !show);
+  }
+
   function setAvatarFalando(ativo) {
     elAvatar?.classList.toggle('assistente-voz-avatar--falando', !!ativo);
+  }
+
+  function setGravarBusy(busy) {
+    preparandoMic = busy;
+    if (btnGravar) btnGravar.disabled = !!busy;
+    btnGravar?.classList.toggle('assistente-voz-gravar--busy', !!busy);
   }
 
   function updateProgresso(passo, total) {
@@ -119,7 +133,6 @@
     const u = new SpeechSynthesisUtterance(texto);
     u.lang = 'pt-BR';
     u.rate = 0.92;
-    u.pitch = 1;
 
     const voices = window.speechSynthesis.getVoices();
     const pt = voices.find((v) => v.lang.startsWith('pt-BR')) || voices.find((v) => v.lang.startsWith('pt'));
@@ -138,7 +151,13 @@
     };
 
     falando = true;
-    window.speechSynthesis.speak(u);
+    try {
+      window.speechSynthesis.speak(u);
+    } catch (_) {
+      falando = false;
+      setAvatarFalando(false);
+      if (typeof onEnd === 'function') onEnd();
+    }
   }
 
   if ('speechSynthesis' in window) {
@@ -153,14 +172,11 @@
   }
 
   function autoGravarResposta() {
-    if (micPronto && !gravando && !falando) {
-      setTimeout(() => {
-        if ((intentParcial || intentPendente === null) && !gravando && !falando) {
-          addMsg('Pode falar…', 'sistema');
-          iniciarGravacao();
-        }
-      }, 500);
-    }
+    setTimeout(() => {
+      if (intentParcial && !gravando && !preparandoMic) {
+        iniciarGravacao();
+      }
+    }, 700);
   }
 
   function tratarResposta(data) {
@@ -174,7 +190,7 @@
       const msg = data.msg || 'Pronto! Manejo registrado.';
       resetTudo();
       addMsg(msg, 'bot');
-      setStatus(msg, 'sucesso');
+      setHint(msg, 'sucesso');
       falar(msg);
       notificarAtualizacao();
       return;
@@ -189,8 +205,7 @@
       updateProgresso(data.dialogo_passo, data.dialogo_total);
       resetConfirmacao();
       addMsg(pergunta, 'bot');
-      setStatus('Aguardando sua resposta…', 'dialogo');
-
+      setHint('Toque para responder', 'dialogo');
       falar(fala, autoGravarResposta);
       return;
     }
@@ -199,13 +214,13 @@
       resetDialogo();
       intentPendente = data.intent;
       const resumo = data.resumo || data.msg || 'Confirmar ação?';
-      elResumo.textContent = resumo;
+      if (elResumo) elResumo.textContent = resumo;
       elConfirmacao?.classList.remove('d-none');
       updateProgresso(0, 0);
 
       const fala = data.fala || 'Perfeito! Resumo: ' + resumo + ' Posso confirmar e salvar?';
       addMsg(fala, 'bot');
-      setStatus('Confirme ou grave de novo.', 'confirmacao');
+      setHint('Confirme ou toque para corrigir', 'confirmacao');
       falar(fala);
       return;
     }
@@ -213,21 +228,20 @@
     resetDialogo();
     const errMsg = data.msg || data.intent?.mensagem || 'Não entendi. Tente reformular.';
     addMsg(errMsg, 'bot');
-    setStatus(errMsg, 'erro');
+    setHint(errMsg, 'erro');
     falar(errMsg);
   }
 
   function mensagemMicrofoneBloqueado() {
-    return 'Microfone bloqueado. Clique no cadeado ao lado da URL, permita o microfone e recarregue a página.';
+    return 'Microfone bloqueado. Toque no cadeado na barra do navegador, permita o microfone e recarregue a página.';
   }
 
   function getMicStream() {
     if (!window.isSecureContext) {
-      return Promise.reject(Object.assign(new Error('SECURE_CONTEXT'), { code: 'SECURE_CONTEXT' }));
+      return Promise.reject(Object.assign(new Error('SECURE_CONTEXT'), { name: 'SECURE_CONTEXT' }));
     }
 
-    const modern = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-    if (modern) {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       return navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
       });
@@ -236,11 +250,10 @@
     const legacy =
       navigator.getUserMedia ||
       navigator.webkitGetUserMedia ||
-      navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia;
+      navigator.mozGetUserMedia;
 
     if (!legacy) {
-      return Promise.reject(Object.assign(new Error('UNSUPPORTED'), { code: 'UNSUPPORTED' }));
+      return Promise.reject(Object.assign(new Error('UNSUPPORTED'), { name: 'UNSUPPORTED' }));
     }
 
     return new Promise((resolve, reject) => {
@@ -248,38 +261,41 @@
     });
   }
 
-  async function consultarPermissaoMicrofone() {
-    if (!navigator.permissions || !navigator.permissions.query) return null;
-    try {
-      return await navigator.permissions.query({ name: 'microphone' });
-    } catch (_) {
-      return null;
-    }
-  }
-
   function tratarErroMicrofone(err) {
     console.error('[assistente-voz]', err);
-    const nome = err && (err.name || err.code || '');
+    const nome = (err && (err.name || err.code)) || '';
 
     if (nome === 'SECURE_CONTEXT') {
       addMsg('O microfone só funciona em HTTPS.', 'bot');
-      setStatus('HTTPS necessário.', 'erro');
+      setHint('Acesse o site com HTTPS', 'erro');
       return;
     }
     if (nome === 'UNSUPPORTED') {
-      addMsg('Navegador sem suporte a gravação. Use Chrome ou Edge.', 'bot');
+      addMsg('Seu navegador não suporta gravação. Use Chrome ou Safari atualizado.', 'bot');
+      setHint('Navegador incompatível', 'erro');
       return;
     }
     if (nome === 'NotFoundError' || nome === 'DevicesNotFoundError') {
-      addMsg('Nenhum microfone encontrado.', 'bot');
+      addMsg('Nenhum microfone encontrado neste aparelho.', 'bot');
+      setHint('Microfone não encontrado', 'erro');
+      return;
+    }
+    if (nome === 'NotReadableError' || nome === 'TrackStartError') {
+      addMsg('Microfone em uso por outro app. Feche e tente de novo.', 'bot');
+      setHint('Microfone ocupado', 'erro');
       return;
     }
     if (nome === 'NotAllowedError' || nome === 'PermissionDeniedError' || nome === 'SecurityError') {
       addMsg(mensagemMicrofoneBloqueado(), 'bot');
-      setStatus('Microfone bloqueado.', 'erro');
+      setHint('Permita o microfone nas configurações', 'erro');
       return;
     }
-    addMsg('Não foi possível acessar o microfone.', 'bot');
+    addMsg('Não foi possível acessar o microfone. Tente novamente.', 'bot');
+    setHint('Erro no microfone — toque para tentar de novo', 'erro');
+  }
+
+  function streamAtivo() {
+    return audioStream && audioStream.active && audioStream.getAudioTracks().some((t) => t.readyState === 'live');
   }
 
   function liberarStream() {
@@ -290,54 +306,83 @@
     micPronto = false;
   }
 
-  async function garantirPermissaoMicrofone() {
-    if (audioStream && micPronto) return audioStream;
-
-    const perm = await consultarPermissaoMicrofone();
-    if (perm && perm.state === 'denied') {
-      addMsg(mensagemMicrofoneBloqueado(), 'bot');
-      throw new Error('DENIED');
-    }
-
-    try {
-      audioStream = await getMicStream();
+  /** iOS exige getUserMedia direto no clique — sem await antes. */
+  function garantirPermissaoMicrofone() {
+    if (streamAtivo()) {
       micPronto = true;
-
-      if (perm) {
-        perm.onchange = () => {
-          if (perm.state === 'denied') {
-            liberarStream();
-            addMsg(mensagemMicrofoneBloqueado(), 'bot');
-          }
-        };
-      }
-
-      setStatus('Microfone pronto.', '');
-      return audioStream;
-    } catch (err) {
-      micPronto = false;
-      tratarErroMicrofone(err);
-      throw err;
+      return Promise.resolve(audioStream);
     }
+
+    liberarStream();
+    setGravarBusy(true);
+    setHint('Aguardando permissão do microfone…', 'processando');
+
+    return getMicStream()
+      .then((stream) => {
+        audioStream = stream;
+        micPronto = true;
+        setGravarBusy(false);
+        setHint('Microfone pronto — toque para falar', 'sucesso');
+        return stream;
+      })
+      .catch((err) => {
+        setGravarBusy(false);
+        micPronto = false;
+        tratarErroMicrofone(err);
+        throw err;
+      });
+  }
+
+  function criarMediaRecorder(stream) {
+    if (typeof MediaRecorder === 'undefined') {
+      throw new Error('UNSUPPORTED');
+    }
+
+    const tipos = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+      'audio/aac',
+      '',
+    ];
+
+    for (const mime of tipos) {
+      try {
+        if (mime && !MediaRecorder.isTypeSupported(mime)) continue;
+        return mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return new MediaRecorder(stream);
   }
 
   function abrirPanel() {
     panel.classList.remove('d-none');
+    backdrop?.classList.remove('d-none');
+    fab.classList.add('assistente-voz-fab--oculto');
     fab.setAttribute('aria-expanded', 'true');
-    panelAberto = true;
+    document.body.classList.add('assistente-voz-aberto');
     saudarSeNecessario();
+    setHint('Toque no botão laranja e fale seu comando', '');
   }
 
   function fecharPanel() {
     panel.classList.add('d-none');
+    backdrop?.classList.add('d-none');
+    fab.classList.remove('assistente-voz-fab--oculto');
     fab.setAttribute('aria-expanded', 'false');
-    panelAberto = false;
+    document.body.classList.remove('assistente-voz-aberto');
     pararGravacao();
     pararFala();
     resetTudo();
     resetChat();
     showDigitando(false);
-    setStatus('Assistente fechado.', '');
+    showOndas(false);
+    setGravarBusy(false);
+    setHint('Toque no botão laranja e fale seu comando', '');
   }
 
   function notificarAtualizacao() {
@@ -347,70 +392,96 @@
     document.dispatchEvent(new CustomEvent('caderno:apontamento-atualizado'));
   }
 
-  function escolherMime() {
-    const tipos = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/aac'];
-    for (const t of tipos) {
-      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t)) return t;
-    }
-    return '';
-  }
+  function iniciarGravacao() {
+    if (gravando || preparandoMic) return;
 
-  async function iniciarGravacao() {
-    if (gravando || falando) return;
+    pararFala();
 
     if (!intentParcial && !intentPendente) {
       resetConfirmacao();
     }
 
     if (typeof MediaRecorder === 'undefined') {
-      addMsg('Seu navegador não suporta gravação.', 'bot');
+      addMsg('Seu navegador não suporta gravação de áudio.', 'bot');
+      setHint('Atualize o navegador', 'erro');
       return;
     }
 
-    try {
-      const stream = await garantirPermissaoMicrofone();
-      const mime = escolherMime();
-      mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    garantirPermissaoMicrofone()
+      .then((stream) => {
+        if (gravando) return;
 
-      chunks = [];
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunks.push(e.data);
-      };
-      mediaRecorder.onstop = () => enviarAudio(mime || mediaRecorder.mimeType || 'audio/webm');
+        mediaRecorder = criarMediaRecorder(stream);
+        chunks = [];
 
-      mediaRecorder.start();
-      gravando = true;
-      btnGravar?.classList.add('assistente-voz-gravar--ativo');
-      btnGravar?.setAttribute('aria-pressed', 'true');
-      if (elGravarTexto) elGravarTexto.textContent = 'Parar';
-      setStatus(intentParcial ? 'Gravando resposta…' : 'Gravando…', 'dialogo');
-    } catch (_) {
-      /* mensagem já exibida */
-    }
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+
+        mediaRecorder.onerror = (e) => {
+          console.error('[assistente-voz] recorder', e);
+          pararGravacao();
+          setHint('Erro na gravação — tente de novo', 'erro');
+        };
+
+        mediaRecorder.onstop = () => {
+          const mime = mediaRecorder.mimeType || 'audio/webm';
+          enviarAudio(mime);
+        };
+
+        try {
+          mediaRecorder.start(250);
+        } catch (err) {
+          console.error('[assistente-voz] start', err);
+          addMsg('Não foi possível iniciar a gravação.', 'bot');
+          setHint('Toque para tentar de novo', 'erro');
+          return;
+        }
+
+        gravando = true;
+        btnGravar?.classList.add('assistente-voz-gravar--ativo');
+        btnGravar?.setAttribute('aria-pressed', 'true');
+        showOndas(true);
+        if (elGravarTexto) elGravarTexto.textContent = 'Toque para parar';
+        setHint('Gravando… fale agora', 'gravando');
+      })
+      .catch(() => {
+        /* erro já tratado */
+      });
   }
 
   function pararGravacao() {
-    if (!gravando || !mediaRecorder) return;
+    if (!gravando) return;
 
     gravando = false;
     btnGravar?.classList.remove('assistente-voz-gravar--ativo');
     btnGravar?.setAttribute('aria-pressed', 'false');
-    if (elGravarTexto) elGravarTexto.textContent = 'Gravar';
+    showOndas(false);
+    if (elGravarTexto) elGravarTexto.textContent = 'Toque para falar';
 
-    try {
-      if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    } catch (_) { /* ignore */ }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      try {
+        mediaRecorder.stop();
+      } catch (_) {
+        /* ignore */
+      }
+    } else {
+      setHint('Gravação muito curta — tente de novo', 'erro');
+    }
   }
 
   async function enviarAudio(mime) {
+    setHint('Processando áudio…', 'processando');
+    showDigitando(true);
+
     if (!chunks.length) {
-      addMsg('Não captei áudio. Tente falar um pouco mais perto.', 'bot');
+      showDigitando(false);
+      addMsg('Não captei áudio. Segure o botão e fale mais perto do microfone.', 'bot');
+      setHint('Toque para falar de novo', 'erro');
       return;
     }
 
-    showDigitando(true);
-    setStatus('Processando…', 'processando');
-    if (btnGravar) btnGravar.disabled = true;
+    setGravarBusy(true);
 
     const blob = new Blob(chunks, { type: mime });
     const fd = new FormData();
@@ -429,7 +500,7 @@
         showDigitando(false);
         const errMsg = data.err || 'Erro ao processar áudio.';
         addMsg(errMsg, 'bot');
-        setStatus(errMsg, 'erro');
+        setHint(errMsg, 'erro');
         falar(errMsg);
         return;
       }
@@ -439,9 +510,9 @@
       console.error(err);
       showDigitando(false);
       addMsg('Falha na comunicação com o servidor.', 'bot');
-      setStatus('Erro de rede.', 'erro');
+      setHint('Sem conexão — tente de novo', 'erro');
     } finally {
-      if (btnGravar) btnGravar.disabled = false;
+      setGravarBusy(false);
     }
   }
 
@@ -449,7 +520,7 @@
     if (!intentPendente) return;
 
     showDigitando(true);
-    setStatus('Salvando…', 'processando');
+    setHint('Salvando…', 'processando');
     btnConfirmar.disabled = true;
     pararFala();
 
@@ -468,19 +539,19 @@
         resetTudo();
         elConfirmacao?.classList.add('d-none');
         addMsg(msg, 'bot');
-        setStatus(msg, 'sucesso');
+        setHint(msg, 'sucesso');
         falar(msg);
         notificarAtualizacao();
       } else {
         const errMsg = data.msg || data.err || 'Não foi possível executar.';
         addMsg(errMsg, 'bot');
-        setStatus(errMsg, 'erro');
-        falar(errMsg);
+        setHint(errMsg, 'erro');
       }
     } catch (err) {
       console.error(err);
       showDigitando(false);
       addMsg('Falha ao salvar.', 'bot');
+      setHint('Erro ao salvar', 'erro');
     } finally {
       btnConfirmar.disabled = false;
     }
@@ -489,15 +560,17 @@
   fab.addEventListener('click', () => {
     if (panel.classList.contains('d-none')) {
       abrirPanel();
-      garantirPermissaoMicrofone().catch(() => {});
     } else {
       fecharPanel();
     }
   });
 
+  backdrop?.addEventListener('click', fecharPanel);
   btnFechar?.addEventListener('click', fecharPanel);
 
-  btnGravar?.addEventListener('click', () => {
+  btnGravar?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (gravando) pararGravacao();
     else iniciarGravacao();
   });
@@ -508,8 +581,9 @@
     pararFala();
     resetTudo();
     elConfirmacao?.classList.add('d-none');
-    addMsg('Ok, vamos recomeçar. Fale o manejo de novo.', 'bot');
-    falar('Ok, vamos recomeçar. Fale o manejo de novo.');
+    addMsg('Ok, vamos recomeçar. Toque para falar o manejo.', 'bot');
+    setHint('Toque para falar de novo', '');
+    falar('Ok, vamos recomeçar.');
   });
 
   window.addEventListener('pagehide', () => {
