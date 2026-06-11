@@ -51,31 +51,32 @@ function iaModel(string $constant, string $default): string
     return $default;
 }
 
+function iaApiBase(): string
+{
+    $base = iaModel('OPENAI_API_BASE', 'https://api.openai.com/v1');
+    if (!preg_match('#^https?://#i', $base)) {
+        return 'https://api.openai.com/v1';
+    }
+    return rtrim($base, '/');
+}
+
 function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPath = null, ?string $multipartMime = null): array
 {
-    $url = rtrim(OPENAI_API_BASE, '/') . $endpoint;
+    $url = iaApiBase() . $endpoint;
     $ch = curl_init($url);
 
     $headers = ['Authorization: Bearer ' . iaOpenAiKey()];
 
     if ($multipartPath !== null) {
-        $fields = [];
-        foreach ($payload as $key => $value) {
-            if ($value === null || $value === '') {
-                continue;
-            }
-            $fields[$key] = (string) $value;
-        }
-        $fields['file'] = new CURLFile(
-            $multipartPath,
-            $multipartMime ?: 'audio/webm',
-            'audio.webm'
-        );
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-    } else {
-        $headers[] = 'Content-Type: application/json';
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
+        return iaOpenAiMultipart($url, $payload, $multipartPath, $multipartMime ?: 'audio/webm');
     }
+
+    if (empty($payload['model'])) {
+        throw new RuntimeException('Parâmetro model ausente na requisição OpenAI.');
+    }
+
+    $headers[] = 'Content-Type: application/json';
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
 
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -84,6 +85,50 @@ function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPat
         CURLOPT_TIMEOUT => 90,
     ]);
 
+    return iaCurlExec($ch);
+}
+
+function iaOpenAiMultipart(string $url, array $payload, string $filePath, string $mime): array
+{
+    if (!is_readable($filePath)) {
+        throw new RuntimeException('Arquivo de áudio não legível no servidor.');
+    }
+
+    $model = trim((string) ($payload['model'] ?? ''));
+    if ($model === '') {
+        throw new RuntimeException('Modelo Whisper não configurado.');
+    }
+
+    $file = function_exists('curl_file_create')
+        ? curl_file_create($filePath, $mime, 'audio.webm')
+        : new CURLFile($filePath, $mime, 'audio.webm');
+
+    $fields = [
+        'model' => $model,
+        'file' => $file,
+    ];
+
+    if (!empty($payload['language'])) {
+        $fields['language'] = (string) $payload['language'];
+    }
+    if (!empty($payload['response_format'])) {
+        $fields['response_format'] = (string) $payload['response_format'];
+    }
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . iaOpenAiKey()],
+        CURLOPT_POSTFIELDS => $fields,
+        CURLOPT_TIMEOUT => 120,
+    ]);
+
+    return iaCurlExec($ch);
+}
+
+function iaCurlExec($ch): array
+{
     $body = curl_exec($ch);
     $errno = curl_errno($ch);
     $error = curl_error($ch);

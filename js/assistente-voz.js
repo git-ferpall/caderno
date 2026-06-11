@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  const API_PROCESSAR = '../funcoes/ia/processar_audio.php';
-  const API_EXECUTAR = '../funcoes/ia/executar_intent.php';
+  const API_PROCESSAR = '/funcoes/ia/processar_audio.php';
+  const API_EXECUTAR = '/funcoes/ia/executar_intent.php';
 
   let mediaRecorder = null;
   let audioStream = null;
