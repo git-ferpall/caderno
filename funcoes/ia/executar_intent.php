@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/ia_helpers.php';
 require_once __DIR__ . '/contexto_usuario.php';
 require_once __DIR__ . '/resolver_entidades.php';
-require_once __DIR__ . '/ApontamentoExecutor.php';
+require_once __DIR__ . '/pipeline.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     iaJson(['ok' => false, 'err' => 'Método não permitido'], 405);
@@ -24,13 +24,13 @@ if (!is_array($intent)) {
     iaJson(['ok' => false, 'err' => 'Intent ausente'], 400);
 }
 
-$intent = iaNormalizarIntent($intent);
-$contexto = iaContextoUsuario($mysqli, $user_id);
-$resolucao = iaResolverEntidades($intent, $contexto);
-
 try {
-    $executor = new ApontamentoExecutor($mysqli, $user_id);
-    $resultado = $executor->executar($intent, $resolucao);
+    $intent = iaNormalizarIntent($intent);
+    $contexto = iaContextoUsuario($mysqli, $user_id);
+    $resolucao = iaResolverEntidades($intent, $contexto);
+
+    $pipeline = new IaPipeline($mysqli, $user_id);
+    $resultado = $pipeline->executeIntent($intent, $resolucao);
 
     iaJson([
         'ok' => (bool) ($resultado['ok'] ?? false),

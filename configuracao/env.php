@@ -19,3 +19,10 @@ define('OPENAI_WHISPER_MODEL', 'whisper-1');
 define('OPENAI_CHAT_MODEL', 'gpt-4o-mini');
 define('OPENAI_API_BASE', 'https://api.openai.com/v1');
 
+// WhatsApp Cloud API (Meta) — piloto Fase B
+define('WHATSAPP_TOKEN', getenv('WHATSAPP_TOKEN') ?: '');
+define('WHATSAPP_PHONE_NUMBER_ID', getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '');
+define('WHATSAPP_VERIFY_TOKEN', getenv('WHATSAPP_VERIFY_TOKEN') ?: '');
+define('WHATSAPP_APP_SECRET', getenv('WHATSAPP_APP_SECRET') ?: '');
+define('WHATSAPP_API_VERSION', getenv('WHATSAPP_API_VERSION') ?: 'v21.0');
+

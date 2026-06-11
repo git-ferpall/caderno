@@ -32,10 +32,9 @@ function iaOpenAiKey(): string
 {
     $key = defined('OPENAI_API_KEY') ? (string) OPENAI_API_KEY : '';
     if ($key === '') {
-        iaJson([
-            'ok' => false,
-            'err' => 'Assistente por voz não configurado. Defina OPENAI_API_KEY no servidor.',
-        ], 503);
+        throw new RuntimeException(
+            'Assistente por voz não configurado. Defina OPENAI_API_KEY no servidor.'
+        );
     }
     return $key;
 }
