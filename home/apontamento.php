@@ -952,6 +952,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
+        <?php include '../include/assistente_voz.php' ?>
     </div>
         
     <?php include '../include/footer.php' ?>

@@ -197,6 +197,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
+        <?php include '../include/assistente_voz.php' ?>
         <script src="../js/home_dashboard.js"></script>
         <script src="../js/home_manejos.js"></script>
         <script src="../js/home_manejos_popup.js"></script>

@@ -13,3 +13,9 @@ define('OFFLINE_SESSION_DAYS', 30);
 // Após quantas horas o catálogo local é considerado desatualizado (aviso ao usuário).
 define('OFFLINE_CATALOG_MAX_AGE_HOURS', 72);
 
+// Assistente por voz (OpenAI) — definir OPENAI_API_KEY no ambiente do servidor
+define('OPENAI_API_KEY', getenv('OPENAI_API_KEY') ?: '');
+define('OPENAI_WHISPER_MODEL', 'whisper-1');
+define('OPENAI_CHAT_MODEL', 'gpt-4o-mini');
+define('OPENAI_API_BASE', 'https://api.openai.com/v1');
+
