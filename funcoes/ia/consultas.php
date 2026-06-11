@@ -27,6 +27,10 @@ function iaConsultasPermitidas(): array
 function iaRepararIntentConsulta(array $intent, string $texto): array
 {
     if (($intent['acao'] ?? '') === 'consultar' && !empty($intent['consulta'])) {
+        $intent = iaExtrairFiltrosColheitaConsulta($intent, $texto);
+        if (preg_match('/\d+\s*dias|semana|mes|mês|ano|periodo|período/u', iaNormalizarTexto($texto))) {
+            $intent['periodo'] = iaDetectarPeriodoTexto($texto);
+        }
         return iaNormalizarIntentConsulta($intent);
     }
 
@@ -47,14 +51,22 @@ function iaRepararIntentConsulta(array $intent, string $texto): array
         return iaIntentConsulta('contar_pendentes', $intent);
     }
 
-    if (preg_match('/ultim[ao].*colh|colh.*ultim|quanto (?:eu )?colh|quanto colhi|ultima colheita/u', $t)) {
+    if (preg_match('/quanto (?:eu )?colh|total.*colh|colh.*(?:mes|mês|semana|periodo|período|\d+\s*dias)/u', $t)) {
+        $intent = iaExtrairFiltrosColheitaConsulta($intent, $texto);
+        $intent['periodo'] = iaDetectarPeriodoTexto($texto);
+        if (!empty($intent['area_nomes']) || !empty($intent['produto_nomes'])
+            || preg_match('/\b(?:de|no|na|em)\s+\w/u', $t)) {
+            return iaIntentConsulta('colheita_por_produto', $intent);
+        }
+        return iaIntentConsulta('total_colheita', $intent);
+    }
+
+    if (preg_match('/ultim[ao].*colh|colh.*ultim|ultima colheita/u', $t)) {
         return iaIntentConsulta('ultima_colheita', $intent);
     }
 
-    if (preg_match('/total.*colh|colh.*(?:mes|mês|semana|periodo|período)/u', $t)) {
-        $intent = iaIntentConsulta('total_colheita', $intent);
-        $intent['periodo'] = iaDetectarPeriodoTexto($t);
-        return $intent;
+    if (preg_match('/^quanto colhi\??$/u', $t)) {
+        return iaIntentConsulta('ultima_colheita', $intent);
     }
 
     if (preg_match('/ultim[ao].*(?:manejo|irrig|plant|herbi|fungi|inset|ferti|apont)/u', $t)) {
@@ -78,7 +90,8 @@ function iaRepararIntentConsulta(array $intent, string $texto): array
 
     if (preg_match('/colh.*(?:tomate|produto|cultura)|quanto colh.* de /u', $t)) {
         $intent = iaIntentConsulta('colheita_por_produto', $intent);
-        $intent['periodo'] = iaDetectarPeriodoTexto($t);
+        $intent = iaExtrairFiltrosColheitaConsulta($intent, $texto);
+        $intent['periodo'] = iaDetectarPeriodoTexto($texto);
         return $intent;
     }
 
@@ -111,7 +124,35 @@ function iaNormalizarIntentConsulta(array $intent): array
 
     $periodos = ['semana', 'mes', '30_dias', '7_dias', 'ano'];
     $p = (string) ($intent['periodo'] ?? '30_dias');
-    $intent['periodo'] = in_array($p, $periodos, true) ? $p : '30_dias';
+    if (preg_match('/^\d+_dias$/', $p)) {
+        $intent['periodo'] = $p;
+    } elseif (in_array($p, $periodos, true)) {
+        $intent['periodo'] = $p;
+    } else {
+        $intent['periodo'] = '30_dias';
+    }
+
+    return $intent;
+}
+
+/** Extrai área de frases como "campo de arroz", "na área norte". */
+function iaExtrairFiltrosColheitaConsulta(array $intent, string $texto): array
+{
+    $t = iaNormalizarTexto($texto);
+
+    if (preg_match('/(?:campo|area|área|talhao|talhão)\s+(?:de\s+)?([a-záàâãéêíóôõúç0-9\-]+)/u', $t, $m)) {
+        $nome = trim(preg_replace('/\s+(?:nos|no|na|em|ultim|últim|ultimos|últimos).*$/u', '', $m[1]) ?? $m[1]);
+        if ($nome !== '') {
+            $intent['area_nomes'] = [$nome];
+            unset($intent['produto_nomes']);
+        }
+    } elseif (preg_match('/\b(?:no|na|em)\s+(?:campo|area|área|talhao|talhão)\s+(?:de\s+)?([a-záàâãéêíóôõúç0-9\-]+)/u', $t, $m)) {
+        $nome = trim(preg_replace('/\s+(?:nos|no|na|em|ultim|últim|ultimos|últimos).*$/u', '', $m[1]) ?? $m[1]);
+        if ($nome !== '') {
+            $intent['area_nomes'] = [$nome];
+            unset($intent['produto_nomes']);
+        }
+    }
 
     return $intent;
 }
@@ -119,6 +160,17 @@ function iaNormalizarIntentConsulta(array $intent): array
 function iaDetectarPeriodoTexto(string $t): string
 {
     $t = iaNormalizarTexto($t);
+    if (preg_match('/\b(?:ultim[oa]s?)\s*(\d{1,3})\s*dias?\b/u', $t, $m)
+        || preg_match('/\b(\d{1,3})\s*dias?\b/u', $t, $m)) {
+        $dias = max(1, min(365, (int) $m[1]));
+        if ($dias === 7) {
+            return '7_dias';
+        }
+        if ($dias === 30) {
+            return '30_dias';
+        }
+        return $dias . '_dias';
+    }
     if (preg_match('/semana/u', $t)) {
         return 'semana';
     }
@@ -128,9 +180,6 @@ function iaDetectarPeriodoTexto(string $t): string
     if (preg_match('/\b(?:ano|anual)\b/u', $t)) {
         return 'ano';
     }
-    if (preg_match('/\b7 dias\b/u', $t)) {
-        return '7_dias';
-    }
     return '30_dias';
 }
 
@@ -138,10 +187,15 @@ function iaDetectarPeriodoTexto(string $t): string
 function iaIntervaloPeriodo(string $periodo): array
 {
     $fim = date('Y-m-d');
+    if (preg_match('/^(\d+)_dias$/', $periodo, $m)) {
+        $dias = max(1, min(365, (int) $m[1]));
+        return [date('Y-m-d', strtotime("-{$dias} days")), $fim];
+    }
     $inicio = match ($periodo) {
         'semana' => date('Y-m-d', strtotime('monday this week')),
         'mes' => date('Y-m-01'),
         '7_dias' => date('Y-m-d', strtotime('-7 days')),
+        '30_dias' => date('Y-m-d', strtotime('-30 days')),
         'ano' => date('Y-01-01'),
         default => date('Y-m-d', strtotime('-30 days')),
     };
@@ -342,7 +396,7 @@ function iaConsultaTotalColheita(mysqli $mysqli, int $propriedade_id, array $int
     $stmt = $mysqli->prepare("
         SELECT unidade, SUM(quantidade) AS total, COUNT(*) AS registros
         FROM apontamentos
-        WHERE propriedade_id = ? AND tipo = 'colheita' AND data BETWEEN ? AND ?
+        WHERE propriedade_id = ? AND tipo = 'colheita' AND COALESCE(data_conclusao, data) BETWEEN ? AND ?
           AND quantidade IS NOT NULL AND quantidade > 0
         GROUP BY unidade
     ");
@@ -526,10 +580,14 @@ function iaFormatarDataConsulta(string $data): string
 
 function iaLabelPeriodo(string $periodo): string
 {
+    if (preg_match('/^(\d+)_dias$/', $periodo, $m)) {
+        return 'Nos últimos ' . (int) $m[1] . ' dias';
+    }
     return match ($periodo) {
         'semana' => 'Nesta semana',
         'mes' => 'Neste mês',
         '7_dias' => 'Nos últimos 7 dias',
+        '30_dias' => 'Nos últimos 30 dias',
         'ano' => 'Neste ano',
         default => 'Nos últimos 30 dias',
     };
@@ -561,60 +619,96 @@ function iaConsultaColheitaPorProduto(mysqli $mysqli, int $propriedade_id, array
 {
     require_once __DIR__ . '/resolver_entidades.php';
     $resolucao = iaResolverEntidades($intent, $contexto);
+    $areaIds = $resolucao['area_ids'] ?? [];
     $produtoIds = $resolucao['produto_ids'] ?? [];
+    $areaNome = trim((string) (($intent['area_nomes'][0] ?? '') ?: ''));
     $prodNome = trim((string) (($intent['produto_nomes'][0] ?? '') ?: ''));
 
-    if (!$produtoIds && $prodNome === '') {
+    [$inicio, $fim] = iaIntervaloPeriodo((string) ($intent['periodo'] ?? '30_dias'));
+    $labelPeriodo = iaLabelPeriodo((string) ($intent['periodo'] ?? '30_dias'));
+
+    if (!$areaIds && !$produtoIds) {
+        if ($areaNome !== '') {
+            return [
+                'ok' => true,
+                'executado' => true,
+                'msg' => "Não encontrei a área \"{$areaNome}\" no cadastro. Verifique o nome do campo ou talhão.",
+                'consulta' => 'colheita_por_produto',
+                'dados' => null,
+            ];
+        }
+        if ($prodNome !== '') {
+            return [
+                'ok' => true,
+                'executado' => true,
+                'msg' => 'Não encontrei esse produto no cadastro. Tente o nome exato da cultura.',
+                'consulta' => 'colheita_por_produto',
+                'dados' => null,
+            ];
+        }
         return [
             'ok' => true,
             'executado' => true,
-            'msg' => 'Qual produto ou cultura você quer consultar na colheita?',
+            'msg' => 'Qual produto ou campo você quer consultar na colheita?',
             'consulta' => 'colheita_por_produto',
             'dados' => null,
         ];
     }
 
-    [$inicio, $fim] = iaIntervaloPeriodo((string) ($intent['periodo'] ?? 'mes'));
-    $labelPeriodo = iaLabelPeriodo((string) ($intent['periodo'] ?? 'mes'));
+    $sql = "
+        SELECT SUM(a.quantidade) AS total, a.unidade, COUNT(DISTINCT a.id) AS n,
+               GROUP_CONCAT(DISTINCT p.nome SEPARATOR ', ') AS produtos,
+               GROUP_CONCAT(DISTINCT ar.nome SEPARATOR ', ') AS areas
+        FROM apontamentos a
+        JOIN apontamento_detalhes ada ON ada.apontamento_id = a.id AND ada.campo = 'area_id'
+        JOIN areas ar ON ar.id = ada.valor
+        LEFT JOIN apontamento_detalhes adp ON adp.apontamento_id = a.id AND adp.campo IN ('produto','produto_id')
+        LEFT JOIN produtos p ON p.id = adp.valor
+        WHERE a.propriedade_id = ? AND a.tipo = 'colheita'
+          AND COALESCE(a.data_conclusao, a.data) BETWEEN ? AND ? AND a.quantidade > 0
+    ";
+    $types = 'iss';
+    $params = [$propriedade_id, $inicio, $fim];
 
+    if ($areaIds) {
+        $sql .= ' AND ada.valor = ?';
+        $types .= 'i';
+        $params[] = (int) $areaIds[0];
+    }
     if ($produtoIds) {
-        $pid = (int) $produtoIds[0];
-        $stmt = $mysqli->prepare("
-            SELECT SUM(a.quantidade) AS total, a.unidade, COUNT(*) AS n, p.nome
-            FROM apontamentos a
-            JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo IN ('produto','produto_id')
-            JOIN produtos p ON p.id = ad.valor
-            WHERE a.propriedade_id = ? AND a.tipo = 'colheita' AND ad.valor = ?
-              AND a.data BETWEEN ? AND ? AND a.quantidade > 0
-            GROUP BY a.unidade, p.nome
-        ");
-        $stmt->bind_param('iiss', $propriedade_id, $pid, $inicio, $fim);
-    } else {
-        return [
-            'ok' => true,
-            'executado' => true,
-            'msg' => 'Não encontrei esse produto no cadastro. Tente o nome exato da cultura.',
-            'consulta' => 'colheita_por_produto',
-            'dados' => null,
-        ];
+        $sql .= ' AND adp.valor = ?';
+        $types .= 'i';
+        $params[] = (int) $produtoIds[0];
     }
 
+    $sql .= ' GROUP BY a.unidade';
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $res = $stmt->get_result();
     $linhas = [];
+    $nomeArea = $areaNome;
     $nomeProd = $prodNome;
     while ($row = $res->fetch_assoc()) {
-        $nomeProd = (string) ($row['nome'] ?? $prodNome);
+        if (!empty($row['areas'])) {
+            $nomeArea = (string) $row['areas'];
+        }
+        if (!empty($row['produtos'])) {
+            $nomeProd = (string) $row['produtos'];
+        }
         $linhas[] = iaFormatarQuantidade((float) $row['total'], (string) ($row['unidade'] ?: 'kg'))
             . ' em ' . (int) $row['n'] . ' colheita' . ((int) $row['n'] > 1 ? 's' : '');
     }
     $stmt->close();
 
+    $rotulo = iaRotuloFiltroColheita($nomeArea, $nomeProd, $areaIds !== [], $produtoIds !== []);
+
     if (!$linhas) {
         return [
             'ok' => true,
             'executado' => true,
-            'msg' => "{$labelPeriodo} não encontrei colheita de {$nomeProd}.",
+            'msg' => "{$labelPeriodo} não encontrei colheita registrada {$rotulo}.",
             'consulta' => 'colheita_por_produto',
             'dados' => null,
         ];
@@ -623,10 +717,28 @@ function iaConsultaColheitaPorProduto(mysqli $mysqli, int $propriedade_id, array
     return [
         'ok' => true,
         'executado' => true,
-        'msg' => "{$labelPeriodo}, colheita de {$nomeProd}: " . implode('; ', $linhas) . '.',
+        'msg' => "{$labelPeriodo}, {$rotulo}: " . implode('; ', $linhas) . '.',
         'consulta' => 'colheita_por_produto',
-        'dados' => ['produto' => $nomeProd, 'periodo' => $intent['periodo'] ?? 'mes'],
+        'dados' => [
+            'produto' => $nomeProd,
+            'area' => $nomeArea,
+            'periodo' => $intent['periodo'] ?? '30_dias',
+        ],
     ];
+}
+
+function iaRotuloFiltroColheita(string $areaNome, string $prodNome, bool $filtraArea, bool $filtraProduto): string
+{
+    if ($filtraArea && $filtraProduto && $prodNome !== '') {
+        return "colheita de {$prodNome} no campo {$areaNome}";
+    }
+    if ($filtraArea && $areaNome !== '') {
+        return "no campo {$areaNome}";
+    }
+    if ($filtraProduto && $prodNome !== '') {
+        return "de {$prodNome}";
+    }
+    return 'com os filtros informados';
 }
 
 function iaConsultaColheitaComparar(mysqli $mysqli, int $propriedade_id, array $intent): array
@@ -668,7 +780,7 @@ function iaSomaColheitaPeriodo(mysqli $mysqli, int $propriedade_id, string $inic
     $stmt = $mysqli->prepare("
         SELECT unidade, SUM(quantidade) AS total
         FROM apontamentos
-        WHERE propriedade_id = ? AND tipo = 'colheita' AND data BETWEEN ? AND ? AND quantidade > 0
+        WHERE propriedade_id = ? AND tipo = 'colheita' AND COALESCE(data_conclusao, data) BETWEEN ? AND ? AND quantidade > 0
         GROUP BY unidade
     ");
     $stmt->bind_param('iss', $propriedade_id, $inicio, $fim);

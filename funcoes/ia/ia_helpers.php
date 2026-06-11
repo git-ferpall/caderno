@@ -271,7 +271,7 @@ Schema:
 {
   "acao": "criar_apontamento|concluir_apontamento|cancelar_apontamento|editar_apontamento|consultar|listar_pendentes|desconhecido",
   "consulta": "contar_pendentes|listar_pendentes|ultima_colheita|ultimo_manejo|resumo_manejos|total_colheita|colheita_por_produto|colheita_comparar|manejo_por_area|null",
-  "periodo": "semana|mes|30_dias|7_dias|ano|null",
+  "periodo": "semana|mes|30_dias|7_dias|60_dias|90_dias|180_dias|365_dias|ano|null (use N_dias para períodos explícitos, ex: 90_dias)",
   "tipo": "irrigacao|colheita|semeadura|plantio|herbicida|fungicida|inseticida|fertilizante|personalizado|null",
   "apontamento_id": number ou null,
   "data": "YYYY-MM-DD ou null",
@@ -296,7 +296,8 @@ Ações:
 - consultar: perguntas sobre pendentes, colheitas, resumos, comparativos.
 
 Consultas:
-- contar_pendentes, listar_pendentes, ultima_colheita, ultimo_manejo (+tipo), resumo_manejos (+periodo), total_colheita, colheita_por_produto (+produto_nomes), colheita_comparar, manejo_por_area (+area_nomes +tipo).
+- contar_pendentes, listar_pendentes, ultima_colheita, ultimo_manejo (+tipo), resumo_manejos (+periodo), total_colheita, colheita_por_produto (+produto_nomes e/ou area_nomes), colheita_comparar, manejo_por_area (+area_nomes +tipo).
+- "campo de X", "área X", "talhão X" → area_nomes (não confundir com produto). "últimos 90 dias" → periodo 90_dias.
 
 Use memoria_conversa para follow-ups ("marca o primeiro" após listar pendentes).
 Hoje é {$hoje}. Perguntas ≠ criar_apontamento. Tom natural de agente prestativo.
