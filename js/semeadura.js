@@ -101,4 +101,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (dataInput && !dataInput.value) {
     dataInput.value = new Date().toISOString().slice(0, 10);
   }
+
+  const form = document.getElementById("form-semeadura");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (typeof CadernoSalvar !== "undefined") {
+        CadernoSalvar.submitForm(form, "salvar_semeadura.php");
+      } else {
+        alert("Erro ao carregar o módulo de salvamento. Recarregue a página.");
+      }
+    });
+  }
 });
