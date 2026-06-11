@@ -30,6 +30,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                     <?php 
                         $apts = [
                             ['id' => 1, 'nome' => 'Plantio'],
+                            ['id' => 21, 'nome' => 'Semeadura'],
                             ['id' => 2, 'nome' => 'Transplantio'],
                             ['id' => 3, 'nome' => 'Colheita'],
                             ['id' => 4, 'nome' => 'Registros Climáticos'],
@@ -54,6 +55,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         // mapa de ID → nome do arquivo
                         $mapaArquivos = [
                             1  => 'Plantio.php',
+                            21 => 'Semeadura.php',
                             2  => 'Transplantio.php',
                             3  => 'Colheita.php',
                             4  => 'Climatico.php',

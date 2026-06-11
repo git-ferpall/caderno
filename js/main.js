@@ -290,6 +290,7 @@ $(document).ready(function () {
             if ($botao.hasClass('bancada-defensivo')) $bancada.find('.form-defensivo').addClass('d-none');
             if ($botao.hasClass('bancada-fertilizante')) $bancada.find('.form-fertilizante').addClass('d-none');
             if ($botao.hasClass('bancada-colheita')) $bancada.find('.form-colheita').addClass('d-none');
+            if ($botao.hasClass('bancada-semeadura')) $bancada.find('.form-semeadura').addClass('d-none');
             if ($botao.hasClass('bancada-historico')) $bancada.find('.form-historico').addClass('d-none');
         } else {
             $botao.addClass('active');
@@ -302,6 +303,7 @@ $(document).ready(function () {
             if ($botao.hasClass('bancada-defensivo')) $bancada.find('.form-defensivo').removeClass('d-none');
             if ($botao.hasClass('bancada-fertilizante')) $bancada.find('.form-fertilizante').removeClass('d-none');
             if ($botao.hasClass('bancada-colheita')) $bancada.find('.form-colheita').removeClass('d-none');
+            if ($botao.hasClass('bancada-semeadura')) $bancada.find('.form-semeadura').removeClass('d-none');
             if ($botao.hasClass('bancada-historico')) $bancada.find('.form-historico').removeClass('d-none');
         }
     });

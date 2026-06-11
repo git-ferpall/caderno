@@ -49,7 +49,7 @@ try {
     $novaQtd = array_key_exists('quantidade', $_POST) ? trim((string)$_POST['quantidade']) : null;
     $novaUnidade = array_key_exists('unidade', $_POST) ? trim((string)$_POST['unidade']) : null;
 
-    $tiposComQuantidade = ['colheita', 'irrigacao', 'fertilizante', 'herbicida', 'fungicida', 'inseticida'];
+    $tiposComQuantidade = ['colheita', 'semeadura', 'irrigacao', 'fertilizante', 'herbicida', 'fungicida', 'inseticida'];
     $permiteQuantidade = in_array($atual['tipo'], $tiposComQuantidade, true)
         || $atual['quantidade'] !== null;
 

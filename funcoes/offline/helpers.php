@@ -128,6 +128,8 @@ function offlineSalvarEndpoints(): array
         'salvar_plantio.php',
         'salvar_pragas_doencas.php',
         'salvar_revisao_maquinas.php',
+        'salvar_semeadura.php',
+        'salvar_semeadura_hidroponia.php',
         'salvar_transplantio.php',
         'salvar_visita_tecnica.php',
     ];
@@ -151,6 +153,7 @@ function offlineTipoLabels(): array
 {
     return [
         'salvar_plantio' => 'Plantio',
+        'salvar_semeadura' => 'Semeadura',
         'salvar_transplantio' => 'Transplantio',
         'salvar_colheita' => 'Colheita',
         'salvar_clima' => 'Climático',
@@ -171,6 +174,7 @@ function offlineTipoLabels(): array
         'salvar_visita_tecnica' => 'Visita técnica',
         'salvar_personalizado' => 'Personalizado',
         'salvar_colheita_hidroponia' => 'Colheita hidroponia',
+        'salvar_semeadura_hidroponia' => 'Semeadura hidroponia',
         'salvar_fertilizante_hidroponia' => 'Fertilizante hidroponia',
         'salvar_defensivo_hidroponia' => 'Defensivo hidroponia',
         'salvar_estufa' => 'Hidroponia (estufa)',
@@ -190,6 +194,7 @@ function offlineShellPages(): array
         '/home',
         '/home/apontamento',
         '/home/Plantio',
+        '/home/Semeadura',
         '/home/Transplantio',
         '/home/Colheita',
         '/home/Climatico',

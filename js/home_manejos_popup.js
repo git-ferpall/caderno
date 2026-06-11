@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let modoEdicao = false;
 
   const tiposComQuantidade = [
-    "colheita", "irrigacao", "fertilizante", "herbicida", "fungicida", "inseticida"
+    "colheita", "semeadura", "irrigacao", "fertilizante", "herbicida", "fungicida", "inseticida"
   ];
 
   /* =========================================================
@@ -135,8 +135,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("manejo-produtos").innerHTML =
       (a.produtos || []).map((n) => `• ${n}`).join("<br>") || "—";
 
+    const detalheLabels = {
+      variedade: "Variedade / cultivar",
+      tipo_semeadura: "Tipo de semeadura",
+      bancada_nome: "Bancada",
+      destino: "Destino",
+    };
+
     const extras = Object.entries(a.detalhes || {})
-      .map(([k, v]) => `<div><b>${k}:</b> ${v}</div>`)
+      .map(([k, v]) => `<div><b>${detalheLabels[k] || k.replace(/_/g, " ")}:</b> ${v}</div>`)
       .join("");
 
     document.getElementById("manejo-detalhes-extra").innerHTML =

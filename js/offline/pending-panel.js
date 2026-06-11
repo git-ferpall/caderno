@@ -4,6 +4,7 @@
 const OfflinePendingPanel = (() => {
   const FALLBACK_TIPOS = {
     salvar_plantio: "Plantio",
+    salvar_semeadura: "Semeadura",
     salvar_transplantio: "Transplantio",
     salvar_colheita: "Colheita",
     salvar_clima: "Climático",
@@ -24,6 +25,7 @@ const OfflinePendingPanel = (() => {
     salvar_visita_tecnica: "Visita técnica",
     salvar_personalizado: "Personalizado",
     salvar_colheita_hidroponia: "Colheita hidroponia",
+    salvar_semeadura_hidroponia: "Semeadura hidroponia",
     salvar_fertilizante_hidroponia: "Fertilizante hidroponia",
     salvar_defensivo_hidroponia: "Defensivo hidroponia",
     salvar_estufa: "Hidroponia (estufa)",

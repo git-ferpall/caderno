@@ -84,3 +84,7 @@
     text-transform: none;
     font-size: 24px;
 }
+
+.apt-box .apt-button.fundo-apt21 {
+    background-color: var(--apt21);
+}

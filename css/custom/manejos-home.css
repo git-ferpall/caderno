@@ -194,6 +194,7 @@
 .manejos-tipo-badge.manejos-tipo-fungicida { background: #e0f2f1; border-color: #80cbc4; color: #00695c; }
 .manejos-tipo-badge.manejos-tipo-inseticida { background: #e1f5fe; border-color: #81d4fa; color: #0277bd; }
 .manejos-tipo-badge.manejos-tipo-fertilizante { background: #f3e5f5; border-color: #ce93d8; color: #6a1b9a; }
+.manejos-tipo-badge.manejos-tipo-semeadura { background: #f1f8e9; border-color: #aed581; color: #33691e; }
 
 .sistema .apontamento .manejos-panel .nenhum-apontamento {
     color: #888;

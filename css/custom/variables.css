@@ -40,6 +40,7 @@
     --apt18: #674688; /* Coleta e Análise */
     --apt19: #6f4c42; /* Visita Técnica */
     --apt20: #595b5d; /* Personalizado */
+    --apt21: #689f38; /* Semeadura */
 }
 
 .fundo-azul { background-color: var(--azul) !important; }

@@ -8,6 +8,7 @@ const OfflineSession = (() => {
     "/home",
     "/home/apontamento",
     "/home/Plantio",
+    "/home/Semeadura",
     "/home/Transplantio",
     "/home/Colheita",
     "/home/Climatico",

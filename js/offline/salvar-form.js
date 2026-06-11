@@ -23,6 +23,7 @@ const CadernoSalvar = (() => {
     "form-personalizado": "salvar_personalizado.php",
     "form-pragas": "salvar_pragas_doencas.php",
     "form-revisao": "salvar_revisao_maquinas.php",
+    "form-semeadura": "salvar_semeadura.php",
     "form-transplantio": "salvar_transplantio.php",
     "form-visita": "salvar_visita_tecnica.php",
   };

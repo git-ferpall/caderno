@@ -329,6 +329,10 @@
     background-color: var(--azul);
 }
 
+.item-bancadas-box .item-bancada-options .item-bancada-option.v6 {
+    background-color: var(--apt21);
+}
+
 /* .item-bancadas-box .item-bancada-options .item-bancada-option.v1 .item-bancada-icon,
 .item-bancadas-box .item-bancada-options .item-bancada-option.v1 .item-bancada-icon svg {
     color: var(--apt1);

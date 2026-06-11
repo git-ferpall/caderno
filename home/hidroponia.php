@@ -340,6 +340,76 @@ if (!headers_sent()) {
 
                                         </form>
 
+                                        <button type="button" class="item-bancada-option bancada-semeadura v6" id="item-bancada-' . $bancada['nome'] . '-estufa-' . $estufa['id'] . '-semeadura">
+                                            <div class="item-bancada-icon-box">
+                                                <div class="item-bancada-icon icon-apt1"></div>
+                                            </div>
+                                            <div class="item-bancada-option-title">Semeadura</div>
+                                        </button>
+
+                                        <form action="hidroponia.php" class="main-form form-semeadura d-none" id="add-' . $form_id . '-semeadura">
+
+                                            <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-data">Data da semeadura</label>
+                                                <input type="date" class="form-text" name="sem-' . $form_id . '-data" id="sem-' . $form_id . '-data" required>
+                                            </div>
+                                            ';
+                                if (count($produtos) > 1) {
+                                    echo '<div class="form-campo">
+                                                <label for="sem-' . $form_id . '-cultivo">Cultura / produto</label>
+                                                <select name="sem-' . $form_id . '-cultivo" id="sem-' . $form_id . '-cultivo" class="form-select form-text" required>';
+                                    foreach ($produtos as $p) {
+                                        echo '<option value="' . (int) $p['id'] . '">' . htmlspecialchars($p['nome']) . '</option>';
+                                    }
+                                    echo '</select>
+                                            </div>';
+                                }
+                                echo '
+                                            <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-variedade">Variedade / cultivar</label>
+                                                <input type="text" class="form-text" name="sem-' . $form_id . '-variedade" id="sem-' . $form_id . '-variedade" placeholder="Ex: Alface Crespa Verônica">
+                                            </div>
+
+                                            <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-tipo">Tipo de semeadura</label>
+                                                <select name="sem-' . $form_id . '-tipo" id="sem-' . $form_id . '-tipo" class="form-select form-text" required>
+                                                    <option value="">Selecione</option>
+                                                    <option value="Direta">Direta</option>
+                                                    <option value="Bandeja">Bandeja</option>
+                                                    <option value="Canteiro">Canteiro</option>
+                                                    <option value="Replantio">Replantio</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-qtd">Quantidade semeada</label>
+                                                <div style="display:flex;gap:8px;align-items:center;">
+                                                    <input type="text" class="form-text onlynum" name="sem-' . $form_id . '-qtd" id="sem-' . $form_id . '-qtd" placeholder="Ex: 300" style="flex:1;" required>
+                                                    <select name="sem-' . $form_id . '-unidade" id="sem-' . $form_id . '-unidade" class="form-select form-text" style="width:130px;flex-shrink:0;" required>
+                                                        <option value="sementes">Sementes</option>
+                                                        <option value="kg">Kg</option>
+                                                        <option value="bandejas">Bandejas</option>
+                                                        <option value="mudas">Mudas</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-obs">Observações</label>
+                                                <textarea class="form-text form-textarea" name="sem-' . $form_id . '-obs" id="sem-' . $form_id . '-obs" placeholder="Insira aqui suas observações..."></textarea>
+                                            </div>
+
+                                            <div class="form-submit">
+                                                <button class="main-btn fundo-cinza-b cor-preto form-cancel" type="button">
+                                                    <span class="main-btn-text">Cancelar</span>
+                                                </button>
+                                                <button class="main-btn fundo-verde form-save" type="button">
+                                                    <span class="main-btn-text">Salvar</span>
+                                                </button>
+                                            </div>
+
+                                        </form>
+
                                         <button type="button" class="item-bancada-option bancada-historico v4" id="item-bancada-' . $bancada['nome'] . '-estufa-' . $estufa['id'] . '-historico">
                                             <div class="item-bancada-icon-box">
                                                 <div class="item-bancada-icon icon-apt17"></div>
@@ -564,6 +634,7 @@ if (!headers_sent()) {
     <script src="../js/hidroponia.js"></script>
     <script src="../js/hidroponia_fertilizante.js"></script>
     <script src="../js/hidroponia_colheita.js"></script>
+    <script src="../js/hidroponia_semeadura.js"></script>
     <script src="../js/hidroponia_defensivo.js"></script>
     <script src="../js/hidroponia_historico.js"></script>
 
