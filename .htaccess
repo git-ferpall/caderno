@@ -12,10 +12,11 @@
     RewriteCond %{HTTPS} =on
     RewriteRule ^ - [E=HTTPS:on,E=REQUEST_SCHEME:https]
 
-    # /home sem barra: reescreve internamente (evita 301 http://.../home/ no fetch)
-    RewriteRule ^home$ home/index.php [L]
+    # /home com ou sem barra: reescreve internamente (evita 301 http://.../home/)
+    RewriteRule ^home/?$ home/index.php [L]
 
     # Redireciona GET com .php para URL limpa (mantém APIs/backend com .php)
+    RewriteCond %{HTTP:X-Offline-Sync} !=1
     RewriteCond %{REQUEST_METHOD} =GET
     RewriteCond %{REQUEST_URI} !^/(funcoes|configuracao|sso|scripts|vendor)/ [NC]
     RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]

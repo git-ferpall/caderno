@@ -60,7 +60,7 @@ if (!empty($user_id)) {
 <header class="menu-principal">
     <nav class="navbar nav-menu">
         <div class="nav-logo">
-            <a href="/home"><img src="../img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
+            <a href="/home/"><img src="../img/logo-color.png" alt="Logo Caderno de Campo Frutag"></a>
         </div>
         <div class="nav-items">
             <button class="nav-menu-btn main-btn" id="btn-menu" name="menu" type="button" onclick="abrirMenu()">Menu</button>
@@ -98,7 +98,7 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen cor-branco"></div>
                     <span class="link-title cor-branco">Alterar Propriedade</span>
                 </li></button>
-                <a href="/home"><li class="menu-link fundo-preto">
+                <a href="/home/"><li class="menu-link fundo-preto">
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>

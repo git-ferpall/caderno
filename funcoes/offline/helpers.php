@@ -191,7 +191,7 @@ function offlineCatalogMaxAgeHours(): int
 function offlineShellPages(): array
 {
     return [
-        '/home/',
+        '/home/index.php',
         '/home/apontamento',
         '/home/Plantio',
         '/home/Semeadura',

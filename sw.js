@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v12";
-const CACHE_PAGES = "caderno-pages-v12";
+const CACHE_STATIC = "caderno-static-v14";
+const CACHE_PAGES = "caderno-pages-v14";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -47,6 +47,10 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   const data = event.data || {};
+  if (data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+    return;
+  }
   if (data.type === "PRECACHE_PAGES" && Array.isArray(data.urls)) {
     event.waitUntil(precachePages(data.urls));
   }
@@ -128,18 +132,45 @@ async function findCachedPage(request) {
 
 async function precachePages(urls) {
   const cache = await caches.open(CACHE_PAGES);
-  await Promise.all(
-    urls.map((url) =>
-      fetch(url, { credentials: "include" })
-        .then(async (res) => {
-          const p = new URL(res.url).pathname;
-          if (!res.ok || (isLoginPath(p) && !isOfflineEntryPath(p))) return;
-          const req = new Request(url, { credentials: "include" });
-          await putPageInCache(cache, req, res);
-        })
-        .catch(() => {})
-    )
-  );
+  await Promise.all(urls.map((url) => precacheOnePage(cache, url)));
+}
+
+/** Fetch que não segue redirect http:// (Mixed Content atrás de proxy nginx). */
+async function fetchSecure(input, init = {}) {
+  const baseInit = {
+    credentials: init.credentials ?? "include",
+    redirect: "manual",
+    ...init,
+    headers: { "X-Offline-Sync": "1", ...(init.headers || {}) },
+  };
+
+  let res = await fetch(input, baseInit);
+  let hops = 0;
+
+  while (hops < 5 && (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400))) {
+    hops++;
+    let loc = res.headers.get("Location");
+    if (!loc && res.type === "opaqueredirect") break;
+    if (!loc) break;
+    if (loc.startsWith("http://")) loc = "https://" + loc.slice(7);
+    else if (loc.startsWith("/")) loc = self.location.origin + loc;
+    res = await fetch(loc, baseInit);
+  }
+
+  return res;
+}
+
+async function precacheOnePage(cache, url) {
+  try {
+    const res = await fetchSecure(url);
+    if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) return;
+    const p = new URL(res.url).pathname;
+    if (!res.ok || (isLoginPath(p) && !isOfflineEntryPath(p))) return;
+    const req = new Request(url, { credentials: "include" });
+    await putPageInCache(cache, req, res);
+  } catch {
+    /* ignore */
+  }
 }
 
 function isStaticAsset(pathname) {
@@ -204,7 +235,10 @@ function offlineSubpageHtml(pathname) {
 async function networkFirstPage(request) {
   const url = new URL(request.url);
   try {
-    const res = await fetch(request);
+    const res = await fetchSecure(request);
+    if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+      throw new Error("redirect");
+    }
     const resPath = new URL(res.url).pathname;
     if (res.ok && (!isLoginPath(resPath) || isOfflineEntryPath(resPath))) {
       const cache = await caches.open(CACHE_PAGES);

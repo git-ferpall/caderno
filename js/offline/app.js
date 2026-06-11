@@ -170,7 +170,7 @@ const OfflineApp = (() => {
       const r = await nativeFetch("/funcoes/offline/config.php", { credentials: "same-origin" });
       const data = await r.json();
       if (data.ok && data.habilitado && typeof OfflineSession !== "undefined") {
-        await OfflineSession.save(data);
+        await OfflineSession.save(data, { precache: false });
       }
       enabled = !!data.habilitado;
       window.__offlineIsAdmin = !!data.is_admin;
@@ -203,7 +203,11 @@ const OfflineApp = (() => {
   async function ensureHomeShellCached() {
     if (!navigator.onLine) return;
     try {
-      await nativeFetch("/home/", { credentials: "same-origin" });
+      const init =
+        typeof OfflineSession !== "undefined" && OfflineSession.shellFetchInit
+          ? OfflineSession.shellFetchInit()
+          : { credentials: "same-origin", redirect: "manual" };
+      await nativeFetch("/home/index.php", init);
     } catch {
       /* SW grava no cache ao responder */
     }
@@ -424,10 +428,6 @@ const OfflineApp = (() => {
     OfflineUI.blockRelatoriosPage();
     OfflineUI.warnIncognitoIfNeeded();
     OfflineUI.installPrepareButton(() => prepareForOffline(), () => enabled === true);
-    if (navigator.onLine && typeof OfflineSession !== "undefined") {
-      await OfflineSession.requestPrecache();
-      await ensureHomeShellCached();
-    }
     await refreshIfOnline();
     if (typeof OfflineCatalogMeta !== "undefined") {
       await OfflineCatalogMeta.warnIfNeeded();

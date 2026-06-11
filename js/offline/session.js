@@ -5,7 +5,7 @@ const OfflineSession = (() => {
   const ENTRY_PAGES = ["/offline.html", "/index.php"];
 
   const SHELL_PAGES = [
-    "/home/",
+    "/home/index.php",
     "/home/apontamento",
     "/home/Plantio",
     "/home/Semeadura",
@@ -41,7 +41,7 @@ const OfflineSession = (() => {
     return OfflineDB.getCache(SESSION_KEY);
   }
 
-  async function save(config) {
+  async function save(config, opts = {}) {
     if (!config?.habilitado) return null;
 
     const prev = await load();
@@ -67,7 +67,9 @@ const OfflineSession = (() => {
         console.warn("[offline] refresh dados no login:", e);
       }
     }
-    await requestPrecache();
+    if (opts.precache) {
+      await requestPrecache();
+    }
     return session;
   }
 
@@ -119,6 +121,17 @@ const OfflineSession = (() => {
     reg.active?.postMessage({ type: "PRECACHE_PAGES", urls: [...ENTRY_PAGES, ...SHELL_PAGES] });
   }
 
+  /** Fetch de telas sem seguir redirect http:// (Mixed Content atrás de proxy). */
+  function shellFetchInit() {
+    const syncHeader =
+      (typeof OfflineConstants !== "undefined" && OfflineConstants.SYNC_HEADER) || "X-Offline-Sync";
+    return {
+      credentials: "same-origin",
+      redirect: "manual",
+      headers: { [syncHeader]: "1" },
+    };
+  }
+
   /**
    * Baixa cada tela no dispositivo (via fetch; o Service Worker grava no cache).
    * @param {(info: { current: number, total: number, url: string }) => void} [onProgress]
@@ -134,7 +147,11 @@ const OfflineSession = (() => {
       const url = urls[i];
       onProgress?.({ current: i + 1, total, url });
       try {
-        const res = await fetchFn(url, { credentials: "same-origin" });
+        const res = await fetchFn(url, shellFetchInit());
+        if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+          fail++;
+          continue;
+        }
         const path = new URL(res.url, location.origin).pathname;
         if (res.ok && path !== "/") ok++;
         else fail++;
@@ -161,7 +178,18 @@ const OfflineSession = (() => {
   async function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return null;
     try {
-      return await navigator.serviceWorker.register("/sw.js");
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      reg.update().catch(() => {});
+      if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      reg.addEventListener("updatefound", () => {
+        const worker = reg.installing;
+        worker?.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            worker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+      return reg;
     } catch {
       return null;
     }
@@ -177,6 +205,7 @@ const OfflineSession = (() => {
     clearBeforeLogout,
     requestPrecache,
     precachePagesClient,
+    shellFetchInit,
     tryEnterOffline,
     registerServiceWorker,
   };

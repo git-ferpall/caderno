@@ -6,7 +6,7 @@ require_once __DIR__ . '/configuracao/auth.php';
 require_once __DIR__ . '/configuracao/recaptcha.php'; 
 
 if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
-    header('Location: /home');
+    header('Location: /home/');
     exit;
 }
 ?>
