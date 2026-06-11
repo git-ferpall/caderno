@@ -37,8 +37,11 @@ final class IaPipeline
 
         if ($intentParcial !== null && $campoDialogo !== null && $campoDialogo !== '') {
             $intent = iaMesclarRespostaDialogo($intentParcial, $campoDialogo, $texto, $contexto);
+            $intent['_ultimo_campo'] = $campoDialogo;
+            $intent['_ultimo_texto'] = $texto;
         } else {
             $intent = iaInterpretarComando($texto, $contexto);
+            $intent = iaRepararIntentParaDialogo($intent, $texto);
         }
 
         return $this->finalizarIntent($intent, $transcricao ?? $texto, $contexto);
@@ -51,19 +54,28 @@ final class IaPipeline
         $perguntaDialogo = iaProximaPergunta($intent, $resolucao, $contexto);
 
         if ($perguntaDialogo !== null && iaDeveDialogar($intent, $resolucao, $contexto)) {
+            $campo = (string) $perguntaDialogo['campo'];
+            $pergunta = (string) $perguntaDialogo['pergunta'];
+            $progresso = iaProgressoDialogo($intent, $campo);
+            $fala = iaMontarFalaAssistente($intent, $pergunta, $campo);
+            $intentCliente = iaLimparIntentCliente($intent);
+
             return [
                 'ok' => true,
                 'transcricao' => $transcricao,
-                'intent' => $intent,
+                'intent' => $intentCliente,
                 'resolucao' => $resolucao,
                 'resumo' => $resumo,
                 'precisa_dialogo' => true,
                 'precisa_confirmacao' => false,
-                'pergunta' => $perguntaDialogo['pergunta'],
-                'campo_dialogo' => $perguntaDialogo['campo'],
-                'intent_parcial' => $intent,
+                'pergunta' => $pergunta,
+                'fala' => $fala,
+                'campo_dialogo' => $campo,
+                'dialogo_passo' => $progresso['passo'],
+                'dialogo_total' => $progresso['total'],
+                'intent_parcial' => $intentCliente,
                 'executado' => false,
-                'msg' => $perguntaDialogo['pergunta'],
+                'msg' => $pergunta,
                 'resultado' => null,
             ];
         }
@@ -81,14 +93,17 @@ final class IaPipeline
         return [
             'ok' => true,
             'transcricao' => $transcricao,
-            'intent' => $intent,
+            'intent' => iaLimparIntentCliente($intent),
             'resolucao' => $resolucao,
             'resumo' => $resumo,
             'precisa_dialogo' => false,
             'precisa_confirmacao' => $precisaConfirmacao,
             'pergunta' => null,
+            'fala' => $precisaConfirmacao
+                ? 'Perfeito! Resumo: ' . $resumo . ' Posso confirmar e salvar?'
+                : null,
             'campo_dialogo' => null,
-            'intent_parcial' => $precisaConfirmacao ? $intent : null,
+            'intent_parcial' => $precisaConfirmacao ? iaLimparIntentCliente($intent) : null,
             'executado' => (bool) ($resultado['executado'] ?? false),
             'msg' => $resultado['msg'] ?? ($intent['mensagem'] ?? $resumo),
             'resultado' => $resultado,

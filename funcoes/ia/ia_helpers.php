@@ -159,8 +159,11 @@ function iaWhisperPrompt(?string $campoDialogo = null): string
         'tipo' => $base . ' Tipos de manejo: plantio, semeadura, colheita, irrigação.',
         'area' => $base . ' Nomes de áreas, talhões e bancadas da propriedade.',
         'produto' => $base . ' Nomes de culturas e produtos agrícolas.',
-        'quantidade' => $base . ' Quantidades em litros, quilos, bandejas, sementes.',
+        'quantidade' => $base . ' Quantidades em litros, quilos, bandejas, sementes, mudas, sacas.',
         'tipo_semeadura' => $base . ' Direta, bandeja, canteiro, replantio.',
+        'previsao' => $base . ' Previsão de colheita em dias. Pular para não marcar.',
+        'observacoes' => $base . ' Observações do manejo. Pular se não houver.',
+        'data' => $base . ' Datas: hoje, ontem, ou dia e mês.',
         default => $base,
     };
 }
@@ -236,14 +239,15 @@ Você é o assistente do Caderno Frutag (agricultura/hidroponia). Interprete com
 IMPORTANTE — idioma e erros de transcrição:
 - O áudio é sempre pt-BR. Nunca interprete como inglês.
 - O Whisper pode errar e gerar pseudo-inglês. Exemplos: "plan 2" = plantio, "bed two" = bancada 2, "seeding" = semeadura.
-- "plantio" e "semeadura" são sinônimos → use tipo "semeadura".
+- "plantio" e "semeadura" são tipos diferentes (não confundir).
 - Não coloque em area_nomes termos que são tipos de manejo (plantio, colheita, irrigação etc.).
 
 Schema:
 {
   "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "desconhecido",
-  "tipo": "irrigacao|colheita|semeadura|personalizado|...",
+  "tipo": "irrigacao|colheita|semeadura|plantio|personalizado|...",
   "data": "YYYY-MM-DD ou null",
+  "previsao_dias": number ou null,
   "area_nomes": ["string"],
   "produto_nomes": ["string"],
   "quantidade": number ou null,
@@ -268,8 +272,10 @@ Regras:
 - Use nomes de áreas/produtos do contexto quando possível.
 - Irrigação: quantidade = volume (litros/m3), tempo_irrigacao opcional.
 - Colheita: quantidade + unidade kg/caixas.
-- Semeadura: quantidade, unidade sementes/bandejas/kg, variedade, tipo_semeadura.
-- Se faltar info crítica, acao=desconhecido e confianca baixa.
+- Semeadura: quantidade, unidade sementes/bandejas/kg/mudas, variedade.
+- Plantio: quantidade em mudas, sacas, bandejas, caixas ou kg; previsao_dias opcional.
+- Se o usuário quer adicionar/registrar/criar apontamento e o tipo estiver claro, use acao=criar_apontamento mesmo faltando área, produto ou quantidade — o diálogo completará depois.
+- Use acao=desconhecido apenas se a intenção for realmente incompreensível (não use só por faltar campos).
 PROMPT;
 
     $userPayload = json_encode([
@@ -313,16 +319,16 @@ function iaNormalizarIntent(array $intent): array
         'titulo' => null,
         'descricao' => null,
         'observacoes' => null,
+        'previsao_dias' => null,
+        '_data_respondida' => false,
+        '_previsao_respondida' => false,
+        '_obs_respondida' => false,
         'apontamento_ref' => null,
         'confianca' => 0.3,
         'mensagem' => 'Não entendi o comando.',
     ];
 
     $intent = array_merge($defaults, $intent);
-
-    if (in_array((string) ($intent['tipo'] ?? ''), ['plantio', 'plant'], true)) {
-        $intent['tipo'] = 'semeadura';
-    }
 
     $intent['acao'] = in_array($intent['acao'], ['criar_apontamento', 'concluir_apontamento', 'listar_pendentes', 'desconhecido'], true)
         ? $intent['acao'] : 'desconhecido';

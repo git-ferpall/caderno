@@ -156,13 +156,30 @@ function iaResumoIntent(array $intent, array $resolucao, array $contexto): strin
     $areas = $areaNomes ? implode(', ', $areaNomes) : (implode(', ', $intent['area_nomes'] ?? []) ?: '—');
     $produtos = $prodNomes ? implode(', ', $prodNomes) : (implode(', ', $intent['produto_nomes'] ?? []) ?: '—');
 
+    $qtd = $intent['quantidade'] ?? null;
+    $un = $intent['unidade'] ?? '';
+    $detalheQtd = ($qtd !== null && is_numeric($qtd))
+        ? ' — ' . $qtd . ($un ? ' ' . $un : '')
+        : '';
+
+    $previsao = $intent['previsao_dias'] ?? null;
+    $detalhePrev = ($previsao !== null && is_numeric($previsao) && (int) $previsao > 0)
+        ? ', previsão ' . (int) $previsao . ' dias'
+        : '';
+
+    $obs = trim((string) ($intent['observacoes'] ?? ''));
+    $detalheObs = $obs !== '' ? '. Obs: ' . mb_substr($obs, 0, 80) : '';
+
     return match ($acao) {
         'criar_apontamento' => sprintf(
-            'Criar %s em %s (%s) — %s',
+            'Criar %s em %s (%s) — %s%s%s%s',
             $tipo ?: 'apontamento',
             $areas,
             $produtos,
-            $data
+            $data,
+            $detalheQtd,
+            $detalhePrev,
+            $detalheObs
         ),
         'concluir_apontamento' => sprintf('Concluir %s em %s', $tipo ?: 'manejo', $areas),
         'listar_pendentes' => 'Listar manejos pendentes',

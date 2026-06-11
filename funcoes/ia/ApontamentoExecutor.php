@@ -52,6 +52,7 @@ class ApontamentoExecutor
             'irrigacao' => $this->criarIrrigacao($intent, $areaIds, $produtoIds),
             'colheita' => $this->criarColheita($intent, $areaIds, $produtoIds),
             'semeadura' => $this->criarSemeadura($intent, $areaIds, $produtoIds),
+            'plantio' => $this->criarPlantio($intent, $areaIds, $produtoIds),
             'personalizado' => $this->criarPersonalizado($intent, $areaIds),
             default => [
                 'ok' => false,
@@ -221,6 +222,82 @@ class ApontamentoExecutor
                 'executado' => true,
                 'msg' => 'Semeadura registrada com sucesso!',
                 'apontamento_id' => $apontamento_id,
+            ];
+        } catch (Throwable $e) {
+            $this->mysqli->rollback();
+            throw $e;
+        }
+    }
+
+    private function criarPlantio(array $intent, array $areaIds, array $produtoIds): array
+    {
+        if (!$produtoIds) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Informe o produto/cultura do plantio.'];
+        }
+
+        $quantidade = $intent['quantidade'] ?? null;
+        if ($quantidade === null || !is_numeric($quantidade) || (float) $quantidade <= 0) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Informe a quantidade do plantio.'];
+        }
+
+        $unidade = trim((string) ($intent['unidade'] ?? 'mudas'));
+        if ($unidade === '') {
+            $unidade = 'mudas';
+        }
+
+        $data = (string) ($intent['data'] ?? date('Y-m-d'));
+        $obs = trim((string) ($intent['observacoes'] ?? ''));
+        $previsaoDias = $intent['previsao_dias'] ?? null;
+        $propriedade_id = $this->propriedadeId();
+        $qtd = (float) $quantidade;
+        $status = 'pendente';
+
+        $dataColheita = null;
+        if ($previsaoDias !== null && is_numeric($previsaoDias) && (int) $previsaoDias > 0) {
+            $dataColheita = (new DateTime($data))->modify('+' . (int) $previsaoDias . ' days')->format('Y-m-d');
+        }
+
+        $this->mysqli->begin_transaction();
+        try {
+            $stmt = $this->mysqli->prepare('
+                INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+                VALUES (?, \'plantio\', ?, ?, ?, ?, ?)
+            ');
+            $stmt->bind_param('isdsss', $propriedade_id, $data, $qtd, $unidade, $obs, $status);
+            $stmt->execute();
+            $plantio_id = (int) $stmt->insert_id;
+            $stmt->close();
+
+            $this->inserirDetalhes($plantio_id, $areaIds, $produtoIds, 'plantio');
+
+            if ($dataColheita) {
+                $obsColheita = 'Gerado automaticamente pelo plantio #' . $plantio_id;
+                $quantidadeCol = 0.0;
+                $tipoColheita = 'colheita';
+
+                $stmt = $this->mysqli->prepare('
+                    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, observacoes, status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ');
+                $stmt->bind_param('issdss', $propriedade_id, $tipoColheita, $dataColheita, $quantidadeCol, $obsColheita, $status);
+                $stmt->execute();
+                $colheita_id = (int) $stmt->insert_id;
+                $stmt->close();
+
+                $this->inserirDetalhes($colheita_id, $areaIds, $produtoIds, 'colheita');
+            }
+
+            $this->mysqli->commit();
+            $msg = 'Plantio registrado com sucesso!';
+            if ($dataColheita) {
+                $msg .= ' Colheita prevista para ' . date('d/m/Y', strtotime($dataColheita)) . '.';
+            }
+
+            return [
+                'ok' => true,
+                'executado' => true,
+                'msg' => $msg,
+                'apontamento_id' => $plantio_id,
             ];
         } catch (Throwable $e) {
             $this->mysqli->rollback();
