@@ -4,7 +4,44 @@ declare(strict_types=1);
 /** Tipos de manejo que o assistente consegue criar via diálogo. */
 function iaTiposComDialogo(): array
 {
-    return ['irrigacao', 'colheita', 'semeadura', 'plantio', 'personalizado'];
+    return [
+        'irrigacao', 'colheita', 'semeadura', 'plantio',
+        'herbicida', 'fungicida', 'inseticida', 'fertilizante',
+        'personalizado',
+    ];
+}
+
+/** Manejos que usam insumo (herbicida etc.) em vez de produto/cultura. */
+function iaTiposInsumo(): array
+{
+    return ['herbicida', 'fungicida', 'inseticida', 'fertilizante'];
+}
+
+function iaTipoUsaInsumo(string $tipo): bool
+{
+    return in_array($tipo, iaTiposInsumo(), true);
+}
+
+function iaChaveCatalogoInsumo(string $tipo): string
+{
+    return match ($tipo) {
+        'herbicida' => 'herbicidas',
+        'fungicida' => 'fungicidas',
+        'inseticida' => 'inseticidas',
+        'fertilizante' => 'fertilizantes',
+        default => 'herbicidas',
+    };
+}
+
+function iaCampoDetalheInsumo(string $tipo): string
+{
+    return $tipo ?: 'insumo';
+}
+
+function iaListaInsumosContexto(array $contexto, string $tipo): array
+{
+    $chave = iaChaveCatalogoInsumo($tipo);
+    return $contexto[$chave] ?? [];
 }
 
 function iaFormatarListaNomes(array $items, string $campo = 'nome', int $max = 12): string
@@ -97,17 +134,83 @@ function iaRepararIntentParaDialogo(array $intent, string $texto): array
         }
     }
 
+    $intent = iaTentarSugestaoIntent($intent, $texto);
+
+    if (!empty($intent['tipo']) && iaEhFalaSoTipo($texto, (string) $intent['tipo'])) {
+        $intent['_veio_sugestao'] = true;
+    }
+
     if (($intent['acao'] ?? '') === 'desconhecido') {
         if ($querCriar || !empty($intent['tipo'])) {
             $intent['acao'] = 'criar_apontamento';
             $intent['confianca'] = max((float) ($intent['confianca'] ?? 0.3), 0.75);
             if (str_contains(mb_strtolower((string) ($intent['mensagem'] ?? '')), 'insuficient')) {
-                $intent['mensagem'] = 'Vamos completar o apontamento passo a passo.';
+                $intent['mensagem'] = iaFraseAberturaDialogo((string) ($intent['tipo'] ?? ''));
             }
         }
     }
 
     return $intent;
+}
+
+/** Usuário disse só o nome do manejo ("herbicida", "colheita"). */
+function iaEhFalaSoTipo(string $texto, string $tipo): bool
+{
+    $t = iaNormalizarTexto(trim($texto));
+    if (strlen($t) > 60) {
+        return false;
+    }
+    $detectado = iaNormalizarTipoManejo($texto);
+    return $detectado === $tipo;
+}
+
+function iaTentarSugestaoIntent(array $intent, string $texto): array
+{
+    if (($intent['acao'] ?? '') !== 'desconhecido' || !empty($intent['tipo'])) {
+        return $intent;
+    }
+
+    $t = iaNormalizarTexto($texto);
+    $fragments = [
+        'herbi' => 'herbicida',
+        'fungi' => 'fungicida',
+        'inset' => 'inseticida',
+        'ferti' => 'fertilizante',
+        'adub' => 'fertilizante',
+        'defens' => 'herbicida',
+        'irrig' => 'irrigacao',
+        'colh' => 'colheita',
+        'sem' => 'semeadura',
+        'plant' => 'plantio',
+    ];
+
+    foreach ($fragments as $frag => $tipo) {
+        if (str_contains($t, $frag)) {
+            $intent['tipo'] = $tipo;
+            $intent['acao'] = 'criar_apontamento';
+            $intent['confianca'] = 0.78;
+            $intent['_veio_sugestao'] = true;
+            $intent['mensagem'] = iaFraseSugestao($tipo);
+            return $intent;
+        }
+    }
+
+    return $intent;
+}
+
+function iaFraseSugestao(string $tipo): string
+{
+    $nome = iaNomeTipoManejo($tipo);
+    return "Você quer registrar {$nome}? Se sim, me fala quando foi.";
+}
+
+function iaFraseAberturaDialogo(string $tipo): string
+{
+    if ($tipo === '') {
+        return 'Me conta o que você quer registrar.';
+    }
+    $nome = iaNomeTipoManejo($tipo);
+    return "Beleza, vamos lançar {$nome}.";
 }
 
 /**
@@ -126,7 +229,7 @@ function iaProximaPergunta(array $intent, array $resolucao, array $contexto): ?a
     if ($tipo === '') {
         return [
             'campo' => 'tipo',
-            'pergunta' => 'Qual tipo de manejo? Plantio, semeadura, colheita ou irrigação?',
+            'pergunta' => 'O que foi hoje? Plantio, colheita, irrigação, herbicida…?',
         ];
     }
 
@@ -137,28 +240,39 @@ function iaProximaPergunta(array $intent, array $resolucao, array $contexto): ?a
     if (empty($intent['_data_respondida'])) {
         return [
             'campo' => 'data',
-            'pergunta' => 'Me diga a data do manejo. Pode falar hoje, ontem ou o dia — por exemplo, 15 de maio.',
+            'pergunta' => 'Quando foi? Pode ser hoje, ontem, ou a data — tipo 15 de maio.',
         ];
     }
 
     if (empty($resolucao['area_ids'])) {
         $lista = iaFormatarListaNomes($contexto['areas'] ?? []);
         if (empty($intent['area_nomes'])) {
-            $hint = $lista ? ' Tenho estas áreas cadastradas: ' . $lista . '.' : '';
+            $hint = $lista ? ' Tenho: ' . $lista . '.' : '';
             return [
                 'campo' => 'area',
-                'pergunta' => 'Em qual área, talhão ou bancada?' . $hint,
+                'pergunta' => 'Em qual área?' . $hint,
             ];
         }
 
         return [
             'campo' => 'area',
-            'pergunta' => 'Hmm, não achei essa área.' . ($lista ? ' As cadastradas são: ' . $lista . '.' : '')
-                . ' Qual delas você quis dizer?',
+            'pergunta' => 'Não achei essa área.' . ($lista ? ' Cadastradas: ' . $lista . '.' : '')
+                . ' Qual delas?',
         ];
     }
 
-    if ($tipo !== 'personalizado' && empty($resolucao['produto_ids'])) {
+    if (iaTipoUsaInsumo($tipo) && trim((string) ($intent['insumo_nome'] ?? '')) === '') {
+        $catalogo = iaListaInsumosContexto($contexto, $tipo);
+        $lista = iaFormatarListaNomes($catalogo);
+        $rotulo = iaNomeInsumo($tipo);
+        $hint = $lista ? ' Tenho: ' . $lista . '.' : '';
+        return [
+            'campo' => 'insumo',
+            'pergunta' => "Qual {$rotulo} você usou?" . $hint,
+        ];
+    }
+
+    if ($tipo !== 'personalizado' && !iaTipoUsaInsumo($tipo) && empty($resolucao['produto_ids'])) {
         $lista = iaFormatarListaNomes($contexto['produtos'] ?? []);
         if (empty($intent['produto_nomes'])) {
             $hint = $lista ? ' Produtos disponíveis: ' . $lista . '.' : '';
@@ -213,8 +327,23 @@ function iaPerguntaQuantidade(string $tipo): ?string
         'irrigacao' => 'Qual volume foi irrigado? Litros ou metros cúbicos.',
         'colheita' => 'Quanto colheu? Pode falar em quilos, caixas ou sacas.',
         'semeadura' => 'Qual a quantidade semeada? Sementes, bandejas, mudas ou quilos.',
-        'plantio' => 'Qual a quantidade plantada? Mudas, sacas, bandejas, caixas ou quilos.',
+        'plantio' => 'Quanto plantou? Mudas, sacas, bandejas ou quilos.',
+        'herbicida' => 'Quanto aplicou? Litros, mililitros ou gramas.',
+        'fungicida' => 'Qual a dose? Litros, mililitros ou gramas.',
+        'inseticida' => 'Qual a quantidade? Litros ou mililitros.',
+        'fertilizante' => 'Quanto aplicou? Quilos, litros ou gramas.',
         default => null,
+    };
+}
+
+function iaNomeInsumo(string $tipo): string
+{
+    return match ($tipo) {
+        'herbicida' => 'herbicida',
+        'fungicida' => 'fungicida',
+        'inseticida' => 'inseticida',
+        'fertilizante' => 'fertilizante',
+        default => 'insumo',
     };
 }
 
@@ -233,7 +362,13 @@ function iaCamposDialogoOrdem(array $intent): array
     } elseif ($tipo !== '') {
         $campos[] = 'produto';
     }
+    if (iaTipoUsaInsumo($tipo)) {
+        $campos[] = 'insumo';
+    }
     if (in_array($tipo, ['irrigacao', 'colheita', 'semeadura', 'plantio'], true)) {
+        $campos[] = 'quantidade';
+    }
+    if (iaTipoUsaInsumo($tipo)) {
         $campos[] = 'quantidade';
     }
     if ($tipo === 'plantio') {
@@ -254,12 +389,16 @@ function iaProgressoDialogo(array $intent, string $campoAtual): array
 function iaNomeTipoManejo(?string $tipo): string
 {
     return match ($tipo) {
-        'plantio' => 'plantio',
-        'semeadura' => 'semeadura',
-        'colheita' => 'colheita',
-        'irrigacao' => 'irrigação',
-        'personalizado' => 'manejo personalizado',
-        default => 'apontamento',
+        'plantio' => 'um plantio',
+        'semeadura' => 'uma semeadura',
+        'colheita' => 'uma colheita',
+        'irrigacao' => 'uma irrigação',
+        'herbicida' => 'uma aplicação de herbicida',
+        'fungicida' => 'uma aplicação de fungicida',
+        'inseticida' => 'uma aplicação de inseticida',
+        'fertilizante' => 'uma adubação ou fertilização',
+        'personalizado' => 'um manejo personalizado',
+        default => 'um apontamento',
     };
 }
 
@@ -281,21 +420,22 @@ function iaFormatarDataFala(string $data): string
 function iaConfirmarResposta(string $campo, string $texto, array $intent): string
 {
     return match ($campo) {
-        'tipo' => 'Certo, ' . iaNomeTipoManejo((string) ($intent['tipo'] ?? '')) . '.',
-        'data' => 'Ok, data ' . iaFormatarDataFala((string) ($intent['data'] ?? '')) . '.',
-        'area' => 'Beleza, área ' . ($intent['area_nomes'][0] ?? $texto) . '.',
-        'produto' => 'Entendi, ' . ($intent['produto_nomes'][0] ?? $texto) . '.',
-        'quantidade' => 'Anotado, '
+        'tipo' => 'Combinado, ' . iaNomeTipoManejo((string) ($intent['tipo'] ?? '')) . '.',
+        'data' => 'Anotei: ' . iaFormatarDataFala((string) ($intent['data'] ?? '')) . '.',
+        'area' => 'Show, ' . ($intent['area_nomes'][0] ?? $texto) . '.',
+        'produto' => 'Certo, ' . ($intent['produto_nomes'][0] ?? $texto) . '.',
+        'insumo' => 'Beleza, ' . ($intent['insumo_nome'] ?? $texto) . '.',
+        'quantidade' => 'Ok, '
             . ($intent['quantidade'] ?? '')
             . (($intent['unidade'] ?? '') ? ' ' . $intent['unidade'] : '') . '.',
         'previsao' => empty($intent['previsao_dias'])
-            ? 'Sem previsão de colheita.'
-            : 'Previsão de ' . (int) $intent['previsao_dias'] . ' dias.',
+            ? 'Sem previsão de colheita, tudo bem.'
+            : 'Previsão de ' . (int) $intent['previsao_dias'] . ' dias, anotado.',
         'observacoes' => trim((string) ($intent['observacoes'] ?? '')) !== ''
-            ? 'Observação registrada.'
-            : 'Sem observações.',
+            ? 'Observação incluída.'
+            : 'Sem observações então.',
         'titulo' => 'Título anotado.',
-        default => 'Ok.',
+        default => 'Entendi.',
     };
 }
 
@@ -310,14 +450,26 @@ function iaMontarFalaAssistente(array $intent, string $pergunta, string $campoAt
             $intent
         );
     } elseif ($campoAtual === 'data' && !empty($intent['tipo']) && empty($intent['_data_respondida'])) {
-        $partes[] = 'Entendi, vamos registrar um ' . iaNomeTipoManejo((string) $intent['tipo']) . '.';
+        $nome = iaNomeTipoManejo((string) $intent['tipo']);
+        if (!empty($intent['_veio_sugestao'])) {
+            $partes[] = "Entendi — você quer registrar {$nome}.";
+        } else {
+            $partes[] = "Beleza, vamos registrar {$nome}.";
+        }
     } elseif ($campoAtual === 'tipo') {
-        $partes[] = 'Vou te ajudar a registrar o manejo.';
+        $partes[] = 'Me fala qual manejo você quer registrar.';
     }
 
     $partes[] = $pergunta;
 
-    return trim(implode(' ', array_filter($partes)));
+    return iaUnirFrasesFala($partes);
+}
+
+/** Junta frases com pausas naturais para TTS. */
+function iaUnirFrasesFala(array $partes): string
+{
+    $texto = trim(implode(' ', array_filter(array_map('trim', $partes))));
+    return preg_replace('/\s+/', ' ', $texto) ?? $texto;
 }
 
 function iaLimparIntentCliente(array $intent): array
@@ -325,7 +477,8 @@ function iaLimparIntentCliente(array $intent): array
     unset(
         $intent['_ultimo_campo'],
         $intent['_ultimo_texto'],
-        $intent['_dialogo_ack']
+        $intent['_dialogo_ack'],
+        $intent['_veio_sugestao']
     );
     return $intent;
 }
@@ -362,6 +515,12 @@ function iaInferirUnidade(string $texto): ?string
     if (preg_match('/muda/u', $t)) {
         return 'mudas';
     }
+    if (preg_match('/\bml\b|mililitro/u', $t)) {
+        return 'ml';
+    }
+    if (preg_match('/\bg\b|grama/u', $t)) {
+        return 'g';
+    }
     return null;
 }
 
@@ -387,6 +546,18 @@ function iaNormalizarTipoManejo(string $texto): ?string
     }
     if (preg_match('/\b(?:plant(?:io|ei|ar|o)?|plan(?:to|tei)?)\b/u', $t) || preg_match('/\bplan\s*[12]\b/u', $t)) {
         return 'plantio';
+    }
+    if (str_contains($t, 'herbi')) {
+        return 'herbicida';
+    }
+    if (str_contains($t, 'fungi')) {
+        return 'fungicida';
+    }
+    if (str_contains($t, 'inset')) {
+        return 'inseticida';
+    }
+    if (str_contains($t, 'ferti') || str_contains($t, 'adub')) {
+        return 'fertilizante';
     }
     if (str_contains($t, 'personal')) {
         return 'personalizado';
@@ -421,6 +592,8 @@ function iaUnidadePadraoPorTipo(string $tipo): ?string
         'irrigacao' => 'litros',
         'semeadura' => 'sementes',
         'plantio' => 'mudas',
+        'herbicida', 'fungicida', 'inseticida' => 'litros',
+        'fertilizante' => 'kg',
         default => null,
     };
 }
@@ -457,6 +630,13 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
         case 'produto':
             $match = iaMelhorMatch($texto, $contexto['produtos'] ?? [], 0.45);
             $intent['produto_nomes'] = [$match['label'] ?: $texto];
+            break;
+
+        case 'insumo':
+            $tipo = (string) ($intent['tipo'] ?? '');
+            $catalogo = iaListaInsumosContexto($contexto, $tipo);
+            $match = iaMelhorMatch($texto, $catalogo, 0.45);
+            $intent['insumo_nome'] = $match['label'] ?: $texto;
             break;
 
         case 'quantidade':

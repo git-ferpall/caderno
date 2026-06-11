@@ -42,6 +42,9 @@ final class IaPipeline
         } else {
             $intent = iaInterpretarComando($texto, $contexto);
             $intent = iaRepararIntentParaDialogo($intent, $texto);
+            if (($intent['acao'] ?? '') === 'desconhecido') {
+                $intent['mensagem'] = 'Hum, não peguei direito. Quer registrar plantio, colheita, irrigação ou herbicida?';
+            }
         }
 
         return $this->finalizarIntent($intent, $transcricao ?? $texto, $contexto);
@@ -97,7 +100,7 @@ final class IaPipeline
             'precisa_confirmacao' => $precisaConfirmacao,
             'pergunta' => null,
             'fala' => $precisaConfirmacao
-                ? 'Perfeito! Resumo: ' . $resumo . ' Posso confirmar e salvar?'
+                ? 'Pronto, anotei tudo. ' . $resumo . ' Confirmo e salvo?'
                 : null,
             'campo_dialogo' => null,
             'intent_parcial' => $precisaConfirmacao ? iaLimparIntentCliente($intent) : null,

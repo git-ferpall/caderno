@@ -45,10 +45,39 @@ function iaContextoUsuario(mysqli $mysqli, int $user_id): array
         'propriedade' => ['id' => $propriedade_id, 'nome' => $prop['nome_razao'] ?? ''],
         'areas' => $areas,
         'produtos' => $produtos,
+        'herbicidas' => iaCarregarCatalogo($mysqli, 'herbicidas', 'ativo'),
+        'fungicidas' => iaCarregarCatalogo($mysqli, 'fungicidas', 'ativo'),
+        'inseticidas' => iaCarregarCatalogo($mysqli, 'inseticidas', 'ativo'),
+        'fertilizantes' => iaCarregarCatalogo($mysqli, 'fertilizantes', 'status'),
         'pendentes' => $pendentes,
         'tipos_manejo' => iaTiposManejo(),
         'hoje' => date('Y-m-d'),
     ];
+}
+
+function iaCarregarCatalogo(mysqli $mysqli, string $tabela, string $colStatus): array
+{
+    $permitidas = ['herbicidas', 'fungicidas', 'inseticidas', 'fertilizantes'];
+    if (!in_array($tabela, $permitidas, true)) {
+        return [];
+    }
+
+    $sql = match ($tabela) {
+        'herbicidas' => "SELECT id, nome FROM herbicidas WHERE status = 'ativo' ORDER BY nome ASC",
+        'fertilizantes' => "SELECT id, nome FROM fertilizantes WHERE status = 'ativo' ORDER BY nome ASC",
+        default => "SELECT id, nome FROM {$tabela} WHERE ativo = 1 ORDER BY nome ASC",
+    };
+
+    $res = $mysqli->query($sql);
+    if (!$res) {
+        return [];
+    }
+
+    $itens = [];
+    while ($row = $res->fetch_assoc()) {
+        $itens[] = ['id' => (int) $row['id'], 'nome' => (string) $row['nome']];
+    }
+    return $itens;
 }
 
 function iaTiposManejo(): array
@@ -58,6 +87,10 @@ function iaTiposManejo(): array
         'colheita' => 'Colheita',
         'semeadura' => 'Semeadura',
         'plantio' => 'Plantio',
+        'herbicida' => 'Herbicida',
+        'fungicida' => 'Fungicida',
+        'inseticida' => 'Inseticida',
+        'fertilizante' => 'Fertilizante',
         'personalizado' => 'Personalizado',
     ];
 }
@@ -116,6 +149,8 @@ function iaContextoParaIa(array $contexto, int $maxAreas = 40, int $maxProdutos 
         'propriedade' => ($contexto['propriedade']['nome'] ?? null) ?: null,
         'areas' => array_values(array_map(static fn ($a) => (string) ($a['nome'] ?? ''), $areas)),
         'produtos' => array_values(array_map(static fn ($p) => (string) ($p['nome'] ?? ''), $produtos)),
+        'herbicidas' => array_slice(array_column($contexto['herbicidas'] ?? [], 'nome'), 0, 25),
+        'fungicidas' => array_slice(array_column($contexto['fungicidas'] ?? [], 'nome'), 0, 25),
         'hoje' => (string) ($contexto['hoje'] ?? date('Y-m-d')),
     ];
 }

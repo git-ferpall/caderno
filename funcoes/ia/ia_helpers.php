@@ -183,12 +183,13 @@ function iaCurlExec($ch): array
 function iaWhisperPrompt(?string $campoDialogo = null): string
 {
     $base = 'Português do Brasil. Agricultura e hidroponia: plantio, semeadura, colheita, irrigação, '
-        . 'bancada, talhão, canteiro, bandeja, replantio, litros, quilos, mudas, sementes, caixas.';
+        . 'herbicida, fungicida, inseticida, fertilizante, bancada, talhão, litros, mililitros.';
 
     return match ($campoDialogo) {
         'tipo' => $base . ' Tipos de manejo: plantio, semeadura, colheita, irrigação.',
         'area' => $base . ' Nomes de áreas, talhões e bancadas da propriedade.',
         'produto' => $base . ' Nomes de culturas e produtos agrícolas.',
+        'insumo' => $base . ' Nomes de herbicidas, fungicidas e defensivos.',
         'quantidade' => $base . ' Quantidades em litros, quilos, bandejas, sementes, mudas, sacas.',
         'tipo_semeadura' => $base . ' Direta, bandeja, canteiro, replantio.',
         'previsao' => $base . ' Previsão de colheita em dias. Pular para não marcar.',
@@ -275,9 +276,10 @@ IMPORTANTE — idioma e erros de transcrição:
 Schema:
 {
   "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "desconhecido",
-  "tipo": "irrigacao|colheita|semeadura|plantio|personalizado|...",
+  "tipo": "irrigacao|colheita|semeadura|plantio|herbicida|fungicida|inseticida|fertilizante|personalizado|...",
   "data": "YYYY-MM-DD ou null",
   "previsao_dias": number ou null,
+  "insumo_nome": "string ou null",
   "area_nomes": ["string"],
   "produto_nomes": ["string"],
   "quantidade": number ou null,
@@ -304,7 +306,10 @@ Regras:
 - Colheita: quantidade + unidade kg/caixas.
 - Semeadura: quantidade, unidade sementes/bandejas/kg/mudas, variedade.
 - Plantio: quantidade em mudas, sacas, bandejas, caixas ou kg; previsao_dias opcional.
+- Herbicida, fungicida, inseticida, fertilizante: use o tipo correto; insumo_nome = nome do produto aplicado; quantidade + unidade.
+- Se o usuário disser só "herbicida" ou "colheita", interprete como criar_apontamento desse tipo.
 - Se o usuário quer adicionar/registrar/criar apontamento e o tipo estiver claro, use acao=criar_apontamento mesmo faltando área, produto ou quantidade — o diálogo completará depois.
+- Campo mensagem: tom amigável e curto, como conversa (ex: "Quer registrar herbicida?").
 - Use acao=desconhecido apenas se a intenção for realmente incompreensível (não use só por faltar campos).
 PROMPT;
 
@@ -344,7 +349,7 @@ function iaSanitizarIntentParcial(?array $intent): ?array
     $permitidos = [
         'acao', 'tipo', 'data', 'area_nomes', 'produto_nomes', 'quantidade', 'unidade',
         'variedade', 'tipo_semeadura', 'tempo_irrigacao', 'unidade_tempo', 'titulo',
-        'descricao', 'observacoes', 'previsao_dias', 'confianca', 'mensagem',
+        'descricao', 'observacoes', 'previsao_dias', 'insumo_nome', 'confianca', 'mensagem',
         '_data_respondida', '_previsao_respondida', '_obs_respondida',
     ];
 
@@ -369,6 +374,7 @@ function iaNormalizarIntent(array $intent): array
         'descricao' => null,
         'observacoes' => null,
         'previsao_dias' => null,
+        'insumo_nome' => null,
         '_data_respondida' => false,
         '_previsao_respondida' => false,
         '_obs_respondida' => false,

@@ -53,6 +53,7 @@ class ApontamentoExecutor
             'colheita' => $this->criarColheita($intent, $areaIds, $produtoIds),
             'semeadura' => $this->criarSemeadura($intent, $areaIds, $produtoIds),
             'plantio' => $this->criarPlantio($intent, $areaIds, $produtoIds),
+            'herbicida', 'fungicida', 'inseticida', 'fertilizante' => $this->criarInsumo($intent, $areaIds, $tipo),
             'personalizado' => $this->criarPersonalizado($intent, $areaIds),
             default => [
                 'ok' => false,
@@ -298,6 +299,60 @@ class ApontamentoExecutor
                 'executado' => true,
                 'msg' => $msg,
                 'apontamento_id' => $plantio_id,
+            ];
+        } catch (Throwable $e) {
+            $this->mysqli->rollback();
+            throw $e;
+        }
+    }
+
+    private function criarInsumo(array $intent, array $areaIds, string $tipo): array
+    {
+        $nome = trim((string) ($intent['insumo_nome'] ?? ''));
+        if ($nome === '') {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Informe qual produto foi aplicado.'];
+        }
+
+        $quantidade = $intent['quantidade'] ?? null;
+        if ($quantidade === null || !is_numeric($quantidade) || (float) $quantidade <= 0) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Informe a quantidade aplicada.'];
+        }
+
+        $unidade = trim((string) ($intent['unidade'] ?? 'litros'));
+        if ($unidade === '') {
+            $unidade = 'litros';
+        }
+
+        $data = (string) ($intent['data'] ?? date('Y-m-d'));
+        $obs = trim((string) ($intent['observacoes'] ?? ''));
+        $propriedade_id = $this->propriedadeId();
+        $qtd = (float) $quantidade;
+        $status = 'pendente';
+
+        $this->mysqli->begin_transaction();
+        try {
+            $stmt = $this->mysqli->prepare('
+                INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ');
+            $stmt->bind_param('issdsss', $propriedade_id, $tipo, $data, $qtd, $unidade, $obs, $status);
+            $stmt->execute();
+            $apontamento_id = (int) $stmt->insert_id;
+            $stmt->close();
+
+            foreach ($areaIds as $area_id) {
+                $this->inserirDetalhe($apontamento_id, 'area_id', (string) $area_id);
+            }
+            $this->inserirDetalhe($apontamento_id, $tipo, $nome);
+
+            $this->mysqli->commit();
+
+            $rotulo = ucfirst($tipo);
+            return [
+                'ok' => true,
+                'executado' => true,
+                'msg' => "{$rotulo} registrado com sucesso!",
+                'apontamento_id' => $apontamento_id,
             ];
         } catch (Throwable $e) {
             $this->mysqli->rollback();

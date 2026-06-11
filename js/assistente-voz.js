@@ -5,7 +5,7 @@
   const API_EXECUTAR = '/funcoes/ia/executar_intent.php';
 
   const SAUDACAO =
-    'Olá! Sou o assistente Frutag. Toque no botão laranja e fale o manejo — por exemplo: adicionar plantio, colheita ou irrigação.';
+    'Oi! Sou o assistente do Caderno Frutag. Toque no botão laranja e me diga o manejo — plantio, colheita, herbicida, irrigação…';
 
   let mediaRecorder = null;
   let audioStream = null;
@@ -132,7 +132,8 @@
     pararFala();
     const u = new SpeechSynthesisUtterance(texto);
     u.lang = 'pt-BR';
-    u.rate = 0.92;
+    u.rate = 0.9;
+    u.pitch = 1.02;
 
     const voices = window.speechSynthesis.getVoices();
     const pt = voices.find((v) => v.lang.startsWith('pt-BR')) || voices.find((v) => v.lang.startsWith('pt'));
@@ -160,6 +161,31 @@
     }
   }
 
+  /** Fala em frases curtas com pausa — soa menos robótico. */
+  function falarNatural(texto, onEnd) {
+    if (!texto) {
+      if (typeof onEnd === 'function') onEnd();
+      return;
+    }
+    const partes = texto
+      .split(/(?<=[.?!…])\s+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (partes.length <= 1 || !('speechSynthesis' in window)) {
+      falar(texto, onEnd);
+      return;
+    }
+    let i = 0;
+    function proxima() {
+      if (i >= partes.length) {
+        if (typeof onEnd === 'function') onEnd();
+        return;
+      }
+      falar(partes[i++], () => setTimeout(proxima, 320));
+    }
+    proxima();
+  }
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
@@ -169,6 +195,7 @@
     if (saudacaoFeita) return;
     saudacaoFeita = true;
     addMsg(SAUDACAO, 'bot');
+    falarNatural(SAUDACAO);
   }
 
   function autoGravarResposta() {
@@ -191,7 +218,7 @@
       resetTudo();
       addMsg(msg, 'bot');
       setHint(msg, 'sucesso');
-      falar(msg);
+      falarNatural(msg);
       notificarAtualizacao();
       return;
     }
@@ -206,7 +233,7 @@
       resetConfirmacao();
       addMsg(pergunta, 'bot');
       setHint('Toque para responder', 'dialogo');
-      falar(fala, autoGravarResposta);
+      falarNatural(fala, autoGravarResposta);
       return;
     }
 
@@ -218,10 +245,10 @@
       elConfirmacao?.classList.remove('d-none');
       updateProgresso(0, 0);
 
-      const fala = data.fala || 'Perfeito! Resumo: ' + resumo + ' Posso confirmar e salvar?';
+      const fala = data.fala || 'Pronto, anotei tudo. ' + resumo + ' Confirmo e salvo?';
       addMsg(fala, 'bot');
       setHint('Confirme ou toque para corrigir', 'confirmacao');
-      falar(fala);
+      falarNatural(fala);
       return;
     }
 
@@ -229,7 +256,7 @@
     const errMsg = data.msg || data.intent?.mensagem || 'Não entendi. Tente reformular.';
     addMsg(errMsg, 'bot');
     setHint(errMsg, 'erro');
-    falar(errMsg);
+    falarNatural(errMsg);
   }
 
   function mensagemMicrofoneBloqueado() {
@@ -501,7 +528,7 @@
         const errMsg = data.err || 'Erro ao processar áudio.';
         addMsg(errMsg, 'bot');
         setHint(errMsg, 'erro');
-        falar(errMsg);
+        falarNatural(errMsg);
         return;
       }
 
@@ -540,7 +567,7 @@
         elConfirmacao?.classList.add('d-none');
         addMsg(msg, 'bot');
         setHint(msg, 'sucesso');
-        falar(msg);
+        falarNatural(msg);
         notificarAtualizacao();
       } else {
         const errMsg = data.msg || data.err || 'Não foi possível executar.';
@@ -583,7 +610,7 @@
     elConfirmacao?.classList.add('d-none');
     addMsg('Ok, vamos recomeçar. Toque para falar o manejo.', 'bot');
     setHint('Toque para falar de novo', '');
-    falar('Ok, vamos recomeçar.');
+    falarNatural('Ok, vamos recomeçar.');
   });
 
   window.addEventListener('pagehide', () => {
