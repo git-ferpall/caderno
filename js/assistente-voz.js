@@ -19,7 +19,14 @@
   let campoDialogo = null;
   let micPronto = false;
   let falando = false;
+  let cardAcaoPendente = null;
   let saudacaoFeita = false;
+
+  const UNIDADES_COLHEITA = [
+    { id: 'kg', label: 'kg' },
+    { id: 'caixas', label: 'Caixas' },
+    { id: 'sacas', label: 'Sacas' },
+  ];
   /** Incrementado ao cancelar — impede falarNatural de continuar após parar. */
   let falaSessaoId = 0;
   let falaTimeoutId = null;
@@ -63,13 +70,19 @@
     if (elChat) elChat.scrollTop = elChat.scrollHeight;
   }
 
-  function addMsg(texto, tipo) {
+  function addMsg(texto, tipo, variante) {
     if (!elChat || !texto) return;
     const div = document.createElement('div');
-    div.className = 'assistente-voz-msg assistente-voz-msg--' + (tipo || 'bot');
+    const extra = variante && variante !== tipo ? ' assistente-voz-msg--' + variante : '';
+    div.className = 'assistente-voz-msg assistente-voz-msg--' + (tipo || 'bot') + extra;
     div.textContent = texto;
     elChat.appendChild(div);
     scrollChat();
+  }
+
+  function flashAvatarSucesso() {
+    elAvatar?.classList.add('assistente-voz-avatar--sucesso');
+    window.setTimeout(() => elAvatar?.classList.remove('assistente-voz-avatar--sucesso'), 900);
   }
 
   function fecharFormsCards(wrap, exceto) {
@@ -233,21 +246,127 @@
     if (!formWrap) return;
 
     fecharFormsCards(card.closest('.assistente-voz-cards'), formWrap);
+    formWrap.replaceChildren();
 
-    formWrap.innerHTML =
-      '<label class="assistente-voz-card-form-label">Quanto colheu?</label>' +
-      '<div class="assistente-voz-card-form-linha">' +
-      '<input type="number" class="assistente-voz-card-input" min="0" step="0.01" inputmode="decimal" placeholder="Ex: 150">' +
-      '<span class="assistente-voz-card-form-un">kg</span>' +
-      '</div>' +
-      '<div class="assistente-voz-card-form-acoes">' +
-      '<button type="button" class="assistente-voz-card-btn" data-form="cancelar">Cancelar</button>' +
-      '<button type="button" class="assistente-voz-card-btn assistente-voz-card-btn--prim" data-form="salvar-qtd">Confirmar colheita</button>' +
-      '</div>';
+    const unidadeInicial = (p.unidade && UNIDADES_COLHEITA.some((u) => u.id === p.unidade))
+      ? p.unidade
+      : 'kg';
 
+    const label = document.createElement('label');
+    label.className = 'assistente-voz-card-form-label';
+    label.textContent = 'Quanto colheu?';
+
+    const linha = document.createElement('div');
+    linha.className = 'assistente-voz-card-form-linha';
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'assistente-voz-card-input';
+    input.min = '0';
+    input.step = '0.01';
+    input.inputMode = 'decimal';
+    input.placeholder = 'Ex: 150';
+    if (p.quantidade && Number(p.quantidade) > 0) {
+      input.value = String(p.quantidade);
+    }
+
+    linha.appendChild(input);
+
+    const unWrap = document.createElement('div');
+    unWrap.className = 'assistente-voz-card-unidades';
+    unWrap.setAttribute('role', 'group');
+    unWrap.setAttribute('aria-label', 'Unidade');
+
+    UNIDADES_COLHEITA.forEach((u) => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className =
+        'assistente-voz-card-un' + (u.id === unidadeInicial ? ' assistente-voz-card-un--ativa' : '');
+      pill.dataset.unidade = u.id;
+      pill.textContent = u.label;
+      pill.addEventListener('click', () => {
+        unWrap.querySelectorAll('.assistente-voz-card-un').forEach((el) => {
+          el.classList.remove('assistente-voz-card-un--ativa');
+        });
+        pill.classList.add('assistente-voz-card-un--ativa');
+      });
+      unWrap.appendChild(pill);
+    });
+
+    const acoes = document.createElement('div');
+    acoes.className = 'assistente-voz-card-form-acoes';
+
+    const btnCancel = document.createElement('button');
+    btnCancel.type = 'button';
+    btnCancel.className = 'assistente-voz-card-btn';
+    btnCancel.dataset.form = 'cancelar';
+    btnCancel.textContent = 'Cancelar';
+
+    const btnSalvar = document.createElement('button');
+    btnSalvar.type = 'button';
+    btnSalvar.className = 'assistente-voz-card-btn assistente-voz-card-btn--prim';
+    btnSalvar.dataset.form = 'salvar-qtd';
+    btnSalvar.textContent = 'Confirmar colheita';
+
+    acoes.append(btnCancel, btnSalvar);
+    formWrap.append(label, linha, unWrap, acoes);
     formWrap.classList.remove('d-none');
-    formWrap.querySelector('input')?.focus();
+    input.focus();
     scrollChat();
+  }
+
+  function obterUnidadeColheitaCard(formWrap) {
+    return formWrap?.querySelector('.assistente-voz-card-un--ativa')?.dataset.unidade || 'kg';
+  }
+
+  function labelUnidadeColheita(un) {
+    return UNIDADES_COLHEITA.find((u) => u.id === un)?.label || un;
+  }
+
+  function animarCardSucesso(card, opts, onDone) {
+    if (!card) {
+      if (typeof onDone === 'function') onDone();
+      return;
+    }
+    const remover = opts?.remover !== false;
+    card.classList.add('assistente-voz-card--sucesso');
+
+    const check = document.createElement('div');
+    check.className = 'assistente-voz-card-check';
+    check.setAttribute('aria-hidden', 'true');
+    check.innerHTML =
+      '<span class="assistente-voz-card-check-icone">✓</span><span class="assistente-voz-card-check-txt">Feito!</span>';
+    card.appendChild(check);
+
+    window.setTimeout(() => {
+      if (remover) {
+        card.classList.add('assistente-voz-card--saindo');
+        window.setTimeout(() => {
+          card.remove();
+          if (typeof onDone === 'function') onDone();
+        }, 420);
+      } else {
+        card.classList.remove('assistente-voz-card--sucesso');
+        check.remove();
+        if (typeof onDone === 'function') onDone();
+      }
+    }, remover ? 950 : 700);
+  }
+
+  function atualizarObsNoCard(card, obs) {
+    if (!card) return;
+    let prev = card.querySelector('.assistente-voz-card-obs-preview');
+    if (obs) {
+      if (!prev) {
+        prev = document.createElement('p');
+        prev.className = 'assistente-voz-card-obs-preview';
+        card.querySelector('.assistente-voz-card-corpo')?.after(prev);
+      }
+      prev.textContent = 'Obs: ' + obs;
+    } else if (prev) {
+      prev.remove();
+    }
+    if (card._pendente) card._pendente.observacoes = obs;
   }
 
   function onCardAcaoClick(e) {
@@ -270,7 +389,9 @@
         formWrap.classList.add('d-none');
         enviarAcaoRapida(
           { tipo: 'editar_obs', apontamento_id: id, observacoes: obs },
-          'Salvar observação — ' + formatarTipoCard(p?.tipo)
+          'Salvar observação — ' + formatarTipoCard(p?.tipo),
+          card,
+          'editar_obs'
         );
         return;
       }
@@ -278,10 +399,13 @@
       if (acaoForm === 'salvar-qtd' && id && formWrap) {
         const qtd = parseFloat(formWrap.querySelector('input')?.value || '0');
         if (!qtd || qtd <= 0) return;
+        const un = obterUnidadeColheitaCard(formWrap);
         formWrap.classList.add('d-none');
         enviarAcaoRapida(
-          { tipo: 'concluir', apontamento_id: id, quantidade: qtd, unidade: 'kg' },
-          'Concluir colheita — ' + qtd + ' kg'
+          { tipo: 'concluir', apontamento_id: id, quantidade: qtd, unidade: un },
+          'Concluir colheita — ' + qtd + ' ' + labelUnidadeColheita(un),
+          card,
+          'concluir'
         );
       }
       return;
@@ -325,16 +449,22 @@
       }
       enviarAcaoRapida(
         { tipo: 'concluir', apontamento_id: id },
-        'Concluir — ' + formatarTipoCard(p?.tipo)
+        'Concluir — ' + formatarTipoCard(p?.tipo),
+        card,
+        'concluir'
       );
     }
   }
 
-  async function enviarAcaoRapida(acaoRapida, rotulo) {
+  async function enviarAcaoRapida(acaoRapida, rotulo, cardAlvo, tipoAcao) {
     pararFala();
     if (rotulo) addMsg(rotulo, 'user');
     setHint('Processando…', 'processando');
     showDigitando(true);
+
+    cardAcaoPendente = cardAlvo
+      ? { card: cardAlvo, tipo: tipoAcao || acaoRapida.tipo, obs: acaoRapida.observacoes }
+      : null;
 
     const payload = { acao_rapida: acaoRapida, texto: rotulo || '' };
     if (intentParcial && campoDialogo) {
@@ -352,6 +482,7 @@
       const data = await resp.json();
       if (!data.ok) {
         showDigitando(false);
+        cardAcaoPendente = null;
         const errMsg = data.err || 'Erro ao processar.';
         addMsg(errMsg, 'bot');
         setHint(errMsg, 'erro');
@@ -362,6 +493,7 @@
     } catch (err) {
       console.error(err);
       showDigitando(false);
+      cardAcaoPendente = null;
       addMsg('Falha na comunicação.', 'bot');
       setHint('Sem conexão', 'erro');
     }
@@ -568,14 +700,33 @@
       addMsg(data.transcricao, 'user');
     }
 
+    const cardRef = data.executado ? cardAcaoPendente : null;
+    if (!data.executado) {
+      cardAcaoPendente = null;
+    }
+
     if (data.executado) {
       const msg = data.fala || data.msg || 'Pronto! Manejo registrado.';
-      resetTudo();
-      addMsg(msg, 'bot');
-      if (data.consulta_dados) renderConsultaCards(data.consulta_dados);
-      setHint(msg, 'sucesso');
-      falarNatural(msg);
-      notificarAtualizacao();
+      cardAcaoPendente = null;
+
+      function finalizarSucesso() {
+        resetTudo();
+        addMsg(msg, 'bot', cardRef ? 'sucesso' : null);
+        if (data.consulta_dados) renderConsultaCards(data.consulta_dados);
+        setHint(msg, 'sucesso');
+        falarNatural(msg);
+        notificarAtualizacao();
+        flashAvatarSucesso();
+      }
+
+      if (cardRef?.card) {
+        if (cardRef.tipo === 'editar_obs' && cardRef.obs) {
+          atualizarObsNoCard(cardRef.card, cardRef.obs);
+        }
+        animarCardSucesso(cardRef.card, { remover: cardRef.tipo === 'concluir' }, finalizarSucesso);
+      } else {
+        finalizarSucesso();
+      }
       return;
     }
 

@@ -516,6 +516,8 @@ body.assistente-voz-aberto {
 }
 
 .assistente-voz-card {
+  position: relative;
+  overflow: hidden;
   background: #f0f9ff;
   border: 1px solid #bae6fd;
   border-radius: 10px;
@@ -651,6 +653,105 @@ body.assistente-voz-aberto {
 .assistente-voz-card strong {
   color: #0369a1;
   font-weight: 600;
+}
+
+.assistente-voz-card-unidades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.assistente-voz-card-un {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.assistente-voz-card-un--ativa {
+  background: #0369a1;
+  border-color: #0369a1;
+  color: #fff;
+}
+
+.assistente-voz-card--sucesso {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.assistente-voz-card-check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  background: rgba(240, 253, 244, 0.92);
+  z-index: 2;
+  animation: assistente-voz-card-check-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.assistente-voz-card-check-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  animation: assistente-voz-check-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.assistente-voz-card-check-txt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+.assistente-voz-card--saindo {
+  animation: assistente-voz-card-out 0.4s ease forwards;
+}
+
+@keyframes assistente-voz-card-check-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes assistente-voz-check-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes assistente-voz-card-out {
+  from { opacity: 1; transform: scale(1); max-height: 8rem; margin: 0; }
+  to { opacity: 0; transform: scale(0.96); max-height: 0; margin: -0.35rem 0; padding: 0; border-width: 0; }
+}
+
+.assistente-voz-msg--sucesso {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+}
+
+.assistente-voz-avatar--sucesso {
+  animation: assistente-voz-avatar-ok 0.55s ease;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+}
+
+@keyframes assistente-voz-avatar-ok {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 
 /* ── Mobile: bottom sheet ── */
