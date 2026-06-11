@@ -11,10 +11,10 @@
   height: 4rem;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.35);
-  background: linear-gradient(145deg, #1b5e20 0%, #43a047 45%, #66bb6a 100%);
+  background: linear-gradient(145deg, var(--azul-e) 0%, var(--azul) 55%, #2ec4ba 100%);
   color: #fff;
   box-shadow:
-    0 6px 20px rgba(27, 94, 32, 0.45),
+    0 6px 20px rgba(0, 79, 114, 0.45),
     0 2px 6px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   display: flex;
@@ -27,7 +27,7 @@
   transform: scale(1.06);
   border-color: rgba(255, 255, 255, 0.55);
   box-shadow:
-    0 8px 28px rgba(27, 94, 32, 0.5),
+    0 8px 28px rgba(0, 79, 114, 0.55),
     0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
