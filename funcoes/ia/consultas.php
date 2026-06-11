@@ -398,7 +398,7 @@ function iaBuscarUltimoApontamento(mysqli $mysqli, int $propriedade_id, ?string 
         $params[] = $tipo;
     }
 
-    $sql .= ' ORDER BY a.data_ref DESC, a.id DESC LIMIT 1';
+    $sql .= ' ORDER BY COALESCE(a.data_conclusao, a.data) DESC, a.id DESC LIMIT 1';
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param($types, ...$params);
@@ -809,7 +809,7 @@ function iaBuscarUltimoApontamentoArea(mysqli $mysqli, int $propriedade_id, int 
         $types .= 's';
         $params[] = $tipo;
     }
-    $sql .= ' ORDER BY a.data_ref DESC, a.id DESC LIMIT 1';
+    $sql .= ' ORDER BY COALESCE(a.data_conclusao, a.data) DESC, a.id DESC LIMIT 1';
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param($types, ...$params);
