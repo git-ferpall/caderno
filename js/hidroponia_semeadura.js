@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const unidade = form.querySelector('select[id*="-unidade"]')?.value || "sementes";
       const obs = form.querySelector('textarea[id*="-obs"]')?.value.trim() || "";
       const cultivo = form.querySelector('select[id*="-cultivo"]')?.value || "";
+      const status = form.querySelector('select[id*="-status"]')?.value || "";
 
       if (!estufa_id || !area_id) {
         alert("Erro interno: estufa ou bancada não identificada.");
@@ -40,6 +41,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (!data || !tipoSemeadura || !qtd) {
         alert("Preencha data, tipo de semeadura e quantidade.");
+        return;
+      }
+      if (!status) {
+        alert("Selecione se o manejo está concluído ou pendente.");
         return;
       }
 
@@ -53,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("quantidade", qtd);
         fd.append("unidade", unidade);
         fd.append("obs", obs);
+        fd.append("status", status);
         if (cultivo) fd.append("cultivo_produto_id", cultivo);
 
         if (typeof CadernoSalvar !== "undefined") {

@@ -37,6 +37,7 @@ try {
     $quantidade = trim((string) ($_POST['quantidade'] ?? ''));
     $unidade = trim((string) ($_POST['unidade'] ?? 'sementes'));
     $obs = trim((string) ($_POST['obs'] ?? ''));
+    $status = trim((string) ($_POST['status'] ?? ''));
 
     $tiposValidos = ['Direta', 'Bandeja', 'Canteiro', 'Replantio'];
 
@@ -45,6 +46,9 @@ try {
     }
     if ($data === '' || $quantidade === '' || !in_array($tipoSemeadura, $tiposValidos, true)) {
         throw new RuntimeException('Preencha data, quantidade e tipo de semeadura');
+    }
+    if (!in_array($status, ['pendente', 'concluido'], true)) {
+        throw new RuntimeException('Selecione se o manejo está concluído ou pendente');
     }
 
     $stmt = $mysqli->prepare('
@@ -86,22 +90,38 @@ try {
     $mysqli->begin_transaction();
 
     $tipo_apontamento = 'semeadura';
-    $status = 'concluido';
 
-    $stmt = $mysqli->prepare('
-        INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ');
-    $stmt->bind_param(
-        'issdsss',
-        $propriedade_id,
-        $tipo_apontamento,
-        $data,
-        $qtd,
-        $unidade,
-        $obs,
-        $status
-    );
+    if ($status === 'concluido') {
+        $stmt = $mysqli->prepare('
+            INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status, data_conclusao)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        ');
+        $stmt->bind_param(
+            'issdsss',
+            $propriedade_id,
+            $tipo_apontamento,
+            $data,
+            $qtd,
+            $unidade,
+            $obs,
+            $status
+        );
+    } else {
+        $stmt = $mysqli->prepare('
+            INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ');
+        $stmt->bind_param(
+            'issdsss',
+            $propriedade_id,
+            $tipo_apontamento,
+            $data,
+            $qtd,
+            $unidade,
+            $obs,
+            $status
+        );
+    }
     $stmt->execute();
     $apontamento_id = (int) $stmt->insert_id;
     $stmt->close();

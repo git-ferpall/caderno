@@ -395,6 +395,15 @@ if (!headers_sent()) {
                                             </div>
 
                                             <div class="form-campo">
+                                                <label for="sem-' . $form_id . '-status">Status do manejo</label>
+                                                <select name="sem-' . $form_id . '-status" id="sem-' . $form_id . '-status" class="form-select form-text" required>
+                                                    <option value="">Selecione</option>
+                                                    <option value="concluido">Concluído</option>
+                                                    <option value="pendente">Pendente</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-campo">
                                                 <label for="sem-' . $form_id . '-obs">Observações</label>
                                                 <textarea class="form-text form-textarea" name="sem-' . $form_id . '-obs" id="sem-' . $form_id . '-obs" placeholder="Insira aqui suas observações..."></textarea>
                                             </div>

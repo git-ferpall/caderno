@@ -186,14 +186,23 @@ class ApontamentoExecutor
         $variedade = trim((string) ($intent['variedade'] ?? ''));
         $propriedade_id = $this->propriedadeId();
         $qtd = (float) $quantidade;
+        $status = in_array($intent['status'] ?? '', ['pendente', 'concluido'], true)
+            ? $intent['status']
+            : 'concluido';
 
         $this->mysqli->begin_transaction();
         try {
-            $status = 'concluido';
-            $stmt = $this->mysqli->prepare('
-                INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
-                VALUES (?, \'semeadura\', ?, ?, ?, ?, ?)
-            ');
+            if ($status === 'concluido') {
+                $stmt = $this->mysqli->prepare('
+                    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status, data_conclusao)
+                    VALUES (?, \'semeadura\', ?, ?, ?, ?, ?, NOW())
+                ');
+            } else {
+                $stmt = $this->mysqli->prepare('
+                    INSERT INTO apontamentos (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+                    VALUES (?, \'semeadura\', ?, ?, ?, ?, ?)
+                ');
+            }
             $stmt->bind_param('isdsss', $propriedade_id, $data, $qtd, $unidade, $obs, $status);
             $stmt->execute();
             $apontamento_id = (int) $stmt->insert_id;

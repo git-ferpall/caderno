@@ -62,27 +62,49 @@ if ($unidade === '') {
     semeaduraJsonError('Informe a unidade da quantidade.');
 }
 
+$status = trim((string) ($_POST['status'] ?? ''));
+if (!in_array($status, ['pendente', 'concluido'], true)) {
+    semeaduraJsonError('Selecione se o manejo está concluído ou pendente.');
+}
+
 $mysqli->begin_transaction();
 
 try {
     $tipo = 'semeadura';
-    $status = 'concluido';
 
-    $stmt = $mysqli->prepare('
-        INSERT INTO apontamentos
-        (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ');
-    $stmt->bind_param(
-        'issdsss',
-        $propriedade_id,
-        $tipo,
-        $data,
-        $quantidade,
-        $unidade,
-        $obs,
-        $status
-    );
+    if ($status === 'concluido') {
+        $stmt = $mysqli->prepare('
+            INSERT INTO apontamentos
+            (propriedade_id, tipo, data, quantidade, unidade, observacoes, status, data_conclusao)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        ');
+        $stmt->bind_param(
+            'issdsss',
+            $propriedade_id,
+            $tipo,
+            $data,
+            $quantidade,
+            $unidade,
+            $obs,
+            $status
+        );
+    } else {
+        $stmt = $mysqli->prepare('
+            INSERT INTO apontamentos
+            (propriedade_id, tipo, data, quantidade, unidade, observacoes, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ');
+        $stmt->bind_param(
+            'issdsss',
+            $propriedade_id,
+            $tipo,
+            $data,
+            $quantidade,
+            $unidade,
+            $obs,
+            $status
+        );
+    }
     $stmt->execute();
     $apontamento_id = (int) $stmt->insert_id;
     $stmt->close();
@@ -128,7 +150,9 @@ try {
 
     echo json_encode([
         'ok' => true,
-        'msg' => 'Semeadura registrada com sucesso!',
+        'msg' => $status === 'concluido'
+            ? 'Semeadura registrada como concluída!'
+            : 'Semeadura registrada como pendente.',
     ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     $mysqli->rollback();

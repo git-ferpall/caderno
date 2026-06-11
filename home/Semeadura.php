@@ -138,6 +138,16 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
           <div class="form-campo">
+            <label for="status">Status do manejo</label>
+            <select id="status" name="status" class="form-select form-text" required>
+              <option value="">Selecione o status</option>
+              <option value="concluido">Concluído</option>
+              <option value="pendente">Pendente</option>
+            </select>
+            <small id="aviso-status-semeadura" class="form-hint" style="display:block;margin-top:6px;font-size:0.9em;color:#666;"></small>
+          </div>
+
+          <div class="form-campo">
             <label for="obs">Observações</label>
             <textarea id="obs" name="obs" class="form-text form-textarea"></textarea>
           </div>

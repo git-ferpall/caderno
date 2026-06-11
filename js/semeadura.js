@@ -103,6 +103,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const form = document.getElementById("form-semeadura");
+  const statusSelect = document.getElementById("status");
+  const avisoStatus = document.getElementById("aviso-status-semeadura");
+
+  function atualizarAvisoStatus() {
+    if (!avisoStatus || !statusSelect) return;
+    if (statusSelect.value === "pendente") {
+      avisoStatus.textContent = "Aparecerá em «Manejo a fazer» até você concluir.";
+      avisoStatus.style.color = "#e65100";
+    } else if (statusSelect.value === "concluido") {
+      avisoStatus.textContent = "Será registrada direto em «Manejo concluído».";
+      avisoStatus.style.color = "#2e7d32";
+    } else {
+      avisoStatus.textContent = "";
+    }
+  }
+
+  statusSelect?.addEventListener("change", atualizarAvisoStatus);
+
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
