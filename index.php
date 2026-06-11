@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/configuracao/https.php';
 session_start();
 
 require_once __DIR__ . '/configuracao/auth.php';

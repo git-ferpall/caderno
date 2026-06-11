@@ -2,9 +2,10 @@
     RewriteEngine On
     RewriteBase /
 
-    # HTTPS atrás de proxy (nginx, load balancer)
-    RewriteCond %{HTTP:X-Forwarded-Proto} =https
-    RewriteRule ^ - [E=HTTPS:on]
+    # HTTPS atrás de proxy (nginx, load balancer) — evita redirects http://
+    RewriteCond %{HTTP:X-Forwarded-Proto} =https [OR]
+    RewriteCond %{HTTPS} =on
+    RewriteRule ^ - [E=HTTPS:on,E=REQUEST_SCHEME:https]
 
     # Redireciona GET com .php para URL limpa (mantém APIs/backend com .php)
     RewriteCond %{REQUEST_METHOD} =GET

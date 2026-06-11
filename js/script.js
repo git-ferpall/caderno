@@ -225,7 +225,7 @@ function validaDados() {
   const form = document.getElementById('flogin');
 
   if (user && pass) {
-    form.action = "/home/home.php";
+    form.action = "/home";
     form.submit();
   } else {
     alert("Preencha todos os campos antes de entrar.");

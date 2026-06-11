@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/https.php';
+
 // Conexão única, independente de HTTP_HOST
 // Lê DB_PASSWORD OU DB_PASS e usa defaults do banco local (caderno-db)
 

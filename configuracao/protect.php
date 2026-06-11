@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/https.php';
+
 // inicia buffer de saída para evitar "headers already sent"
 ob_start();
 
