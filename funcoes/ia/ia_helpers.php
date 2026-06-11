@@ -40,6 +40,17 @@ function iaOpenAiKey(): string
     return $key;
 }
 
+function iaModel(string $constant, string $default): string
+{
+    if (defined($constant)) {
+        $value = trim((string) constant($constant));
+        if ($value !== '') {
+            return $value;
+        }
+    }
+    return $default;
+}
+
 function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPath = null, ?string $multipartMime = null): array
 {
     $url = rtrim(OPENAI_API_BASE, '/') . $endpoint;
@@ -48,8 +59,19 @@ function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPat
     $headers = ['Authorization: Bearer ' . iaOpenAiKey()];
 
     if ($multipartPath !== null) {
-        $payload['file'] = new CURLFile($multipartPath, $multipartMime ?: 'audio/webm', 'audio.webm');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        $fields = [];
+        foreach ($payload as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            $fields[$key] = (string) $value;
+        }
+        $fields['file'] = new CURLFile(
+            $multipartPath,
+            $multipartMime ?: 'audio/webm',
+            'audio.webm'
+        );
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
     } else {
         $headers[] = 'Content-Type: application/json';
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
@@ -83,7 +105,7 @@ function iaOpenAiRequest(string $endpoint, array $payload, ?string $multipartPat
 
 function iaTranscreverAudio(string $filePath, string $mime = 'audio/webm'): string
 {
-    $model = defined('OPENAI_WHISPER_MODEL') ? OPENAI_WHISPER_MODEL : 'whisper-1';
+    $model = iaModel('OPENAI_WHISPER_MODEL', 'whisper-1');
     $resp = iaOpenAiRequest('/audio/transcriptions', [
         'model' => $model,
         'language' => 'pt',
@@ -99,7 +121,7 @@ function iaTranscreverAudio(string $filePath, string $mime = 'audio/webm'): stri
 
 function iaInterpretarComando(string $transcricao, array $contexto): array
 {
-    $model = defined('OPENAI_CHAT_MODEL') ? OPENAI_CHAT_MODEL : 'gpt-4o-mini';
+    $model = iaModel('OPENAI_CHAT_MODEL', 'gpt-4o-mini');
     $hoje = date('Y-m-d');
 
     $system = <<<PROMPT
