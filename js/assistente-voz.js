@@ -128,6 +128,9 @@
     });
   }
 
+  const PLACEHOLDER_TEXTO_PADRAO = 'Digite ou fale seu comando…';
+  const PLACEHOLDER_TEXTO_DIALOGO = 'Digite o número ou nome…';
+
   function formatarTipoCard(tipo) {
     return (tipo || 'manejo').replace(/_/g, ' ');
   }
@@ -146,15 +149,20 @@
     return partes.join(' · ');
   }
 
-  function renderEscolhaPendentes(opcoes) {
+  function renderDialogoOpcoes(opcoes, campo) {
     if (!elChat || !opcoes?.length) return;
 
     const wrap = document.createElement('div');
     wrap.className = 'assistente-voz-escolha';
+    wrap.dataset.campo = campo || '';
     wrap.setAttribute('role', 'listbox');
-    wrap.setAttribute('aria-label', 'Escolha o pendente');
+    wrap.setAttribute('aria-label', 'Opções do diálogo');
 
-    opcoes.forEach((p, i) => {
+    opcoes.forEach((op, i) => {
+      const valor = String(op.valor ?? op.label ?? '');
+      const label = String(op.label ?? op.valor ?? valor);
+      if (!valor) return;
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'assistente-voz-escolha-item';
@@ -166,7 +174,7 @@
 
       const txt = document.createElement('span');
       txt.className = 'assistente-voz-escolha-txt';
-      txt.textContent = rotuloPendenteEscolha(p);
+      txt.textContent = label;
 
       btn.append(num, txt);
       btn.addEventListener('click', () => {
@@ -174,18 +182,38 @@
           el.disabled = true;
         });
         btn.classList.add('assistente-voz-escolha-item--ativa');
-        selecionarPendenteDialogo(p, i);
+        selecionarOpcaoDialogo(valor, label, i);
       });
       wrap.appendChild(btn);
     });
+
+    const dica = document.createElement('p');
+    dica.className = 'assistente-voz-escolha-dica';
+    dica.textContent = 'Ou digite/fale o número ou o nome no campo abaixo.';
+    wrap.appendChild(dica);
 
     elChat.appendChild(wrap);
     scrollChat();
   }
 
-  function selecionarPendenteDialogo(p, index) {
-    const rotulo = index + 1 + ' — ' + rotuloPendenteEscolha(p);
-    enviarComandoTexto(String(index + 1), rotulo);
+  function selecionarOpcaoDialogo(valor, label, index) {
+    const rotulo = index + 1 + ' — ' + label;
+    enviarComandoTexto(String(valor), rotulo);
+  }
+
+  function atualizarPlaceholderDialogo(comLista) {
+    if (!inputTexto) return;
+    inputTexto.placeholder = comLista ? PLACEHOLDER_TEXTO_DIALOGO : PLACEHOLDER_TEXTO_PADRAO;
+  }
+
+  function renderEscolhaPendentes(opcoes) {
+    renderDialogoOpcoes(
+      opcoes.map((p, i) => ({
+        valor: String(i + 1),
+        label: rotuloPendenteEscolha(p),
+      })),
+      'pendente_escolha'
+    );
   }
 
   function renderConsultaCards(dados) {
@@ -616,6 +644,7 @@
     intentParcial = null;
     campoDialogo = null;
     updateProgresso(0, 0);
+    atualizarPlaceholderDialogo(false);
   }
 
   function resetChat() {
@@ -818,10 +847,21 @@
       resetConfirmacao();
       addMsg(pergunta, 'bot');
 
-      if (campoDialogo === 'pendente_escolha' && data.intent_parcial._pendentes_opcao?.length) {
-        renderEscolhaPendentes(data.intent_parcial._pendentes_opcao);
-        setHint('Toque na opção ou diga o número (ex: 1, 2…)', 'dialogo');
+      const opcoes =
+        data.dialogo_opcoes ||
+        (campoDialogo === 'pendente_escolha' && data.intent_parcial._pendentes_opcao?.length
+          ? data.intent_parcial._pendentes_opcao.map((p, i) => ({
+              valor: String(i + 1),
+              label: rotuloPendenteEscolha(p),
+            }))
+          : null);
+
+      if (opcoes?.length) {
+        renderDialogoOpcoes(opcoes, campoDialogo);
+        atualizarPlaceholderDialogo(true);
+        setHint('Toque na opção, ou digite/fale o número ou o nome', 'dialogo');
       } else {
+        atualizarPlaceholderDialogo(true);
         setHint('Responda abaixo ou toque para falar', 'dialogo');
       }
 

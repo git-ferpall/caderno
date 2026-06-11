@@ -93,8 +93,9 @@ final class IaPipeline
             $campo = (string) $perguntaDialogo['campo'];
             $pergunta = (string) $perguntaDialogo['pergunta'];
             $progresso = iaProgressoDialogo($intent, $campo);
-            $fala = iaMontarFalaAssistente($intent, $pergunta, $campo);
+            $fala = iaMontarFalaAssistente($intent, $pergunta, $campo, $contexto);
             $intentCliente = iaLimparIntentCliente($intent);
+            $dialogoOpcoes = iaDialogoOpcoes($campo, $intent, $contexto);
 
             return [
                 'ok' => true,
@@ -109,6 +110,7 @@ final class IaPipeline
                 'campo_dialogo' => $campo,
                 'dialogo_passo' => $progresso['passo'],
                 'dialogo_total' => $progresso['total'],
+                'dialogo_opcoes' => $dialogoOpcoes ?: null,
                 'intent_parcial' => $intentCliente,
                 'executado' => false,
                 'msg' => $pergunta,

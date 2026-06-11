@@ -583,6 +583,14 @@ body.assistente-voz-aberto {
   padding-top: 0.1rem;
 }
 
+.assistente-voz-escolha-dica {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.35;
+  padding-left: 0.15rem;
+}
+
 .assistente-voz-card {
   position: relative;
   overflow: hidden;

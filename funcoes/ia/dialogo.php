@@ -63,6 +63,103 @@ function iaFormatarListaNomes(array $items, string $campo = 'nome', int $max = 1
     return $lista;
 }
 
+function iaHintDialogoLista(): string
+{
+    return ' Toque na lista, ou digite/fale o número ou o nome.';
+}
+
+/** Opções clicáveis enviadas à UI durante o diálogo. */
+function iaDialogoOpcoes(string $campo, array $intent, array $contexto, int $max = 12): array
+{
+    $opcoes = [];
+
+    switch ($campo) {
+        case 'pendente_escolha':
+            foreach (array_slice($intent['_pendentes_opcao'] ?? [], 0, $max) as $i => $p) {
+                $tipo = iaTiposManejo()[$p['tipo'] ?? ''] ?? ($p['tipo'] ?? 'manejo');
+                $partes = [$tipo];
+                if (!empty($p['produto'])) {
+                    $partes[] = (string) $p['produto'];
+                }
+                if (!empty($p['areas'])) {
+                    $partes[] = (string) $p['areas'];
+                }
+                if (!empty($p['data'])) {
+                    $partes[] = iaFormatarDataConsulta((string) $p['data']);
+                }
+                $opcoes[] = [
+                    'valor' => (string) ($i + 1),
+                    'label' => implode(' · ', $partes),
+                ];
+            }
+            break;
+
+        case 'area':
+            foreach (array_slice($contexto['areas'] ?? [], 0, $max) as $a) {
+                $nome = trim((string) ($a['nome'] ?? ''));
+                if ($nome !== '') {
+                    $opcoes[] = ['valor' => $nome, 'label' => $nome];
+                }
+            }
+            break;
+
+        case 'produto':
+            foreach (array_slice($contexto['produtos'] ?? [], 0, $max) as $p) {
+                $nome = trim((string) ($p['nome'] ?? ''));
+                if ($nome !== '') {
+                    $opcoes[] = ['valor' => $nome, 'label' => $nome];
+                }
+            }
+            break;
+
+        case 'insumo':
+            $tipoInsumo = (string) ($intent['tipo'] ?? '');
+            foreach (array_slice(iaListaInsumosContexto($contexto, $tipoInsumo), 0, $max) as $item) {
+                $nome = trim((string) ($item['nome'] ?? ''));
+                if ($nome !== '') {
+                    $opcoes[] = ['valor' => $nome, 'label' => $nome];
+                }
+            }
+            break;
+
+        case 'tipo':
+            foreach (iaTiposComDialogo() as $id) {
+                $label = iaTiposManejo()[$id] ?? $id;
+                $opcoes[] = ['valor' => $label, 'label' => $label];
+            }
+            break;
+
+        case 'tipo_semeadura':
+            foreach (['Direta', 'Bandeja', 'Canteiro', 'Replantio'] as $ts) {
+                $opcoes[] = ['valor' => $ts, 'label' => $ts];
+            }
+            break;
+
+        case 'cancel_confirmacao':
+            $opcoes[] = ['valor' => 'sim', 'label' => 'Sim, confirmar'];
+            $opcoes[] = ['valor' => 'não', 'label' => 'Não, cancelar'];
+            break;
+    }
+
+    return $opcoes;
+}
+
+/** Resolve resposta por número da lista ou por nome aproximado. */
+function iaResolverEscolhaCatalogo(string $texto, array $catalogo, int $max = 12): string
+{
+    $limpo = trim($texto);
+    if (preg_match('/^\d+$/u', $limpo)) {
+        $idx = (int) $limpo - 1;
+        $slice = array_values(array_slice($catalogo, 0, $max));
+        if (isset($slice[$idx])) {
+            return trim((string) ($slice[$idx]['nome'] ?? $slice[$idx]['label'] ?? ''));
+        }
+    }
+
+    $match = iaMelhorMatch($texto, $catalogo, 0.45);
+    return $match['label'] ?: $texto;
+}
+
 function iaUsuarioPulouCampo(string $texto): bool
 {
     $t = iaNormalizarTexto($texto);
@@ -271,7 +368,7 @@ function iaProximaPerguntaConcluir(array $intent, array $resolucao, array $conte
     if (empty($intent['apontamento_id']) && !empty($intent['_pendentes_opcao'])) {
         return [
             'campo' => 'pendente_escolha',
-            'pergunta' => 'Qual pendente concluir? Toque na lista ou diga o número.',
+            'pergunta' => 'Qual pendente concluir?' . iaHintDialogoLista(),
         ];
     }
 
@@ -307,7 +404,7 @@ function iaProximaPerguntaCancelar(array $intent): ?array
     if (empty($intent['apontamento_id']) && empty($intent['_cancel_confirmado'])) {
         return [
             'campo' => 'cancel_confirmacao',
-            'pergunta' => 'Confirma cancelar o último apontamento? Diga sim ou não.',
+            'pergunta' => 'Confirma cancelar o último apontamento?' . iaHintDialogoLista(),
         ];
     }
     return null;
@@ -353,7 +450,7 @@ function iaProximaPerguntaCriar(array $intent, array $resolucao, array $contexto
     if ($tipo === '') {
         return [
             'campo' => 'tipo',
-            'pergunta' => 'O que foi hoje? Plantio, colheita, irrigação, herbicida…?',
+            'pergunta' => 'O que foi hoje?' . iaHintDialogoLista(),
         ];
     }
 
@@ -369,47 +466,38 @@ function iaProximaPerguntaCriar(array $intent, array $resolucao, array $contexto
     }
 
     if (empty($resolucao['area_ids'])) {
-        $lista = iaFormatarListaNomes($contexto['areas'] ?? []);
         if (empty($intent['area_nomes'])) {
-            $hint = $lista ? ' Tenho: ' . $lista . '.' : '';
             return [
                 'campo' => 'area',
-                'pergunta' => 'Em qual área?' . $hint,
+                'pergunta' => 'Em qual área?' . iaHintDialogoLista(),
             ];
         }
 
         return [
             'campo' => 'area',
-            'pergunta' => 'Não achei essa área.' . ($lista ? ' Cadastradas: ' . $lista . '.' : '')
-                . ' Qual delas?',
+            'pergunta' => 'Não achei essa área. Qual delas?' . iaHintDialogoLista(),
         ];
     }
 
     if (iaTipoUsaInsumo($tipo) && trim((string) ($intent['insumo_nome'] ?? '')) === '') {
-        $catalogo = iaListaInsumosContexto($contexto, $tipo);
-        $lista = iaFormatarListaNomes($catalogo);
         $rotulo = iaNomeInsumo($tipo);
-        $hint = $lista ? ' Tenho: ' . $lista . '.' : '';
         return [
             'campo' => 'insumo',
-            'pergunta' => "Qual {$rotulo} você usou?" . $hint,
+            'pergunta' => "Qual {$rotulo} você usou?" . iaHintDialogoLista(),
         ];
     }
 
     if ($tipo !== 'personalizado' && !iaTipoUsaInsumo($tipo) && empty($resolucao['produto_ids'])) {
-        $lista = iaFormatarListaNomes($contexto['produtos'] ?? []);
         if (empty($intent['produto_nomes'])) {
-            $hint = $lista ? ' Produtos disponíveis: ' . $lista . '.' : '';
             return [
                 'campo' => 'produto',
-                'pergunta' => 'Qual cultura ou produto?' . $hint,
+                'pergunta' => 'Qual cultura ou produto?' . iaHintDialogoLista(),
             ];
         }
 
         return [
             'campo' => 'produto',
-            'pergunta' => 'Não encontrei esse produto.' . ($lista ? ' Cadastrados: ' . $lista . '.' : '')
-                . ' Qual é o correto?',
+            'pergunta' => 'Não encontrei esse produto. Qual é o correto?' . iaHintDialogoLista(),
         ];
     }
 
@@ -431,7 +519,7 @@ function iaProximaPerguntaCriar(array $intent, array $resolucao, array $contexto
     if ($tipo === 'semeadura' && empty($intent['tipo_semeadura'])) {
         return [
             'campo' => 'tipo_semeadura',
-            'pergunta' => 'Qual o tipo de semeadura? Direta, bandeja, canteiro ou replantio?',
+            'pergunta' => 'Qual o tipo de semeadura?' . iaHintDialogoLista(),
         ];
     }
 
@@ -597,7 +685,7 @@ function iaConfirmarResposta(string $campo, string $texto, array $intent): strin
     };
 }
 
-function iaMontarFalaAssistente(array $intent, string $pergunta, string $campoAtual): string
+function iaMontarFalaAssistente(array $intent, string $pergunta, string $campoAtual, ?array $contexto = null): string
 {
     $partes = [];
 
@@ -626,6 +714,14 @@ function iaMontarFalaAssistente(array $intent, string $pergunta, string $campoAt
                 . (!empty($p['data']) ? ', ' . iaFormatarDataFala((string) $p['data']) : '');
         }
         $partes[] = 'Tenho ' . count($lista) . ' opções: ' . implode('. ', $lista) . '.';
+    } elseif ($contexto !== null && iaDialogoOpcoes($campoAtual, $intent, $contexto)) {
+        $ops = iaDialogoOpcoes($campoAtual, $intent, $contexto);
+        $labels = array_map(static fn ($o) => (string) ($o['label'] ?? ''), $ops);
+        $amostra = array_slice(array_filter($labels), 0, 6);
+        if ($amostra) {
+            $partes[] = 'Na tela: ' . implode(', ', $amostra)
+                . (count($labels) > count($amostra) ? ', e outras' : '') . '.';
+        }
     }
 
     $partes[] = $pergunta;
@@ -838,6 +934,14 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
 
     switch ($campo) {
         case 'tipo':
+            if (preg_match('/^\d+$/u', $texto)) {
+                $ids = iaTiposComDialogo();
+                $idx = (int) $texto - 1;
+                if (isset($ids[$idx])) {
+                    $intent['tipo'] = $ids[$idx];
+                    break;
+                }
+            }
             $tipo = iaNormalizarTipoManejo($texto);
             if ($tipo) {
                 $intent['tipo'] = $tipo;
@@ -853,20 +957,20 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
             break;
 
         case 'area':
-            $match = iaMelhorMatch($texto, $contexto['areas'] ?? [], 0.45);
-            $intent['area_nomes'] = [$match['label'] ?: $texto];
+            $nome = iaResolverEscolhaCatalogo($texto, $contexto['areas'] ?? []);
+            $intent['area_nomes'] = [$nome !== '' ? $nome : $texto];
             break;
 
         case 'produto':
-            $match = iaMelhorMatch($texto, $contexto['produtos'] ?? [], 0.45);
-            $intent['produto_nomes'] = [$match['label'] ?: $texto];
+            $nome = iaResolverEscolhaCatalogo($texto, $contexto['produtos'] ?? []);
+            $intent['produto_nomes'] = [$nome !== '' ? $nome : $texto];
             break;
 
         case 'insumo':
             $tipo = (string) ($intent['tipo'] ?? '');
             $catalogo = iaListaInsumosContexto($contexto, $tipo);
-            $match = iaMelhorMatch($texto, $catalogo, 0.45);
-            $intent['insumo_nome'] = $match['label'] ?: $texto;
+            $nome = iaResolverEscolhaCatalogo($texto, $catalogo);
+            $intent['insumo_nome'] = $nome !== '' ? $nome : $texto;
             break;
 
         case 'quantidade':
@@ -886,6 +990,14 @@ function iaMesclarRespostaDialogo(array $intent, string $campo, string $texto, a
             break;
 
         case 'tipo_semeadura':
+            if (preg_match('/^\d+$/u', $texto)) {
+                $opcoes = ['Direta', 'Bandeja', 'Canteiro', 'Replantio'];
+                $idx = (int) $texto - 1;
+                if (isset($opcoes[$idx])) {
+                    $intent['tipo_semeadura'] = $opcoes[$idx];
+                    break;
+                }
+            }
             $intent['tipo_semeadura'] = iaNormalizarTipoSemeadura($texto);
             break;
 
