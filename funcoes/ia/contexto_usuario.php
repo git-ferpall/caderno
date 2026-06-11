@@ -152,5 +152,8 @@ function iaContextoParaIa(array $contexto, int $maxAreas = 40, int $maxProdutos 
         'herbicidas' => array_slice(array_column($contexto['herbicidas'] ?? [], 'nome'), 0, 25),
         'fungicidas' => array_slice(array_column($contexto['fungicidas'] ?? [], 'nome'), 0, 25),
         'hoje' => (string) ($contexto['hoje'] ?? date('Y-m-d')),
+        'resumo' => [
+            'pendentes' => count($contexto['pendentes'] ?? []),
+        ],
     ];
 }

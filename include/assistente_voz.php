@@ -22,7 +22,7 @@
                 <span class="assistente-voz-avatar" id="assistente-voz-avatar" aria-hidden="true">🌱</span>
                 <div>
                     <h3 id="assistente-voz-titulo" class="assistente-voz-titulo">Assistente Frutag</h3>
-                    <p class="assistente-voz-subtitulo">Seu caderno de campo por voz</p>
+                    <p class="assistente-voz-subtitulo">Agente de campo — registra e consulta seu caderno</p>
                 </div>
             </div>
             <button type="button" id="assistente-voz-fechar" class="assistente-voz-fechar" aria-label="Fechar">&times;</button>

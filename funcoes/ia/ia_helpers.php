@@ -265,18 +265,23 @@ function iaInterpretarComando(string $transcricao, array $contexto): array
     $hoje = date('Y-m-d');
 
     $system = <<<PROMPT
-Você é o assistente do Caderno Frutag (agricultura/hidroponia). Interprete comandos de voz SOMENTE em português brasileiro e responda SOMENTE com JSON válido (sem markdown).
+Você é o agente inteligente do Caderno Frutag — um assistente de campo que REGISTRA manejos e CONSULTA dados do caderno do produtor. Interprete comandos de voz SOMENTE em português brasileiro e responda SOMENTE com JSON válido (sem markdown).
 
 IMPORTANTE — idioma e erros de transcrição:
 - O áudio é sempre pt-BR. Nunca interprete como inglês.
-- O Whisper pode errar e gerar pseudo-inglês. Exemplos: "plan 2" = plantio, "bed two" = bancada 2, "seeding" = semeadura.
-- "plantio" e "semeadura" são tipos diferentes (não confundir).
-- Não coloque em area_nomes termos que são tipos de manejo (plantio, colheita, irrigação etc.).
+- O Whisper pode errar: "plan 2" = plantio, "bed two" = bancada 2.
+- "plantio" e "semeadura" são tipos diferentes.
+
+Você NÃO é um formulário rígido. Diferencie:
+- AÇÃO (registrar, concluir) → criar_apontamento ou concluir_apontamento
+- PERGUNTA (quantos, quanto, qual, última, resumo) → consultar
 
 Schema:
 {
-  "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "desconhecido",
-  "tipo": "irrigacao|colheita|semeadura|plantio|herbicida|fungicida|inseticida|fertilizante|personalizado|...",
+  "acao": "criar_apontamento" | "concluir_apontamento" | "listar_pendentes" | "consultar" | "desconhecido",
+  "consulta": "contar_pendentes|listar_pendentes|ultima_colheita|ultimo_manejo|resumo_manejos|total_colheita|null",
+  "periodo": "semana|mes|30_dias|7_dias|ano|null",
+  "tipo": "irrigacao|colheita|semeadura|plantio|herbicida|fungicida|inseticida|fertilizante|personalizado|null",
   "data": "YYYY-MM-DD ou null",
   "previsao_dias": number ou null,
   "insumo_nome": "string ou null",
@@ -289,28 +294,31 @@ Schema:
   "tempo_irrigacao": number ou null,
   "unidade_tempo": "horas|minutos|null",
   "titulo": "string ou null",
-  "descricao": "string ou null",
   "observacoes": "string ou null",
   "apontamento_ref": {"tipo":"string","area_nome":"string","produto_nome":"string ou null","data":"YYYY-MM-DD ou null"} ou null,
   "confianca": 0.0 a 1.0,
   "mensagem": "resumo curto para o usuário em português"
 }
 
+Consultas (acao=consultar):
+- "quantos pendentes" / "tenho apontamento pendente?" → consulta=contar_pendentes
+- "o que está pendente" / "lista pendentes" → consulta=listar_pendentes
+- "quanto colhi na última colheita" / "última colheita" → consulta=ultima_colheita
+- "última irrigação" / "último herbicida" → consulta=ultimo_manejo + tipo
+- "resumo do mês" / "quantos manejos essa semana" → consulta=resumo_manejos + periodo
+- "quanto colhi esse mês" → consulta=total_colheita + periodo
+
+Ações:
+- criar_apontamento: registrar/lançar/aplicar manejo (mesmo faltando campos — o diálogo completa).
+- concluir_apontamento: marcar pendente como feito.
+- listar_pendentes: legado — prefira consultar com listar_pendentes.
+
 Regras:
 - Hoje é {$hoje}.
-- criar_apontamento: lançar/registrar/aplicar irrigação, colheita, semeadura etc.
-- concluir_apontamento: marcar como feito/concluído um pendente.
-- listar_pendentes: perguntas sobre o que falta fazer.
-- Use nomes de áreas/produtos do contexto quando possível.
-- Irrigação: quantidade = volume (litros/m3), tempo_irrigacao opcional.
-- Colheita: quantidade + unidade kg/caixas.
-- Semeadura: quantidade, unidade sementes/bandejas/kg/mudas, variedade.
-- Plantio: quantidade em mudas, sacas, bandejas, caixas ou kg; previsao_dias opcional.
-- Herbicida, fungicida, inseticida, fertilizante: use o tipo correto; insumo_nome = nome do produto aplicado; quantidade + unidade.
-- Se o usuário disser só "herbicida" ou "colheita", interprete como criar_apontamento desse tipo.
-- Se o usuário quer adicionar/registrar/criar apontamento e o tipo estiver claro, use acao=criar_apontamento mesmo faltando área, produto ou quantidade — o diálogo completará depois.
-- Campo mensagem: tom amigável e curto, como conversa (ex: "Quer registrar herbicida?").
-- Use acao=desconhecido apenas se a intenção for realmente incompreensível (não use só por faltar campos).
+- Perguntas sobre dados NUNCA são criar_apontamento.
+- Se disser só "herbicida" ou "colheita" sem ser pergunta → criar_apontamento.
+- Campo mensagem: tom de agente prestativo, natural e curto.
+- Use acao=desconhecido só se realmente incompreensível.
 PROMPT;
 
     require_once __DIR__ . '/contexto_usuario.php';
@@ -347,7 +355,7 @@ function iaSanitizarIntentParcial(?array $intent): ?array
 
     $intent = iaNormalizarIntent($intent);
     $permitidos = [
-        'acao', 'tipo', 'data', 'area_nomes', 'produto_nomes', 'quantidade', 'unidade',
+        'acao', 'tipo', 'consulta', 'periodo', 'data', 'area_nomes', 'produto_nomes', 'quantidade', 'unidade',
         'variedade', 'tipo_semeadura', 'tempo_irrigacao', 'unidade_tempo', 'titulo',
         'descricao', 'observacoes', 'previsao_dias', 'insumo_nome', 'confianca', 'mensagem',
         '_data_respondida', '_previsao_respondida', '_obs_respondida',
@@ -360,6 +368,8 @@ function iaNormalizarIntent(array $intent): array
 {
     $defaults = [
         'acao' => 'desconhecido',
+        'consulta' => null,
+        'periodo' => null,
         'tipo' => null,
         'data' => date('Y-m-d'),
         'area_nomes' => [],
@@ -385,8 +395,13 @@ function iaNormalizarIntent(array $intent): array
 
     $intent = array_merge($defaults, $intent);
 
-    $intent['acao'] = in_array($intent['acao'], ['criar_apontamento', 'concluir_apontamento', 'listar_pendentes', 'desconhecido'], true)
+    $intent['acao'] = in_array($intent['acao'], ['criar_apontamento', 'concluir_apontamento', 'listar_pendentes', 'consultar', 'desconhecido'], true)
         ? $intent['acao'] : 'desconhecido';
+
+    if ($intent['acao'] === 'consultar') {
+        require_once __DIR__ . '/consultas.php';
+        $intent = iaNormalizarIntentConsulta($intent);
+    }
 
     foreach (['area_nomes', 'produto_nomes'] as $k) {
         if (!is_array($intent[$k])) {

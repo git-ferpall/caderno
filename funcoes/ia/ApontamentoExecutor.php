@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../apontamento_arquivos.php';
 require_once __DIR__ . '/contexto_usuario.php';
 require_once __DIR__ . '/resolver_entidades.php';
+require_once __DIR__ . '/consultas.php';
 
 class ApontamentoExecutor
 {
@@ -21,6 +22,7 @@ class ApontamentoExecutor
             'criar_apontamento' => $this->criar($intent, $resolucao),
             'concluir_apontamento' => $this->concluir($intent, $resolucao),
             'listar_pendentes' => $this->listarPendentes(),
+            'consultar' => $this->consultar($intent),
             default => [
                 'ok' => false,
                 'executado' => false,
@@ -469,28 +471,13 @@ class ApontamentoExecutor
     private function listarPendentes(): array
     {
         $propId = $this->propriedadeId();
-        $itens = iaListarPendentesResumo($this->mysqli, $propId, 20);
+        return iaConsultaListarPendentes($this->mysqli, $propId);
+    }
 
-        if (!$itens) {
-            return [
-                'ok' => true,
-                'executado' => true,
-                'msg' => 'Não há manejos pendentes.',
-                'pendentes' => [],
-            ];
-        }
-
-        $linhas = array_map(function ($i) {
-            $tipo = ucfirst(str_replace('_', ' ', $i['tipo']));
-            return sprintf('%s — %s (%s) em %s', $tipo, $i['areas'] ?: '—', $i['produto'] ?: '—', $i['data']);
-        }, $itens);
-
-        return [
-            'ok' => true,
-            'executado' => true,
-            'msg' => count($itens) . ' pendente(s): ' . implode('; ', array_slice($linhas, 0, 5)),
-            'pendentes' => $itens,
-        ];
+    private function consultar(array $intent): array
+    {
+        $contexto = iaContextoUsuario($this->mysqli, $this->user_id);
+        return iaExecutarConsulta($this->mysqli, $this->user_id, $intent, $contexto);
     }
 
     private function buscarPendentePorRef(array $intent, array $resolucao): ?int

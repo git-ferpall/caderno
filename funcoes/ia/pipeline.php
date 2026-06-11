@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/contexto_usuario.php';
 require_once __DIR__ . '/resolver_entidades.php';
 require_once __DIR__ . '/dialogo.php';
+require_once __DIR__ . '/consultas.php';
 require_once __DIR__ . '/ApontamentoExecutor.php';
 
 /**
@@ -41,9 +42,10 @@ final class IaPipeline
             $intent['_ultimo_texto'] = $texto;
         } else {
             $intent = iaInterpretarComando($texto, $contexto);
+            $intent = iaRepararIntentConsulta($intent, $texto);
             $intent = iaRepararIntentParaDialogo($intent, $texto);
             if (($intent['acao'] ?? '') === 'desconhecido') {
-                $intent['mensagem'] = 'Hum, não peguei direito. Quer registrar plantio, colheita, irrigação ou herbicida?';
+                $intent['mensagem'] = 'Hum, não peguei direito. Posso registrar manejos ou consultar pendentes, última colheita e resumo do período — o que você precisa?';
             }
         }
 
@@ -91,6 +93,9 @@ final class IaPipeline
             }
         }
 
+        $executado = (bool) ($resultado['executado'] ?? false);
+        $msgFinal = $resultado['msg'] ?? ($intent['mensagem'] ?? $resumo);
+
         return [
             'ok' => true,
             'transcricao' => $transcricao,
@@ -99,13 +104,14 @@ final class IaPipeline
             'precisa_dialogo' => false,
             'precisa_confirmacao' => $precisaConfirmacao,
             'pergunta' => null,
-            'fala' => $precisaConfirmacao
+            'fala' => $executado ? $msgFinal : ($precisaConfirmacao
                 ? 'Pronto, anotei tudo. ' . $resumo . ' Confirmo e salvo?'
-                : null,
+                : null),
             'campo_dialogo' => null,
             'intent_parcial' => $precisaConfirmacao ? iaLimparIntentCliente($intent) : null,
-            'executado' => (bool) ($resultado['executado'] ?? false),
-            'msg' => $resultado['msg'] ?? ($intent['mensagem'] ?? $resumo),
+            'executado' => $executado,
+            'consulta' => $resultado['consulta'] ?? null,
+            'msg' => $msgFinal,
         ];
     }
 

@@ -5,7 +5,7 @@
   const API_EXECUTAR = '/funcoes/ia/executar_intent.php';
 
   const SAUDACAO =
-    'Oi! Sou o assistente do Caderno Frutag. Toque no botão laranja e me diga o manejo — plantio, colheita, herbicida, irrigação…';
+    'Oi! Sou seu agente no Caderno Frutag. Posso registrar manejos ou consultar o caderno — por exemplo: quantos pendentes tenho, ou quanto colhi na última colheita.';
 
   let mediaRecorder = null;
   let audioStream = null;
@@ -214,7 +214,7 @@
     }
 
     if (data.executado) {
-      const msg = data.msg || 'Pronto! Manejo registrado.';
+      const msg = data.fala || data.msg || 'Pronto! Manejo registrado.';
       resetTudo();
       addMsg(msg, 'bot');
       setHint(msg, 'sucesso');

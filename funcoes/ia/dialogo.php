@@ -119,6 +119,10 @@ function iaNormalizarDataResposta(string $texto): ?string
  */
 function iaRepararIntentParaDialogo(array $intent, string $texto): array
 {
+    if (($intent['acao'] ?? '') === 'consultar') {
+        return $intent;
+    }
+
     $intent = iaNormalizarIntent($intent);
     $t = iaNormalizarTexto($texto);
 

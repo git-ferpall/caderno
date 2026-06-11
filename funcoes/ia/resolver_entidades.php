@@ -114,6 +114,9 @@ function iaMelhorMatch(string $nome, array $catalogo, float $minScore = 0.0): ar
 
 function iaPrecisaConfirmacao(array $intent, array $resolucao): bool
 {
+    if (in_array($intent['acao'] ?? '', ['consultar', 'listar_pendentes'], true)) {
+        return false;
+    }
     $conf = (float) ($resolucao['confianca'] ?? $intent['confianca'] ?? 0);
     if ($intent['acao'] === 'desconhecido') {
         return true;
@@ -183,6 +186,7 @@ function iaResumoIntent(array $intent, array $resolucao, array $contexto): strin
         ),
         'concluir_apontamento' => sprintf('Concluir %s em %s', $tipo ?: 'manejo', $areas),
         'listar_pendentes' => 'Listar manejos pendentes',
+        'consultar' => 'Consulta: ' . ($intent['consulta'] ?? 'dados'),
         default => $intent['mensagem'] ?? 'Comando não reconhecido',
     };
 }
