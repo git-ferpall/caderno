@@ -348,7 +348,7 @@
 
   btnCancelar?.addEventListener('click', () => {
     resetConfirmacao();
-    setStatus(micPronto ? 'Comando cancelado. Grave novamente.' : 'Toque em Gravar após permitir o microfone.');
+    setStatus(micPronto ? 'Grave de novo e fale o comando.' : 'Toque em Gravar após permitir o microfone.');
   });
 
   window.addEventListener('pagehide', liberarStream);
