@@ -141,7 +141,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             <label for="status">Status do manejo</label>
             <select id="status" name="status" class="form-select form-text" required>
               <option value="">Selecione o status</option>
-              <option value="concluido">Concluído</option>
+              <option value="concluido" selected>Concluído</option>
               <option value="pendente">Pendente</option>
             </select>
             <small id="aviso-status-semeadura" class="form-hint" style="display:block;margin-top:6px;font-size:0.9em;color:#666;"></small>
@@ -153,7 +153,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
           </div>
 
           <div class="form-submit">
-            <button type="button" class="main-btn fundo-vermelho" onclick="window.location.href='apontamento.php'">
+            <button type="button" class="main-btn fundo-vermelho" onclick="window.location.href='/home/apontamento'">
               <span class="main-btn-text">Cancelar</span>
             </button>
             <button type="submit" class="main-btn fundo-verde">

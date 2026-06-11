@@ -203,7 +203,7 @@ const OfflineApp = (() => {
   async function ensureHomeShellCached() {
     if (!navigator.onLine) return;
     try {
-      await nativeFetch("/home", { credentials: "same-origin" });
+      await nativeFetch("/home/", { credentials: "same-origin" });
     } catch {
       /* SW grava no cache ao responder */
     }

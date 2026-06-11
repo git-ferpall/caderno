@@ -49,6 +49,19 @@ const CadernoSalvar = (() => {
     return null;
   }
 
+  /** Fallback para handlers em bubble (ex.: main.js) quando o capture já rodou ou faltou no cache. */
+  function trySubmitForm(form, opts = {}) {
+    if (!form || form.dataset.saving === "1") return false;
+    if (form.id === PLANTIO_FORM_ID) {
+      void submitPlantio(form, opts);
+      return true;
+    }
+    const php = resolveEndpoint(form);
+    if (!php) return false;
+    void submitForm(form, php, opts);
+    return true;
+  }
+
   function hideOverlayPopups() {
     document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => el.classList.add("d-none"));
   }
@@ -435,7 +448,7 @@ const CadernoSalvar = (() => {
     installGlobalSubmit();
   }
 
-  return { submitForm, submitPlantio, postFormData, salvarUrl, installGlobalSubmit };
+  return { submitForm, submitPlantio, postFormData, salvarUrl, installGlobalSubmit, trySubmitForm };
 })();
 
 window.CadernoSalvar = CadernoSalvar;

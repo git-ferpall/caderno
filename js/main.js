@@ -32,8 +32,11 @@ $(document).ready(function () {
         $('.form-range-value').text($(this).val());
     });
 
-    $('form').on('submit', function (e) {
-        e.preventDefault(); // Impede o envio e o recarregamento da página
+    $('form.main-form').on('submit', function (e) {
+        e.preventDefault();
+        if (typeof CadernoSalvar !== 'undefined' && CadernoSalvar.trySubmitForm) {
+            CadernoSalvar.trySubmitForm(this);
+        }
     });
 
     $('.menu-principal').on('click', function (event) {

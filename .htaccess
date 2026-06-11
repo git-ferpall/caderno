@@ -1,3 +1,8 @@
+<IfModule mod_setenvif.c>
+    SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on
+    SetEnvIf X-Forwarded-Proto "^https$" REQUEST_SCHEME=https
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
@@ -6,6 +11,9 @@
     RewriteCond %{HTTP:X-Forwarded-Proto} =https [OR]
     RewriteCond %{HTTPS} =on
     RewriteRule ^ - [E=HTTPS:on,E=REQUEST_SCHEME:https]
+
+    # /home sem barra: reescreve internamente (evita 301 http://.../home/ no fetch)
+    RewriteRule ^home$ home/index.php [L]
 
     # Redireciona GET com .php para URL limpa (mantém APIs/backend com .php)
     RewriteCond %{REQUEST_METHOD} =GET

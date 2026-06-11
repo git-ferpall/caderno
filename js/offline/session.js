@@ -5,7 +5,7 @@ const OfflineSession = (() => {
   const ENTRY_PAGES = ["/offline.html", "/index.php"];
 
   const SHELL_PAGES = [
-    "/home",
+    "/home/",
     "/home/apontamento",
     "/home/Plantio",
     "/home/Semeadura",
@@ -154,7 +154,7 @@ const OfflineSession = (() => {
   async function tryEnterOffline() {
     const session = await load();
     if (!isValid(session)) return false;
-    window.location.href = "/home";
+    window.location.href = "/home/";
     return true;
   }
 

@@ -120,15 +120,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   statusSelect?.addEventListener("change", atualizarAvisoStatus);
+  atualizarAvisoStatus();
+
+  function salvarSemeadura(e) {
+    if (e) e.preventDefault();
+    if (typeof CadernoSalvar === "undefined") {
+      alert("Erro ao carregar o módulo de salvamento. Recarregue a página.");
+      return;
+    }
+    CadernoSalvar.submitForm(form, "salvar_semeadura.php");
+  }
 
   if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (typeof CadernoSalvar !== "undefined") {
-        CadernoSalvar.submitForm(form, "salvar_semeadura.php");
-      } else {
-        alert("Erro ao carregar o módulo de salvamento. Recarregue a página.");
-      }
-    });
+    form.addEventListener("submit", salvarSemeadura);
   }
 });

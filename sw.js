@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v10";
-const CACHE_PAGES = "caderno-pages-v10";
+const CACHE_STATIC = "caderno-static-v12";
+const CACHE_PAGES = "caderno-pages-v12";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -22,6 +22,7 @@ const STATIC_ASSETS = [
   "/js/offline/pending-panel.js",
   "/js/offline/defensivo-outro.js",
   "/js/offline/salvar-form.js",
+  "/js/semeadura.js",
   "/js/plantio.js",
   "/js/vendor/qrcodejs.min.js",
   "/img/logo-icon.png",
