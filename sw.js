@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v14";
-const CACHE_PAGES = "caderno-pages-v14";
+const CACHE_STATIC = "caderno-static-v15";
+const CACHE_PAGES = "caderno-pages-v15";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -235,10 +235,9 @@ function offlineSubpageHtml(pathname) {
 async function networkFirstPage(request) {
   const url = new URL(request.url);
   try {
-    const res = await fetchSecure(request);
-    if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
-      throw new Error("redirect");
-    }
+    // Navegação do usuário: seguir redirects do PHP (login → /home/).
+    // fetchSecure (manual) quebra redirects e causa ERR_FAILED após login.
+    const res = await fetch(request);
     const resPath = new URL(res.url).pathname;
     if (res.ok && (!isLoginPath(resPath) || isOfflineEntryPath(resPath))) {
       const cache = await caches.open(CACHE_PAGES);
