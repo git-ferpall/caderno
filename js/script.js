@@ -408,7 +408,7 @@ function carregarIcons() {
   });
 
   const apt = [];
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 21; i++) {
     apt.push(`apt${i}`);
   }
 
@@ -429,7 +429,7 @@ function coresApt() {
 
   let css = '';
 
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 21; i++) {
     const id = `apt${i}`;
 
     css += `

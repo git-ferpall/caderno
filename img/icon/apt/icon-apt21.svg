@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+  <!-- Sementes caindo -->
+  <ellipse cx="22" cy="14" rx="4" ry="5"/>
+  <ellipse cx="32" cy="10" rx="4" ry="5"/>
+  <ellipse cx="42" cy="14" rx="4" ry="5"/>
+  <!-- Mão / sulco simplificado -->
+  <path d="M14 22c8-2 18-2 36 0v6c-10 4-26 4-36 0v-6z"/>
+  <!-- Broto -->
+  <path d="M32 28v18"/>
+  <path d="M32 34c-8-4-12-2-14 4 6-2 10-2 14 0z"/>
+  <path d="M32 34c8-4 12-2 14 4-6-2-10-2-14 0z"/>
+  <!-- Solo -->
+  <path d="M12 52h40c-2 4-8 6-20 6s-18-2-20-6z"/>
+</svg>
