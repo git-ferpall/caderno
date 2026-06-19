@@ -195,6 +195,8 @@ function iaWhisperPrompt(?string $campoDialogo = null): string
         'previsao' => $base . ' Previsão de colheita em dias. Pular para não marcar.',
         'observacoes' => $base . ' Observações do manejo. Pular se não houver.',
         'data' => $base . ' Datas: hoje, ontem, ou dia e mês.',
+        'fitossanitaria' => $base . ' Perguntas fitossanitárias: carência, colheita, score, defensivo, '
+            . 'intervalo de segurança, resíduo, liberação, posso colher hoje.',
         default => $base,
     };
 }

@@ -3,7 +3,10 @@
 
   const API_PAINEL = "/funcoes/fitossanitaria/painel.php";
   const API_PERGUNTAR = "/funcoes/fitossanitaria/perguntar.php";
+  const API_PERGUNTAR_AUDIO = "/funcoes/fitossanitaria/perguntar_audio.php";
   const API_VALIDAR = "/funcoes/fitossanitaria/validar.php";
+  const API_SYNC_AGROFIT = "/funcoes/fitossanitaria/sincronizar_agrofit.php";
+  const API_PDF_LOTE = "/funcoes/fitossanitaria/relatorio_lote.php";
   const API_AREAS = "/funcoes/buscar_areas.php";
 
   const el = {
@@ -35,9 +38,281 @@
     chatLog: document.getElementById("ia-fs-chat-log"),
     chatForm: document.getElementById("ia-fs-chat-form"),
     chatInput: document.getElementById("ia-fs-chat-input"),
+    quickQuestions: document.getElementById("ia-fs-quick-questions"),
+    swipeHint: document.getElementById("ia-fs-swipe-hint"),
+    micBtn: document.getElementById("ia-fs-mic"),
+    micLabel: document.getElementById("ia-fs-mic-label"),
+    voiceStatus: document.getElementById("ia-fs-voice-status"),
+    clima: document.getElementById("ia-fs-clima"),
+    agrofit: document.getElementById("ia-fs-agrofit"),
+    lote: document.getElementById("ia-fs-lote"),
+    loteActions: document.getElementById("ia-fs-lote-actions"),
+    pdfLote: document.getElementById("ia-fs-pdf-lote"),
+    loteVerificar: document.getElementById("ia-fs-lote-verificar"),
+    syncAgrofit: document.getElementById("ia-fs-sync-agrofit"),
   };
 
   let areaAtual = 0;
+  let mediaRecorder = null;
+  let audioStream = null;
+  let audioChunks = [];
+  let gravando = false;
+  let preparandoMic = false;
+  let processandoPergunta = false;
+
+  function setVoiceStatus(msg, tipo) {
+    if (!el.voiceStatus) return;
+    el.voiceStatus.textContent = msg;
+    el.voiceStatus.className = "ia-fs-voice-status" + (tipo ? " is-" + tipo : "");
+  }
+
+  function atualizarMicUi() {
+    const habilitado = areaAtual > 0 && !processandoPergunta;
+    if (el.micBtn) {
+      el.micBtn.disabled = !habilitado || preparandoMic;
+      el.micBtn.classList.toggle("is-gravando", gravando);
+      el.micBtn.setAttribute("aria-pressed", gravando ? "true" : "false");
+    }
+    if (el.micLabel) {
+      if (!areaAtual) el.micLabel.textContent = "Selecione uma área";
+      else if (preparandoMic) el.micLabel.textContent = "Aguardando microfone…";
+      else if (gravando) el.micLabel.textContent = "Toque para parar";
+      else if (processandoPergunta) el.micLabel.textContent = "Processando…";
+      else el.micLabel.textContent = "Toque para falar";
+    }
+    if (!areaAtual) {
+      setVoiceStatus("Selecione uma área para falar sua pergunta");
+    } else if (gravando) {
+      setVoiceStatus("Gravando… fale sua pergunta agora", "gravando");
+    } else if (processandoPergunta) {
+      setVoiceStatus("Transcrevendo e analisando…", "processando");
+    } else if (!gravando && !preparandoMic) {
+      setVoiceStatus("Ex.: “Posso colher hoje nesta área?”");
+    }
+  }
+
+  function getMicStream() {
+    if (!window.isSecureContext) {
+      return Promise.reject(Object.assign(new Error("SECURE_CONTEXT"), { name: "SECURE_CONTEXT" }));
+    }
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      return navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+      });
+    }
+    const legacy =
+      navigator.getUserMedia ||
+      navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia;
+    if (!legacy) {
+      return Promise.reject(Object.assign(new Error("UNSUPPORTED"), { name: "UNSUPPORTED" }));
+    }
+    return new Promise((resolve, reject) => {
+      legacy.call(navigator, { audio: true }, resolve, reject);
+    });
+  }
+
+  function tratarErroMicrofone(err) {
+    const nome = (err && (err.name || err.code)) || "";
+    if (nome === "SECURE_CONTEXT") {
+      showErro("Microfone só funciona em HTTPS.");
+      setVoiceStatus("Acesse o site com HTTPS");
+      return;
+    }
+    if (nome === "UNSUPPORTED") {
+      showErro("Navegador sem suporte a gravação. Use Chrome ou Safari atualizado.");
+      return;
+    }
+    if (nome === "NotAllowedError" || nome === "PermissionDeniedError" || nome === "SecurityError") {
+      showErro("Permita o microfone nas configurações do navegador.");
+      setVoiceStatus("Microfone bloqueado — verifique permissões");
+      return;
+    }
+    showErro("Não foi possível acessar o microfone.");
+    setVoiceStatus("Erro no microfone — toque para tentar de novo");
+  }
+
+  function streamAtivo() {
+    return audioStream && audioStream.active && audioStream.getAudioTracks().some((t) => t.readyState === "live");
+  }
+
+  function liberarStream() {
+    if (audioStream) {
+      audioStream.getTracks().forEach((t) => t.stop());
+      audioStream = null;
+    }
+  }
+
+  function criarMediaRecorder(stream) {
+    if (typeof MediaRecorder === "undefined") {
+      throw new Error("UNSUPPORTED");
+    }
+    const tipos = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/ogg;codecs=opus",
+      "audio/aac",
+      "",
+    ];
+    for (const mime of tipos) {
+      try {
+        if (mime && !MediaRecorder.isTypeSupported(mime)) continue;
+        return mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      } catch (_) {
+        continue;
+      }
+    }
+    return new MediaRecorder(stream);
+  }
+
+  function garantirPermissaoMicrofone() {
+    if (streamAtivo()) return Promise.resolve(audioStream);
+    liberarStream();
+    preparandoMic = true;
+    atualizarMicUi();
+    return getMicStream()
+      .then((stream) => {
+        audioStream = stream;
+        preparandoMic = false;
+        atualizarMicUi();
+        return stream;
+      })
+      .catch((err) => {
+        preparandoMic = false;
+        atualizarMicUi();
+        tratarErroMicrofone(err);
+        throw err;
+      });
+  }
+
+  function iniciarGravacao() {
+    if (gravando || preparandoMic || processandoPergunta || !areaAtual) return;
+    if (typeof MediaRecorder === "undefined") {
+      showErro("Seu navegador não suporta gravação de áudio.");
+      return;
+    }
+    garantirPermissaoMicrofone()
+      .then((stream) => {
+        if (gravando) return;
+        mediaRecorder = criarMediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        };
+        mediaRecorder.onerror = () => {
+          pararGravacao(false);
+          showErro("Erro na gravação. Tente novamente.");
+        };
+        mediaRecorder.onstop = () => {
+          const mime = mediaRecorder.mimeType || "audio/webm";
+          enviarAudioPergunta(mime);
+        };
+        mediaRecorder.start(250);
+        gravando = true;
+        atualizarMicUi();
+      })
+      .catch(() => {});
+  }
+
+  function pararGravacao(processar) {
+    if (!gravando) return;
+    gravando = false;
+    atualizarMicUi();
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      try {
+        mediaRecorder.stop();
+      } catch (_) {
+        if (processar !== false) {
+          showErro("Gravação muito curta. Tente de novo.");
+        }
+      }
+    } else if (processar !== false) {
+      showErro("Gravação muito curta. Tente de novo.");
+    }
+  }
+
+  function toggleGravacao() {
+    if (!areaAtual || processandoPergunta) return;
+    if (gravando) pararGravacao();
+    else iniciarGravacao();
+  }
+
+  async function enviarAudioPergunta(mime) {
+    if (!audioChunks.length) {
+      showErro("Não captei áudio. Fale mais perto do microfone.");
+      setVoiceStatus("Toque para falar de novo");
+      return;
+    }
+    processandoPergunta = true;
+    atualizarMicUi();
+    const blob = new Blob(audioChunks, { type: mime });
+    const fd = new FormData();
+    fd.append("audio", blob, "pergunta.webm");
+    fd.append("area_id", String(areaAtual));
+    try {
+      const res = await fetch(API_PERGUNTAR_AUDIO, {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.msg || data.err || "Erro ao processar áudio.");
+      }
+      tratarRespostaPergunta(data);
+    } catch (e) {
+      showErro(e.message || "Erro ao enviar áudio.");
+      setVoiceStatus("Toque para tentar de novo");
+    } finally {
+      processandoPergunta = false;
+      audioChunks = [];
+      atualizarMicUi();
+    }
+  }
+
+  function tratarRespostaPergunta(data) {
+    const pergunta = data.transcricao || data.pergunta || "";
+    if (pergunta) appendChat("user", pergunta);
+    appendChat("bot", data.resposta || data.msg || "Sem resposta.");
+    setVoiceStatus("Toque para fazer outra pergunta");
+  }
+
+  function isMobile() {
+    return window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  function scrollParaPainel() {
+    if (!isMobile() || !el.painel || el.painel.hidden) return;
+    const alvo = el.scoreCard || el.painel;
+    const top = alvo.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }
+
+  function marcarCardAtivo(areaId) {
+    if (!el.areaCards) return;
+    el.areaCards.querySelectorAll(".ia-fs-area-card").forEach((card) => {
+      card.classList.toggle("is-active", card.dataset.areaId === String(areaId));
+    });
+  }
+
+  function setupCarousel(areas) {
+    if (!el.overview || !el.areaCards) return;
+    const usarCarousel = isMobile() && areas && areas.length > 2;
+    el.overview.classList.toggle("is-carousel", usarCarousel);
+    if (el.swipeHint) el.swipeHint.hidden = !usarCarousel;
+
+    if (usarCarousel && !el.areaCards.dataset.carouselBound) {
+      el.areaCards.dataset.carouselBound = "1";
+      el.areaCards.addEventListener(
+        "scroll",
+        () => {
+          if (el.swipeHint) el.swipeHint.hidden = true;
+        },
+        { passive: true, once: true }
+      );
+    }
+  }
 
   function fmtData(iso) {
     if (!iso) return "—";
@@ -96,10 +371,12 @@
       return;
     }
     el.overview.hidden = false;
+    setupCarousel(areas);
     areas.forEach((a) => {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "ia-fs-area-card";
+      card.dataset.areaId = String(a.id);
       const sc = a.score || {};
       card.style.setProperty("--score-cor", sc.cor || "#757575");
       card.setAttribute("aria-label", (a.nome || "Área") + " — score " + (sc.nivel || ""));
@@ -113,11 +390,13 @@
       card.addEventListener("click", () => {
         if (el.area) {
           el.area.value = String(a.id);
+          marcarCardAtivo(a.id);
           carregarPainel(a.id);
         }
       });
       el.areaCards.appendChild(card);
     });
+    if (areaAtual) marcarCardAtivo(areaAtual);
   }
 
   function renderPainel(data) {
@@ -180,7 +459,66 @@
     renderTags(el.cultura, data.cultura, "Nenhum produto vinculado.");
 
     const csfi = data.csfi || {};
-    if (el.csfi) el.csfi.textContent = csfi.resumo || "—";
+    if (el.csfi) {
+      el.csfi.textContent = csfi.resumo || "—";
+      el.csfi.classList.toggle("ia-fs-csfi-alert", !!csfi.csfi);
+    }
+
+    if (el.clima) {
+      const cl = data.clima || {};
+      let html = `<p>${escapeHtml(cl.resumo || "—")}</p>`;
+      if (cl.recomendacao) html += `<p class="ia-fs-muted">${escapeHtml(cl.recomendacao)}</p>`;
+      if (cl.alertas && cl.alertas.length) {
+        html += "<ul class='ia-fs-alert-list'>";
+        cl.alertas.forEach((a) => { html += `<li>${escapeHtml(a)}</li>`; });
+        html += "</ul>";
+      }
+      el.clima.innerHTML = html;
+    }
+
+    if (el.agrofit) {
+      const ag = data.agrofit || data.cultura_autorizada || {};
+      let html = `<p>${escapeHtml(ag.resumo || "—")}</p>`;
+      if (ag.alertas && ag.alertas.length) {
+        html += "<ul class='ia-fs-alert-list'>";
+        ag.alertas.forEach((a) => { html += `<li>${escapeHtml(a)}</li>`; });
+        html += "</ul>";
+      }
+      el.agrofit.innerHTML = html;
+    }
+
+    const loteData = data.lote;
+    if (el.lote) {
+      if (!loteData) {
+        el.lote.textContent = "Lote não disponível (execute migration fase 3).";
+        if (el.loteActions) el.loteActions.hidden = true;
+      } else {
+        el.lote.innerHTML = `
+          <div class="ia-fs-lote-grid">
+            <div class="ia-fs-lote-info">
+              <p><strong>Código:</strong> ${escapeHtml(loteData.codigo_lote)}</p>
+              <p><strong>Status:</strong> <span class="ia-fs-lote-status ia-fs-lote-status--${escapeHtml(loteData.status_lote || "")}">${escapeHtml(loteData.status_label || "")}</span></p>
+              <p><strong>Hash:</strong> <code class="ia-fs-hash">${escapeHtml(loteData.hash_auditoria || "")}</code></p>
+              <p class="ia-fs-muted">Atualizado: ${escapeHtml(loteData.atualizado_em || "")}</p>
+            </div>
+            ${loteData.url_qrcode ? `<img class="ia-fs-qr" src="${escapeHtml(loteData.url_qrcode)}" width="140" height="140" alt="QR Code auditoria">` : ""}
+          </div>`;
+        if (el.loteActions) el.loteActions.hidden = false;
+        if (el.loteVerificar && loteData.url_verificacao) {
+          el.loteVerificar.href = loteData.url_verificacao;
+        }
+      }
+    }
+
+    if (data.aviso_legal && el.painel) {
+      let aviso = el.painel.querySelector(".ia-fs-aviso-legal");
+      if (!aviso) {
+        aviso = document.createElement("p");
+        aviso.className = "ia-fs-aviso-legal ia-fs-muted";
+        el.painel.appendChild(aviso);
+      }
+      aviso.textContent = data.aviso_legal;
+    }
 
     if (el.historico) {
       const hist = data.historico || [];
@@ -191,7 +529,7 @@
           .map(
             (h) => `<div class="ia-fs-hist-row">
               <span class="ia-fs-hist-data">${fmtData(h.data_aplicacao)}</span>
-              <span class="ia-fs-hist-prod">${h.produto || h.tipo}</span>
+              <span class="ia-fs-hist-prod">${escapeHtml(h.produto || h.tipo || "")}</span>
               <span class="ia-fs-hist-meta">${h.carencia_dias ? h.carencia_dias + "d" : "s/ carência"}</span>
             </div>`
           )
@@ -242,9 +580,12 @@
     areaId = parseInt(areaId, 10);
     if (!areaId) {
       if (el.painel) el.painel.hidden = true;
+      areaAtual = 0;
+      atualizarMicUi();
       return;
     }
     areaAtual = areaId;
+    atualizarMicUi();
     showErro("");
     setLoading(true);
     try {
@@ -254,6 +595,8 @@
         return;
       }
       renderPainel(data);
+      marcarCardAtivo(areaId);
+      scrollParaPainel();
     } catch (e) {
       showErro(e.message || "Erro ao carregar painel.");
     } finally {
@@ -262,7 +605,7 @@
   }
 
   async function enviarPergunta(ev) {
-    ev.preventDefault();
+    if (ev && ev.preventDefault) ev.preventDefault();
     const pergunta = (el.chatInput && el.chatInput.value.trim()) || "";
     if (!pergunta || !areaAtual) return;
     appendChat("user", pergunta);
@@ -274,9 +617,50 @@
         body: JSON.stringify({ area_id: areaAtual, pergunta }),
       });
       appendChat("bot", data.resposta || data.msg || "Sem resposta.");
+      setVoiceStatus("Toque para fazer outra pergunta");
     } catch (e) {
       appendChat("bot", e.message || "Erro ao perguntar.");
     }
+  }
+
+  function perguntarRapida(pergunta) {
+    if (!areaAtual) {
+      showErro("Selecione uma área antes de perguntar.");
+      return;
+    }
+    if (el.chatInput) el.chatInput.value = pergunta;
+    enviarPergunta(null);
+  }
+
+  async function sincronizarAgrofit() {
+    if (!el.syncAgrofit) return;
+    el.syncAgrofit.disabled = true;
+    try {
+      const data = await fetchJson(API_SYNC_AGROFIT, { method: "POST" });
+      showErro("");
+      alert(data.msg || "Sincronizado.");
+      if (areaAtual) await carregarPainel(areaAtual);
+    } catch (e) {
+      showErro(e.message || "Erro ao sincronizar AGROFIT.");
+    } finally {
+      el.syncAgrofit.disabled = false;
+    }
+  }
+
+  function gerarPdfLote() {
+    if (!areaAtual) return;
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = API_PDF_LOTE;
+    form.target = "_blank";
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "area_id";
+    input.value = String(areaAtual);
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
   }
 
   async function salvarValidacao(ev) {
@@ -312,10 +696,27 @@
     }
     if (el.chatForm) el.chatForm.addEventListener("submit", enviarPergunta);
     if (el.validacaoForm) el.validacaoForm.addEventListener("submit", salvarValidacao);
+    if (el.micBtn) el.micBtn.addEventListener("click", toggleGravacao);
+    if (el.syncAgrofit) el.syncAgrofit.addEventListener("click", sincronizarAgrofit);
+    if (el.pdfLote) el.pdfLote.addEventListener("click", gerarPdfLote);
+    window.addEventListener("beforeunload", liberarStream);
+    if (el.quickQuestions) {
+      el.quickQuestions.addEventListener("click", (ev) => {
+        const btn = ev.target.closest(".ia-fs-quick-btn");
+        if (!btn) return;
+        perguntarRapida(btn.getAttribute("data-q") || btn.textContent || "");
+      });
+    }
+    window.addEventListener("resize", () => {
+      if (el.areaCards && el.areaCards.children.length) {
+        setupCarousel(Array.from(el.areaCards.children).map((c) => ({ id: c.dataset.areaId })));
+      }
+    });
   }
 
   async function init() {
     bind();
+    atualizarMicUi();
     setLoading(true);
     try {
       await carregarAreas();

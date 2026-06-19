@@ -34,44 +34,5 @@ if (!is_array($input)) {
 $pergunta = trim((string) ($input['pergunta'] ?? ''));
 $area_id = (int) ($input['area_id'] ?? 0);
 
-if ($area_id <= 0 || $pergunta === '') {
-    echo json_encode(['ok' => false, 'msg' => 'Informe área e pergunta.'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-$prop = obterPropriedadeAtiva($mysqli, $user_id);
-if (!$prop) {
-    echo json_encode(['ok' => false, 'msg' => 'Nenhuma propriedade ativa'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-$painel = fsMontarPainelArea($mysqli, $user_id, (int) $prop['id'], $area_id);
-if (empty($painel['ok'])) {
-    echo json_encode($painel, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-$resultado = fsResponderPerguntaFitossanitaria($mysqli, $painel, $pergunta);
-
-if (!empty($resultado['ok'])) {
-    echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-if (($resultado['msg'] ?? '') === 'perguntar_ia') {
-    try {
-        $gpt = fsPerguntarComGpt($painel, $pergunta);
-        echo json_encode($gpt, JSON_UNESCAPED_UNICODE);
-        exit;
-    } catch (Throwable $e) {
-        echo json_encode([
-            'ok' => true,
-            'resposta' => 'Não encontrei uma regra específica. '
-                . ($painel['recomendacao'] ?? 'Consulte o agrônomo responsável.'),
-            'fonte' => 'fallback',
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-}
-
+$resultado = fsProcessarPerguntaArea($mysqli, $user_id, $area_id, $pergunta);
 echo json_encode($resultado, JSON_UNESCAPED_UNICODE);

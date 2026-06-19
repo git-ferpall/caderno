@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/carencia.php';
+require_once __DIR__ . '/agrofit.php';
+require_once __DIR__ . '/csfi.php';
+require_once __DIR__ . '/clima.php';
+require_once __DIR__ . '/lote.php';
 
 function fsNiveisScore(): array
 {
@@ -405,7 +409,25 @@ function fsMontarPainelArea(mysqli $mysqli, int $userId, int $propriedadeId, int
         $score['explicacao']
     );
 
-    return [
+    $climaRegistros = fsBuscarRegistrosClimaticos($mysqli, $propriedadeId);
+    $clima = fsAvaliarClimaAplicacao($climaRegistros);
+    $csfi = fsVerificarCsfiCulturas($mysqli, $produtos);
+    $agrofit = fsVerificarAplicacoesAgrofit($mysqli, $aplicacoes, $produtos);
+
+    $recomendacao = fsGerarRecomendacao($score, $aplicacoes, $colheitasPendentes);
+    $acaoSugerida = fsGerarAcaoSugerida($score, $aplicacoes);
+
+    if (!empty($csfi['csfi'])) {
+        $acaoSugerida .= ' Cultura CSFI: validação do agrônomo obrigatória.';
+    }
+    if (($clima['aplicacao_recomendada'] ?? null) === false) {
+        $recomendacao = ($clima['recomendacao'] ?? '') . ' ' . $recomendacao;
+    }
+    if (!empty($agrofit['alertas'])) {
+        $recomendacao .= ' Revise registro MAPA/AGROFIT dos produtos aplicados.';
+    }
+
+    $painelBase = [
         'ok' => true,
         'area' => [
             'id' => (int) $area['id'],
@@ -413,6 +435,7 @@ function fsMontarPainelArea(mysqli $mysqli, int $userId, int $propriedadeId, int
             'tipo' => (string) ($area['tipo'] ?? ''),
             'tamanho' => $area['tamanho'] ?? null,
         ],
+        'propriedade_id' => $propriedadeId,
         'data_referencia' => $hoje,
         'score' => $score,
         'diagnostico' => $diagnostico,
@@ -439,20 +462,26 @@ function fsMontarPainelArea(mysqli $mysqli, int $userId, int $propriedadeId, int
             'ativas' => $carenciasAtivas,
             'colheitas_pendentes' => $colheitasPendentes,
         ],
-        'produto_ia' => array_values(array_filter(array_map(
+        'produto_ia' => array_values(array_unique(array_filter(array_map(
             fn ($a) => $a['ingrediente_ativo'] ?: null,
             $aplicacoes
-        ))),
+        )))),
         'cultura' => $produtos,
-        'csfi' => [
-            'status' => 'nao_verificado',
-            'resumo' => 'Verificação CSFI disponível na Fase 3 (integração AGROFIT).',
-        ],
+        'cultura_autorizada' => $agrofit,
+        'agrofit' => $agrofit,
+        'csfi' => $csfi,
+        'clima' => $clima,
         'historico' => $aplicacoes,
-        'recomendacao' => fsGerarRecomendacao($score, $aplicacoes, $colheitasPendentes),
-        'acao_sugerida' => fsGerarAcaoSugerida($score, $aplicacoes),
+        'recomendacao' => trim($recomendacao),
+        'acao_sugerida' => $acaoSugerida,
         'validacao_agronomo' => $validacao,
+        'aviso_legal' => 'A IA Fitossanitária Frutag é ferramenta de apoio à decisão. '
+            . 'Validação do responsável técnico habilitado é obrigatória para decisões críticas.',
     ];
+
+    $painelBase['lote'] = fsObterOuAtualizarLote($mysqli, $propriedadeId, $areaId, $painelBase);
+
+    return $painelBase;
 }
 
 /** @return array<int, array<string, mixed>> */
@@ -552,13 +581,38 @@ function fsResponderPerguntaFitossanitaria(mysqli $mysqli, array $painel, string
         return ['ok' => true, 'resposta' => $texto, 'fonte' => 'regras'];
     }
 
-    if (preg_match('/aplicar|posso aplicar|defensivo hoje/i', $q)) {
+    if (preg_match('/aplicar|posso aplicar|defensivo hoje|clima|chuva|vento/i', $q)) {
+        $clima = $painel['clima'] ?? [];
+        $texto = ($clima['recomendacao'] ?? '') . ' ' . ($clima['resumo'] ?? '');
+        return ['ok' => true, 'resposta' => trim($texto) ?: 'Consulte registros climáticos no caderno.', 'fonte' => 'regras'];
+    }
+
+    if (preg_match('/csfi|minor crop|minor/i', $q)) {
+        $csfi = $painel['csfi'] ?? [];
+        return ['ok' => true, 'resposta' => $csfi['resumo'] ?? 'Cultura não verificada como CSFI.', 'fonte' => 'regras'];
+    }
+
+    if (preg_match('/lote|liberado|mercado|auditoria|hash/i', $q)) {
+        $lote = $painel['lote'] ?? null;
+        if (!$lote) {
+            return ['ok' => true, 'resposta' => 'Lote Frutag ainda não gerado para esta área.', 'fonte' => 'regras'];
+        }
         return [
             'ok' => true,
-            'resposta' => 'Na Fase 2 a decisão de aplicação usa o histórico e carência da área. '
-                . ($painel['recomendacao'] ?? 'Consulte o agrônomo para produto e dose.'),
+            'resposta' => sprintf(
+                'Lote %s — status %s (score %s). Hash: %s',
+                $lote['codigo_lote'],
+                $lote['status_label'] ?? $lote['status_lote'],
+                $lote['score_nivel'] ?? '',
+                $lote['hash_curto'] ?? substr((string) ($lote['hash_auditoria'] ?? ''), 0, 12)
+            ),
             'fonte' => 'regras',
         ];
+    }
+
+    if (preg_match('/agrofit|mapa|registro|cultura autorizada/i', $q)) {
+        $ag = $painel['agrofit'] ?? [];
+        return ['ok' => true, 'resposta' => $ag['resumo'] ?? 'Consulte catálogo AGROFIT local.', 'fonte' => 'regras'];
     }
 
     return ['ok' => false, 'msg' => 'perguntar_ia', 'pergunta' => $pergunta];
@@ -581,7 +635,7 @@ function fsPerguntarComGpt(array $painel, string $pergunta): array
 Você é assistente fitossanitário do Caderno de Campo Frutag.
 Responda em português brasileiro, de forma objetiva (2-4 frases).
 Use APENAS os dados JSON fornecidos. Se faltar informação, diga claramente.
-Não invente registros MAPA, clima ou CSFI — estes módulos ainda não estão integrados.
+Não invente dados. Use clima, CSFI, AGROFIT e lote Frutag quando presentes no JSON.
 PROMPT;
 
     $resp = iaOpenAiRequest('/chat/completions', [
@@ -599,4 +653,52 @@ PROMPT;
     }
 
     return ['ok' => true, 'resposta' => $texto, 'fonte' => 'gpt'];
+}
+
+/**
+ * Processa pergunta do usuário sobre uma área (regras + GPT).
+ */
+function fsProcessarPerguntaArea(mysqli $mysqli, int $userId, int $areaId, string $pergunta): array
+{
+    $pergunta = trim($pergunta);
+    if ($areaId <= 0 || $pergunta === '') {
+        return ['ok' => false, 'msg' => 'Informe área e pergunta.'];
+    }
+
+    require_once __DIR__ . '/../apontamento_arquivos.php';
+
+    $prop = obterPropriedadeAtiva($mysqli, $userId);
+    if (!$prop) {
+        return ['ok' => false, 'msg' => 'Nenhuma propriedade ativa'];
+    }
+
+    $painel = fsMontarPainelArea($mysqli, $userId, (int) $prop['id'], $areaId);
+    if (empty($painel['ok'])) {
+        return $painel;
+    }
+
+    $resultado = fsResponderPerguntaFitossanitaria($mysqli, $painel, $pergunta);
+
+    if (!empty($resultado['ok'])) {
+        $resultado['transcricao'] = $pergunta;
+        return $resultado;
+    }
+
+    if (($resultado['msg'] ?? '') === 'perguntar_ia') {
+        try {
+            $gpt = fsPerguntarComGpt($painel, $pergunta);
+            $gpt['transcricao'] = $pergunta;
+            return $gpt;
+        } catch (Throwable $e) {
+            return [
+                'ok' => true,
+                'resposta' => 'Não encontrei uma regra específica. '
+                    . ($painel['recomendacao'] ?? 'Consulte o agrônomo responsável.'),
+                'fonte' => 'fallback',
+                'transcricao' => $pergunta,
+            ];
+        }
+    }
+
+    return $resultado;
 }
