@@ -339,6 +339,35 @@
     el.erro.textContent = msg || "";
   }
 
+  function showPopup(tipo, mensagem) {
+    const overlay = document.getElementById("popup-overlay");
+    const popupSuccess = document.getElementById("popup-success");
+    const popupFailed = document.getElementById("popup-failed");
+    if (!overlay || !popupSuccess || !popupFailed) return;
+
+    document.querySelectorAll(".popup-box").forEach((p) => p.classList.add("d-none"));
+    overlay.classList.remove("d-none");
+
+    if (tipo === "success") {
+      popupSuccess.classList.remove("d-none");
+      const title = popupSuccess.querySelector(".popup-title");
+      if (title) title.textContent = mensagem;
+    } else {
+      popupFailed.classList.remove("d-none");
+      const text = popupFailed.querySelector(".popup-text");
+      if (text) text.textContent = mensagem;
+    }
+
+    setTimeout(() => {
+      if (typeof closePopup === "function") closePopup();
+      else {
+        overlay.classList.add("d-none");
+        popupSuccess.classList.add("d-none");
+        popupFailed.classList.add("d-none");
+      }
+    }, 4000);
+  }
+
   async function fetchJson(url, opts) {
     const res = await fetch(url, Object.assign({ credentials: "same-origin" }, opts || {}));
     let raw = "";
@@ -651,10 +680,14 @@
     try {
       const data = await fetchJson(API_SYNC_AGROFIT, { method: "POST" });
       showErro("");
-      alert(data.msg || "Sincronizado.");
-      if (areaAtual) await carregarPainel(areaAtual);
+      if (data.ok) {
+        showPopup("success", data.msg || "Sincronizado.");
+        if (areaAtual) await carregarPainel(areaAtual);
+      } else {
+        showPopup("failed", data.msg || "Erro ao sincronizar AGROFIT.");
+      }
     } catch (e) {
-      showErro(e.message || "Erro ao sincronizar AGROFIT.");
+      showPopup("failed", e.message || "Erro ao sincronizar AGROFIT.");
     } finally {
       el.syncAgrofit.disabled = false;
     }

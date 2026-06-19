@@ -194,7 +194,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/ia-fitossanitaria.js?v=7"></script>
+        <script src="../js/ia-fitossanitaria.js?v=8"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>
