@@ -104,9 +104,11 @@
       card.style.setProperty("--score-cor", sc.cor || "#757575");
       card.setAttribute("aria-label", (a.nome || "Área") + " — score " + (sc.nivel || ""));
       card.innerHTML = `
-        <span class="ia-fs-area-card-score">${sc.nivel || "—"}</span>
+        <div class="ia-fs-area-card-top">
+          <span class="ia-fs-area-card-pill">${sc.nivel || "—"}</span>
+        </div>
         <span class="ia-fs-area-card-nome">${escapeHtml(a.nome || "Área")}</span>
-        <span class="ia-fs-area-card-tipo">${escapeHtml(a.tipo || "")}</span>
+        <span class="ia-fs-area-card-tipo">${escapeHtml(a.tipo || "área")}</span>
       `;
       card.addEventListener("click", () => {
         if (el.area) {
