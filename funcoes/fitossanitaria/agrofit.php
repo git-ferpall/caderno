@@ -58,14 +58,14 @@ function fsSincronizarAgrofitDesdeCatalogo(mysqli $mysqli): array
                 continue;
             }
 
-            $stmt = $mysqli->prepare('
+            $stmt = $mysqli->prepare("
                 INSERT INTO produtos_fitossanitarios (tipo, nome, ingrediente_ativo, carencia_dias, ativo)
                 VALUES (?, ?, ?, ?, 1)
                 ON DUPLICATE KEY UPDATE
                     ingrediente_ativo = COALESCE(NULLIF(VALUES(ingrediente_ativo), ''), ingrediente_ativo),
                     carencia_dias = IF(VALUES(carencia_dias) > 0, VALUES(carencia_dias), carencia_dias),
                     atualizado_em = NOW()
-            ');
+            ");
 
             while ($row = $res->fetch_assoc()) {
                 $nome = trim((string) ($row['nome'] ?? ''));
