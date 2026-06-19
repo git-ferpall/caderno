@@ -75,6 +75,10 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <div class="btn-icon icon-pen"></div>
                                 <span>Relatórios</span>
                             </a>
+                            <a href="/home/ia_fitossanitaria" class="home-action-btn home-action-sm">
+                                <span aria-hidden="true">🌿</span>
+                                <span>IA Fitossan.</span>
+                            </a>
                         </div>
                     </div>
 

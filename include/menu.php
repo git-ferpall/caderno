@@ -134,6 +134,10 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-pen"></div>
                     <span class="link-title">Relatórios</span>
                 </li></a>
+                <a href="/home/ia_fitossanitaria"><li class="menu-link fundo-verde">
+                    <div class="btn-icon icon-plant cor-branco"></div>
+                    <span class="link-title cor-branco">IA Fitossanitária</span>
+                </li></a>
                 <a href="/home/timeline"><li class="menu-link">
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Linha do tempo</span>

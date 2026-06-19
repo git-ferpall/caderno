@@ -1,0 +1,358 @@
+/* IA Fitossanitária — painel por área */
+
+#ia-fitossanitaria .ia-fs-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 16px 32px;
+}
+
+.ia-fs-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.ia-fs-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+}
+
+.ia-fs-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.ia-fs-back {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.ia-fs-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.ia-fs-field {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ia-fs-overview {
+    margin-bottom: 20px;
+}
+
+.ia-fs-overview h3 {
+    color: #fff;
+    margin: 0 0 12px;
+    font-size: 1rem;
+}
+
+.ia-fs-area-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.ia-fs-area-card {
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--score-cor, #757575);
+    transition: transform 0.15s ease;
+}
+
+.ia-fs-area-card:hover {
+    transform: translateY(-2px);
+}
+
+.ia-fs-area-card-score {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--score-cor);
+    margin-bottom: 4px;
+}
+
+.ia-fs-area-card-nome {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.ia-fs-area-card-tipo {
+    display: block;
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 2px;
+}
+
+.ia-fs-score-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    border-left: 6px solid var(--score-cor, #757575);
+}
+
+.ia-fs-score-badge {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--score-cor, #757575);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.1;
+    padding: 4px;
+}
+
+.ia-fs-score-body h3 {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+}
+
+.ia-fs-score-body p {
+    margin: 0 0 8px;
+    color: #555;
+}
+
+.ia-fs-motivos {
+    margin: 0;
+    padding-left: 18px;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+.ia-fs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.ia-fs-block {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.ia-fs-block-wide {
+    grid-column: 1 / -1;
+}
+
+.ia-fs-block h4 {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #2e7d32;
+}
+
+.ia-fs-text {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #333;
+}
+
+.ia-fs-muted {
+    color: #777;
+    font-size: 0.88rem;
+}
+
+.ia-fs-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ia-fs-tag {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+
+.ia-fs-carencia-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.88rem;
+}
+
+.ia-fs-carencia-item:last-child {
+    border-bottom: none;
+}
+
+.ia-fs-carencia-item strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.ia-fs-carencia-item span {
+    color: #666;
+    font-size: 0.82rem;
+}
+
+.ia-fs-pendente {
+    color: #e65100;
+}
+
+.ia-fs-sub {
+    margin: 8px 0 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.ia-fs-historico .ia-fs-hist-row {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.88rem;
+}
+
+.ia-fs-hist-meta {
+    color: #777;
+    font-size: 0.8rem;
+}
+
+.ia-fs-validacao-form {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ia-fs-chat {
+    margin-top: 4px;
+}
+
+.ia-fs-hint {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    color: #777;
+}
+
+.ia-fs-chat-log {
+    max-height: 220px;
+    overflow-y: auto;
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.ia-fs-chat-msg {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-width: 92%;
+}
+
+.ia-fs-chat-user {
+    background: #c8e6c9;
+    margin-left: auto;
+}
+
+.ia-fs-chat-bot {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+}
+
+.ia-fs-chat-form {
+    display: flex;
+    gap: 8px;
+}
+
+.ia-fs-chat-form input {
+    flex: 1;
+}
+
+.ia-fs-loading,
+.ia-fs-erro {
+    text-align: center;
+    padding: 16px;
+    border-radius: 10px;
+    margin-top: 12px;
+}
+
+.ia-fs-loading {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+.ia-fs-erro {
+    background: #ffebee;
+    color: #c62828;
+}
+
+@media (max-width: 768px) {
+    #ia-fitossanitaria .ia-fs-page {
+        padding-top: 88px;
+    }
+
+    .ia-fs-header {
+        flex-direction: column;
+    }
+
+    .ia-fs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ia-fs-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ia-fs-score-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .ia-fs-motivos {
+        text-align: left;
+    }
+
+    .ia-fs-chat-form {
+        flex-direction: column;
+    }
+}

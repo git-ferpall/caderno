@@ -90,6 +90,14 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <p>Registros de aplicações de defensivos, fertilizantes e intervenções no cultivo.</p>
                         </a>
 
+                        <a href="ia_fitossanitaria" class="card-relatorio">
+                            <div class="card-header">
+                                <span class="card-icon">🌿</span>
+                                <h3>IA Fitossanitária</h3>
+                            </div>
+                            <p>Score por área, carência, risco de resíduo e assistente para decisão no campo.</p>
+                        </a>
+
                         <a href="relatorio_produtividade" class="card-relatorio">
                             <div class="card-header">
                                 <span class="card-icon">📦</span>
