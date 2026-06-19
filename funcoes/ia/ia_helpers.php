@@ -289,8 +289,8 @@ Schema:
 }
 
 Ações:
-- criar_apontamento: registrar manejo (faltando campos → diálogo completa).
-- concluir_apontamento: marcar pendente como feito ("concluir irrigação", "marca como feito").
+- criar_apontamento: registrar manejo NOVO ("novo apontamento", "registrar irrigação"). NÃO confundir com pendentes.
+- concluir_apontamento: marcar pendente existente como feito ("concluir irrigação", "marca como feito").
 - cancelar_apontamento: desfazer/cancelar último apontamento.
 - editar_apontamento: alterar/adicionar observação ("add obs no último", "editar observação").
 - consultar: perguntas sobre pendentes, colheitas, resumos, comparativos.
@@ -300,6 +300,7 @@ Consultas:
 - "campo de X", "área X", "talhão X" → area_nomes (não confundir com produto). "últimos 90 dias" → periodo 90_dias.
 
 Use memoria_conversa para follow-ups ("marca o primeiro" após listar pendentes).
+"novo apontamento" / "criar apontamento" / "registrar manejo" = SEMPRE criar_apontamento (perguntar tipo), NUNCA listar_pendentes.
 Hoje é {$hoje}. Perguntas ≠ criar_apontamento. Tom natural de agente prestativo.
 PROMPT;
 

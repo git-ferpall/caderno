@@ -21,6 +21,8 @@
   let falando = false;
   let cardAcaoPendente = null;
   let saudacaoFeita = false;
+  const STORAGE_MUTADO = 'assistente_voz_mutado';
+  let assistenteMutado = localStorage.getItem(STORAGE_MUTADO) === '1';
 
   const UNIDADES_COLHEITA = [
     { id: 'kg', label: 'kg' },
@@ -35,6 +37,7 @@
   const backdrop = document.getElementById('assistente-voz-backdrop');
   const panel = document.getElementById('assistente-voz-panel');
   const btnFechar = document.getElementById('assistente-voz-fechar');
+  const btnMutar = document.getElementById('assistente-voz-mutar');
   const btnGravar = document.getElementById('assistente-voz-gravar');
   const btnConfirmar = document.getElementById('assistente-voz-confirmar');
   const btnCancelar = document.getElementById('assistente-voz-cancelar');
@@ -55,6 +58,28 @@
   const btnTextoEnviar = document.getElementById('assistente-voz-texto-enviar');
 
   if (!fab || !panel) return;
+
+  function aplicarUiMutado() {
+    if (!btnMutar) return;
+    btnMutar.classList.toggle('assistente-voz-mutar--ativo', assistenteMutado);
+    btnMutar.setAttribute('aria-pressed', assistenteMutado ? 'true' : 'false');
+    const titulo = assistenteMutado ? 'Ativar voz do assistente' : 'Mutar assistente';
+    btnMutar.title = titulo;
+    btnMutar.setAttribute('aria-label', titulo);
+  }
+
+  function toggleMutar() {
+    assistenteMutado = !assistenteMutado;
+    localStorage.setItem(STORAGE_MUTADO, assistenteMutado ? '1' : '0');
+    if (assistenteMutado) pararFala();
+    aplicarUiMutado();
+    setHint(
+      assistenteMutado ? 'Assistente silenciado — respostas só na tela' : 'Voz do assistente ativada',
+      assistenteMutado ? 'dialogo' : 'sucesso'
+    );
+  }
+
+  aplicarUiMutado();
 
   function setHint(msg, tipo) {
     if (!elHint) return;
@@ -671,7 +696,7 @@
   }
 
   function falar(texto, onEnd) {
-    if (!texto || !('speechSynthesis' in window)) {
+    if (!texto || assistenteMutado || !('speechSynthesis' in window)) {
       if (typeof onEnd === 'function') onEnd();
       return;
     }
@@ -719,6 +744,10 @@
   /** Fala em frases curtas com pausa — soa menos robótico. */
   function falarNatural(texto, onEnd) {
     if (!texto) {
+      if (typeof onEnd === 'function') onEnd();
+      return;
+    }
+    if (assistenteMutado) {
       if (typeof onEnd === 'function') onEnd();
       return;
     }
@@ -1274,6 +1303,7 @@
 
   backdrop?.addEventListener('click', fecharPanel);
   btnFechar?.addEventListener('click', fecharPanel);
+  btnMutar?.addEventListener('click', toggleMutar);
 
   btnGravar?.addEventListener('click', (e) => {
     e.preventDefault();

@@ -212,21 +212,62 @@ function iaNormalizarDataResposta(string $texto): ?string
 }
 
 /**
+ * "Novo apontamento", "registrar manejo" etc. → criar (nunca listar pendentes).
+ */
+function iaRepararIntentCriarApontamento(array $intent, string $texto): array
+{
+    $t = iaNormalizarTexto($texto);
+
+    $querCriar = (bool) preg_match(
+        '/\b(?:novo|nova)\s+(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\b(?:adicionar|registrar|lan[cç]ar|criar|incluir|fazer)\s+(?:um\s+)?(?:novo\s+)?(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\b(?:quero|preciso|vou)\s+(?:fazer|dar|registrar|lan[cç]ar)\s+(?:um\s+)?(?:novo\s+)?(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\bapontamento\s+novo\b/u',
+        $t
+    );
+
+    if (!$querCriar) {
+        return $intent;
+    }
+
+    $intent['acao'] = 'criar_apontamento';
+    unset($intent['consulta']);
+    $intent['confianca'] = max((float) ($intent['confianca'] ?? 0), 0.94);
+    $intent['mensagem'] = iaFraseAberturaDialogo((string) ($intent['tipo'] ?? ''));
+
+    if (empty($intent['tipo'])) {
+        $tipo = iaNormalizarTipoManejo($texto);
+        if ($tipo) {
+            $intent['tipo'] = $tipo;
+        }
+    }
+
+    return iaNormalizarIntent($intent);
+}
+
+/**
  * Converte "informações insuficientes" / desconhecido em criar_apontamento para o diálogo.
  */
 function iaRepararIntentParaDialogo(array $intent, string $texto): array
 {
-    if (in_array($intent['acao'] ?? '', ['consultar', 'cancelar_apontamento'], true)) {
+    $t = iaNormalizarTexto($texto);
+    $querCriar = iaTextoIndicaCriarApontamento($t);
+
+    if ($querCriar) {
+        $intent['acao'] = 'criar_apontamento';
+        unset($intent['consulta']);
+        $intent['confianca'] = max((float) ($intent['confianca'] ?? 0), 0.9);
+    } elseif (in_array($intent['acao'] ?? '', ['consultar', 'cancelar_apontamento', 'listar_pendentes'], true)) {
         return $intent;
     }
 
     $intent = iaNormalizarIntent($intent);
-    $t = iaNormalizarTexto($texto);
-
-    $querCriar = (bool) preg_match(
-        '/\b(?:adicionar|registrar|lan[cç]ar|criar|novo|incluir|fazer|apontamento|manejo)\b/u',
-        $t
-    );
 
     if (empty($intent['tipo'])) {
         $tipoDetectado = iaNormalizarTipoManejo($texto);
@@ -251,7 +292,24 @@ function iaRepararIntentParaDialogo(array $intent, string $texto): array
         }
     }
 
-    return $intent;
+    return iaNormalizarIntent($intent);
+}
+
+function iaTextoIndicaCriarApontamento(string $t): bool
+{
+    return (bool) preg_match(
+        '/\b(?:novo|nova)\s+(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\b(?:adicionar|registrar|lan[cç]ar|criar|incluir|fazer)\s+(?:um\s+)?(?:novo\s+)?(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\b(?:quero|preciso|vou)\s+(?:fazer|dar|registrar|lan[cç]ar)\s+(?:um\s+)?(?:novo\s+)?(?:apontamento|manejo)\b/u',
+        $t
+    ) || (bool) preg_match(
+        '/\bapontamento\s+novo\b/u',
+        $t
+    );
 }
 
 /** Usuário disse só o nome do manejo ("herbicida", "colheita"). */
@@ -450,7 +508,7 @@ function iaProximaPerguntaCriar(array $intent, array $resolucao, array $contexto
     if ($tipo === '') {
         return [
             'campo' => 'tipo',
-            'pergunta' => 'O que foi hoje?' . iaHintDialogoLista(),
+            'pergunta' => 'Qual manejo você quer registrar?' . iaHintDialogoLista(),
         ];
     }
 

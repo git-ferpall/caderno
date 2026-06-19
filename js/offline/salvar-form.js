@@ -5,6 +5,110 @@
 const CadernoSalvar = (() => {
   const PLANTIO_FORM_ID = "form-plantio";
 
+  const PLANTIO_FORM_ID = "form-plantio";
+
+  function hideOverlayPopups() {
+    document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => el.classList.add("d-none"));
+  }
+
+  function ensureCarenciaPopup() {
+    const overlay = document.getElementById("popup-overlay");
+    if (!overlay) return null;
+
+    let popup = document.getElementById("popup-carencia-colheita");
+    if (!popup) {
+      popup = document.createElement("div");
+      popup.className = "popup-box d-none";
+      popup.id = "popup-carencia-colheita";
+      popup.innerHTML = `
+        <h2 class="popup-title">Alerta de carência</h2>
+        <p class="popup-text" id="popup-carencia-texto"></p>
+        <label class="popup-label" for="popup-carencia-justificativa">Justificativa técnica (obrigatória para prosseguir)</label>
+        <textarea id="popup-carencia-justificativa" class="popup-textarea" rows="3" maxlength="500"
+          placeholder="Ex.: Avaliação do responsável técnico…"></textarea>
+        <p class="popup-hint">A decisão final deve ser validada pelo engenheiro agrônomo habilitado.</p>
+        <div class="popup-actions">
+          <button type="button" class="popup-btn fundo-cinza-b cor-preto" id="btn-carencia-cancelar">Cancelar</button>
+          <button type="button" class="popup-btn fundo-laranja" id="btn-carencia-confirmar">Registrar com justificativa</button>
+        </div>
+      `;
+      overlay.appendChild(popup);
+    }
+    return { overlay, popup };
+  }
+
+  /** Retorna justificativa ou null se cancelou. */
+  function askCarenciaJustificativa(data) {
+    return new Promise((resolve) => {
+      const ref = ensureCarenciaPopup();
+      const msg = data.msg || "A colheita está antes do intervalo de segurança de um defensivo aplicado.";
+      if (!ref) {
+        const j = window.prompt(msg + "\n\nDigite a justificativa técnica para prosseguir:");
+        resolve(j && j.trim() ? j.trim() : null);
+        return;
+      }
+
+      const { overlay, popup } = ref;
+      const texto = popup.querySelector("#popup-carencia-texto");
+      const ta = popup.querySelector("#popup-carencia-justificativa");
+      if (texto) texto.textContent = msg;
+      if (ta) ta.value = "";
+
+      hideOverlayPopups();
+      overlay.classList.remove("d-none");
+      popup.classList.remove("d-none");
+      ta?.focus();
+
+      const finish = (value) => {
+        overlay.classList.add("d-none");
+        popup.classList.add("d-none");
+        resolve(value);
+      };
+
+      const btnOk = popup.querySelector("#btn-carencia-confirmar");
+      const btnCancel = popup.querySelector("#btn-carencia-cancelar");
+      if (btnOk) {
+        btnOk.onclick = () => {
+          const j = ta?.value?.trim() || "";
+          if (!j) {
+            ta?.focus();
+            return;
+          }
+          finish(j);
+        };
+      }
+      if (btnCancel) btnCancel.onclick = () => finish(null);
+    });
+  }
+
+  async function enviarComCarenciaSeNecessario(url, fd, opts, redirect) {
+    const resp = await fetch(url, {
+      method: "POST",
+      body: fd,
+      credentials: "same-origin",
+    });
+    const data = await resp.json().catch(() => ({}));
+
+    if (data.ok) {
+      afterSaveSuccess(data, opts, redirect);
+      return true;
+    }
+
+    if (data.carencia_alerta) {
+      const justificativa = await askCarenciaJustificativa(data);
+      if (!justificativa) {
+        notifyFailed("Colheita não registrada — carência em vigor.");
+        return true;
+      }
+      fd.append("confirmar_carencia", "1");
+      fd.append("justificativa_carencia", justificativa);
+      return enviarComCarenciaSeNecessario(url, fd, opts, redirect);
+    }
+
+    notifyFailed(data.err || data.msg || "Erro ao salvar.");
+    return true;
+  }
+
   const FORM_ENDPOINTS = {
     "form-fungicida": "salvar_fungicida.php",
     "form-herbicida": "salvar_herbicida.php",
@@ -60,10 +164,6 @@ const CadernoSalvar = (() => {
     if (!php) return false;
     void submitForm(form, php, opts);
     return true;
-  }
-
-  function hideOverlayPopups() {
-    document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => el.classList.add("d-none"));
   }
 
   function ensurePlantioConfirmPopup() {
@@ -328,6 +428,18 @@ const CadernoSalvar = (() => {
 
       if (data.ok) {
         afterSaveSuccess(data, opts, redirect);
+        return;
+      }
+
+      if (data.carencia_alerta && phpFile === "salvar_colheita.php") {
+        const justificativa = await askCarenciaJustificativa(data);
+        if (!justificativa) {
+          notifyFailed("Colheita não registrada — carência em vigor.");
+          return;
+        }
+        fd.append("confirmar_carencia", "1");
+        fd.append("justificativa_carencia", justificativa);
+        await enviarComCarenciaSeNecessario(url, fd, opts, redirect);
         return;
       }
 

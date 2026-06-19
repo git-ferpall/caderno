@@ -44,6 +44,7 @@ final class IaPipeline
             $intent['_ultimo_texto'] = $texto;
         } else {
             $intent = iaInterpretarComando($texto, $contexto, $memoria);
+            $intent = iaRepararIntentCriarApontamento($intent, $texto);
             $intent = iaRepararIntentFollowUp($intent, $texto, $memoria);
             $intent = iaRepararIntentConsulta($intent, $texto);
             $intent = iaRepararIntentParaDialogo($intent, $texto);

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../apontamento_arquivos.php';
+require_once __DIR__ . '/../fitossanitaria/carencia.php';
 require_once __DIR__ . '/contexto_usuario.php';
 require_once __DIR__ . '/resolver_entidades.php';
 require_once __DIR__ . '/consultas.php';
@@ -138,6 +139,19 @@ class ApontamentoExecutor
         $qtd = (float) $quantidade;
         $status = $qtd > 0 ? 'concluido' : 'pendente';
         $propriedade_id = $this->propriedadeId();
+
+        $validacao = fsValidarColheitaCarencia($this->mysqli, $propriedade_id, $areaIds, $data, $produtoIds);
+        $alerta = fsResponderAlertaCarenciaColheita(
+            $validacao['violacoes'],
+            !empty($intent['confirmar_carencia']),
+            trim((string) ($intent['justificativa_carencia'] ?? $intent['observacoes_carencia'] ?? ''))
+        );
+        if ($alerta !== null) {
+            return array_merge($alerta, ['executado' => false]);
+        }
+        if (!empty($intent['justificativa_carencia'])) {
+            $obs = trim($obs . ($obs ? ' | ' : '') . '[Carência justificada: ' . $intent['justificativa_carencia'] . ']');
+        }
 
         $this->mysqli->begin_transaction();
         try {
@@ -349,6 +363,8 @@ class ApontamentoExecutor
             }
             $this->inserirDetalhe($apontamento_id, $tipo, $nome);
 
+            fsAplicarCarenciaDefensivo($this->mysqli, $apontamento_id, $tipo, $nome, $data);
+
             $this->mysqli->commit();
 
             $rotulo = ucfirst($tipo);
@@ -445,6 +461,18 @@ class ApontamentoExecutor
                     'precisa_quantidade' => true,
                 ];
             }
+
+            $dataColheita = date('Y-m-d');
+            $validacao = fsValidarColheitaApontamentoId($this->mysqli, (int) $id, $dataColheita);
+            $alerta = fsResponderAlertaCarenciaColheita(
+                $validacao['violacoes'],
+                !empty($intent['confirmar_carencia']),
+                trim((string) ($intent['justificativa_carencia'] ?? ''))
+            );
+            if ($alerta !== null) {
+                return array_merge($alerta, ['executado' => false, 'precisa_confirmacao_carencia' => true]);
+            }
+
             $unidade = trim((string) ($intent['unidade'] ?? 'kg'));
             $qtd = (float) $quantidade;
             $stmt = $this->mysqli->prepare('

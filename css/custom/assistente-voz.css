@@ -143,20 +143,54 @@ body.assistente-voz-aberto {
   color: #667;
 }
 
+.assistente-voz-header-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.assistente-voz-mutar,
 .assistente-voz-fechar {
   background: rgba(0, 0, 0, 0.05);
   border: none;
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  font-size: 1.25rem;
-  line-height: 1;
   cursor: pointer;
   color: #555;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  padding: 0;
+}
+
+.assistente-voz-fechar {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.assistente-voz-mutar svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.assistente-voz-mutar-icone--mudo {
+  display: none;
+}
+
+.assistente-voz-mutar--ativo {
+  background: rgba(233, 92, 36, 0.12);
+  color: #c2410c;
+}
+
+.assistente-voz-mutar--ativo .assistente-voz-mutar-icone--som {
+  display: none;
+}
+
+.assistente-voz-mutar--ativo .assistente-voz-mutar-icone--mudo {
+  display: block;
 }
 
 .assistente-voz-progresso {

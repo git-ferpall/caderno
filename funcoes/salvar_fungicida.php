@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/fitossanitaria/carencia.php';
 
 header('Content-Type: application/json');
 session_start();
@@ -80,9 +81,11 @@ try {
     $stmt->execute();
 
     $stmt->close();
+    $carencia = fsAplicarCarenciaDefensivo($mysqli, $apontamento_id, $tipo, (string) $fungicida, (string) $data);
     $mysqli->commit();
 
-    echo json_encode(['ok' => true, 'msg' => 'Fungicida salvo com sucesso!']);
+    $msg = 'Fungicida salvo com sucesso!' . fsMensagemSucessoCarencia($carencia);
+    echo json_encode(['ok' => true, 'msg' => $msg, 'carencia' => $carencia]);
 
 } catch (Exception $e) {
     $mysqli->rollback();

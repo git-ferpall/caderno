@@ -25,7 +25,26 @@
                     <p class="assistente-voz-subtitulo">Agente de campo — registra e consulta seu caderno</p>
                 </div>
             </div>
-            <button type="button" id="assistente-voz-fechar" class="assistente-voz-fechar" aria-label="Fechar">&times;</button>
+            <div class="assistente-voz-header-acoes">
+                <button type="button" id="assistente-voz-mutar" class="assistente-voz-mutar"
+                    aria-label="Mutar assistente" aria-pressed="false" title="Mutar assistente">
+                    <span class="assistente-voz-mutar-icone assistente-voz-mutar-icone--som" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        </svg>
+                    </span>
+                    <span class="assistente-voz-mutar-icone assistente-voz-mutar-icone--mudo" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                            <line x1="23" y1="9" x2="17" y2="15"/>
+                            <line x1="17" y1="9" x2="23" y2="15"/>
+                        </svg>
+                    </span>
+                </button>
+                <button type="button" id="assistente-voz-fechar" class="assistente-voz-fechar" aria-label="Fechar">&times;</button>
+            </div>
         </div>
 
         <div id="assistente-voz-progresso" class="assistente-voz-progresso d-none" aria-hidden="true">

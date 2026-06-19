@@ -40,6 +40,34 @@ body.popup-scroll-lock {
     font-size: 16px;
 }
 
+.popup .popup-box .popup-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0.75rem 0 0.35rem;
+    text-align: left;
+    width: 100%;
+}
+
+.popup .popup-box .popup-textarea {
+    width: 100%;
+    min-height: 4.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.popup .popup-box .popup-hint {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0.5rem 0 0;
+    text-align: left;
+    width: 100%;
+}
+
 .popup .popup-box .popup-icon svg {
     height: 80px;
     width: 80px;

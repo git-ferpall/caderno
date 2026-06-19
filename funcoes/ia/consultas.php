@@ -36,12 +36,11 @@ function iaRepararIntentConsulta(array $intent, string $texto): array
 
     $t = iaNormalizarTexto($texto);
 
-    if (preg_match('/\b(?:adicionar|registrar|lan[cç]ar|criar|novo|incluir|aplicar)\b/u', $t)
-        && !preg_match('/\?|^(?:quantos|quanto|qual|quais|me (?:fala|diz|conta))/u', $t)) {
+    if (iaTextoIndicaCriarApontamento($t) || ($intent['acao'] ?? '') === 'criar_apontamento') {
         return $intent;
     }
 
-    if (preg_match('/pendente|falt(a|am|ando)|nao fiz|não fiz|falta fazer|o que (?:tenho|falta)/u', $t)) {
+    if (preg_match('/\bpendentes?\b|\bfalt(a|am|ando)\b|nao fiz|não fiz|falta fazer|o que (?:tenho|falta)/u', $t)) {
         if (preg_match('/quantos|quantas|numero|número|total|conta/u', $t)) {
             return iaIntentConsulta('contar_pendentes', $intent);
         }

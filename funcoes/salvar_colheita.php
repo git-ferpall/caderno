@@ -6,6 +6,7 @@ error_reporting(0);
 
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/fitossanitaria/carencia.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -89,6 +90,24 @@ if (!$prop) {
 }
 
 $propriedade_id = $prop['id'];
+
+$confirmarCarencia = !empty($_POST['confirmar_carencia']);
+$justificativaCarencia = trim((string) ($_POST['justificativa_carencia'] ?? ''));
+
+$validacaoCarencia = fsValidarColheitaCarencia($mysqli, $propriedade_id, $areas, (string) $data, $produtos);
+$alertaCarencia = fsResponderAlertaCarenciaColheita(
+    $validacaoCarencia['violacoes'],
+    $confirmarCarencia,
+    $justificativaCarencia
+);
+if ($alertaCarencia !== null) {
+    echo json_encode($alertaCarencia);
+    exit;
+}
+
+if ($justificativaCarencia !== '') {
+    $obs = trim(($obs ?? '') . ($obs ? ' | ' : '') . '[Carência justificada: ' . $justificativaCarencia . ']');
+}
 
 /* ==========================
    📌 STATUS
