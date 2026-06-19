@@ -23,22 +23,27 @@ function fsBuscarRegistrosClimaticos(mysqli $mysqli, int $propriedadeId, int $di
         LIMIT 30
     ";
 
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param('is', $propriedadeId, $desde);
-    $stmt->execute();
-    $res = $stmt->get_result();
+    try {
+        $stmt = $mysqli->prepare($sql);
+        $stmt->bind_param('is', $propriedadeId, $desde);
+        $stmt->execute();
+        $res = $stmt->get_result();
 
-    $lista = [];
-    while ($row = $res->fetch_assoc()) {
-        $lista[] = [
-            'id' => (int) $row['id'],
-            'data' => (string) $row['data'],
-            'tipo' => (string) ($row['tipo'] ?? ''),
-            'valor' => (string) ($row['valor'] ?? ''),
-            'observacoes' => (string) ($row['observacoes'] ?? ''),
-        ];
+        $lista = [];
+        while ($row = $res->fetch_assoc()) {
+            $lista[] = [
+                'id' => (int) $row['id'],
+                'data' => (string) $row['data'],
+                'tipo' => (string) ($row['tipo'] ?? ''),
+                'valor' => (string) ($row['valor'] ?? ''),
+                'observacoes' => (string) ($row['observacoes'] ?? ''),
+            ];
+        }
+        $stmt->close();
+    } catch (Throwable $e) {
+        error_log('fitossanitaria clima: ' . $e->getMessage());
+        return [];
     }
-    $stmt->close();
 
     return $lista;
 }

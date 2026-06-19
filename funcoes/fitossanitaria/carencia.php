@@ -34,8 +34,12 @@ function fsColunasCarenciaExistem(mysqli $mysqli, string $tabela): bool
         return $cache[$tabela];
     }
     $tabela = preg_replace('/[^a-z_]/', '', $tabela) ?? $tabela;
-    $res = $mysqli->query("SHOW COLUMNS FROM `{$tabela}` LIKE 'carencia_dias'");
-    $cache[$tabela] = $res && $res->num_rows > 0;
+    try {
+        $res = $mysqli->query("SHOW COLUMNS FROM `{$tabela}` LIKE 'carencia_dias'");
+        $cache[$tabela] = $res && $res->num_rows > 0;
+    } catch (Throwable $e) {
+        $cache[$tabela] = false;
+    }
     return $cache[$tabela];
 }
 

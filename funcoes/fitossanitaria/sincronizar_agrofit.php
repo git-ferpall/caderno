@@ -19,4 +19,10 @@ if (!$user_id) {
     exit;
 }
 
-echo json_encode(fsSincronizarAgrofitDesdeCatalogo($mysqli), JSON_UNESCAPED_UNICODE);
+try {
+    echo json_encode(fsSincronizarAgrofitDesdeCatalogo($mysqli), JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
+    error_log('fitossanitaria/sincronizar_agrofit.php: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'msg' => 'Erro ao sincronizar AGROFIT.'], JSON_UNESCAPED_UNICODE);
+}

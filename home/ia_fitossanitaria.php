@@ -9,7 +9,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
     <meta name="theme-color" content="#1b4332">
     <title>IA Fitossanitária - Caderno de Campo</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/custom/ia-fitossanitaria.css?v=6">
+    <link rel="stylesheet" href="../css/custom/ia-fitossanitaria.css?v=7">
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
 <body class="page-ia-fitossanitaria">
@@ -194,7 +194,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/ia-fitossanitaria.js?v=6"></script>
+        <script src="../js/ia-fitossanitaria.js?v=7"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>

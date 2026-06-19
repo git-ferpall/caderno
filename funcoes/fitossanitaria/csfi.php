@@ -33,19 +33,28 @@ function fsVerificarCsfi(mysqli $mysqli, string $culturaNome): array
     }
 
     $norm = fsNormalizarNome($culturaNome);
-    $stmt = $mysqli->prepare('
-        SELECT id, nome, observacao
-        FROM csfi_culturas
-        WHERE ativo = 1 AND (
-            nome_normalizado = ? OR nome_normalizado LIKE ? OR ? LIKE CONCAT("%", nome_normalizado, "%")
-        )
-        LIMIT 1
-    ');
-    $like = '%' . $norm . '%';
-    $stmt->bind_param('sss', $norm, $like, $norm);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    try {
+        $stmt = $mysqli->prepare('
+            SELECT id, nome, observacao
+            FROM csfi_culturas
+            WHERE ativo = 1 AND (
+                nome_normalizado = ? OR nome_normalizado LIKE ? OR ? LIKE CONCAT("%", nome_normalizado, "%")
+            )
+            LIMIT 1
+        ');
+        $like = '%' . $norm . '%';
+        $stmt->bind_param('sss', $norm, $like, $norm);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } catch (Throwable $e) {
+        error_log('fitossanitaria csfi: ' . $e->getMessage());
+        return [
+            'csfi' => null,
+            'status' => 'nao_verificado',
+            'resumo' => 'Erro ao consultar base CSFI. Execute fitossanitaria_fase3.sql.',
+        ];
+    }
 
     if ($row) {
         return [

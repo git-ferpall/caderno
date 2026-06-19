@@ -84,21 +84,26 @@ function fsObterOuAtualizarLote(
     $codigo = fsGerarCodigoLote($propriedadeId, $areaId);
     $payloadJson = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
-    $stmt = $mysqli->prepare('
-        INSERT INTO fitossanitaria_lotes
-            (propriedade_id, area_id, codigo_lote, hash_auditoria, score_nivel, status_lote, payload_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-            hash_auditoria = VALUES(hash_auditoria),
-            score_nivel = VALUES(score_nivel),
-            status_lote = VALUES(status_lote),
-            payload_json = VALUES(payload_json),
-            atualizado_em = NOW()
-    ');
+    try {
+        $stmt = $mysqli->prepare('
+            INSERT INTO fitossanitaria_lotes
+                (propriedade_id, area_id, codigo_lote, hash_auditoria, score_nivel, status_lote, payload_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                hash_auditoria = VALUES(hash_auditoria),
+                score_nivel = VALUES(score_nivel),
+                status_lote = VALUES(status_lote),
+                payload_json = VALUES(payload_json),
+                atualizado_em = NOW()
+        ');
 
-    $stmt->bind_param('iisssss', $propriedadeId, $areaId, $codigo, $hash, $nivel, $status, $payloadJson);
-    $stmt->execute();
-    $stmt->close();
+        $stmt->bind_param('iisssss', $propriedadeId, $areaId, $codigo, $hash, $nivel, $status, $payloadJson);
+        $stmt->execute();
+        $stmt->close();
+    } catch (Throwable $e) {
+        error_log('fitossanitaria lote INSERT: ' . $e->getMessage());
+        return null;
+    }
 
     $urlVerificacao = fsUrlVerificacaoLote($codigo, $hash);
 

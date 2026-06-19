@@ -34,5 +34,11 @@ if (!is_array($input)) {
 $pergunta = trim((string) ($input['pergunta'] ?? ''));
 $area_id = (int) ($input['area_id'] ?? 0);
 
-$resultado = fsProcessarPerguntaArea($mysqli, $user_id, $area_id, $pergunta);
-echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
+try {
+    $resultado = fsProcessarPerguntaArea($mysqli, $user_id, $area_id, $pergunta);
+    echo json_encode($resultado, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+} catch (Throwable $e) {
+    error_log('fitossanitaria/perguntar.php: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'msg' => 'Erro ao processar pergunta.'], JSON_UNESCAPED_UNICODE);
+}

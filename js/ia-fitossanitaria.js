@@ -341,9 +341,22 @@
 
   async function fetchJson(url, opts) {
     const res = await fetch(url, Object.assign({ credentials: "same-origin" }, opts || {}));
-    const data = await res.json().catch(() => ({}));
+    let raw = "";
+    let data = {};
+    try {
+      raw = await res.text();
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      data = {};
+    }
     if (!res.ok) {
-      throw new Error(data.msg || "Falha na comunicação com o servidor.");
+      const msg =
+        data.msg ||
+        data.err ||
+        (res.status === 401 ? "Sessão expirada. Faça login novamente." : "") ||
+        (raw && raw.length < 280 && !raw.trimStart().startsWith("<") ? raw.trim() : "") ||
+        "Falha na comunicação com o servidor (" + res.status + ").";
+      throw new Error(msg);
     }
     return data;
   }

@@ -32,65 +32,70 @@ function fsSincronizarAgrofitDesdeCatalogo(mysqli $mysqli): array
         return ['ok' => false, 'msg' => 'Tabela produtos_fitossanitarios não encontrada. Execute fitossanitaria_fase1.sql'];
     }
 
-    $map = [
-        'herbicida' => ['tabela' => 'herbicidas', 'ativo' => "status = 'ativo'"],
-        'fungicida' => ['tabela' => 'fungicidas', 'ativo' => 'ativo = 1'],
-        'inseticida' => ['tabela' => 'inseticidas', 'ativo' => 'ativo = 1'],
-    ];
+    try {
+        $map = [
+            'herbicida' => ['tabela' => 'herbicidas', 'ativo' => "status = 'ativo'"],
+            'fungicida' => ['tabela' => 'fungicidas', 'ativo' => 'ativo = 1'],
+            'inseticida' => ['tabela' => 'inseticidas', 'ativo' => 'ativo = 1'],
+        ];
 
-    $inseridos = 0;
-    $atualizados = 0;
+        $inseridos = 0;
+        $atualizados = 0;
 
-    foreach ($map as $tipo => $cfg) {
-        $tabela = $cfg['tabela'];
-        if (!fsColunasCarenciaExistem($mysqli, $tabela)) {
-            continue;
-        }
-
-        $sql = "
-            SELECT nome, carencia_dias, ingrediente_ativo
-            FROM `{$tabela}`
-            WHERE {$cfg['ativo']}
-        ";
-        $res = $mysqli->query($sql);
-        if (!$res) {
-            continue;
-        }
-
-        $stmt = $mysqli->prepare('
-            INSERT INTO produtos_fitossanitarios (tipo, nome, ingrediente_ativo, carencia_dias, ativo)
-            VALUES (?, ?, ?, ?, 1)
-            ON DUPLICATE KEY UPDATE
-                ingrediente_ativo = COALESCE(NULLIF(VALUES(ingrediente_ativo), ''), ingrediente_ativo),
-                carencia_dias = IF(VALUES(carencia_dias) > 0, VALUES(carencia_dias), carencia_dias),
-                atualizado_em = NOW()
-        ');
-
-        while ($row = $res->fetch_assoc()) {
-            $nome = trim((string) ($row['nome'] ?? ''));
-            if ($nome === '') {
+        foreach ($map as $tipo => $cfg) {
+            $tabela = $cfg['tabela'];
+            if (!fsColunasCarenciaExistem($mysqli, $tabela)) {
                 continue;
             }
-            $ia = trim((string) ($row['ingrediente_ativo'] ?? ''));
-            $carencia = isset($row['carencia_dias']) && $row['carencia_dias'] !== '' && $row['carencia_dias'] !== null
-                ? (int) $row['carencia_dias'] : 0;
-            $stmt->bind_param('sssi', $tipo, $nome, $ia, $carencia);
-            $stmt->execute();
-            if ($stmt->affected_rows === 1) {
-                $inseridos++;
-            } elseif ($stmt->affected_rows === 2) {
-                $atualizados++;
-            }
-        }
-        $stmt->close();
-    }
 
-    return [
-        'ok' => true,
-        'msg' => "Catálogo AGROFIT local sincronizado: {$inseridos} novo(s), {$atualizados} atualizado(s).",
-        'inseridos' => $inseridos,
-        'atualizados' => $atualizados,
-    ];
+            $sql = "
+                SELECT nome, carencia_dias, ingrediente_ativo
+                FROM `{$tabela}`
+                WHERE {$cfg['ativo']}
+            ";
+            $res = $mysqli->query($sql);
+            if (!$res) {
+                continue;
+            }
+
+            $stmt = $mysqli->prepare('
+                INSERT INTO produtos_fitossanitarios (tipo, nome, ingrediente_ativo, carencia_dias, ativo)
+                VALUES (?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE
+                    ingrediente_ativo = COALESCE(NULLIF(VALUES(ingrediente_ativo), ''), ingrediente_ativo),
+                    carencia_dias = IF(VALUES(carencia_dias) > 0, VALUES(carencia_dias), carencia_dias),
+                    atualizado_em = NOW()
+            ');
+
+            while ($row = $res->fetch_assoc()) {
+                $nome = trim((string) ($row['nome'] ?? ''));
+                if ($nome === '') {
+                    continue;
+                }
+                $ia = trim((string) ($row['ingrediente_ativo'] ?? ''));
+                $carencia = isset($row['carencia_dias']) && $row['carencia_dias'] !== '' && $row['carencia_dias'] !== null
+                    ? (int) $row['carencia_dias'] : 0;
+                $stmt->bind_param('sssi', $tipo, $nome, $ia, $carencia);
+                $stmt->execute();
+                if ($stmt->affected_rows === 1) {
+                    $inseridos++;
+                } elseif ($stmt->affected_rows === 2) {
+                    $atualizados++;
+                }
+            }
+            $stmt->close();
+        }
+
+        return [
+            'ok' => true,
+            'msg' => "Catálogo AGROFIT local sincronizado: {$inseridos} novo(s), {$atualizados} atualizado(s).",
+            'inseridos' => $inseridos,
+            'atualizados' => $atualizados,
+        ];
+    } catch (Throwable $e) {
+        error_log('fitossanitaria agrofit sync: ' . $e->getMessage());
+        return ['ok' => false, 'msg' => 'Erro ao sincronizar catálogo AGROFIT. Verifique fitossanitaria_fase1.sql.'];
+    }
 }
 
 function fsBuscarProdutoAgrofit(mysqli $mysqli, string $tipo, string $nome): ?array
@@ -104,29 +109,34 @@ function fsBuscarProdutoAgrofit(mysqli $mysqli, string $tipo, string $nome): ?ar
         return null;
     }
 
-    $stmt = $mysqli->prepare('
-        SELECT id, tipo, nome, ingrediente_ativo, carencia_dias, registro_mapa, culturas, observacoes
-        FROM produtos_fitossanitarios
-        WHERE tipo = ? AND nome = ? AND ativo = 1
-        LIMIT 1
-    ');
-    $stmt->bind_param('ss', $tipo, $nome);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if (!$row) {
-        $like = '%' . $nome . '%';
+    try {
         $stmt = $mysqli->prepare('
             SELECT id, tipo, nome, ingrediente_ativo, carencia_dias, registro_mapa, culturas, observacoes
             FROM produtos_fitossanitarios
-            WHERE tipo = ? AND nome LIKE ? AND ativo = 1
+            WHERE tipo = ? AND nome = ? AND ativo = 1
             LIMIT 1
         ');
-        $stmt->bind_param('ss', $tipo, $like);
+        $stmt->bind_param('ss', $tipo, $nome);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+
+        if (!$row) {
+            $like = '%' . $nome . '%';
+            $stmt = $mysqli->prepare('
+                SELECT id, tipo, nome, ingrediente_ativo, carencia_dias, registro_mapa, culturas, observacoes
+                FROM produtos_fitossanitarios
+                WHERE tipo = ? AND nome LIKE ? AND ativo = 1
+                LIMIT 1
+            ');
+            $stmt->bind_param('ss', $tipo, $like);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+        }
+    } catch (Throwable $e) {
+        error_log('fitossanitaria agrofit busca: ' . $e->getMessage());
+        return null;
     }
 
     return $row ?: null;
