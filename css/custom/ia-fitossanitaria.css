@@ -1,129 +1,184 @@
-/* IA Fitossanitária — painel por área */
+/* IA Fitossanitária — layout alinhado aos relatórios */
 
-#ia-fitossanitaria .ia-fs-page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 100px 16px 32px;
-}
-
-.ia-fs-header {
+#conteudo.ia-fs-layout {
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 20px;
-    color: #fff;
+    flex-direction: column;
 }
 
-.ia-fs-header h2 {
-    margin: 0 0 4px;
-    font-size: 1.6rem;
+#ia-fitossanitaria.ia-fs-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    background-image: url("../../img/bg-sistema.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
-.ia-fs-header p {
-    margin: 0;
-    opacity: 0.9;
+#ia-fitossanitaria .ia-fs-overlay {
+    flex: 1;
+    padding: 118px 16px 32px;
 }
 
-.ia-fs-back {
+#ia-fitossanitaria .ia-fs-wrapper {
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: left;
+}
+
+#ia-fitossanitaria .ia-fs-voltar {
+    display: inline-flex;
+    align-items: center;
     color: #fff;
     text-decoration: none;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.25);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    opacity: 0.95;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.ia-fs-toolbar {
+#ia-fitossanitaria .ia-fs-voltar:hover {
+    opacity: 1;
+}
+
+#ia-fitossanitaria .ia-fs-header {
+    margin-bottom: 16px;
+}
+
+#ia-fitossanitaria .ia-fs-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+#ia-fitossanitaria .ia-fs-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.95rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#ia-fitossanitaria .ia-fs-panel {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+#ia-fitossanitaria .ia-fs-panel-title {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2e7d32;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+#ia-fitossanitaria .ia-fs-toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: flex-end;
-    margin-bottom: 20px;
-    background: #fff;
-    padding: 16px;
-    border-radius: 14px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 16px 18px;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.85);
 }
 
-.ia-fs-field {
-    flex: 1;
-    min-width: 200px;
+#ia-fitossanitaria .ia-fs-field {
+    flex: 1 1 220px;
     display: flex;
     flex-direction: column;
     gap: 6px;
     font-size: 0.85rem;
     font-weight: 600;
+    color: #444;
+    margin: 0;
 }
 
-.ia-fs-overview {
-    margin-bottom: 20px;
+#ia-fitossanitaria .ia-fs-btn-atualizar {
+    flex: 0 0 auto;
+    align-self: flex-end;
+    min-height: 44px;
+    white-space: nowrap;
 }
 
-.ia-fs-overview h3 {
-    color: #fff;
-    margin: 0 0 12px;
-    font-size: 1rem;
-}
-
-.ia-fs-area-cards {
+#ia-fitossanitaria .ia-fs-area-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
     gap: 10px;
 }
 
-.ia-fs-area-card {
-    border: none;
+#ia-fitossanitaria .ia-fs-area-card {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e8ecef;
     border-radius: 12px;
-    padding: 12px;
+    padding: 12px 12px 12px 14px;
     background: #fff;
     text-align: left;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border-left: 4px solid var(--score-cor, #757575);
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ia-fs-area-card:hover {
+#ia-fitossanitaria .ia-fs-area-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
-.ia-fs-area-card-score {
+#ia-fitossanitaria .ia-fs-area-card-score {
     display: block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--score-cor);
-    margin-bottom: 4px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--score-cor, #757575);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
 }
 
-.ia-fs-area-card-nome {
+#ia-fitossanitaria .ia-fs-area-card-nome {
     display: block;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #333;
+    color: #222;
+    line-height: 1.25;
+    margin-bottom: 4px;
 }
 
-.ia-fs-area-card-tipo {
+#ia-fitossanitaria .ia-fs-area-card-tipo {
     display: block;
     font-size: 0.75rem;
     color: #777;
-    margin-top: 2px;
 }
 
-.ia-fs-score-card {
+#ia-fitossanitaria .ia-fs-score-card {
     display: flex;
     gap: 16px;
     align-items: flex-start;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.98);
     border-radius: 16px;
     padding: 20px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    border-left: 6px solid var(--score-cor, #757575);
+    border: 1px solid rgba(255, 255, 255, 0.85);
     border-left: 6px solid var(--score-cor, #757575);
 }
 
-.ia-fs-score-badge {
+#ia-fitossanitaria .ia-fs-score-badge {
     flex-shrink: 0;
     width: 72px;
     height: 72px;
@@ -133,74 +188,77 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-align: center;
     line-height: 1.1;
     padding: 4px;
 }
 
-.ia-fs-score-body h3 {
+#ia-fitossanitaria .ia-fs-score-body h3 {
     margin: 0 0 6px;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+    color: #222;
 }
 
-.ia-fs-score-body p {
+#ia-fitossanitaria .ia-fs-score-body p {
     margin: 0 0 8px;
     color: #555;
+    font-size: 0.92rem;
 }
 
-.ia-fs-motivos {
+#ia-fitossanitaria .ia-fs-motivos {
     margin: 0;
     padding-left: 18px;
     color: #444;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
 }
 
-.ia-fs-grid {
+#ia-fitossanitaria .ia-fs-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
-.ia-fs-block {
-    background: #fff;
+#ia-fitossanitaria .ia-fs-block {
+    background: rgba(255, 255, 255, 0.98);
     border-radius: 12px;
     padding: 14px 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.85);
 }
 
-.ia-fs-block-wide {
+#ia-fitossanitaria .ia-fs-block-wide {
     grid-column: 1 / -1;
 }
 
-.ia-fs-block h4 {
+#ia-fitossanitaria .ia-fs-block h4 {
     margin: 0 0 8px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: #2e7d32;
 }
 
-.ia-fs-text {
+#ia-fitossanitaria .ia-fs-text {
     margin: 0;
     font-size: 0.92rem;
     line-height: 1.45;
     color: #333;
 }
 
-.ia-fs-muted {
+#ia-fitossanitaria .ia-fs-muted {
     color: #777;
     font-size: 0.88rem;
 }
 
-.ia-fs-tags {
+#ia-fitossanitaria .ia-fs-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
 }
 
-.ia-fs-tag {
+#ia-fitossanitaria .ia-fs-tag {
     background: #e8f5e9;
     color: #2e7d32;
     padding: 4px 10px;
@@ -208,37 +266,37 @@
     font-size: 0.8rem;
 }
 
-.ia-fs-carencia-item {
+#ia-fitossanitaria .ia-fs-carencia-item {
     padding: 8px 0;
     border-bottom: 1px solid #eee;
     font-size: 0.88rem;
 }
 
-.ia-fs-carencia-item:last-child {
+#ia-fitossanitaria .ia-fs-carencia-item:last-child {
     border-bottom: none;
 }
 
-.ia-fs-carencia-item strong {
+#ia-fitossanitaria .ia-fs-carencia-item strong {
     display: block;
     margin-bottom: 2px;
 }
 
-.ia-fs-carencia-item span {
+#ia-fitossanitaria .ia-fs-carencia-item span {
     color: #666;
     font-size: 0.82rem;
 }
 
-.ia-fs-pendente {
+#ia-fitossanitaria .ia-fs-pendente {
     color: #e65100;
 }
 
-.ia-fs-sub {
+#ia-fitossanitaria .ia-fs-sub {
     margin: 8px 0 4px;
     font-size: 0.8rem;
     font-weight: 600;
 }
 
-.ia-fs-historico .ia-fs-hist-row {
+#ia-fitossanitaria .ia-fs-historico .ia-fs-hist-row {
     display: grid;
     grid-template-columns: 90px 1fr auto;
     gap: 8px;
@@ -247,29 +305,25 @@
     font-size: 0.88rem;
 }
 
-.ia-fs-hist-meta {
+#ia-fitossanitaria .ia-fs-hist-meta {
     color: #777;
     font-size: 0.8rem;
 }
 
-.ia-fs-validacao-form {
+#ia-fitossanitaria .ia-fs-validacao-form {
     margin-top: 12px;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.ia-fs-chat {
-    margin-top: 4px;
-}
-
-.ia-fs-hint {
+#ia-fitossanitaria .ia-fs-hint {
     margin: 0 0 10px;
     font-size: 0.82rem;
     color: #777;
 }
 
-.ia-fs-chat-log {
+#ia-fitossanitaria .ia-fs-chat-log {
     max-height: 220px;
     overflow-y: auto;
     background: #f5f5f5;
@@ -278,7 +332,7 @@
     margin-bottom: 10px;
 }
 
-.ia-fs-chat-msg {
+#ia-fitossanitaria .ia-fs-chat-msg {
     margin-bottom: 8px;
     padding: 8px 12px;
     border-radius: 10px;
@@ -287,72 +341,82 @@
     max-width: 92%;
 }
 
-.ia-fs-chat-user {
+#ia-fitossanitaria .ia-fs-chat-user {
     background: #c8e6c9;
     margin-left: auto;
 }
 
-.ia-fs-chat-bot {
+#ia-fitossanitaria .ia-fs-chat-bot {
     background: #fff;
     border: 1px solid #e0e0e0;
 }
 
-.ia-fs-chat-form {
+#ia-fitossanitaria .ia-fs-chat-form {
     display: flex;
     gap: 8px;
+    align-items: stretch;
 }
 
-.ia-fs-chat-form input {
+#ia-fitossanitaria .ia-fs-chat-form input {
     flex: 1;
+    min-width: 0;
 }
 
-.ia-fs-loading,
-.ia-fs-erro {
+#ia-fitossanitaria .ia-fs-loading {
     text-align: center;
-    padding: 16px;
-    border-radius: 10px;
+    color: #555;
+    font-weight: 600;
+}
+
+#ia-fitossanitaria .ia-fs-erro {
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 12px;
     margin-top: 12px;
-}
-
-.ia-fs-loading {
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-}
-
-.ia-fs-erro {
     background: #ffebee;
     color: #c62828;
+    font-weight: 600;
 }
 
 @media (max-width: 768px) {
-    #ia-fitossanitaria .ia-fs-page {
-        padding-top: 88px;
+    #ia-fitossanitaria .ia-fs-overlay {
+        padding: 100px 12px 24px;
     }
 
-    .ia-fs-header {
-        flex-direction: column;
-    }
-
-    .ia-fs-grid {
+    #ia-fitossanitaria .ia-fs-grid {
         grid-template-columns: 1fr;
     }
 
-    .ia-fs-toolbar {
+    #ia-fitossanitaria .ia-fs-toolbar {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .ia-fs-score-card {
+    #ia-fitossanitaria .ia-fs-btn-atualizar {
+        width: 100%;
+        align-self: stretch;
+    }
+
+    #ia-fitossanitaria .ia-fs-score-card {
         flex-direction: column;
         align-items: center;
         text-align: center;
     }
 
-    .ia-fs-motivos {
+    #ia-fitossanitaria .ia-fs-motivos {
         text-align: left;
     }
 
-    .ia-fs-chat-form {
+    #ia-fitossanitaria .ia-fs-area-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #ia-fitossanitaria .ia-fs-chat-form {
         flex-direction: column;
+    }
+
+    #ia-fitossanitaria .ia-fs-historico .ia-fs-hist-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
     }
 }

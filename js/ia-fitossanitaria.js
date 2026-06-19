@@ -46,6 +46,14 @@
     return `${p[2]}/${p[1]}/${p[0]}`;
   }
 
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function setLoading(on) {
     if (el.loading) el.loading.hidden = !on;
   }
@@ -94,10 +102,11 @@
       card.className = "ia-fs-area-card";
       const sc = a.score || {};
       card.style.setProperty("--score-cor", sc.cor || "#757575");
+      card.setAttribute("aria-label", (a.nome || "Área") + " — score " + (sc.nivel || ""));
       card.innerHTML = `
         <span class="ia-fs-area-card-score">${sc.nivel || "—"}</span>
-        <span class="ia-fs-area-card-nome">${a.nome || "Área"}</span>
-        <span class="ia-fs-area-card-tipo">${a.tipo || ""}</span>
+        <span class="ia-fs-area-card-nome">${escapeHtml(a.nome || "Área")}</span>
+        <span class="ia-fs-area-card-tipo">${escapeHtml(a.tipo || "")}</span>
       `;
       card.addEventListener("click", () => {
         if (el.area) {
