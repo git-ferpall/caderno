@@ -109,5 +109,5 @@ try {
 } catch (Throwable $e) {
 
     $mysqli->rollback();
-    die('Erro ao criar checklist: ' . $e->getMessage());
+    die('Erro ao criar checklist: ' . caderno_erro_msg($e));
 }

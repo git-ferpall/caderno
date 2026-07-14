@@ -40,5 +40,5 @@ try {
 
     echo json_encode(['ok' => true, 'caminho' => $caminho], JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

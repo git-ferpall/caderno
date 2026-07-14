@@ -33,5 +33,5 @@ try {
 
     echo json_encode(['ok' => true, 'arquivos' => $arquivos]);
 } catch (Throwable $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

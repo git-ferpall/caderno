@@ -1,8 +1,14 @@
 <?php
+require_once __DIR__ . '/secrets_loader.php';
+
 define('AUTH_API_LOGIN', 'https://frutag.com.br/sso/login.php');
 define('JWT_ALGO', 'HS256');
-define('JWT_SECRET', '}^BNS8~o80?RyV]d');  // igual ao SSO
+define('JWT_SECRET', caderno_secret('JWT_SECRET', ''));  // igual ao SSO (env var ou secrets.php)
 define('AUTH_COOKIE', 'token');
+
+if (JWT_SECRET === '') {
+    error_log('[caderno] JWT_SECRET não configurado (variável de ambiente ou configuracao/secrets.php).');
+}
 
 // IDs Frutag (separados por vírgula) que podem gerenciar offline na primeira instalação.
 define('OFFLINE_BOOTSTRAP_ADMINS', '2365');

@@ -20,5 +20,5 @@ try {
     ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)], JSON_UNESCAPED_UNICODE);
 }

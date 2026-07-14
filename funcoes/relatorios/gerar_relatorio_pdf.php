@@ -245,5 +245,5 @@ try {
     $mpdf->Output('relatorio_manejos.pdf', Destination::INLINE);
 
 } catch (Throwable $e) {
-    relatorioPdfErro($e->getMessage());
+    relatorioPdfErro(caderno_erro_msg($e));
 }

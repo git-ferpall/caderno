@@ -62,5 +62,5 @@ try {
 } catch (Exception $e) {
     $mysqli->rollback();
     http_response_code(500);
-    echo json_encode(['ok' => false, 'err' => 'db_error', 'msg' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => 'db_error', 'msg' => caderno_erro_msg($e)]);
 }

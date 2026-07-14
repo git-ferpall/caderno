@@ -158,5 +158,5 @@ try {
     if ($mysqli->errno) {
         $mysqli->rollback();
     }
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)], JSON_UNESCAPED_UNICODE);
 }

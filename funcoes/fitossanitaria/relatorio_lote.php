@@ -122,5 +122,5 @@ try {
     $mpdf->Output($nome, 'D');
 } catch (Throwable $e) {
     http_response_code(500);
-    die('Erro ao gerar PDF: ' . $e->getMessage());
+    die('Erro ao gerar PDF: ' . caderno_erro_msg($e));
 }

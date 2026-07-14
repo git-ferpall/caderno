@@ -7,19 +7,21 @@ document.addEventListener('DOMContentLoaded', coresApt);
 document.onreadystatechange = function () {
   var state = document.readyState
   var load = document.getElementById('load');
+  var loadImg = document.getElementById('load-img');
 
-  const inputs = document.querySelectorAll(".form-tel");
-  inputs.forEach(input => {
-    window.intlTelInput(input, {
-      initialCountry: 'BR',
-      nationalMode: false,
-      separateDialCode: true, // exibe o +55 separado
-      utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+  if (typeof window.intlTelInput === 'function') {
+    document.querySelectorAll(".form-tel").forEach(input => {
+      window.intlTelInput(input, {
+        initialCountry: 'BR',
+        nationalMode: false,
+        separateDialCode: true, // exibe o +55 separado
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+      });
     });
-  });
+  }
 
-  document.getElementById('load-img').src = (window.innerWidth > 800) ? "/img/logo-color.png" : "/img/logo-icon.png";
-  (window.innerWidth > 800) ? load.classList.add('fundo-branco') : load.classList.add('fundo-azul-grad');
+  if (loadImg) loadImg.src = (window.innerWidth > 800) ? "/img/logo-color.png" : "/img/logo-icon.png";
+  if (load) load.classList.add((window.innerWidth > 800) ? 'fundo-branco' : 'fundo-azul-grad');
 
   var conteudo = document.getElementById('conteudo');
   var footer = document.getElementById('footer');
@@ -29,8 +31,10 @@ document.onreadystatechange = function () {
           if (footer) footer.style.visibility="hidden";
   } else if (state == 'complete') {
       setTimeout(function(){
-          load.classList.add('up');
-          load.style.visibility="hidden";
+          if (load) {
+              load.classList.add('up');
+              load.style.visibility="hidden";
+          }
           if (conteudo) conteudo.style.visibility="visible";
           if (footer) footer.style.visibility="visible";
       },1000);
@@ -38,13 +42,16 @@ document.onreadystatechange = function () {
 }
 
 function validarSenha() {
-    senha = document.getElementById('fcpass').value;
-    senhaC = document.getElementById('fccpass').value;
-  
-    if (senha != senhaC) {
-      senhaC.setCustomValidity("Senhas diferentes!");
+    const campoSenha = document.getElementById('fcpass');
+    const campoConfirma = document.getElementById('fccpass');
+    if (!campoSenha || !campoConfirma) return true;
+
+    if (campoSenha.value != campoConfirma.value) {
+      campoConfirma.setCustomValidity("Senhas diferentes!");
+      campoConfirma.reportValidity();
       return false;
     } else {
+      campoConfirma.setCustomValidity("");
       return true;
     }
 }

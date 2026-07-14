@@ -121,6 +121,6 @@ try {
     echo json_encode([
         'ok'  => false,
         'err' => 'exception',
-        'msg' => $e->getMessage()
+        'msg' => caderno_erro_msg($e)
     ]);
 }

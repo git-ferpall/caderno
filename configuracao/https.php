@@ -20,6 +20,18 @@ if ($isHttps) {
     $_SERVER['REQUEST_SCHEME'] = 'https';
 }
 
+// Cookies de sessão seguros (HttpOnly + SameSite) para qualquer session_start() posterior.
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
 /** Redirecionamento relativo (mantém HTTPS no navegador). */
 function caderno_redirect(string $path, int $code = 302): never
 {

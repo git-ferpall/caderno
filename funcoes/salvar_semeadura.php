@@ -156,5 +156,5 @@ try {
     ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     $mysqli->rollback();
-    semeaduraJsonError($e->getMessage(), 500);
+    semeaduraJsonError(caderno_erro_msg($e), 500);
 }

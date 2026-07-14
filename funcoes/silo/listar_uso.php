@@ -67,5 +67,5 @@ try {
 
 } catch (Throwable $e) {
     http_response_code(401);
-    echo json_encode(['ok'=>false,'err'=>$e->getMessage()]);
+    echo json_encode(['ok'=>false,'err'=> caderno_erro_msg($e)]);
 }

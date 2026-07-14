@@ -39,7 +39,7 @@ try {
     include $target;
 } catch (Throwable $e) {
     ob_end_clean();
-    offlineJson(['ok' => false, 'err' => $e->getMessage()], 500);
+    offlineJson(['ok' => false, 'err' => caderno_erro_msg($e)], 500);
 }
 $out = ob_get_clean();
 

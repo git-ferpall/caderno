@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once __DIR__ . '/env.php';
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -14,7 +10,7 @@ $sig = $_GET['sig'] ?? '';
 
 if (!$uid || !$sig) die('Parâmetros inválidos.');
 
-$SECRET = '}^BNS8~o80?RyV]d';
+$SECRET = JWT_SECRET; // definido em env.php (env var ou secrets.php)
 $expected_sig = hash_hmac('sha256', $uid, $SECRET);
 
 if (!hash_equals($expected_sig, $sig)) die('Assinatura inválida.');

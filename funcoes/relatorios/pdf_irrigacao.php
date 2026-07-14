@@ -343,5 +343,5 @@ try {
 } catch (Throwable $e) {
     http_response_code(400);
     header('Content-Type: text/plain; charset=utf-8');
-    echo 'Erro ao gerar relatorio: ' . $e->getMessage();
+    echo 'Erro ao gerar relatorio: ' . caderno_erro_msg($e);
 }

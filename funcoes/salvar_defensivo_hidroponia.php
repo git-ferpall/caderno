@@ -118,5 +118,5 @@ try {
 
 } catch (Exception $e) {
     if ($mysqli->errno) $mysqli->rollback();
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

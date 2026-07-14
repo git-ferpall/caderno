@@ -52,5 +52,5 @@ try {
     $resultado = fsProcessarPerguntaArea($mysqli, $user_id, $area_id, $transcricao);
     echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
-    echo json_encode(['ok' => false, 'msg' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'msg' => caderno_erro_msg($e)], JSON_UNESCAPED_UNICODE);
 }

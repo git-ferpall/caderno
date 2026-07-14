@@ -36,5 +36,5 @@ try {
 
     echo json_encode(['ok' => true, 'msg' => '✅ Solicitação de inseticida enviada com sucesso! Aguarde retorno por e-mail.']);
 } catch (Exception $e) {
-    echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar: ' . $e->getMessage()]);
+    echo json_encode(['ok' => false, 'msg' => 'Erro ao salvar: ' . caderno_erro_msg($e)]);
 }

@@ -40,5 +40,5 @@ try {
         'resumo' => iaResumoIntent($intent, $resolucao, $contexto),
     ]);
 } catch (Throwable $e) {
-    iaJson(['ok' => false, 'err' => $e->getMessage()], 500);
+    iaJson(['ok' => false, 'err' => caderno_erro_msg($e)], 500);
 }

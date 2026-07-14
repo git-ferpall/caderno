@@ -1,0 +1,8 @@
+# Segredos locais — nunca commitar
+configuracao/secrets.php
+
+# Dependências
+node_modules/
+
+# Arquivos temporários
+*.log

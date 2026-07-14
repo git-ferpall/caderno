@@ -98,8 +98,8 @@ const CadernoSalvar = (() => {
         notifyFailed("Colheita não registrada — carência em vigor.");
         return true;
       }
-      fd.append("confirmar_carencia", "1");
-      fd.append("justificativa_carencia", justificativa);
+      fd.set("confirmar_carencia", "1");
+      fd.set("justificativa_carencia", justificativa);
       return enviarComCarenciaSeNecessario(url, fd, opts, redirect);
     }
 
@@ -435,8 +435,8 @@ const CadernoSalvar = (() => {
           notifyFailed("Colheita não registrada — carência em vigor.");
           return;
         }
-        fd.append("confirmar_carencia", "1");
-        fd.append("justificativa_carencia", justificativa);
+        fd.set("confirmar_carencia", "1");
+        fd.set("justificativa_carencia", justificativa);
         await enviarComCarenciaSeNecessario(url, fd, opts, redirect);
         return;
       }

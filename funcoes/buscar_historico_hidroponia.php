@@ -121,5 +121,5 @@ try {
     echo json_encode(['ok' => true, 'historico' => $historico]);
 
 } catch (Exception $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

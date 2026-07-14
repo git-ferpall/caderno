@@ -162,5 +162,5 @@ try {
 } catch (Throwable $e) {
 
     $mysqli->rollback();
-    die('Erro ao salvar modelo: ' . $e->getMessage());
+    die('Erro ao salvar modelo: ' . caderno_erro_msg($e));
 }

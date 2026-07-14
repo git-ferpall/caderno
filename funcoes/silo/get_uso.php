@@ -13,5 +13,5 @@ try {
     $uso = getSiloUso($mysqli, $user_id);
     echo json_encode($uso);
 } catch (Throwable $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

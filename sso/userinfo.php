@@ -75,7 +75,8 @@ try {
         $extra = $st->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 } catch (Throwable $e) {
-    fail(500, 'db_frutag: '.$e->getMessage());
+    error_log('[caderno] userinfo db_frutag: ' . $e->getMessage());
+    fail(500, 'db_frutag');
 }
 
 // DEBUG opcional

@@ -99,6 +99,6 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'ok' => false,
-        'err' => $e->getMessage()
+        'err' => caderno_erro_msg($e)
     ]);
 }

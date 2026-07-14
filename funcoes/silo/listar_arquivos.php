@@ -113,7 +113,7 @@ try {
 
     echo json_encode([
         'ok' => false,
-        'err' => $e->getMessage()
+        'err' => caderno_erro_msg($e)
     ], JSON_UNESCAPED_UNICODE);
 }
 

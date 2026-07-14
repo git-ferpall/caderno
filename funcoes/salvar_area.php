@@ -161,6 +161,6 @@ try {
     echo json_encode([
         'ok' => false,
         'err' => 'db',
-        'msg' => $e->getMessage()
+        'msg' => caderno_erro_msg($e)
     ]);
 }

@@ -112,7 +112,7 @@ try {
         'param_invalid' => 'Parâmetros inválidos.',
         'registro_nao_encontrado' => 'Item não encontrado no banco de dados.',
         'unauthorized' => 'Usuário não autenticado.',
-        default => $e->getMessage(),
+        default => caderno_erro_msg($e),
     };
 
     echo json_encode(['ok' => false, 'err' => $msg]);

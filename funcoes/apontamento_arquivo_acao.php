@@ -113,7 +113,7 @@ try {
     throw new InvalidArgumentException('Ação inválida');
 } catch (InvalidArgumentException $e) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'msg' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'msg' => caderno_erro_msg($e)], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'msg' => 'Erro ao processar anexo.'], JSON_UNESCAPED_UNICODE);

@@ -120,7 +120,7 @@ if (basename(__FILE__) == basename($_SERVER['SCRIPT_FILENAME'])) {
     } catch (Exception $e) {
         echo json_encode([
             'ok' => false,
-            'err' => 'Erro inesperado: ' . $e->getMessage()
+            'err' => 'Erro inesperado: ' . caderno_erro_msg($e)
         ], JSON_UNESCAPED_UNICODE);
     }
     exit;

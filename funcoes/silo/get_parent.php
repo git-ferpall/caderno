@@ -28,5 +28,5 @@ try {
         'nome_parent' => $res['nome_arquivo']
     ]);
 } catch (Exception $e) {
-    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }

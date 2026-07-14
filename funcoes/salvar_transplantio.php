@@ -96,5 +96,5 @@ try {
   echo json_encode(['ok' => true, 'msg' => 'Transplantio salvo com sucesso!']);
 } catch (Exception $e) {
   $mysqli->rollback();
-  echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+  echo json_encode(['ok' => false, 'err' => caderno_erro_msg($e)]);
 }
