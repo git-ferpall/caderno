@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v17";
-const CACHE_PAGES = "caderno-pages-v17";
+const CACHE_STATIC = "caderno-static-v18";
+const CACHE_PAGES = "caderno-pages-v18";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -33,7 +33,16 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_STATIC).then((cache) => cache.addAll(STATIC_ASSETS).catch(() => {})).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_STATIC)
+      .then((cache) =>
+        // cache: "reload" ignora o cache HTTP do navegador e baixa
+        // sempre da rede, evitando pré-cachear arquivos desatualizados.
+        cache
+          .addAll(STATIC_ASSETS.map((u) => new Request(u, { cache: "reload" })))
+          .catch(() => {})
+      )
+      .then(() => self.skipWaiting())
   );
 });
 
