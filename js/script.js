@@ -21,16 +21,18 @@ document.onreadystatechange = function () {
   document.getElementById('load-img').src = (window.innerWidth > 800) ? "/img/logo-color.png" : "/img/logo-icon.png";
   (window.innerWidth > 800) ? load.classList.add('fundo-branco') : load.classList.add('fundo-azul-grad');
 
+  var conteudo = document.getElementById('conteudo');
+  var footer = document.getElementById('footer');
+
   if (state == 'interactive') {
-          document.getElementById('conteudo').style.visibility="hidden";
-          document.getElementById('footer').style.visibility="hidden";
+          if (conteudo) conteudo.style.visibility="hidden";
+          if (footer) footer.style.visibility="hidden";
   } else if (state == 'complete') {
       setTimeout(function(){
-          document.getElementById('interactive');
           load.classList.add('up');
           load.style.visibility="hidden";
-          document.getElementById('conteudo').style.visibility="visible";
-          document.getElementById('footer').style.visibility="visible";
+          if (conteudo) conteudo.style.visibility="visible";
+          if (footer) footer.style.visibility="visible";
       },1000);
   }
 }

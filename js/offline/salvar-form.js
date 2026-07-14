@@ -5,8 +5,6 @@
 const CadernoSalvar = (() => {
   const PLANTIO_FORM_ID = "form-plantio";
 
-  const PLANTIO_FORM_ID = "form-plantio";
-
   function hideOverlayPopups() {
     document.querySelectorAll("#popup-overlay .popup-box").forEach((el) => el.classList.add("d-none"));
   }
