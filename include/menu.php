@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../sso/verify_jwt.php';
-require_once __DIR__ . '/../configuracao/conexao_frutag.php';
+require_once __DIR__ . '/../configuracao/usuarios_local.php'; // conexão local + helpers de perfil
 
 $payload = verify_jwt();
 
@@ -8,7 +8,24 @@ $id   = (int)($payload['sub'] ?? 0);
 $tipo = $payload['tipo'] ?? '';
 $extra = [];
 
-if ($id && $tipo) {
+// Perfil efetivo (admin / representante / usuario) para itens condicionais do menu
+$menuPerfil = $id ? (usuarioPerfil($mysqli, $id) ?? 'usuario') : 'usuario';
+
+// Impersonação ativa? (admin/representante vendo o caderno de outro usuário)
+$impersonadoPor = $payload['imp_by'] ?? null;
+
+if ($id && $tipo === 'local') {
+    // Usuário local: dados vêm do banco do Caderno
+    $uLocal = usuarioBuscarPorId($mysqli, $id);
+    if ($uLocal) {
+        $extra = [
+            'cli_empresa'      => $uLocal['nome'],
+            'cli_razao_social' => $uLocal['nome'],
+            'cli_cnpj_cpf'     => $uLocal['email'] ?: $uLocal['login'],
+        ];
+    }
+} elseif ($id && $tipo) {
+    require_once __DIR__ . '/../configuracao/conexao_frutag.php';
     try {
         if ($tipo === 'cliente') {
             $st = $pdo_frutag->prepare("SELECT cli_empresa, cli_razao_social, cli_cnpj_cpf 
@@ -39,6 +56,7 @@ $info = [
 
 
 // Busca a propriedade ativa no banco local
+$user_id = !empty($user_id) ? $user_id : $id;
 $propAtiva = null;
 if (!empty($user_id)) {
     $stmt = $mysqli->prepare("
@@ -56,6 +74,13 @@ if (!empty($user_id)) {
 ?>
 
 
+
+<?php if ($impersonadoPor): ?>
+<div class="impersonacao-banner">
+    <span>Você está vendo o caderno de <strong><?= htmlspecialchars($extra['cli_razao_social'] ?? $payload['name'] ?? ('usuário #' . $id)) ?></strong></span>
+    <a href="/funcoes/admin/voltar_impersonacao.php" class="impersonacao-voltar">Voltar ao meu perfil</a>
+</div>
+<?php endif; ?>
 
 <header class="menu-principal">
     <nav class="navbar nav-menu">
@@ -148,10 +173,18 @@ if (!empty($user_id)) {
                         <span class="link-title cor-branco">Baixar para offline</span>
                     </li>
                 </a>
-                <!--<a href="./clientes.php"><li class="menu-link">
+                <?php if (in_array($menuPerfil, ['representante', 'admin'], true)): ?>
+                <a href="/home/meus_clientes"><li class="menu-link">
                     <div class="btn-icon icon-people"></div>
-                    <span class="link-title">Painel de Clientes</span>
-                </li></a> -->
+                    <span class="link-title">Meus Clientes</span>
+                </li></a>
+                <?php endif; ?>
+                <?php if ($menuPerfil === 'admin'): ?>
+                <a href="/home/admin_usuarios"><li class="menu-link fundo-preto">
+                    <div class="btn-icon icon-people cor-branco"></div>
+                    <span class="link-title cor-branco">Painel Administrativo</span>
+                </li></a>
+                <?php endif; ?>
             </ul>
         </div>
 

@@ -69,3 +69,56 @@ function require_login() {
   header("Location: /?next=" . urlencode($next));
   exit;
 }
+
+/**
+ * Conexão mysqli sob demanda (para checagem de perfil fora das páginas
+ * que já incluem configuracao_conexao.php).
+ */
+function caderno_db(): mysqli {
+  if (!isset($GLOBALS['mysqli']) || !($GLOBALS['mysqli'] instanceof mysqli)) {
+    require __DIR__ . '/configuracao_conexao.php'; // define $mysqli neste escopo
+    $GLOBALS['mysqli'] = $mysqli;
+    $GLOBALS['cnx'] = $GLOBALS['conexao'] = $GLOBALS['db'] = $mysqli;
+  }
+  require_once __DIR__ . '/usuarios_local.php';
+  return $GLOBALS['mysqli'];
+}
+
+/**
+ * Perfil efetivo do usuário logado, sempre relido do banco
+ * ('usuario' | 'representante' | 'admin' | null se inativo/deslogado).
+ * Usuário Frutag ainda não provisionado conta como 'usuario'.
+ */
+function caderno_user_perfil(): ?string {
+  static $cache = false;
+  if ($cache !== false) return $cache;
+
+  $u = current_user();
+  $id = (int)($u->sub ?? 0);
+  if (!$id) return $cache = null;
+
+  $db = caderno_db();
+  $reg = usuarioBuscarPorId($db, $id);
+  if ($reg) {
+    return $cache = ((int)$reg['ativo'] === 1 ? $reg['perfil'] : null);
+  }
+  return $cache = 'usuario';
+}
+
+/**
+ * Força login E um dos perfis informados. Para páginas HTML.
+ */
+function require_perfil(array $perfis) {
+  $u = require_login();
+  $perfil = caderno_user_perfil();
+  if ($perfil === null || !in_array($perfil, $perfis, true)) {
+    http_response_code(403);
+    echo '<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><title>Acesso negado</title></head><body style="font-family:sans-serif;padding:40px;text-align:center"><h1>Acesso negado</h1><p>Você não tem permissão para acessar esta área.</p><p><a href="/home">Voltar</a></p></body></html>';
+    exit;
+  }
+  return $u;
+}
+
+function require_admin() {
+  return require_perfil(['admin']);
+}

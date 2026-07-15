@@ -49,7 +49,22 @@ $tipo = $payload['tipo'] ?? '';
 $extra = [];
 
 try {
-    if ($tipo === 'cliente') {
+    if ($tipo === 'local') {
+        // Usuário local do Caderno: dados vêm de usuarios_caderno (banco local)
+        require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+        $st = $mysqli->prepare("SELECT nome, email, login FROM usuarios_caderno WHERE id = ? LIMIT 1");
+        $st->bind_param('i', $id);
+        $st->execute();
+        $u = $st->get_result()->fetch_assoc();
+        $st->close();
+        if ($u) {
+            $extra = [
+                'empresa'      => $u['nome'],
+                'razao_social' => $u['nome'],
+                'cpf_cnpj'     => $u['email'] ?: $u['login'],
+            ];
+        }
+    } elseif ($tipo === 'cliente') {
         $st = $pdo_frutag->prepare("
             SELECT 
                 cli_empresa      AS empresa,

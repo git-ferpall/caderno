@@ -1,0 +1,80 @@
+/* Painel de usuários + banner de impersonação */
+
+.impersonacao-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #b53d00;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.impersonacao-banner .impersonacao-voltar {
+    background: #fff;
+    color: #b53d00;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-usuarios-form select {
+    flex: 1 1 140px;
+    min-height: 42px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.admin-usuarios-perfil {
+    min-height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 13px;
+    background: #fff;
+}
+
+.admin-usuarios-badge {
+    display: inline-block;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.admin-usuarios-badge.badge-local {
+    background: #e3f2e6;
+    color: #1e7d32;
+}
+
+.admin-usuarios-badge.badge-frutag {
+    background: #e5effa;
+    color: #1a5da0;
+}
+
+.admin-usuarios-acoes {
+    white-space: nowrap;
+}
+
+.admin-usuarios-acoes .main-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+/* Troca de senha (perfil do usuário local) */
+.perfil-senha-card {
+    margin-top: 24px;
+}

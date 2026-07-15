@@ -13,6 +13,10 @@ if (JWT_SECRET === '') {
 // IDs Frutag (separados por vírgula) que podem gerenciar offline na primeira instalação.
 define('OFFLINE_BOOTSTRAP_ADMINS', '2365');
 
+// IDs Frutag (separados por vírgula) promovidos a administradores do Caderno
+// na primeira instalação do sistema de usuários (tabela usuarios_caderno).
+define('CADERNO_BOOTSTRAP_ADMINS', '2365');
+
 // Dias que a sessão offline permanece válida após login online.
 define('OFFLINE_SESSION_DAYS', 30);
 

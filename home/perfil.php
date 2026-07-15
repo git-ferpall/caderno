@@ -123,11 +123,40 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         </button>
                     </div>
                 </form>
+
+                <?php if (($GLOBALS['auth_user']->tipo ?? '') === 'local'): ?>
+                <form class="main-form container perfil-senha-card" id="senha-form">
+                    <h3>Alterar senha</h3>
+
+                    <div class="form-campo">
+                        <label for="pf-senha-atual">Senha atual</label>
+                        <div class="form-senha">
+                            <input class="form-text" type="password" name="senha_atual" id="pf-senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
+                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">Ver</button>
+                        </div>
+                    </div>
+
+                    <div class="form-campo">
+                        <label for="pf-senha-nova">Nova senha</label>
+                        <div class="form-senha">
+                            <input class="form-text" type="password" name="senha_nova" id="pf-senha-nova" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required>
+                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">Ver</button>
+                        </div>
+                    </div>
+
+                    <div class="form-submit">
+                        <button class="main-btn fundo-verde" id="form-save-senha" type="submit">
+                            <span class="main-btn-text">Alterar senha</span>
+                        </button>
+                    </div>
+                </form>
+                <?php endif; ?>
             </div>
         </main>
 
         <?php include '../include/imports.php' ?>
         <script src="../js/contato_cliente.js"></script>
+        <script src="../js/alterar_senha.js"></script>
 
     </div>
         

@@ -87,7 +87,47 @@ if (empty($captcha_data['success']) || $score < 0.2) {
 
 /**
  * ==================================================
- * 3️⃣  Monta o payload da API de autenticação
+ * 3️⃣  Usuário LOCAL: autentica no banco do Caderno
+ * ==================================================
+ * Se o login/e-mail pertencer a um usuário local, valida a senha
+ * aqui mesmo (password_verify) e emite o JWT do Caderno.
+ * Caso contrário, segue para a API Frutag (fluxo original).
+ */
+require_once __DIR__ . '/usuarios_local.php'; // também conecta no banco ($mysqli)
+
+$usuarioLocal = usuarioBuscarLocalPorLogin($mysqli, $login);
+if ($usuarioLocal) {
+    if ((int)$usuarioLocal['ativo'] !== 1) {
+        setLoginError('Usuário desativado. Contate o administrador.');
+        header('Location: /');
+        exit;
+    }
+    if (!password_verify($senha, (string)$usuarioLocal['senha_hash'])) {
+        setLoginError('Usuário ou senha incorretos.');
+        header('Location: /');
+        exit;
+    }
+
+    $jwt = usuarioEmitirJwt([
+        'sub'    => (int)$usuarioLocal['id'],
+        'tipo'   => 'local',
+        'name'   => $usuarioLocal['nome'],
+        'email'  => $usuarioLocal['email'],
+        'perfil' => $usuarioLocal['perfil'],
+    ]);
+    setcookie(AUTH_COOKIE, $jwt, usuarioCookieOptions(3600));
+
+    $destino = trim((string) $next);
+    if ($destino === '' || $destino === '/') {
+        $destino = '/home/';
+    }
+    header('Location: ' . $destino);
+    exit;
+}
+
+/**
+ * ==================================================
+ * 3️⃣b  Monta o payload da API de autenticação (Frutag)
  * ==================================================
  */
 $payload = [
@@ -135,6 +175,30 @@ if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
     setLoginError('Falha na autenticação. Verifique suas credenciais.');
     header('Location: /');
     exit;
+}
+
+/**
+ * ==================================================
+ * 5️⃣b  Auto-provisiona o usuário Frutag no Caderno
+ * ==================================================
+ * Registra (ou atualiza) o usuário em usuarios_caderno para que ele
+ * apareça no painel administrativo e possa receber perfis.
+ */
+try {
+    $tokenParts = explode('.', $j['token']);
+    $tokenPayload = json_decode(base64_decode(strtr($tokenParts[1] ?? '', '-_', '+/')), true) ?: [];
+    $frutagId = (int)($tokenPayload['sub'] ?? 0);
+    if ($frutagId > 0) {
+        usuarioUpsertFrutag(
+            $mysqli,
+            $frutagId,
+            $tokenPayload['tipo'] ?? 'cliente',
+            $tokenPayload['name'] ?? null,
+            $tokenPayload['email'] ?? null
+        );
+    }
+} catch (Throwable $e) {
+    error_log('[caderno] upsert usuario frutag falhou: ' . $e->getMessage());
 }
 
 /**
