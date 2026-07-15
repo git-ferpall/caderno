@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/../configuracao/usuarios_local.php'; // conexão local + helpers de perfil
+require_once __DIR__ . '/../funcoes/frutibank/helpers.php';
 
 $payload = verify_jwt();
 
@@ -13,6 +14,9 @@ $menuPerfil = $id ? (usuarioPerfil($mysqli, $id) ?? 'usuario') : 'usuario';
 
 // Impersonação ativa? (admin/representante vendo o caderno de outro usuário)
 $impersonadoPor = $payload['imp_by'] ?? null;
+
+// Frutibank liberado para este usuário?
+$menuFrutibank = $id ? frutibankHabilitado($mysqli, $id) : false;
 
 if ($id && $tipo === 'local') {
     // Usuário local: dados vêm do banco do Caderno
@@ -173,6 +177,12 @@ if (!empty($user_id)) {
                         <span class="link-title cor-branco">Baixar para offline</span>
                     </li>
                 </a>
+                <?php if ($menuFrutibank): ?>
+                <a href="/home/frutibank"><li class="menu-link">
+                    <div class="btn-icon icon-file"></div>
+                    <span class="link-title">Frutibank</span>
+                </li></a>
+                <?php endif; ?>
                 <?php if (in_array($menuPerfil, ['representante', 'admin'], true)): ?>
                 <a href="/home/meus_clientes"><li class="menu-link">
                     <div class="btn-icon icon-people"></div>

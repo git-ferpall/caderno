@@ -58,6 +58,26 @@ if ($acao === 'atualizar') {
         adminJson(['ok' => false, 'msg' => 'Você só pode alterar clientes cadastrados por você.'], 403);
     }
 
+    // Liberação do Frutibank (tabela própria, só admin)
+    $frutibankAlterado = false;
+    if (isset($_POST['frutibank'])) {
+        if ($perfil !== 'admin') {
+            adminJson(['ok' => false, 'msg' => 'Apenas administradores liberam o Frutibank.'], 403);
+        }
+        require_once __DIR__ . '/../frutibank/helpers.php';
+        frutibankEnsureSchema($mysqli);
+        if ((int)$_POST['frutibank'] === 1) {
+            $stmt = $mysqli->prepare('INSERT IGNORE INTO frutibank_usuarios (user_id, habilitado_por) VALUES (?, ?)');
+            $stmt->bind_param('ii', $targetId, $uid);
+        } else {
+            $stmt = $mysqli->prepare('DELETE FROM frutibank_usuarios WHERE user_id = ?');
+            $stmt->bind_param('i', $targetId);
+        }
+        $stmt->execute();
+        $stmt->close();
+        $frutibankAlterado = true;
+    }
+
     $sets = [];
     $tipos = '';
     $vals = [];
@@ -101,6 +121,9 @@ if ($acao === 'atualizar') {
     }
 
     if (!$sets) {
+        if ($frutibankAlterado) {
+            adminJson(['ok' => true, 'msg' => 'Usuário atualizado.']);
+        }
         adminJson(['ok' => false, 'msg' => 'Nada para atualizar.'], 400);
     }
 

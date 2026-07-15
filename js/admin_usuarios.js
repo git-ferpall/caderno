@@ -69,6 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="au-state">${ativo ? "Ativo" : "Inativo"}</span>
         </label>
       </td>
+      <td>
+        <label class="au-switch">
+          <input type="checkbox" data-toggle-frutibank ${Number(u.frutibank) === 1 ? "checked" : ""}>
+          <span class="au-slider"></span>
+          <span class="au-state">${Number(u.frutibank) === 1 ? "Liberado" : "—"}</span>
+        </label>
+      </td>
       <td class="au-acoes">
         ${local ? `<button type="button" class="au-btn au-btn-senha" data-reset-senha>Nova senha</button>` : ""}
         <button type="button" class="au-btn au-btn-acessar" data-impersonar>Acessar caderno</button>
@@ -83,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaUsuario).join("")
-      : `<tr class="au-vazio"><td colspan="7">Nenhum usuário encontrado.</td></tr>`;
+      : `<tr class="au-vazio"><td colspan="8">Nenhum usuário encontrado.</td></tr>`;
   }
 
   formCriar?.addEventListener("submit", async (e) => {
@@ -134,6 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (label) label.textContent = chkAtivo.checked ? "Ativo" : "Inativo";
       } catch (err) {
         chkAtivo.checked = !chkAtivo.checked;
+        alert(err.message);
+      }
+      return;
+    }
+
+    const chkFrutibank = e.target.closest("[data-toggle-frutibank]");
+    if (chkFrutibank) {
+      const label = chkFrutibank.closest("label")?.querySelector(".au-state");
+      try {
+        await apiPost("salvar_usuario.php", { acao: "atualizar", user_id: userId, frutibank: chkFrutibank.checked ? "1" : "0" });
+        if (label) label.textContent = chkFrutibank.checked ? "Liberado" : "—";
+      } catch (err) {
+        chkFrutibank.checked = !chkFrutibank.checked;
         alert(err.message);
       }
     }
