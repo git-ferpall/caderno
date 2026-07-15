@@ -108,10 +108,15 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
             </div>
 
             <div class="fb-doc-campo fb-doc-chave fb-span-4">
-                <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>) <small class="no-print">— toque na chave para copiar</small></label>
-                <div class="fb-doc-chave-linha">
-                    <strong id="fb-chave-valor" role="button" tabindex="0" title="Clique para copiar a chave PIX"><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
-                    <button type="button" class="fb-doc-copia-btn fb-doc-chave-btn no-print" id="fb-copiar-chave">Copiar</button>
+                <div class="fb-doc-chave-grid">
+                    <div class="fb-doc-chave-rotulo">
+                        <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>)</label>
+                        <small class="no-print">toque na chave para copiar</small>
+                    </div>
+                    <div class="fb-doc-chave-linha">
+                        <strong id="fb-chave-valor" role="button" tabindex="0" title="Clique para copiar a chave PIX"><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
+                        <button type="button" class="fb-doc-copia-btn fb-doc-chave-btn no-print" id="fb-copiar-chave">Copiar</button>
+                    </div>
                 </div>
             </div>
 

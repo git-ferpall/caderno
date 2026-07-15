@@ -486,19 +486,37 @@
     -webkit-print-color-adjust: exact;
 }
 
-.fb-doc-chave label {
-    color: #33691e;
-    font-weight: 700;
+/* rótulo em coluna própria, separado do valor da chave */
+.fb-doc-chave-grid {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-.fb-doc-chave label small {
-    text-transform: none;
-    letter-spacing: 0;
+.fb-doc-chave-rotulo {
+    flex: none;
+    width: 165px;
+    padding-right: 16px;
+    border-right: 1px solid rgba(99, 160, 39, 0.35);
+}
+
+.fb-doc-chave-rotulo label {
+    color: #33691e;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.fb-doc-chave-rotulo small {
+    display: block;
+    margin-top: 3px;
+    font-size: 10.5px;
     font-weight: 600;
     color: var(--verde);
 }
 
 .fb-doc-chave-linha {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -543,6 +561,22 @@
 @media print {
     .fb-doc-chave strong {
         cursor: auto;
+    }
+}
+
+@media (max-width: 680px) {
+    .fb-doc-chave-grid {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .fb-doc-chave-rotulo {
+        width: auto;
+        padding-right: 0;
+        padding-bottom: 6px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(99, 160, 39, 0.35);
     }
 }
 
