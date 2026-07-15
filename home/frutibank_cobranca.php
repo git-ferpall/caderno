@@ -102,13 +102,17 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
                 <label>Beneficiário (recebedor)</label>
                 <strong><?= htmlspecialchars($cob['nome_recebedor'] ?? '') ?></strong>
             </div>
-            <div class="fb-doc-campo fb-doc-chave">
-                <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>)</label>
-                <strong><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
-            </div>
-            <div class="fb-doc-campo">
+            <div class="fb-doc-campo fb-span-2">
                 <label>Cidade</label>
                 <strong><?= htmlspecialchars(trim(($cob['cidade'] ?? '') . (!empty($cob['uf']) ? '/' . $cob['uf'] : ''))) ?></strong>
+            </div>
+
+            <div class="fb-doc-campo fb-doc-chave fb-span-4">
+                <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>) <small class="no-print">— toque na chave para copiar</small></label>
+                <div class="fb-doc-chave-linha">
+                    <strong id="fb-chave-valor" role="button" tabindex="0" title="Clique para copiar a chave PIX"><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
+                    <button type="button" class="fb-doc-copia-btn fb-doc-chave-btn no-print" id="fb-copiar-chave">Copiar</button>
+                </div>
             </div>
 
             <div class="fb-doc-campo fb-span-2">
@@ -164,8 +168,11 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
         </div>
 
         <div class="fb-doc-copia">
-            <label>PIX copia-e-cola</label>
-            <div class="fb-doc-copia-box" id="fb-payload"><?= htmlspecialchars($payload) ?></div>
+            <label>PIX copia-e-cola <small class="no-print">— toque no código para copiar</small></label>
+            <div class="fb-doc-copia-wrap">
+                <div class="fb-doc-copia-box" id="fb-payload" role="button" tabindex="0" title="Clique para copiar o código PIX"><?= htmlspecialchars($payload) ?></div>
+                <button type="button" class="fb-doc-copia-btn no-print" id="fb-copiar-box">Copiar</button>
+            </div>
         </div>
 
         <div class="fb-doc-barcode">
@@ -216,19 +223,71 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
             window.open(`${destino}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
         });
 
-        const btnCopiar = document.getElementById("fb-copiar");
-        btnCopiar?.addEventListener("click", async () => {
+        const boxPayload = document.getElementById("fb-payload");
+        const btnCopiarBox = document.getElementById("fb-copiar-box");
+
+        async function copiarPix(feedbackBtn) {
             try {
                 await navigator.clipboard.writeText(fbPayload);
-                const original = btnCopiar.textContent;
-                btnCopiar.textContent = "Copiado!";
-                btnCopiar.disabled = true;
-                setTimeout(() => {
-                    btnCopiar.textContent = original;
-                    btnCopiar.disabled = false;
-                }, 2200);
             } catch (e) {
                 prompt("Copie o código PIX abaixo:", fbPayload);
+                return;
+            }
+            boxPayload.classList.add("copiado");
+            setTimeout(() => boxPayload.classList.remove("copiado"), 2200);
+            if (feedbackBtn) {
+                const original = feedbackBtn.textContent;
+                feedbackBtn.textContent = "Copiado!";
+                feedbackBtn.disabled = true;
+                setTimeout(() => {
+                    feedbackBtn.textContent = original;
+                    feedbackBtn.disabled = false;
+                }, 2200);
+            }
+        }
+
+        document.getElementById("fb-copiar")?.addEventListener("click", (e) => copiarPix(e.currentTarget));
+        btnCopiarBox?.addEventListener("click", () => copiarPix(btnCopiarBox));
+        boxPayload?.addEventListener("click", () => copiarPix(btnCopiarBox));
+        boxPayload?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                copiarPix(btnCopiarBox);
+            }
+        });
+
+        // Copiar a chave PIX (destaque no topo do documento)
+        const chaveValor = document.getElementById("fb-chave-valor");
+        const btnCopiarChave = document.getElementById("fb-copiar-chave");
+        const campoChave = chaveValor?.closest(".fb-doc-chave");
+
+        async function copiarChave() {
+            const chave = chaveValor.textContent.trim();
+            try {
+                await navigator.clipboard.writeText(chave);
+            } catch (e) {
+                prompt("Copie a chave PIX abaixo:", chave);
+                return;
+            }
+            campoChave?.classList.add("copiado");
+            setTimeout(() => campoChave?.classList.remove("copiado"), 2200);
+            if (btnCopiarChave) {
+                const original = btnCopiarChave.textContent;
+                btnCopiarChave.textContent = "Copiado!";
+                btnCopiarChave.disabled = true;
+                setTimeout(() => {
+                    btnCopiarChave.textContent = original;
+                    btnCopiarChave.disabled = false;
+                }, 2200);
+            }
+        }
+
+        chaveValor?.addEventListener("click", copiarChave);
+        btnCopiarChave?.addEventListener("click", copiarChave);
+        chaveValor?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                copiarChave();
             }
         });
     </script>
