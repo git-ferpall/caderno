@@ -65,13 +65,14 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                                 <option value="cpf">CPF</option>
                                 <option value="cnpj">CNPJ</option>
                                 <option value="email">E-mail</option>
-                                <option value="telefone">Telefone</option>
+                                <option value="telefone">Telefone (celular)</option>
                                 <option value="aleatoria" selected>Aleatória</option>
                             </select>
                         </div>
                         <div class="au-field au-field-wide">
                             <label for="fb-chave">Chave PIX</label>
                             <input type="text" id="fb-chave" name="chave_pix" placeholder="Sua chave PIX" required autocomplete="off">
+                            <small class="fb-hint" id="fb-chave-hint"></small>
                         </div>
                         <div class="au-field">
                             <label for="fb-nome">Nome do recebedor <small>(máx. 25)</small></label>
@@ -85,6 +86,13 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                             <button type="submit" class="main-btn fundo-verde">Salvar chave PIX</button>
                         </div>
                     </form>
+
+                    <div class="fb-pix-preview" id="fb-pix-preview">
+                        <span class="fb-pix-preview-titulo">Como o pagador verá no app do banco</span>
+                        <div class="fb-pix-preview-linha"><label>Recebedor</label><strong id="fb-prev-nome">—</strong></div>
+                        <div class="fb-pix-preview-linha"><label>Cidade</label><strong id="fb-prev-cidade">—</strong></div>
+                        <div class="fb-pix-preview-linha"><label>Chave</label><strong id="fb-prev-chave">—</strong></div>
+                    </div>
                 </section>
 
                 <section class="au-card fb-panel" data-panel="clientes">
@@ -97,12 +105,16 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
 
                     <form class="au-form" id="form-cliente">
                         <div class="au-field au-field-wide">
-                            <label for="fb-cli-nome">Nome do cliente</label>
-                            <input type="text" id="fb-cli-nome" name="nome" placeholder="Ex.: João Pereira" required>
+                            <label for="fb-cli-doc">CPF ou CNPJ</label>
+                            <div class="fb-doc-busca">
+                                <input type="text" id="fb-cli-doc" name="cpf_cnpj" placeholder="Somente números" inputmode="numeric" maxlength="18" required>
+                                <button type="button" class="main-btn fundo-azul" id="fb-btn-receita" disabled>Buscar na Receita</button>
+                            </div>
+                            <small class="fb-hint" id="fb-receita-info">Para CNPJ, buscamos a razão social direto na Receita Federal. Para CPF, preencha o nome manualmente.</small>
                         </div>
                         <div class="au-field au-field-wide">
-                            <label for="fb-cli-doc">CPF ou CNPJ</label>
-                            <input type="text" id="fb-cli-doc" name="cpf_cnpj" placeholder="Somente números" inputmode="numeric" maxlength="18" required>
+                            <label for="fb-cli-nome">Nome do cliente</label>
+                            <input type="text" id="fb-cli-nome" name="nome" placeholder="Ex.: João Pereira" required>
                         </div>
                         <div class="au-form-actions">
                             <button type="submit" class="main-btn fundo-verde">Cadastrar cliente</button>

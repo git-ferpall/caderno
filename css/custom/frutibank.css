@@ -112,6 +112,89 @@
     background: var(--vermelho);
 }
 
+/* Dicas sob os campos */
+.fb-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--cinza-a);
+    line-height: 1.45;
+}
+
+/* Campo CPF/CNPJ + botão de busca na Receita */
+.fb-doc-busca {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.fb-doc-busca input {
+    flex: 1;
+}
+
+.fb-doc-busca .main-btn {
+    flex: none;
+    font-size: 13.5px;
+    padding: 8px 18px;
+    white-space: nowrap;
+}
+
+.fb-doc-busca .main-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: 0 6px 0px var(--preto);
+    margin: 0 !important;
+}
+
+/* Prévia do recebedor (como aparece no app do pagador) */
+.fb-pix-preview {
+    margin-top: 22px;
+    border: 2px dashed var(--cinza-b);
+    border-radius: 14px;
+    padding: 16px 18px;
+    max-width: 520px;
+}
+
+.fb-pix-preview-titulo {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cinza-a);
+    margin-bottom: 10px;
+}
+
+.fb-pix-preview-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--cinza-c);
+    font-size: 14px;
+}
+
+.fb-pix-preview-linha:last-child {
+    border-bottom: 0;
+}
+
+.fb-pix-preview-linha label {
+    color: var(--cinza-a);
+    font-size: 12.5px;
+    flex: none;
+}
+
+.fb-pix-preview-linha strong {
+    text-align: right;
+    word-break: break-all;
+}
+
+@media (max-width: 680px) {
+    .fb-doc-busca {
+        flex-direction: column;
+    }
+}
+
 /* ---------- Documento de cobrança ---------- */
 
 .fb-doc-body {

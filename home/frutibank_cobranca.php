@@ -181,10 +181,17 @@ $payload = (string)$cob['payload'];
             document.querySelector(".fb-doc-barcode").style.display = "none";
         }
 
-        document.getElementById("fb-copiar")?.addEventListener("click", async () => {
+        const btnCopiar = document.getElementById("fb-copiar");
+        btnCopiar?.addEventListener("click", async () => {
             try {
                 await navigator.clipboard.writeText(fbPayload);
-                alert("Código PIX copiado! Envie para o seu cliente ou cole no app do banco.");
+                const original = btnCopiar.textContent;
+                btnCopiar.textContent = "Copiado!";
+                btnCopiar.disabled = true;
+                setTimeout(() => {
+                    btnCopiar.textContent = original;
+                    btnCopiar.disabled = false;
+                }, 2200);
             } catch (e) {
                 prompt("Copie o código PIX abaixo:", fbPayload);
             }

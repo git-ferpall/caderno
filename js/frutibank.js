@@ -2,7 +2,8 @@
  * FRUTIBANK.JS
  * ------------
  * Painel do Frutibank: chave PIX do recebedor, clientes de cobrança
- * (CPF/CNPJ) e geração de cobranças PIX imprimíveis.
+ * (CPF/CNPJ com busca na Receita Federal) e geração de cobranças PIX.
+ * Usa os popups padrão do sistema (include/popups.php + js/popups.js).
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -17,6 +18,71 @@ document.addEventListener("DOMContentLoaded", () => {
   const chipConfig = document.getElementById("fb-chip-config");
   const chipClientes = document.getElementById("fb-chip-clientes");
   const chipCobrancas = document.getElementById("fb-chip-cobrancas");
+
+  /* ---------------- Popups padrão do sistema ---------------- */
+
+  const fbOverlay = document.getElementById("popup-overlay");
+
+  function fbPopup(titulo, texto = "", sucesso = true) {
+    const box = document.getElementById(sucesso ? "popup-success" : "popup-failed");
+    if (!fbOverlay || !box || typeof closePopup !== "function") {
+      alert(titulo + (texto ? "\n" + texto : ""));
+      return;
+    }
+    const t = box.querySelector(".popup-title");
+    if (t) t.textContent = titulo;
+
+    let p = box.querySelector(".popup-text");
+    if (!p && t) {
+      p = document.createElement("p");
+      p.className = "popup-text";
+      t.insertAdjacentElement("afterend", p);
+    }
+    if (p) {
+      p.textContent = texto;
+      p.style.display = texto ? "" : "none";
+    }
+
+    fbOverlay.classList.remove("d-none");
+    box.classList.remove("d-none");
+  }
+
+  function fbConfirm(titulo, texto, btnLabel = "Confirmar", btnClasse = "fundo-vermelho") {
+    return new Promise((resolve) => {
+      const box = document.getElementById("popup-delete");
+      if (!fbOverlay || !box) {
+        resolve(confirm(`${titulo}\n${texto}`));
+        return;
+      }
+      box.querySelector(".popup-title").textContent = titulo;
+      box.querySelector(".popup-text").textContent = texto;
+
+      const btnConfirmar = box.querySelector("#confirm-delete");
+      const btnCancelar = box.querySelector(".popup-btn:not(#confirm-delete)");
+      btnConfirmar.textContent = btnLabel;
+      btnConfirmar.className = `popup-btn ${btnClasse}`;
+
+      const onConfirmar = () => {
+        limpar();
+        closePopup();
+        resolve(true);
+      };
+      const onCancelar = () => {
+        limpar();
+        resolve(false);
+      };
+      function limpar() {
+        btnConfirmar.removeEventListener("click", onConfirmar);
+        btnCancelar.removeEventListener("click", onCancelar);
+      }
+
+      btnConfirmar.addEventListener("click", onConfirmar);
+      btnCancelar.addEventListener("click", onCancelar);
+
+      fbOverlay.classList.remove("d-none");
+      box.classList.remove("d-none");
+    });
+  }
 
   /* ---------------- Abas ---------------- */
 
@@ -37,6 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabInicial = ["chave", "clientes", "cobrancas"].includes(hashInicial) ? hashInicial : "chave";
   abrirTab(tabInicial, hashInicial !== "");
 
+  /* ---------------- Utilidades ---------------- */
+
   function escapeHtml(s) {
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -45,11 +113,37 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/"/g, "&quot;");
   }
 
+  function soDigitos(s) {
+    return String(s || "").replace(/\D/g, "");
+  }
+
   function fmtDoc(doc) {
-    const d = String(doc || "").replace(/\D/g, "");
+    const d = soDigitos(doc);
     if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
     if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
     return doc || "—";
+  }
+
+  function mascaraDoc(valor) {
+    const d = soDigitos(valor).slice(0, 14);
+    if (d.length <= 11) {
+      return d
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+    }
+    return d
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  }
+
+  function mascaraTelefone(valor) {
+    const d = soDigitos(valor).slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
   }
 
   function fmtValor(v) {
@@ -74,8 +168,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       fd.append("acao", acao);
       init.body = fd;
-    } else if (opts.q) {
-      url += `&q=${encodeURIComponent(opts.q)}`;
+    } else if (opts.params) {
+      Object.entries(opts.params).forEach(([k, v]) => {
+        if (v !== "" && v != null) url += `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
+      });
     }
 
     const r = await fetch(url, init);
@@ -86,31 +182,156 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- Chave PIX ---------------- */
 
+  const inputChave = document.getElementById("fb-chave");
+  const hintChave = document.getElementById("fb-chave-hint");
+  const selTipo = document.getElementById("fb-tipo");
+  const inputNomeRec = document.getElementById("fb-nome");
+  const inputCidade = document.getElementById("fb-cidade");
+
+  const tiposChave = {
+    cpf: { placeholder: "000.000.000-00", hint: "Digite o CPF cadastrado como chave no seu banco.", inputmode: "numeric" },
+    cnpj: { placeholder: "00.000.000/0000-00", hint: "Digite o CNPJ cadastrado como chave no seu banco.", inputmode: "numeric" },
+    email: { placeholder: "voce@email.com", hint: "Digite o e-mail cadastrado como chave no seu banco.", inputmode: "email" },
+    telefone: { placeholder: "(00) 90000-0000", hint: "Digite o celular com DDD. Salvamos no formato +55 exigido pelo PIX.", inputmode: "tel" },
+    aleatoria: { placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", hint: "Cole a chave aleatória gerada pelo seu banco (32 caracteres).", inputmode: "text" },
+  };
+
+  function aplicarTipoChave(manterValor = false) {
+    const cfg = tiposChave[selTipo.value] || tiposChave.aleatoria;
+    inputChave.placeholder = cfg.placeholder;
+    inputChave.setAttribute("inputmode", cfg.inputmode);
+    if (hintChave) hintChave.textContent = cfg.hint;
+    if (!manterValor) inputChave.value = "";
+    atualizarPreview();
+  }
+
+  function formatarChaveDigitada() {
+    const tipo = selTipo.value;
+    if (tipo === "cpf" || tipo === "cnpj") {
+      inputChave.value = mascaraDoc(inputChave.value);
+    } else if (tipo === "telefone") {
+      // preserva valores já salvos no formato +55...
+      if (!inputChave.value.startsWith("+")) inputChave.value = mascaraTelefone(inputChave.value);
+    }
+    atualizarPreview();
+  }
+
+  function chaveNormalizada() {
+    const tipo = selTipo.value;
+    const bruto = inputChave.value.trim();
+    if (tipo === "cpf" || tipo === "cnpj") return soDigitos(bruto);
+    if (tipo === "telefone") {
+      if (bruto.startsWith("+")) return bruto;
+      const d = soDigitos(bruto);
+      return d ? `+55${d}` : "";
+    }
+    if (tipo === "email") return bruto.toLowerCase();
+    return bruto;
+  }
+
+  function validarChave() {
+    const tipo = selTipo.value;
+    const chave = chaveNormalizada();
+    if (tipo === "cpf" && chave.length !== 11) return "O CPF da chave deve ter 11 dígitos.";
+    if (tipo === "cnpj" && chave.length !== 14) return "O CNPJ da chave deve ter 14 dígitos.";
+    if (tipo === "telefone" && !/^\+55\d{10,11}$/.test(chave)) return "Informe um celular válido com DDD.";
+    if (tipo === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(chave)) return "Informe um e-mail válido.";
+    if (tipo === "aleatoria" && chave.length < 30) return "A chave aleatória parece incompleta. Copie e cole a chave completa do seu banco.";
+    return null;
+  }
+
+  function atualizarPreview() {
+    const prevNome = document.getElementById("fb-prev-nome");
+    const prevCidade = document.getElementById("fb-prev-cidade");
+    const prevChave = document.getElementById("fb-prev-chave");
+    if (prevNome) prevNome.textContent = inputNomeRec.value.trim().toUpperCase() || "—";
+    if (prevCidade) prevCidade.textContent = inputCidade.value.trim().toUpperCase() || "—";
+    if (prevChave) prevChave.textContent = chaveNormalizada() || "—";
+  }
+
+  selTipo?.addEventListener("change", () => aplicarTipoChave(false));
+  inputChave?.addEventListener("input", formatarChaveDigitada);
+  inputNomeRec?.addEventListener("input", atualizarPreview);
+  inputCidade?.addEventListener("input", atualizarPreview);
+
   async function carregarConfig() {
     const data = await apiCall("get_config");
     const c = data.config;
     if (chipConfig) chipConfig.textContent = c ? "OK" : "Pendente";
-    if (!c) return;
-    formConfig.tipo_chave.value = c.tipo_chave;
-    formConfig.chave_pix.value = c.chave_pix;
-    formConfig.nome_recebedor.value = c.nome_recebedor;
-    formConfig.cidade.value = c.cidade;
+    if (!c) {
+      aplicarTipoChave(false);
+      return;
+    }
+    selTipo.value = c.tipo_chave;
+    aplicarTipoChave(true);
+    inputChave.value = c.tipo_chave === "cpf" || c.tipo_chave === "cnpj" ? mascaraDoc(c.chave_pix) : c.chave_pix;
+    inputNomeRec.value = c.nome_recebedor;
+    inputCidade.value = c.cidade;
+    atualizarPreview();
     // chave já configurada: abre direto em Cobranças (se o usuário não escolheu outra aba)
     if (!tabEscolhidaPeloUsuario) abrirTab("cobrancas");
   }
 
   formConfig?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const erro = validarChave();
+    if (erro) {
+      fbPopup("Chave PIX inválida", erro, false);
+      return;
+    }
+    const fd = new FormData(formConfig);
+    fd.set("chave_pix", chaveNormalizada());
     try {
-      const data = await apiCall("salvar_config", { method: "POST", body: new FormData(formConfig) });
-      alert(data.msg);
+      await apiCall("salvar_config", { method: "POST", body: fd });
+      fbPopup("Chave PIX salva com sucesso!", "Agora você já pode gerar cobranças para os seus clientes.");
       await carregarConfig();
     } catch (err) {
-      alert(err.message);
+      fbPopup("Não foi possível salvar", err.message, false);
     }
   });
 
   /* ---------------- Clientes ---------------- */
+
+  const inputCliDoc = document.getElementById("fb-cli-doc");
+  const inputCliNome = document.getElementById("fb-cli-nome");
+  const btnReceita = document.getElementById("fb-btn-receita");
+  const infoReceita = document.getElementById("fb-receita-info");
+  const infoReceitaPadrao = infoReceita ? infoReceita.textContent : "";
+
+  inputCliDoc?.addEventListener("input", () => {
+    inputCliDoc.value = mascaraDoc(inputCliDoc.value);
+    const d = soDigitos(inputCliDoc.value);
+    if (btnReceita) btnReceita.disabled = d.length !== 14;
+    if (infoReceita && d.length === 0) infoReceita.textContent = infoReceitaPadrao;
+  });
+
+  btnReceita?.addEventListener("click", async () => {
+    const cnpj = soDigitos(inputCliDoc.value);
+    if (cnpj.length !== 14) return;
+    btnReceita.disabled = true;
+    const rotulo = btnReceita.textContent;
+    btnReceita.textContent = "Buscando...";
+    try {
+      const data = await apiCall("consultar_cnpj", { params: { cnpj } });
+      const d = data.dados;
+      inputCliNome.value = d.razao_social || d.nome_fantasia || "";
+      if (infoReceita) {
+        const partes = [];
+        if (d.nome_fantasia) partes.push(`Fantasia: ${d.nome_fantasia}`);
+        if (d.situacao) partes.push(`Situação: ${d.situacao}`);
+        if (d.municipio) partes.push(`${d.municipio}${d.uf ? "/" + d.uf : ""}`);
+        infoReceita.textContent = partes.join(" · ") || "Dados encontrados na Receita Federal.";
+      }
+      if (d.situacao && d.situacao.toUpperCase() !== "ATIVA") {
+        fbPopup("Atenção com este CNPJ", `A situação cadastral na Receita é "${d.situacao}". Confira antes de cobrar.`, false);
+      }
+    } catch (err) {
+      fbPopup("Consulta não concluída", err.message, false);
+    } finally {
+      btnReceita.textContent = rotulo;
+      btnReceita.disabled = soDigitos(inputCliDoc.value).length !== 14;
+    }
+  });
 
   async function carregarClientes() {
     const data = await apiCall("listar_clientes");
@@ -143,13 +364,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   formCliente?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const fd = new FormData(formCliente);
+    fd.set("cpf_cnpj", soDigitos(inputCliDoc.value));
     try {
-      const data = await apiCall("salvar_cliente", { method: "POST", body: new FormData(formCliente) });
-      alert(data.msg);
+      await apiCall("salvar_cliente", { method: "POST", body: fd });
+      fbPopup("Cliente cadastrado!", "Agora você já pode gerar cobranças para ele.");
       formCliente.reset();
+      if (infoReceita) infoReceita.textContent = infoReceitaPadrao;
+      if (btnReceita) btnReceita.disabled = true;
       await carregarClientes();
     } catch (err) {
-      alert(err.message);
+      fbPopup("Não foi possível cadastrar", err.message, false);
     }
   });
 
@@ -166,12 +391,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (e.target.closest("[data-excluir]")) {
-      if (!confirm("Excluir este cliente?")) return;
+      const nome = tr.querySelector(".au-nome")?.textContent || "este cliente";
+      const ok = await fbConfirm("Excluir cliente?", `${nome} será removido da sua lista. Esta ação não poderá ser desfeita.`, "Excluir");
+      if (!ok) return;
       try {
         await apiCall("excluir_cliente", { method: "POST", body: { cliente_id: tr.dataset.clienteId } });
         await carregarClientes();
       } catch (err) {
-        alert(err.message);
+        fbPopup("Não foi possível excluir", err.message, false);
       }
     }
   });
@@ -209,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
   formCobranca?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!selectCliente.value) {
-      alert("Selecione um cliente para cobrar.");
+      fbPopup("Selecione um cliente", "Escolha para quem é a cobrança antes de gerar.", false);
       return;
     }
     try {
@@ -218,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await Promise.all([carregarCobrancas(), carregarClientes()]);
       if (data.url) window.open(data.url, "_blank", "noopener");
     } catch (err) {
-      alert(err.message);
+      fbPopup("Não foi possível gerar a cobrança", err.message, false);
     }
   });
 
@@ -233,12 +460,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       sel.className = `au-select fb-status fb-status-${sel.value}`;
     } catch (err) {
-      alert(err.message);
+      fbPopup("Não foi possível atualizar", err.message, false);
       await carregarCobrancas();
     }
   });
 
   /* ---------------- Inicialização ---------------- */
 
-  Promise.all([carregarConfig(), carregarClientes(), carregarCobrancas()]).catch((err) => alert(err.message));
+  Promise.all([carregarConfig(), carregarClientes(), carregarCobrancas()]).catch((err) =>
+    fbPopup("Erro ao carregar o Frutibank", err.message, false)
+  );
 });

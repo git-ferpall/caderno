@@ -90,6 +90,45 @@ switch ($acao) {
         $stmt->close();
         frutibankJson(['ok' => true, 'msg' => 'Chave PIX salva com sucesso.']);
 
+    /* ---------------- Consulta CNPJ (Receita Federal via BrasilAPI) ---------------- */
+
+    case 'consultar_cnpj':
+        $cnpj = preg_replace('/\D/', '', $_GET['cnpj'] ?? $_POST['cnpj'] ?? '') ?? '';
+        if (strlen($cnpj) !== 14) {
+            frutibankJson(['ok' => false, 'msg' => 'Informe um CNPJ completo (14 dígitos).'], 400);
+        }
+        if (frutibankValidarCpfCnpj($cnpj) === null) {
+            frutibankJson(['ok' => false, 'msg' => 'CNPJ inválido. Confira os dígitos.'], 400);
+        }
+
+        $ch = curl_init('https://brasilapi.com.br/api/cnpj/v1/' . $cnpj);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 6,
+            CURLOPT_TIMEOUT => 12,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            CURLOPT_USERAGENT => 'CadernoFrutag/1.0',
+        ]);
+        $resp = curl_exec($ch);
+        $httpStatus = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpStatus === 404) {
+            frutibankJson(['ok' => false, 'msg' => 'CNPJ não encontrado na Receita Federal.'], 404);
+        }
+        $dados = $resp ? json_decode($resp, true) : null;
+        if ($httpStatus !== 200 || !is_array($dados) || empty($dados['razao_social'])) {
+            frutibankJson(['ok' => false, 'msg' => 'Consulta à Receita indisponível no momento. Preencha os dados manualmente.'], 502);
+        }
+
+        frutibankJson(['ok' => true, 'dados' => [
+            'razao_social'  => $dados['razao_social'],
+            'nome_fantasia' => $dados['nome_fantasia'] ?? '',
+            'situacao'      => $dados['descricao_situacao_cadastral'] ?? '',
+            'municipio'     => $dados['municipio'] ?? '',
+            'uf'            => $dados['uf'] ?? '',
+        ]]);
+
     /* ---------------- Clientes de cobrança ---------------- */
 
     case 'listar_clientes':
