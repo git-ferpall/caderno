@@ -34,11 +34,21 @@ function frutibankEnsureSchema(mysqli $mysqli): void
             chave_pix VARCHAR(140) NOT NULL,
             tipo_chave ENUM('cpf','cnpj','email','telefone','aleatoria') NOT NULL DEFAULT 'aleatoria',
             nome_recebedor VARCHAR(25) NOT NULL,
-            cidade VARCHAR(15) NOT NULL,
+            cidade VARCHAR(80) NOT NULL,
+            uf CHAR(2) NOT NULL DEFAULT '',
             atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
             criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+
+    // Migração de instalações antigas: adiciona uf e amplia cidade
+    // (o payload PIX continua truncando a cidade em 15 chars na geração)
+    $colUf = $mysqli->query("SHOW COLUMNS FROM frutibank_config LIKE 'uf'");
+    if ($colUf && $colUf->num_rows === 0) {
+        $mysqli->query("ALTER TABLE frutibank_config
+            MODIFY cidade VARCHAR(80) NOT NULL,
+            ADD COLUMN uf CHAR(2) NOT NULL DEFAULT '' AFTER cidade");
+    }
 
     $mysqli->query("
         CREATE TABLE IF NOT EXISTS frutibank_clientes (

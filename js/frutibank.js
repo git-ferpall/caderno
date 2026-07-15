@@ -187,7 +187,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const hintChave = document.getElementById("fb-chave-hint");
   const selTipo = document.getElementById("fb-tipo");
   const inputNomeRec = document.getElementById("fb-nome");
-  const inputCidade = document.getElementById("fb-cidade");
+  const selUf = document.getElementById("fb-uf");
+  const selCidade = document.getElementById("fb-cidade");
+
+  /* --- Estados e cidades (IBGE) --- */
+
+  const ibge = "https://servicodados.ibge.gov.br/api/v1/localidades";
+
+  async function carregarEstadosFb() {
+    if (!selUf || selUf.options.length > 1) return;
+    try {
+      const r = await fetch(`${ibge}/estados?orderBy=nome`);
+      const estados = await r.json();
+      estados.forEach((e) => {
+        const opt = document.createElement("option");
+        opt.value = e.sigla;
+        opt.textContent = `${e.sigla} — ${e.nome}`;
+        selUf.appendChild(opt);
+      });
+    } catch {
+      // sem internet: mantém o select vazio; o usuário pode tentar de novo depois
+    }
+  }
+
+  async function carregarCidadesFb(uf, selecionada = "") {
+    if (!selCidade) return;
+    selCidade.innerHTML = `<option value="">${uf ? "Carregando..." : "Selecione o estado primeiro..."}</option>`;
+    if (!uf) return;
+    try {
+      const r = await fetch(`${ibge}/estados/${uf}/municipios?orderBy=nome`);
+      const cidades = await r.json();
+      selCidade.innerHTML = `<option value="">Selecione a cidade...</option>`;
+      cidades.forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.nome;
+        opt.textContent = c.nome;
+        selCidade.appendChild(opt);
+      });
+      if (selecionada) selCidade.value = selecionada;
+    } catch {
+      selCidade.innerHTML = `<option value="">Erro ao carregar. Selecione o estado de novo.</option>`;
+    }
+    atualizarPreview();
+  }
+
+  selUf?.addEventListener("change", () => carregarCidadesFb(selUf.value));
+  selCidade?.addEventListener("change", atualizarPreview);
 
   const tiposChave = {
     cpf: { placeholder: "000.000.000-00", hint: "Digite o CPF cadastrado como chave no seu banco.", inputmode: "numeric" },
@@ -241,24 +286,33 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
+  // Reproduz o tratamento do BR Code: sem acentos e com limite de caracteres
+  function textoEmv(s, max) {
+    return String(s || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toUpperCase()
+      .slice(0, max);
+  }
+
   function atualizarPreview() {
     const prevNome = document.getElementById("fb-prev-nome");
     const prevCidade = document.getElementById("fb-prev-cidade");
     const prevChave = document.getElementById("fb-prev-chave");
-    if (prevNome) prevNome.textContent = inputNomeRec.value.trim().toUpperCase() || "—";
-    if (prevCidade) prevCidade.textContent = inputCidade.value.trim().toUpperCase() || "—";
+    if (prevNome) prevNome.textContent = textoEmv(inputNomeRec.value, 25) || "—";
+    if (prevCidade) prevCidade.textContent = textoEmv(selCidade?.value, 15) || "—";
     if (prevChave) prevChave.textContent = chaveNormalizada() || "—";
   }
 
   selTipo?.addEventListener("change", () => aplicarTipoChave(false));
   inputChave?.addEventListener("input", formatarChaveDigitada);
   inputNomeRec?.addEventListener("input", atualizarPreview);
-  inputCidade?.addEventListener("input", atualizarPreview);
 
   /* --- Modo visualização x edição da chave --- */
 
   const configView = document.getElementById("fb-config-view");
-  const previewCard = document.getElementById("fb-pix-preview");
+  const chaveEditor = document.getElementById("fb-chave-editor");
   const btnEditarConfig = document.getElementById("fb-btn-editar-config");
   const btnCancelarConfig = document.getElementById("fb-btn-cancelar-config");
   const tipoLabels = { cpf: "CPF", cnpj: "CNPJ", email: "E-mail", telefone: "Telefone", aleatoria: "Aleatória" };
@@ -269,30 +323,31 @@ document.addEventListener("DOMContentLoaded", () => {
     return c.chave_pix;
   }
 
-  function preencherFormConfig(c) {
+  async function preencherFormConfig(c) {
     selTipo.value = c.tipo_chave;
     aplicarTipoChave(true);
     inputChave.value = chaveExibicao(c);
     inputNomeRec.value = c.nome_recebedor;
-    inputCidade.value = c.cidade;
+    await carregarEstadosFb();
+    if (selUf) selUf.value = c.uf || "";
+    await carregarCidadesFb(c.uf || "", c.cidade || "");
     atualizarPreview();
   }
 
   function mostrarConfigView() {
     if (!configAtual || !configView) return;
+    const cidadeUf = [configAtual.cidade, configAtual.uf].filter(Boolean).join(" / ");
     document.getElementById("fb-view-tipo").textContent = tipoLabels[configAtual.tipo_chave] || configAtual.tipo_chave;
     document.getElementById("fb-view-chave").textContent = chaveExibicao(configAtual);
     document.getElementById("fb-view-nome").textContent = String(configAtual.nome_recebedor || "").toUpperCase();
-    document.getElementById("fb-view-cidade").textContent = String(configAtual.cidade || "").toUpperCase();
+    document.getElementById("fb-view-cidade").textContent = cidadeUf.toUpperCase() || "—";
     configView.classList.remove("d-none");
-    formConfig.classList.add("d-none");
-    previewCard?.classList.add("d-none");
+    chaveEditor?.classList.add("d-none");
   }
 
   function mostrarConfigForm() {
     configView?.classList.add("d-none");
-    formConfig.classList.remove("d-none");
-    previewCard?.classList.remove("d-none");
+    chaveEditor?.classList.remove("d-none");
     // só dá para cancelar a edição se já existe uma chave salva
     btnCancelarConfig?.classList.toggle("d-none", !configAtual);
   }
@@ -302,13 +357,16 @@ document.addEventListener("DOMContentLoaded", () => {
     inputChave?.focus();
   });
 
-  btnCancelarConfig?.addEventListener("click", () => {
-    if (configAtual) preencherFormConfig(configAtual);
+  btnCancelarConfig?.addEventListener("click", async () => {
+    if (configAtual) await preencherFormConfig(configAtual);
     mostrarConfigView();
   });
 
-  function moverTabChaveParaOFim() {
+  // Com a chave cadastrada, a ordem vira: Cobranças, Clientes, Chave PIX
+  function reordenarTabsComChave() {
+    const tabCobrancas = tabsNav?.querySelector('.fb-tab[data-tab="cobrancas"]');
     const tabChave = tabsNav?.querySelector('.fb-tab[data-tab="chave"]');
+    if (tabCobrancas && tabsNav.firstElementChild !== tabCobrancas) tabsNav.prepend(tabCobrancas);
     if (tabChave && tabsNav.lastElementChild !== tabChave) tabsNav.appendChild(tabChave);
   }
 
@@ -319,13 +377,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chipConfig) chipConfig.textContent = c ? "OK" : "Pendente";
     if (!c) {
       aplicarTipoChave(false);
+      await carregarEstadosFb();
       mostrarConfigForm();
       return;
     }
-    preencherFormConfig(c);
+    await preencherFormConfig(c);
     mostrarConfigView();
-    // chave já configurada: aba dela vai para o fim e abre direto em Cobranças
-    moverTabChaveParaOFim();
+    // chave já configurada: Cobranças vai para o início e abre por padrão
+    reordenarTabsComChave();
     if (!tabEscolhidaPeloUsuario) abrirTab("cobrancas");
   }
 
@@ -336,6 +395,10 @@ document.addEventListener("DOMContentLoaded", () => {
       fbPopup("Chave PIX inválida", erro, false);
       return;
     }
+    if (!selUf?.value || !selCidade?.value) {
+      fbPopup("Falta o estado e a cidade", "Selecione o estado e a cidade do recebedor (obrigatórios no padrão PIX).", false);
+      return;
+    }
     const fd = new FormData(formConfig);
     fd.set("chave_pix", chaveNormalizada());
     try {
@@ -344,9 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
       configAtual = data.config || null;
       if (chipConfig) chipConfig.textContent = configAtual ? "OK" : "Pendente";
       if (configAtual) {
-        preencherFormConfig(configAtual);
+        await preencherFormConfig(configAtual);
         mostrarConfigView();
-        moverTabChaveParaOFim();
+        reordenarTabsComChave();
       }
       fbPopup("Chave PIX salva com sucesso!", "Agora você já pode gerar cobranças para os seus clientes.");
     } catch (err) {

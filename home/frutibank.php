@@ -60,54 +60,76 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
 
                     <!-- Chave já cadastrada: modo visualização -->
                     <div class="fb-config-view d-none" id="fb-config-view">
-                        <div class="fb-pix-preview">
-                            <span class="fb-pix-preview-titulo">Chave cadastrada</span>
-                            <div class="fb-pix-preview-linha"><label>Tipo</label><strong id="fb-view-tipo">—</strong></div>
-                            <div class="fb-pix-preview-linha"><label>Chave</label><strong id="fb-view-chave">—</strong></div>
-                            <div class="fb-pix-preview-linha"><label>Recebedor</label><strong id="fb-view-nome">—</strong></div>
-                            <div class="fb-pix-preview-linha"><label>Cidade</label><strong id="fb-view-cidade">—</strong></div>
+                        <div class="fb-view-grid">
+                            <div class="fb-view-item">
+                                <label>Tipo da chave</label>
+                                <strong id="fb-view-tipo">—</strong>
+                            </div>
+                            <div class="fb-view-item">
+                                <label>Chave PIX</label>
+                                <strong id="fb-view-chave">—</strong>
+                            </div>
+                            <div class="fb-view-item">
+                                <label>Nome do recebedor</label>
+                                <strong id="fb-view-nome">—</strong>
+                            </div>
+                            <div class="fb-view-item">
+                                <label>Cidade</label>
+                                <strong id="fb-view-cidade">—</strong>
+                            </div>
                         </div>
                         <div class="fb-config-view-actions">
+                            <span class="fb-view-ok">Chave PIX ativa — pronta para gerar cobranças</span>
                             <button type="button" class="main-btn fundo-laranja" id="fb-btn-editar-config">Editar chave PIX</button>
                         </div>
                     </div>
 
                     <!-- Cadastro / edição -->
-                    <form class="au-form" id="form-config">
-                        <div class="au-field">
-                            <label for="fb-tipo">Tipo da chave</label>
-                            <select id="fb-tipo" name="tipo_chave">
-                                <option value="cpf">CPF</option>
-                                <option value="cnpj">CNPJ</option>
-                                <option value="email">E-mail</option>
-                                <option value="telefone">Telefone (celular)</option>
-                                <option value="aleatoria" selected>Aleatória</option>
-                            </select>
-                        </div>
-                        <div class="au-field au-field-wide">
-                            <label for="fb-chave">Chave PIX</label>
-                            <input type="text" id="fb-chave" name="chave_pix" placeholder="Sua chave PIX" required autocomplete="off">
-                            <small class="fb-hint" id="fb-chave-hint"></small>
-                        </div>
-                        <div class="au-field">
-                            <label for="fb-nome">Nome do recebedor <small>(máx. 25)</small></label>
-                            <input type="text" id="fb-nome" name="nome_recebedor" maxlength="25" placeholder="Ex.: Maria da Silva" required>
-                        </div>
-                        <div class="au-field">
-                            <label for="fb-cidade">Cidade <small>(máx. 15)</small></label>
-                            <input type="text" id="fb-cidade" name="cidade" maxlength="15" placeholder="Ex.: Marilia" required>
-                        </div>
-                        <div class="au-form-actions">
-                            <button type="button" class="main-btn fundo-vermelho d-none" id="fb-btn-cancelar-config">Cancelar</button>
-                            <button type="submit" class="main-btn fundo-verde">Salvar chave PIX</button>
-                        </div>
-                    </form>
+                    <div class="fb-chave-editor" id="fb-chave-editor">
+                        <form class="au-form" id="form-config">
+                            <div class="au-field">
+                                <label for="fb-tipo">Tipo da chave</label>
+                                <select id="fb-tipo" name="tipo_chave">
+                                    <option value="cpf">CPF</option>
+                                    <option value="cnpj">CNPJ</option>
+                                    <option value="email">E-mail</option>
+                                    <option value="telefone">Telefone (celular)</option>
+                                    <option value="aleatoria" selected>Aleatória</option>
+                                </select>
+                            </div>
+                            <div class="au-field">
+                                <label for="fb-chave">Chave PIX</label>
+                                <input type="text" id="fb-chave" name="chave_pix" placeholder="Sua chave PIX" required autocomplete="off">
+                                <small class="fb-hint" id="fb-chave-hint"></small>
+                            </div>
+                            <div class="au-field au-field-wide">
+                                <label for="fb-nome">Nome do recebedor <small>(máx. 25)</small></label>
+                                <input type="text" id="fb-nome" name="nome_recebedor" maxlength="25" placeholder="Ex.: Maria da Silva" required>
+                            </div>
+                            <div class="au-field">
+                                <label for="fb-uf">Estado</label>
+                                <select id="fb-uf" name="uf" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="au-field">
+                                <label for="fb-cidade">Cidade</label>
+                                <select id="fb-cidade" name="cidade" required>
+                                    <option value="">Selecione o estado primeiro...</option>
+                                </select>
+                            </div>
+                            <div class="au-form-actions">
+                                <button type="button" class="main-btn fundo-vermelho d-none" id="fb-btn-cancelar-config">Cancelar</button>
+                                <button type="submit" class="main-btn fundo-verde">Salvar chave PIX</button>
+                            </div>
+                        </form>
 
-                    <div class="fb-pix-preview" id="fb-pix-preview">
-                        <span class="fb-pix-preview-titulo">Como o pagador verá no app do banco</span>
-                        <div class="fb-pix-preview-linha"><label>Recebedor</label><strong id="fb-prev-nome">—</strong></div>
-                        <div class="fb-pix-preview-linha"><label>Cidade</label><strong id="fb-prev-cidade">—</strong></div>
-                        <div class="fb-pix-preview-linha"><label>Chave</label><strong id="fb-prev-chave">—</strong></div>
+                        <aside class="fb-pix-preview" id="fb-pix-preview">
+                            <span class="fb-pix-preview-titulo">Como o pagador verá no app do banco</span>
+                            <div class="fb-pix-preview-linha"><label>Recebedor</label><strong id="fb-prev-nome">—</strong></div>
+                            <div class="fb-pix-preview-linha"><label>Cidade</label><strong id="fb-prev-cidade">—</strong></div>
+                            <div class="fb-pix-preview-linha"><label>Chave</label><strong id="fb-prev-chave">—</strong></div>
+                        </aside>
                     </div>
                 </section>
 

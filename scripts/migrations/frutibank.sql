@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS frutibank_config (
     chave_pix VARCHAR(140) NOT NULL,
     tipo_chave ENUM('cpf','cnpj','email','telefone','aleatoria') NOT NULL DEFAULT 'aleatoria',
     nome_recebedor VARCHAR(25) NOT NULL,   -- limite do BR Code (campo 59)
-    cidade VARCHAR(15) NOT NULL,           -- limite do BR Code (campo 60)
+    cidade VARCHAR(80) NOT NULL,           -- nome completo IBGE (truncado em 15 no BR Code, campo 60)
+    uf CHAR(2) NOT NULL DEFAULT '',
     atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

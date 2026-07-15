@@ -63,6 +63,7 @@ switch ($acao) {
         $tipo = $_POST['tipo_chave'] ?? 'aleatoria';
         $nome = trim($_POST['nome_recebedor'] ?? '');
         $cidade = trim($_POST['cidade'] ?? '');
+        $uf = strtoupper(trim($_POST['uf'] ?? ''));
 
         if ($chave === '' || strlen($chave) > 140) {
             frutibankJson(['ok' => false, 'msg' => 'Informe uma chave PIX válida.'], 400);
@@ -73,19 +74,23 @@ switch ($acao) {
         if ($nome === '' || $cidade === '') {
             frutibankJson(['ok' => false, 'msg' => 'Informe o nome do recebedor e a cidade (obrigatórios no padrão PIX).'], 400);
         }
+        if (!preg_match('/^[A-Z]{2}$/', $uf)) {
+            frutibankJson(['ok' => false, 'msg' => 'Selecione o estado (UF).'], 400);
+        }
 
         $stmt = $mysqli->prepare("
-            INSERT INTO frutibank_config (user_id, chave_pix, tipo_chave, nome_recebedor, cidade)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO frutibank_config (user_id, chave_pix, tipo_chave, nome_recebedor, cidade, uf)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 chave_pix = VALUES(chave_pix),
                 tipo_chave = VALUES(tipo_chave),
                 nome_recebedor = VALUES(nome_recebedor),
-                cidade = VALUES(cidade)
+                cidade = VALUES(cidade),
+                uf = VALUES(uf)
         ");
         $nome25 = mb_substr($nome, 0, 25);
-        $cidade15 = mb_substr($cidade, 0, 15);
-        $stmt->bind_param('issss', $user_id, $chave, $tipo, $nome25, $cidade15);
+        $cidade80 = mb_substr($cidade, 0, 80);
+        $stmt->bind_param('isssss', $user_id, $chave, $tipo, $nome25, $cidade80, $uf);
         $stmt->execute();
         $stmt->close();
         frutibankJson(['ok' => true, 'msg' => 'Chave PIX salva com sucesso.']);

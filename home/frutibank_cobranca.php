@@ -14,7 +14,7 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
 
 $stmt = $mysqli->prepare("
     SELECT fc.*, c.nome AS cliente_nome, c.cpf_cnpj AS cliente_doc,
-           cfg.chave_pix, cfg.tipo_chave, cfg.nome_recebedor, cfg.cidade
+           cfg.chave_pix, cfg.tipo_chave, cfg.nome_recebedor, cfg.cidade, cfg.uf
     FROM frutibank_cobrancas fc
     JOIN frutibank_clientes c ON c.id = fc.cliente_id
     LEFT JOIN frutibank_config cfg ON cfg.user_id = fc.user_id
@@ -89,7 +89,7 @@ $payload = (string)$cob['payload'];
             </div>
             <div class="fb-doc-campo">
                 <label>Cidade</label>
-                <strong><?= htmlspecialchars($cob['cidade'] ?? '') ?></strong>
+                <strong><?= htmlspecialchars(trim(($cob['cidade'] ?? '') . (!empty($cob['uf']) ? '/' . $cob['uf'] : ''))) ?></strong>
             </div>
 
             <div class="fb-doc-campo fb-span-2">
