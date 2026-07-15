@@ -20,42 +20,68 @@ require_admin();
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <main class="sistema fundo-img admin-offline-page">
-            <div class="container admin-offline-shell">
-                <header class="admin-offline-header">
+        <main class="sistema fundo-img au-page">
+            <div class="container au-shell">
+                <header class="au-header">
                     <h1>Painel administrativo</h1>
-                    <p>Gerencie os usuários do Caderno: crie usuários locais, defina perfis (usuário, representante ou administrador), ative/desative contas e acesse o caderno de qualquer usuário.</p>
+                    <p>Gerencie os usuários do Caderno: crie usuários locais, defina perfis, ative ou desative contas e acesse o caderno de qualquer usuário.</p>
                 </header>
 
-                <section class="admin-offline-card">
-                    <h2>Criar usuário local</h2>
-                    <p class="admin-offline-hint">Usuário com login e senha próprios, sem depender do cadastro Frutag.</p>
+                <section class="au-card">
+                    <div class="au-card-head au-accent-verde">
+                        <div>
+                            <h2>Criar usuário local</h2>
+                            <p>Usuário com login e senha próprios, sem depender do cadastro Frutag.</p>
+                        </div>
+                    </div>
 
-                    <form class="admin-offline-form admin-usuarios-form" id="form-criar-usuario">
-                        <input type="text" name="nome" placeholder="Nome completo" required>
-                        <input type="text" name="login" placeholder="Login (mín. 3 caracteres)" required autocomplete="off">
-                        <input type="email" name="email" placeholder="E-mail (opcional)">
-                        <input type="password" name="senha" placeholder="Senha (mín. 8 caracteres)" required minlength="8" autocomplete="new-password">
-                        <select name="perfil" aria-label="Perfil do novo usuário">
-                            <option value="usuario" selected>Usuário</option>
-                            <option value="representante">Representante</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                        <button type="submit" class="main-btn fundo-verde">Criar usuário</button>
+                    <form class="au-form" id="form-criar-usuario">
+                        <div class="au-field au-field-wide">
+                            <label for="cu-nome">Nome completo</label>
+                            <input type="text" id="cu-nome" name="nome" placeholder="Ex.: Maria da Silva" required>
+                        </div>
+                        <div class="au-field">
+                            <label for="cu-login">Login <small>(mín. 3 caracteres)</small></label>
+                            <input type="text" id="cu-login" name="login" placeholder="Ex.: maria.silva" required autocomplete="off">
+                        </div>
+                        <div class="au-field">
+                            <label for="cu-email">E-mail <small>(opcional)</small></label>
+                            <input type="email" id="cu-email" name="email" placeholder="Ex.: maria@email.com">
+                        </div>
+                        <div class="au-field">
+                            <label for="cu-senha">Senha <small>(mín. 8 caracteres)</small></label>
+                            <input type="password" id="cu-senha" name="senha" placeholder="••••••••" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div class="au-field">
+                            <label for="cu-perfil">Perfil</label>
+                            <select id="cu-perfil" name="perfil">
+                                <option value="usuario" selected>Usuário</option>
+                                <option value="representante">Representante</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="au-form-actions">
+                            <button type="submit" class="main-btn fundo-verde">Criar usuário</button>
+                        </div>
                     </form>
                 </section>
 
-                <section class="admin-offline-card">
-                    <h2>Usuários</h2>
-                    <p class="admin-offline-hint">Todos os usuários do Caderno (locais e Frutag). Alterações de perfil valem imediatamente.</p>
+                <section class="au-card">
+                    <div class="au-card-head">
+                        <div>
+                            <h2>Usuários</h2>
+                            <p>Todos os usuários do Caderno (locais e Frutag). Alterações de perfil valem imediatamente.</p>
+                        </div>
+                        <span class="au-chip" id="au-total">—</span>
+                    </div>
 
-                    <form class="admin-offline-search" id="form-busca-usuario">
+                    <form class="au-search" id="form-busca-usuario">
                         <input type="search" name="q" placeholder="Buscar por nome, login, e-mail ou ID..." autocomplete="off">
-                        <button type="submit" class="main-btn fundo-azul">Buscar</button>
+                        <button type="submit">Buscar</button>
                     </form>
 
-                    <div class="admin-offline-table-wrap">
-                        <table class="admin-offline-table" id="tabela-usuarios">
+                    <div class="au-table-wrap">
+                        <table class="au-table" id="tabela-usuarios">
                             <thead>
                                 <tr>
                                     <th>ID</th>

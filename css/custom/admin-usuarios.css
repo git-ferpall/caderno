@@ -1,4 +1,407 @@
-/* Painel de usuários + banner de impersonação */
+/* ==========================================================
+   Painel de usuários (admin) + Meus clientes (representante)
+   Prefixo au- | segue a identidade do Caderno (variables.css)
+   ========================================================== */
+
+/* ---------- Página ---------- */
+
+.au-page {
+    padding: 110px 16px 50px;
+    text-align: left;
+}
+
+.au-shell {
+    max-width: 1040px;
+}
+
+.au-header {
+    color: var(--branco);
+    padding: 0 4px 26px;
+}
+
+.au-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.au-header p {
+    margin: 0;
+    max-width: 760px;
+    font-size: 15px;
+    line-height: 1.55;
+    opacity: 0.88;
+}
+
+/* ---------- Cards ---------- */
+
+.au-card {
+    background: var(--branco);
+    border-radius: 18px;
+    padding: 26px 26px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
+}
+
+.au-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.au-card-head h2 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--preto);
+    padding-left: 12px;
+    border-left: 4px solid var(--azul);
+    line-height: 1.25;
+}
+
+.au-card-head.au-accent-verde h2 {
+    border-left-color: var(--verde);
+}
+
+.au-card-head p {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 13px;
+    color: var(--cinza-a);
+    line-height: 1.5;
+}
+
+.au-chip {
+    flex: none;
+    background: var(--cinza-c);
+    color: var(--preto);
+    border-radius: 30px;
+    padding: 5px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ---------- Formulário de criação ---------- */
+
+.au-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 18px;
+}
+
+.au-field-wide {
+    grid-column: 1 / -1;
+}
+
+.au-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.au-field label small {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--cinza-a);
+}
+
+.au-field input,
+.au-field select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--cinza-b);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14.5px;
+    color: var(--preto);
+    background: var(--branco);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.au-field input::placeholder {
+    color: #b5b5b5;
+}
+
+.au-field input:focus,
+.au-field select:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(19, 176, 166, 0.16);
+}
+
+.au-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.au-form-actions .main-btn {
+    font-size: 15px;
+    padding: 10px 28px;
+}
+
+/* ---------- Busca ---------- */
+
+.au-search {
+    display: flex;
+    align-items: stretch;
+    max-width: 480px;
+    margin-bottom: 20px;
+    background: var(--branco);
+    border: 1px solid var(--cinza-b);
+    border-radius: 30px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.au-search:focus-within {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(19, 176, 166, 0.16);
+}
+
+.au-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 11px 18px;
+    font-size: 14px;
+    outline: none;
+}
+
+.au-search button {
+    border: 0;
+    background: var(--azul);
+    color: var(--branco);
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 0 24px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.au-search button:hover {
+    background: var(--azul-e);
+}
+
+/* ---------- Tabela ---------- */
+
+.au-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+
+.au-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 720px;
+}
+
+.au-table thead th {
+    background: var(--cinza-c);
+    color: #777;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    text-align: left;
+    white-space: nowrap;
+    padding: 11px 14px;
+}
+
+.au-table thead th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+.au-table thead th:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+.au-table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--cinza-c);
+    vertical-align: middle;
+    text-align: left;
+}
+
+.au-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.au-table tbody tr:hover {
+    background: #f7fcfb;
+}
+
+.au-id {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--cinza-a);
+}
+
+.au-nome {
+    font-weight: 700;
+    color: var(--preto);
+}
+
+.au-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--cinza-a);
+}
+
+.au-vazio td {
+    text-align: center !important;
+    padding: 30px 14px !important;
+    color: var(--cinza-a);
+    font-size: 14px;
+}
+
+/* ---------- Badges de origem ---------- */
+
+.au-badge {
+    display: inline-block;
+    border-radius: 30px;
+    padding: 4px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.au-badge-local {
+    background: #eaf4de;
+    color: #4c7d1c;
+}
+
+.au-badge-frutag {
+    background: #def2f0;
+    color: #0d7c74;
+}
+
+/* ---------- Select de perfil ---------- */
+
+.au-select {
+    min-height: 38px;
+    border: 1px solid var(--cinza-b);
+    border-radius: 30px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--preto);
+    background: var(--branco);
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.au-select:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(19, 176, 166, 0.16);
+}
+
+/* ---------- Switch (ativo/inativo) ---------- */
+
+.au-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.au-switch input {
+    display: none;
+}
+
+.au-slider {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 23px;
+    border-radius: 23px;
+    background: var(--cinza-b);
+    transition: background 0.25s ease;
+}
+
+.au-slider::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--branco);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.25s ease;
+}
+
+.au-switch input:checked + .au-slider {
+    background: var(--verde);
+}
+
+.au-switch input:checked + .au-slider::after {
+    transform: translateX(17px);
+}
+
+.au-state {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--cinza-a);
+}
+
+.au-switch input:checked ~ .au-state {
+    color: var(--verde);
+}
+
+/* ---------- Botões de ação da tabela ---------- */
+
+.au-acoes {
+    white-space: nowrap;
+}
+
+.au-btn {
+    display: inline-block;
+    border: 0;
+    border-radius: 30px;
+    padding: 7px 15px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--branco);
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--preto);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.au-btn + .au-btn {
+    margin-left: 8px;
+}
+
+.au-btn:hover {
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(3px);
+}
+
+.au-btn-senha {
+    background: var(--laranja);
+}
+
+.au-btn-acessar {
+    background: var(--azul);
+}
+
+/* ---------- Banner de impersonação ---------- */
 
 .impersonacao-banner {
     position: sticky;
@@ -10,71 +413,65 @@
     justify-content: center;
     gap: 12px;
     padding: 10px 16px;
-    background: #b53d00;
-    color: #fff;
+    background: linear-gradient(135deg, var(--laranja), #b53d00);
+    color: var(--branco);
     font-size: 14px;
     text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .impersonacao-banner .impersonacao-voltar {
-    background: #fff;
+    background: var(--branco);
     color: #b53d00;
-    border-radius: 8px;
-    padding: 4px 12px;
+    border-radius: 30px;
+    padding: 5px 14px;
     font-weight: 700;
     font-size: 13px;
     text-decoration: none;
     white-space: nowrap;
+    transition: transform 0.15s ease;
 }
 
-.admin-usuarios-form select {
-    flex: 1 1 140px;
-    min-height: 42px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 8px 12px;
-    font-size: 14px;
-    background: #fff;
+.impersonacao-banner .impersonacao-voltar:hover {
+    transform: scale(1.04);
 }
 
-.admin-usuarios-perfil {
-    min-height: 36px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 13px;
-    background: #fff;
-}
+/* ---------- Troca de senha (perfil do usuário local) ---------- */
 
-.admin-usuarios-badge {
-    display: inline-block;
-    border-radius: 8px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.admin-usuarios-badge.badge-local {
-    background: #e3f2e6;
-    color: #1e7d32;
-}
-
-.admin-usuarios-badge.badge-frutag {
-    background: #e5effa;
-    color: #1a5da0;
-}
-
-.admin-usuarios-acoes {
-    white-space: nowrap;
-}
-
-.admin-usuarios-acoes .main-btn {
-    padding: 6px 10px;
-    font-size: 12px;
-    margin-right: 6px;
-}
-
-/* Troca de senha (perfil do usuário local) */
 .perfil-senha-card {
     margin-top: 24px;
+}
+
+/* ---------- Responsivo ---------- */
+
+@media (max-width: 768px) {
+    .au-page {
+        padding: 96px 10px 40px;
+    }
+
+    .au-header h1 {
+        font-size: 24px;
+    }
+
+    .au-card {
+        padding: 18px 16px;
+        border-radius: 15px;
+    }
+
+    .au-card-head {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .au-form {
+        grid-template-columns: 1fr;
+    }
+
+    .au-form-actions .main-btn {
+        width: 100%;
+    }
+
+    .au-search {
+        max-width: 100%;
+    }
 }

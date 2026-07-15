@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.querySelector("#tabela-clientes tbody");
   const formCriar = document.getElementById("form-criar-cliente");
   const formBusca = document.getElementById("form-busca-cliente");
+  const chipTotal = document.getElementById("au-total");
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -47,26 +48,30 @@ document.addEventListener("DOMContentLoaded", () => {
   function linhaCliente(u) {
     const ativo = Number(u.ativo) === 1;
     return `<tr data-user-id="${u.id}">
-      <td>${escapeHtml(u.nome || "—")}</td>
-      <td>${escapeHtml(u.login || "—")}<br><small>${escapeHtml(u.email || "—")}</small></td>
+      <td><span class="au-nome">${escapeHtml(u.nome || "—")}</span></td>
+      <td>${escapeHtml(u.login || "—")}<small class="au-sub">${escapeHtml(u.email || "—")}</small></td>
       <td>
-        <label class="admin-offline-toggle">
+        <label class="au-switch">
           <input type="checkbox" data-toggle-ativo ${ativo ? "checked" : ""}>
-          <span>${ativo ? "Ativo" : "Inativo"}</span>
+          <span class="au-slider"></span>
+          <span class="au-state">${ativo ? "Ativo" : "Inativo"}</span>
         </label>
       </td>
-      <td class="admin-usuarios-acoes">
-        <button type="button" class="main-btn fundo-laranja" data-reset-senha>Nova senha</button>
-        <button type="button" class="main-btn fundo-azul" data-impersonar>Acessar caderno</button>
+      <td class="au-acoes">
+        <button type="button" class="au-btn au-btn-senha" data-reset-senha>Nova senha</button>
+        <button type="button" class="au-btn au-btn-acessar" data-impersonar>Acessar caderno</button>
       </td>
     </tr>`;
   }
 
   async function carregarClientes(q = "") {
     const data = await apiGet("listar_usuarios.php", { q, meus: "1" });
+    if (chipTotal) {
+      chipTotal.textContent = `${data.usuarios.length} cliente${data.usuarios.length === 1 ? "" : "s"}`;
+    }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaCliente).join("")
-      : `<tr><td colspan="4">Nenhum cliente cadastrado ainda.</td></tr>`;
+      : `<tr class="au-vazio"><td colspan="4">Nenhum cliente cadastrado ainda.</td></tr>`;
   }
 
   formCriar?.addEventListener("submit", async (e) => {
@@ -98,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tr) return;
     const chkAtivo = e.target.closest("[data-toggle-ativo]");
     if (!chkAtivo) return;
-    const label = chkAtivo.closest("label")?.querySelector("span");
+    const label = chkAtivo.closest("label")?.querySelector(".au-state");
     try {
       await apiPost("salvar_usuario.php", { acao: "atualizar", user_id: tr.dataset.userId, ativo: chkAtivo.checked ? "1" : "0" });
       if (label) label.textContent = chkAtivo.checked ? "Ativo" : "Inativo";

@@ -20,36 +20,60 @@ require_perfil(['representante', 'admin']);
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <main class="sistema fundo-img admin-offline-page">
-            <div class="container admin-offline-shell">
-                <header class="admin-offline-header">
+        <main class="sistema fundo-img au-page">
+            <div class="container au-shell">
+                <header class="au-header">
                     <h1>Meus clientes</h1>
                     <p>Cadastre clientes com login e senha próprios e acompanhe o caderno de campo de cada um. Você só enxerga os clientes cadastrados por você.</p>
                 </header>
 
-                <section class="admin-offline-card">
-                    <h2>Cadastrar cliente</h2>
-                    <p class="admin-offline-hint">O cliente receberá um usuário local do Caderno e poderá entrar com o login e a senha definidos aqui.</p>
+                <section class="au-card">
+                    <div class="au-card-head au-accent-verde">
+                        <div>
+                            <h2>Cadastrar cliente</h2>
+                            <p>O cliente receberá um usuário local do Caderno e poderá entrar com o login e a senha definidos aqui.</p>
+                        </div>
+                    </div>
 
-                    <form class="admin-offline-form admin-usuarios-form" id="form-criar-cliente">
-                        <input type="text" name="nome" placeholder="Nome completo" required>
-                        <input type="text" name="login" placeholder="Login (mín. 3 caracteres)" required autocomplete="off">
-                        <input type="email" name="email" placeholder="E-mail (opcional)">
-                        <input type="password" name="senha" placeholder="Senha (mín. 8 caracteres)" required minlength="8" autocomplete="new-password">
-                        <button type="submit" class="main-btn fundo-verde">Cadastrar cliente</button>
+                    <form class="au-form" id="form-criar-cliente">
+                        <div class="au-field au-field-wide">
+                            <label for="cc-nome">Nome completo</label>
+                            <input type="text" id="cc-nome" name="nome" placeholder="Ex.: João Pereira" required>
+                        </div>
+                        <div class="au-field">
+                            <label for="cc-login">Login <small>(mín. 3 caracteres)</small></label>
+                            <input type="text" id="cc-login" name="login" placeholder="Ex.: joao.pereira" required autocomplete="off">
+                        </div>
+                        <div class="au-field">
+                            <label for="cc-email">E-mail <small>(opcional)</small></label>
+                            <input type="email" id="cc-email" name="email" placeholder="Ex.: joao@email.com">
+                        </div>
+                        <div class="au-field">
+                            <label for="cc-senha">Senha <small>(mín. 8 caracteres)</small></label>
+                            <input type="password" id="cc-senha" name="senha" placeholder="••••••••" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div class="au-form-actions">
+                            <button type="submit" class="main-btn fundo-verde">Cadastrar cliente</button>
+                        </div>
                     </form>
                 </section>
 
-                <section class="admin-offline-card">
-                    <h2>Clientes cadastrados</h2>
+                <section class="au-card">
+                    <div class="au-card-head">
+                        <div>
+                            <h2>Clientes cadastrados</h2>
+                            <p>Acompanhe, redefina senhas e acesse o caderno de cada cliente.</p>
+                        </div>
+                        <span class="au-chip" id="au-total">—</span>
+                    </div>
 
-                    <form class="admin-offline-search" id="form-busca-cliente">
+                    <form class="au-search" id="form-busca-cliente">
                         <input type="search" name="q" placeholder="Buscar por nome, login ou e-mail..." autocomplete="off">
-                        <button type="submit" class="main-btn fundo-azul">Buscar</button>
+                        <button type="submit">Buscar</button>
                     </form>
 
-                    <div class="admin-offline-table-wrap">
-                        <table class="admin-offline-table" id="tabela-clientes">
+                    <div class="au-table-wrap">
+                        <table class="au-table" id="tabela-clientes">
                             <thead>
                                 <tr>
                                     <th>Nome</th>

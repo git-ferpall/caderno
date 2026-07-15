@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.querySelector("#tabela-usuarios tbody");
   const formCriar = document.getElementById("form-criar-usuario");
   const formBusca = document.getElementById("form-busca-usuario");
+  const chipTotal = document.getElementById("au-total");
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -51,32 +52,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const options = perfis
       .map((p) => `<option value="${p}" ${p === u.perfil ? "selected" : ""}>${labels[p]}</option>`)
       .join("");
-    const criadoPor = u.criado_por_nome ? `<br><small>cadastrado por ${escapeHtml(u.criado_por_nome)}</small>` : "";
+    const criadoPor = u.criado_por_nome
+      ? `<small class="au-sub">cadastrado por ${escapeHtml(u.criado_por_nome)}</small>`
+      : "";
 
     return `<tr data-user-id="${u.id}">
-      <td>${u.id}</td>
-      <td>${escapeHtml(u.nome || "—")}${criadoPor}</td>
-      <td>${escapeHtml(u.login || "—")}<br><small>${escapeHtml(u.email || "—")}</small></td>
-      <td><span class="admin-usuarios-badge ${local ? "badge-local" : "badge-frutag"}">${local ? "Local" : "Frutag"}</span></td>
-      <td><select class="admin-usuarios-perfil" data-perfil-select>${options}</select></td>
+      <td class="au-id">${u.id}</td>
+      <td><span class="au-nome">${escapeHtml(u.nome || "—")}</span>${criadoPor}</td>
+      <td>${escapeHtml(u.login || "—")}<small class="au-sub">${escapeHtml(u.email || "—")}</small></td>
+      <td><span class="au-badge ${local ? "au-badge-local" : "au-badge-frutag"}">${local ? "Local" : "Frutag"}</span></td>
+      <td><select class="au-select" data-perfil-select aria-label="Perfil do usuário">${options}</select></td>
       <td>
-        <label class="admin-offline-toggle">
+        <label class="au-switch">
           <input type="checkbox" data-toggle-ativo ${ativo ? "checked" : ""}>
-          <span>${ativo ? "Ativo" : "Inativo"}</span>
+          <span class="au-slider"></span>
+          <span class="au-state">${ativo ? "Ativo" : "Inativo"}</span>
         </label>
       </td>
-      <td class="admin-usuarios-acoes">
-        ${local ? `<button type="button" class="main-btn fundo-laranja" data-reset-senha>Nova senha</button>` : ""}
-        <button type="button" class="main-btn fundo-azul" data-impersonar>Acessar caderno</button>
+      <td class="au-acoes">
+        ${local ? `<button type="button" class="au-btn au-btn-senha" data-reset-senha>Nova senha</button>` : ""}
+        <button type="button" class="au-btn au-btn-acessar" data-impersonar>Acessar caderno</button>
       </td>
     </tr>`;
   }
 
   async function carregarUsuarios(q = "") {
     const data = await apiGet("listar_usuarios.php", { q });
+    if (chipTotal) {
+      chipTotal.textContent = `${data.usuarios.length} usuário${data.usuarios.length === 1 ? "" : "s"}`;
+    }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaUsuario).join("")
-      : `<tr><td colspan="7">Nenhum usuário encontrado.</td></tr>`;
+      : `<tr class="au-vazio"><td colspan="7">Nenhum usuário encontrado.</td></tr>`;
   }
 
   formCriar?.addEventListener("submit", async (e) => {
@@ -121,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const chkAtivo = e.target.closest("[data-toggle-ativo]");
     if (chkAtivo) {
-      const label = chkAtivo.closest("label")?.querySelector("span");
+      const label = chkAtivo.closest("label")?.querySelector(".au-state");
       try {
         await apiPost("salvar_usuario.php", { acao: "atualizar", user_id: userId, ativo: chkAtivo.checked ? "1" : "0" });
         if (label) label.textContent = chkAtivo.checked ? "Ativo" : "Inativo";
