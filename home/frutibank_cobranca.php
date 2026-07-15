@@ -88,11 +88,8 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
     <div class="fb-doc">
         <header class="fb-doc-header">
             <div class="fb-doc-brand">
-                <img src="../img/logo-color.png" alt="Caderno de Campo Frutag">
-                <div>
-                    <strong>FRUTIBANK</strong>
-                    <span>Cobrança via PIX</span>
-                </div>
+                <img src="../img/frutibank-logo.png" alt="Frutibank" class="fb-doc-logo">
+                <span>Cobrança via PIX</span>
             </div>
             <div class="fb-doc-num">
                 <span>Cobrança</span>
@@ -105,7 +102,7 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
                 <label>Beneficiário (recebedor)</label>
                 <strong><?= htmlspecialchars($cob['nome_recebedor'] ?? '') ?></strong>
             </div>
-            <div class="fb-doc-campo">
+            <div class="fb-doc-campo fb-doc-chave">
                 <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>)</label>
                 <strong><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
             </div>

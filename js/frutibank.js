@@ -584,7 +584,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${fc.vencimento ? fmtData(fc.vencimento) : "—"}</td>
           <td><select class="au-select fb-status fb-status-${fc.status}" data-status-select>${options}</select></td>
           <td class="au-acoes">
-            <a class="au-btn au-btn-acessar" href="/home/frutibank_cobranca?id=${fc.id}" target="_blank" rel="noopener">Ver / Imprimir</a>
+            <a class="au-btn fb-btn-doc" href="/home/frutibank_cobranca?id=${fc.id}" target="_blank" rel="noopener">Ver / Imprimir</a>
             <button type="button" class="au-btn fb-btn-whats-mini" data-whatsapp>WhatsApp</button>
           </td>
         </tr>`;

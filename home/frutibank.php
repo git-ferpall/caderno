@@ -31,7 +31,7 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
         <main class="sistema fundo-img au-page">
             <div class="container au-shell">
                 <header class="au-header">
-                    <h1>Frutibank</h1>
+                    <h1 class="fb-logo-wrap"><img src="../img/frutibank-logo.png" alt="Frutibank" class="fb-logo"></h1>
                     <p>Gere cobranças PIX com QR Code em formato de boleto para entregar aos seus clientes. Cadastre sua chave PIX, registre os clientes por CPF ou CNPJ e imprima a cobrança.</p>
                 </header>
 
