@@ -10,8 +10,8 @@ if (!$user_id) {
 
 offlineJson([
     'ok' => true,
-    'cache_static' => 'caderno-static-v6',
-    'cache_pages' => 'caderno-pages-v6',
+    'cache_static' => 'caderno-static-v19',
+    'cache_pages' => 'caderno-pages-v19',
     'catalog_max_age_hours' => offlineCatalogMaxAgeHours(),
     'background_sync' => true,
     'salvar' => offlineSalvarEndpoints(),

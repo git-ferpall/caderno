@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v18";
-const CACHE_PAGES = "caderno-pages-v18";
+const CACHE_STATIC = "caderno-static-v19";
+const CACHE_PAGES = "caderno-pages-v19";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
@@ -216,13 +216,29 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
+/**
+ * Stale-while-revalidate: responde já com o cache (rápido/offline) e
+ * atualiza o arquivo em segundo plano — a próxima navegação pega a
+ * versão nova sem precisar de Ctrl+Shift+R.
+ */
 async function cacheFirstStatic(request) {
-  const cached = await caches.match(request);
+  const cache = await caches.open(CACHE_STATIC);
+  const cached = await cache.match(request);
+
+  // "no-cache" força revalidar com o servidor (304 quando não mudou),
+  // em vez de reaproveitar o cache HTTP do navegador.
+  const updating = fetch(new Request(request, { cache: "no-cache" }))
+    .then((res) => {
+      if (res && res.ok) cache.put(request, res.clone());
+      return res;
+    })
+    .catch(() => null);
+
   if (cached) return cached;
-  const res = await fetch(request);
-  const copy = res.clone();
-  caches.open(CACHE_STATIC).then((cache) => cache.put(request, copy));
-  return res;
+
+  const res = await updating;
+  if (res) return res;
+  return Response.error();
 }
 
 function offlineSubpageHtml(pathname) {
