@@ -56,10 +56,17 @@ function frutibankEnsureSchema(mysqli $mysqli): void
             user_id INT UNSIGNED NOT NULL,
             nome VARCHAR(255) NOT NULL,
             cpf_cnpj VARCHAR(14) NOT NULL,
+            telefone VARCHAR(20) NULL,
             criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             KEY idx_frutibank_clientes_user (user_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+
+    // Migração: telefone (WhatsApp) em instalações antigas
+    $colTel = $mysqli->query("SHOW COLUMNS FROM frutibank_clientes LIKE 'telefone'");
+    if ($colTel && $colTel->num_rows === 0) {
+        $mysqli->query("ALTER TABLE frutibank_clientes ADD COLUMN telefone VARCHAR(20) NULL AFTER cpf_cnpj");
+    }
 
     $mysqli->query("
         CREATE TABLE IF NOT EXISTS frutibank_cobrancas (
@@ -71,13 +78,25 @@ function frutibankEnsureSchema(mysqli $mysqli): void
             vencimento DATE NULL,
             txid VARCHAR(25) NOT NULL,
             payload TEXT NOT NULL,
+            token CHAR(32) NOT NULL DEFAULT '',
             status ENUM('pendente','pago','cancelada') NOT NULL DEFAULT 'pendente',
             criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
             KEY idx_frutibank_cobrancas_user (user_id),
-            KEY idx_frutibank_cobrancas_cliente (cliente_id)
+            KEY idx_frutibank_cobrancas_cliente (cliente_id),
+            KEY idx_frutibank_cobrancas_token (token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+
+    // Migração: token de acesso público (link enviado ao cliente por WhatsApp)
+    $colToken = $mysqli->query("SHOW COLUMNS FROM frutibank_cobrancas LIKE 'token'");
+    if ($colToken && $colToken->num_rows === 0) {
+        $mysqli->query("ALTER TABLE frutibank_cobrancas
+            ADD COLUMN token CHAR(32) NOT NULL DEFAULT '' AFTER payload,
+            ADD KEY idx_frutibank_cobrancas_token (token)");
+    }
+    // Backfill de cobranças antigas sem token
+    $mysqli->query("UPDATE frutibank_cobrancas SET token = MD5(CONCAT(id, '-', txid, '-', RAND())) WHERE token = ''");
 }
 
 /** Frutibank liberado para este usuário? (admins têm acesso sempre) */

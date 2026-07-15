@@ -236,6 +236,15 @@
     }
 }
 
+/* Botões de envio por WhatsApp */
+.fb-btn-whats {
+    background-color: #25d366 !important;
+}
+
+.fb-btn-whats-mini {
+    background: #25d366;
+}
+
 /* Prévia do recebedor (como aparece no app do pagador) */
 .fb-pix-preview {
     margin-top: 22px;

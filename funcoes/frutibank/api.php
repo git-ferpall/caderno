@@ -138,7 +138,7 @@ switch ($acao) {
 
     case 'listar_clientes':
         $q = trim($_GET['q'] ?? '');
-        $sql = "SELECT c.id, c.nome, c.cpf_cnpj, c.criado_em,
+        $sql = "SELECT c.id, c.nome, c.cpf_cnpj, c.telefone, c.criado_em,
                        (SELECT COUNT(*) FROM frutibank_cobrancas fc WHERE fc.cliente_id = c.id) AS total_cobrancas
                 FROM frutibank_clientes c
                 WHERE c.user_id = $user_id";
@@ -153,12 +153,16 @@ switch ($acao) {
     case 'salvar_cliente':
         $nome = trim($_POST['nome'] ?? '');
         $doc = frutibankValidarCpfCnpj($_POST['cpf_cnpj'] ?? '');
+        $telefone = preg_replace('/\D/', '', $_POST['telefone'] ?? '') ?? '';
 
         if ($nome === '') {
             frutibankJson(['ok' => false, 'msg' => 'Informe o nome do cliente.'], 400);
         }
         if ($doc === null) {
             frutibankJson(['ok' => false, 'msg' => 'CPF ou CNPJ inválido. Confira os dígitos.'], 400);
+        }
+        if ($telefone !== '' && (strlen($telefone) < 10 || strlen($telefone) > 13)) {
+            frutibankJson(['ok' => false, 'msg' => 'Telefone/WhatsApp inválido. Use DDD + número.'], 400);
         }
 
         $stmt = $mysqli->prepare('SELECT id FROM frutibank_clientes WHERE user_id = ? AND cpf_cnpj = ? LIMIT 1');
@@ -170,8 +174,9 @@ switch ($acao) {
             frutibankJson(['ok' => false, 'msg' => 'Já existe um cliente com este CPF/CNPJ.'], 400);
         }
 
-        $stmt = $mysqli->prepare('INSERT INTO frutibank_clientes (user_id, nome, cpf_cnpj) VALUES (?, ?, ?)');
-        $stmt->bind_param('iss', $user_id, $nome, $doc);
+        $telDb = $telefone !== '' ? $telefone : null;
+        $stmt = $mysqli->prepare('INSERT INTO frutibank_clientes (user_id, nome, cpf_cnpj, telefone) VALUES (?, ?, ?, ?)');
+        $stmt->bind_param('isss', $user_id, $nome, $doc, $telDb);
         $stmt->execute();
         $novoId = (int)$stmt->insert_id;
         $stmt->close();
@@ -197,7 +202,8 @@ switch ($acao) {
 
     case 'listar_cobrancas':
         $sql = "SELECT fc.id, fc.valor, fc.descricao, fc.vencimento, fc.status, fc.criado_em,
-                       c.nome AS cliente_nome, c.cpf_cnpj AS cliente_doc
+                       fc.payload, fc.token,
+                       c.nome AS cliente_nome, c.cpf_cnpj AS cliente_doc, c.telefone AS cliente_telefone
                 FROM frutibank_cobrancas fc
                 JOIN frutibank_clientes c ON c.id = fc.cliente_id
                 WHERE fc.user_id = $user_id
@@ -253,11 +259,12 @@ switch ($acao) {
         );
 
         $descDb = $descricao !== '' ? mb_substr($descricao, 0, 140) : null;
+        $token = bin2hex(random_bytes(16));
         $stmt = $mysqli->prepare("
-            INSERT INTO frutibank_cobrancas (user_id, cliente_id, valor, descricao, vencimento, txid, payload)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO frutibank_cobrancas (user_id, cliente_id, valor, descricao, vencimento, txid, payload, token)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param('iidssss', $user_id, $clienteId, $valor, $descDb, $vencDb, $txid, $payload);
+        $stmt->bind_param('iidsssss', $user_id, $clienteId, $valor, $descDb, $vencDb, $txid, $payload, $token);
         $stmt->execute();
         $novoId = (int)$stmt->insert_id;
         $stmt->close();

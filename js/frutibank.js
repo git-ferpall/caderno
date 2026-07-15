@@ -421,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inputCliDoc = document.getElementById("fb-cli-doc");
   const inputCliNome = document.getElementById("fb-cli-nome");
+  const inputCliTel = document.getElementById("fb-cli-tel");
   const btnReceita = document.getElementById("fb-btn-receita");
   const infoReceita = document.getElementById("fb-receita-info");
   const infoReceitaPadrao = infoReceita ? infoReceita.textContent : "";
@@ -430,6 +431,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = soDigitos(inputCliDoc.value);
     if (btnReceita) btnReceita.disabled = d.length !== 14;
     if (infoReceita && d.length === 0) infoReceita.textContent = infoReceitaPadrao;
+  });
+
+  inputCliTel?.addEventListener("input", () => {
+    inputCliTel.value = mascaraTelefone(inputCliTel.value);
   });
 
   btnReceita?.addEventListener("click", async () => {
@@ -493,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const fd = new FormData(formCliente);
     fd.set("cpf_cnpj", soDigitos(inputCliDoc.value));
+    fd.set("telefone", soDigitos(inputCliTel?.value || ""));
     try {
       await apiCall("salvar_cliente", { method: "POST", body: fd });
       fbPopup("Cliente cadastrado!", "Agora você já pode gerar cobranças para ele.");
@@ -533,11 +539,37 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------- Cobranças ---------------- */
 
   const statusLabels = { pendente: "Pendente", pago: "Pago", cancelada: "Cancelada" };
+  const cobrancasPorId = new Map();
+
+  function abrirWhatsappCobranca(fc) {
+    const valor = fmtValor(fc.valor);
+    const linkPublico = `${location.origin}/home/frutibank_cobranca?t=${fc.token}`;
+    const partes = [
+      `Olá, ${fc.cliente_nome}!`,
+      "",
+      `Segue a cobrança PIX de ${valor}` +
+        (fc.vencimento ? ` com vencimento em ${fmtData(fc.vencimento)}` : "") +
+        (fc.descricao ? ` — ${fc.descricao}` : "") +
+        ".",
+      "",
+      "Veja a cobrança completa (QR Code, impressão e código PIX copia-e-cola):",
+      linkPublico,
+      "",
+      'Ou pague agora copiando o código PIX abaixo e colando na opção "PIX copia e cola" do seu banco:',
+      "",
+      fc.payload,
+    ];
+    const tel = soDigitos(fc.cliente_telefone || "");
+    const destino = tel ? `https://wa.me/${tel.length <= 11 ? "55" + tel : tel}` : "https://wa.me/";
+    window.open(`${destino}?text=${encodeURIComponent(partes.join("\n"))}`, "_blank", "noopener");
+  }
 
   async function carregarCobrancas() {
     const data = await apiCall("listar_cobrancas");
     const cobrancas = data.cobrancas;
     if (chipCobrancas) chipCobrancas.textContent = cobrancas.length;
+    cobrancasPorId.clear();
+    cobrancas.forEach((fc) => cobrancasPorId.set(String(fc.id), fc));
 
     tbodyCobrancas.innerHTML = cobrancas.length
       ? cobrancas
@@ -553,6 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td><select class="au-select fb-status fb-status-${fc.status}" data-status-select>${options}</select></td>
           <td class="au-acoes">
             <a class="au-btn au-btn-acessar" href="/home/frutibank_cobranca?id=${fc.id}" target="_blank" rel="noopener">Ver / Imprimir</a>
+            <button type="button" class="au-btn fb-btn-whats-mini" data-whatsapp>WhatsApp</button>
           </td>
         </tr>`;
           })
@@ -574,6 +607,13 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       fbPopup("Não foi possível gerar a cobrança", err.message, false);
     }
+  });
+
+  tbodyCobrancas?.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-whatsapp]")) return;
+    const tr = e.target.closest("tr[data-cobranca-id]");
+    const fc = tr && cobrancasPorId.get(tr.dataset.cobrancaId);
+    if (fc) abrirWhatsappCobranca(fc);
   });
 
   tbodyCobrancas?.addEventListener("change", async (e) => {

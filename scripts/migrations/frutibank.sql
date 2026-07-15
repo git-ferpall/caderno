@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS frutibank_clientes (
     user_id INT UNSIGNED NOT NULL,
     nome VARCHAR(255) NOT NULL,
     cpf_cnpj VARCHAR(14) NOT NULL,         -- somente dígitos (11 = CPF, 14 = CNPJ)
+    telefone VARCHAR(20) NULL,             -- WhatsApp, somente dígitos com DDD
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY idx_frutibank_clientes_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -42,9 +43,11 @@ CREATE TABLE IF NOT EXISTS frutibank_cobrancas (
     vencimento DATE NULL,
     txid VARCHAR(25) NOT NULL,             -- identificador no BR Code (campo 62-05)
     payload TEXT NOT NULL,                 -- PIX copia-e-cola congelado na criação
+    token CHAR(32) NOT NULL DEFAULT '',    -- acesso público ao documento (link WhatsApp)
     status ENUM('pendente','pago','cancelada') NOT NULL DEFAULT 'pendente',
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_frutibank_cobrancas_user (user_id),
-    KEY idx_frutibank_cobrancas_cliente (cliente_id)
+    KEY idx_frutibank_cobrancas_cliente (cliente_id),
+    KEY idx_frutibank_cobrancas_token (token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

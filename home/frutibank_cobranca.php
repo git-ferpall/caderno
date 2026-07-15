@@ -1,27 +1,42 @@
 <?php
-require_once __DIR__ . '/../configuracao/protect.php';
+// Acesso público via token (?t=...): link que o recebedor envia ao cliente
+// pelo WhatsApp. Sem token, exige login e ser o dono da cobrança.
+$fbToken = trim($_GET['t'] ?? '');
+$fbPublico = $fbToken !== '' && preg_match('/^[a-f0-9]{32}$/', $fbToken);
+
+if (!$fbPublico) {
+    require_once __DIR__ . '/../configuracao/protect.php';
+} else {
+    require_once __DIR__ . '/../configuracao/https.php';
+}
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../funcoes/frutibank/helpers.php';
 
-$fbUser = $GLOBALS['auth_user'] ?? null;
-$fbUserId = (int)($fbUser->sub ?? 0);
-$cobrancaId = (int)($_GET['id'] ?? 0);
-
-if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
-    http_response_code(403);
-    exit('Acesso negado.');
-}
-
-$stmt = $mysqli->prepare("
-    SELECT fc.*, c.nome AS cliente_nome, c.cpf_cnpj AS cliente_doc,
+$sqlBase = "
+    SELECT fc.*, c.nome AS cliente_nome, c.cpf_cnpj AS cliente_doc, c.telefone AS cliente_telefone,
            cfg.chave_pix, cfg.tipo_chave, cfg.nome_recebedor, cfg.cidade, cfg.uf
     FROM frutibank_cobrancas fc
     JOIN frutibank_clientes c ON c.id = fc.cliente_id
     LEFT JOIN frutibank_config cfg ON cfg.user_id = fc.user_id
-    WHERE fc.id = ? AND fc.user_id = ?
-    LIMIT 1
-");
-$stmt->bind_param('ii', $cobrancaId, $fbUserId);
+";
+
+if ($fbPublico) {
+    frutibankEnsureSchema($mysqli);
+    $stmt = $mysqli->prepare($sqlBase . ' WHERE fc.token = ? LIMIT 1');
+    $stmt->bind_param('s', $fbToken);
+} else {
+    $fbUser = $GLOBALS['auth_user'] ?? null;
+    $fbUserId = (int)($fbUser->sub ?? 0);
+    $cobrancaId = (int)($_GET['id'] ?? 0);
+
+    if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
+        http_response_code(403);
+        exit('Acesso negado.');
+    }
+
+    $stmt = $mysqli->prepare($sqlBase . ' WHERE fc.id = ? AND fc.user_id = ? LIMIT 1');
+    $stmt->bind_param('ii', $cobrancaId, $fbUserId);
+}
 $stmt->execute();
 $cob = $stmt->get_result()->fetch_assoc();
 $stmt->close();
@@ -46,6 +61,8 @@ $valorFmt = 'R$ ' . number_format((float)$cob['valor'], 2, ',', '.');
 $emissao = date('d/m/Y', strtotime($cob['criado_em']));
 $vencimento = $cob['vencimento'] ? date('d/m/Y', strtotime($cob['vencimento'])) : '—';
 $payload = (string)$cob['payload'];
+
+$linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') . '/home/frutibank_cobranca?t=' . $cob['token'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -58,9 +75,14 @@ $payload = (string)$cob['payload'];
 </head>
 <body class="fb-doc-body">
     <div class="fb-doc-toolbar no-print">
+        <?php if (!$fbPublico): ?>
         <a href="/home/frutibank" class="main-btn fundo-preto">Voltar</a>
+        <?php endif; ?>
         <button type="button" class="main-btn fundo-azul" onclick="window.print()">Imprimir</button>
         <button type="button" class="main-btn fundo-verde" id="fb-copiar">Copiar código PIX</button>
+        <?php if (!$fbPublico): ?>
+        <button type="button" class="main-btn fb-btn-whats" id="fb-whatsapp">Enviar por WhatsApp</button>
+        <?php endif; ?>
     </div>
 
     <div class="fb-doc">
@@ -180,6 +202,22 @@ $payload = (string)$cob['payload'];
         } catch (e) {
             document.querySelector(".fb-doc-barcode").style.display = "none";
         }
+
+        const btnWhats = document.getElementById("fb-whatsapp");
+        btnWhats?.addEventListener("click", () => {
+            const telefone = <?= json_encode(preg_replace('/\D/', '', (string)($cob['cliente_telefone'] ?? ''))) ?>;
+            const texto = <?= json_encode(
+                "Olá, {$cob['cliente_nome']}!\n\n"
+                . "Segue a cobrança PIX de {$valorFmt}"
+                . ($cob['vencimento'] ? " com vencimento em {$vencimento}" : '')
+                . ($cob['descricao'] ? " — {$cob['descricao']}" : '')
+                . ".\n\nVeja a cobrança completa (QR Code, impressão e código PIX copia-e-cola):\n{$linkPublico}\n\n"
+                . "Ou pague agora copiando o código PIX abaixo e colando na opção \"PIX copia e cola\" do seu banco:\n\n{$payload}",
+                JSON_UNESCAPED_UNICODE
+            ) ?>;
+            const destino = telefone ? `https://wa.me/${telefone.length <= 11 ? "55" + telefone : telefone}` : "https://wa.me/";
+            window.open(`${destino}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+        });
 
         const btnCopiar = document.getElementById("fb-copiar");
         btnCopiar?.addEventListener("click", async () => {

@@ -154,6 +154,10 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                             <label for="fb-cli-nome">Nome do cliente</label>
                             <input type="text" id="fb-cli-nome" name="nome" placeholder="Ex.: João Pereira" required>
                         </div>
+                        <div class="au-field au-field-wide">
+                            <label for="fb-cli-tel">WhatsApp <small>(opcional, para enviar as cobranças)</small></label>
+                            <input type="text" id="fb-cli-tel" name="telefone" placeholder="(00) 90000-0000" inputmode="tel" maxlength="16">
+                        </div>
                         <div class="au-form-actions">
                             <button type="submit" class="main-btn fundo-verde">Cadastrar cliente</button>
                         </div>
