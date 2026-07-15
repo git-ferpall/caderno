@@ -4,6 +4,88 @@
 
 /* ---------- Painel ---------- */
 
+/* Abas de navegação (Chave PIX / Clientes / Cobranças) */
+.fb-tabs {
+    display: flex;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    border-radius: 30px;
+    padding: 6px;
+    margin-bottom: 22px;
+    max-width: 640px;
+}
+
+.fb-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    color: var(--branco);
+    font-size: 14.5px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.fb-tab:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.fb-tab.active {
+    background: var(--branco);
+    color: var(--preto);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.fb-tab-chip {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 30px;
+    padding: 2px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.fb-tab.active .fb-tab-chip {
+    background: var(--azul);
+    color: var(--branco);
+}
+
+/* Painéis: só o ativo aparece */
+.fb-panel {
+    display: none;
+}
+
+.fb-panel.active {
+    display: block;
+    animation: fb-panel-in 0.25s ease;
+}
+
+@keyframes fb-panel-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 680px) {
+    .fb-tabs {
+        max-width: 100%;
+    }
+
+    .fb-tab {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+        padding: 8px 6px;
+    }
+}
+
 .fb-status {
     font-weight: 700;
 }

@@ -18,6 +18,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const chipClientes = document.getElementById("fb-chip-clientes");
   const chipCobrancas = document.getElementById("fb-chip-cobrancas");
 
+  /* ---------------- Abas ---------------- */
+
+  const tabs = document.querySelectorAll("#fb-tabs .fb-tab");
+  const panels = document.querySelectorAll(".fb-panel");
+  let tabEscolhidaPeloUsuario = false;
+
+  function abrirTab(nome, peloUsuario = false) {
+    if (peloUsuario) tabEscolhidaPeloUsuario = true;
+    tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === nome));
+    panels.forEach((p) => p.classList.toggle("active", p.dataset.panel === nome));
+    if (peloUsuario) history.replaceState(null, "", `#${nome}`);
+  }
+
+  tabs.forEach((t) => t.addEventListener("click", () => abrirTab(t.dataset.tab, true)));
+
+  const hashInicial = (location.hash || "").replace("#", "");
+  const tabInicial = ["chave", "clientes", "cobrancas"].includes(hashInicial) ? hashInicial : "chave";
+  abrirTab(tabInicial, hashInicial !== "");
+
   function escapeHtml(s) {
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -70,12 +89,14 @@ document.addEventListener("DOMContentLoaded", () => {
   async function carregarConfig() {
     const data = await apiCall("get_config");
     const c = data.config;
-    if (chipConfig) chipConfig.textContent = c ? "Configurada" : "Pendente";
+    if (chipConfig) chipConfig.textContent = c ? "OK" : "Pendente";
     if (!c) return;
     formConfig.tipo_chave.value = c.tipo_chave;
     formConfig.chave_pix.value = c.chave_pix;
     formConfig.nome_recebedor.value = c.nome_recebedor;
     formConfig.cidade.value = c.cidade;
+    // chave já configurada: abre direto em Cobranças (se o usuário não escolheu outra aba)
+    if (!tabEscolhidaPeloUsuario) abrirTab("cobrancas");
   }
 
   formConfig?.addEventListener("submit", async (e) => {
@@ -94,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function carregarClientes() {
     const data = await apiCall("listar_clientes");
     const clientes = data.clientes;
-    if (chipClientes) chipClientes.textContent = `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`;
+    if (chipClientes) chipClientes.textContent = clientes.length;
 
     tbodyClientes.innerHTML = clientes.length
       ? clientes
@@ -137,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tr) return;
 
     if (e.target.closest("[data-cobrar]")) {
+      abrirTab("cobrancas", true);
       selectCliente.value = tr.dataset.clienteId;
       document.getElementById("fb-cob-valor")?.focus();
       formCobranca?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -161,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function carregarCobrancas() {
     const data = await apiCall("listar_cobrancas");
     const cobrancas = data.cobrancas;
-    if (chipCobrancas) chipCobrancas.textContent = `${cobrancas.length} cobrança${cobrancas.length === 1 ? "" : "s"}`;
+    if (chipCobrancas) chipCobrancas.textContent = cobrancas.length;
 
     tbodyCobrancas.innerHTML = cobrancas.length
       ? cobrancas

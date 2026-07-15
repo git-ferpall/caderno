@@ -35,13 +35,27 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                     <p>Gere cobranças PIX com QR Code em formato de boleto para entregar aos seus clientes. Cadastre sua chave PIX, registre os clientes por CPF ou CNPJ e imprima a cobrança.</p>
                 </header>
 
-                <section class="au-card">
+                <nav class="fb-tabs" id="fb-tabs" role="tablist">
+                    <button type="button" class="fb-tab" data-tab="chave" role="tab">
+                        Chave PIX
+                        <span class="fb-tab-chip" id="fb-chip-config">—</span>
+                    </button>
+                    <button type="button" class="fb-tab" data-tab="clientes" role="tab">
+                        Clientes
+                        <span class="fb-tab-chip" id="fb-chip-clientes">—</span>
+                    </button>
+                    <button type="button" class="fb-tab" data-tab="cobrancas" role="tab">
+                        Cobranças
+                        <span class="fb-tab-chip" id="fb-chip-cobrancas">—</span>
+                    </button>
+                </nav>
+
+                <section class="au-card fb-panel" data-panel="chave">
                     <div class="au-card-head">
                         <div>
                             <h2>Minha chave PIX</h2>
                             <p>Os pagamentos caem direto na sua conta. Nome e cidade aparecem no aplicativo do pagador (exigência do padrão PIX).</p>
                         </div>
-                        <span class="au-chip" id="fb-chip-config">—</span>
                     </div>
 
                     <form class="au-form" id="form-config">
@@ -73,13 +87,12 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                     </form>
                 </section>
 
-                <section class="au-card">
+                <section class="au-card fb-panel" data-panel="clientes">
                     <div class="au-card-head au-accent-verde">
                         <div>
                             <h2>Clientes de cobrança</h2>
                             <p>Cadastre quem você vai cobrar, por CPF ou CNPJ.</p>
                         </div>
-                        <span class="au-chip" id="fb-chip-clientes">—</span>
                     </div>
 
                     <form class="au-form" id="form-cliente">
@@ -111,13 +124,12 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                     </div>
                 </section>
 
-                <section class="au-card">
+                <section class="au-card fb-panel" data-panel="cobrancas">
                     <div class="au-card-head">
                         <div>
                             <h2>Cobranças</h2>
                             <p>Escolha o cliente, informe o valor e gere a cobrança PIX pronta para imprimir.</p>
                         </div>
-                        <span class="au-chip" id="fb-chip-cobrancas">—</span>
                     </div>
 
                     <form class="au-form" id="form-cobranca">
