@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- Abas ---------------- */
 
+  const tabsNav = document.getElementById("fb-tabs");
   const tabs = document.querySelectorAll("#fb-tabs .fb-tab");
   const panels = document.querySelectorAll(".fb-panel");
   let tabEscolhidaPeloUsuario = false;
@@ -254,21 +255,77 @@ document.addEventListener("DOMContentLoaded", () => {
   inputNomeRec?.addEventListener("input", atualizarPreview);
   inputCidade?.addEventListener("input", atualizarPreview);
 
-  async function carregarConfig() {
-    const data = await apiCall("get_config");
-    const c = data.config;
-    if (chipConfig) chipConfig.textContent = c ? "OK" : "Pendente";
-    if (!c) {
-      aplicarTipoChave(false);
-      return;
-    }
+  /* --- Modo visualização x edição da chave --- */
+
+  const configView = document.getElementById("fb-config-view");
+  const previewCard = document.getElementById("fb-pix-preview");
+  const btnEditarConfig = document.getElementById("fb-btn-editar-config");
+  const btnCancelarConfig = document.getElementById("fb-btn-cancelar-config");
+  const tipoLabels = { cpf: "CPF", cnpj: "CNPJ", email: "E-mail", telefone: "Telefone", aleatoria: "Aleatória" };
+  let configAtual = null;
+
+  function chaveExibicao(c) {
+    if (c.tipo_chave === "cpf" || c.tipo_chave === "cnpj") return mascaraDoc(c.chave_pix);
+    return c.chave_pix;
+  }
+
+  function preencherFormConfig(c) {
     selTipo.value = c.tipo_chave;
     aplicarTipoChave(true);
-    inputChave.value = c.tipo_chave === "cpf" || c.tipo_chave === "cnpj" ? mascaraDoc(c.chave_pix) : c.chave_pix;
+    inputChave.value = chaveExibicao(c);
     inputNomeRec.value = c.nome_recebedor;
     inputCidade.value = c.cidade;
     atualizarPreview();
-    // chave já configurada: abre direto em Cobranças (se o usuário não escolheu outra aba)
+  }
+
+  function mostrarConfigView() {
+    if (!configAtual || !configView) return;
+    document.getElementById("fb-view-tipo").textContent = tipoLabels[configAtual.tipo_chave] || configAtual.tipo_chave;
+    document.getElementById("fb-view-chave").textContent = chaveExibicao(configAtual);
+    document.getElementById("fb-view-nome").textContent = String(configAtual.nome_recebedor || "").toUpperCase();
+    document.getElementById("fb-view-cidade").textContent = String(configAtual.cidade || "").toUpperCase();
+    configView.classList.remove("d-none");
+    formConfig.classList.add("d-none");
+    previewCard?.classList.add("d-none");
+  }
+
+  function mostrarConfigForm() {
+    configView?.classList.add("d-none");
+    formConfig.classList.remove("d-none");
+    previewCard?.classList.remove("d-none");
+    // só dá para cancelar a edição se já existe uma chave salva
+    btnCancelarConfig?.classList.toggle("d-none", !configAtual);
+  }
+
+  btnEditarConfig?.addEventListener("click", () => {
+    mostrarConfigForm();
+    inputChave?.focus();
+  });
+
+  btnCancelarConfig?.addEventListener("click", () => {
+    if (configAtual) preencherFormConfig(configAtual);
+    mostrarConfigView();
+  });
+
+  function moverTabChaveParaOFim() {
+    const tabChave = tabsNav?.querySelector('.fb-tab[data-tab="chave"]');
+    if (tabChave && tabsNav.lastElementChild !== tabChave) tabsNav.appendChild(tabChave);
+  }
+
+  async function carregarConfig() {
+    const data = await apiCall("get_config");
+    const c = data.config;
+    configAtual = c || null;
+    if (chipConfig) chipConfig.textContent = c ? "OK" : "Pendente";
+    if (!c) {
+      aplicarTipoChave(false);
+      mostrarConfigForm();
+      return;
+    }
+    preencherFormConfig(c);
+    mostrarConfigView();
+    // chave já configurada: aba dela vai para o fim e abre direto em Cobranças
+    moverTabChaveParaOFim();
     if (!tabEscolhidaPeloUsuario) abrirTab("cobrancas");
   }
 
@@ -283,8 +340,15 @@ document.addEventListener("DOMContentLoaded", () => {
     fd.set("chave_pix", chaveNormalizada());
     try {
       await apiCall("salvar_config", { method: "POST", body: fd });
+      const data = await apiCall("get_config");
+      configAtual = data.config || null;
+      if (chipConfig) chipConfig.textContent = configAtual ? "OK" : "Pendente";
+      if (configAtual) {
+        preencherFormConfig(configAtual);
+        mostrarConfigView();
+        moverTabChaveParaOFim();
+      }
       fbPopup("Chave PIX salva com sucesso!", "Agora você já pode gerar cobranças para os seus clientes.");
-      await carregarConfig();
     } catch (err) {
       fbPopup("Não foi possível salvar", err.message, false);
     }

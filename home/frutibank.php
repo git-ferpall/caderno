@@ -58,6 +58,21 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                         </div>
                     </div>
 
+                    <!-- Chave já cadastrada: modo visualização -->
+                    <div class="fb-config-view d-none" id="fb-config-view">
+                        <div class="fb-pix-preview">
+                            <span class="fb-pix-preview-titulo">Chave cadastrada</span>
+                            <div class="fb-pix-preview-linha"><label>Tipo</label><strong id="fb-view-tipo">—</strong></div>
+                            <div class="fb-pix-preview-linha"><label>Chave</label><strong id="fb-view-chave">—</strong></div>
+                            <div class="fb-pix-preview-linha"><label>Recebedor</label><strong id="fb-view-nome">—</strong></div>
+                            <div class="fb-pix-preview-linha"><label>Cidade</label><strong id="fb-view-cidade">—</strong></div>
+                        </div>
+                        <div class="fb-config-view-actions">
+                            <button type="button" class="main-btn fundo-laranja" id="fb-btn-editar-config">Editar chave PIX</button>
+                        </div>
+                    </div>
+
+                    <!-- Cadastro / edição -->
                     <form class="au-form" id="form-config">
                         <div class="au-field">
                             <label for="fb-tipo">Tipo da chave</label>
@@ -83,6 +98,7 @@ if (!$fbUserId || !frutibankHabilitado($mysqli, $fbUserId)) {
                             <input type="text" id="fb-cidade" name="cidade" maxlength="15" placeholder="Ex.: Marilia" required>
                         </div>
                         <div class="au-form-actions">
+                            <button type="button" class="main-btn fundo-vermelho d-none" id="fb-btn-cancelar-config">Cancelar</button>
                             <button type="submit" class="main-btn fundo-verde">Salvar chave PIX</button>
                         </div>
                     </form>

@@ -146,6 +146,21 @@
     margin: 0 !important;
 }
 
+/* Chave cadastrada: modo visualização */
+.fb-config-view .fb-pix-preview {
+    margin-top: 0;
+    border-style: solid;
+    border-color: var(--verde);
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.fb-config-view-actions {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 520px;
+    margin-top: 14px;
+}
+
 /* Prévia do recebedor (como aparece no app do pagador) */
 .fb-pix-preview {
     margin-top: 22px;

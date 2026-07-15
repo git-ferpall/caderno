@@ -1,5 +1,5 @@
-const CACHE_STATIC = "caderno-static-v19";
-const CACHE_PAGES = "caderno-pages-v19";
+const CACHE_STATIC = "caderno-static-v20";
+const CACHE_PAGES = "caderno-pages-v20";
 const BG_SYNC_TAG = "caderno-fila-sync";
 
 const STATIC_ASSETS = [
