@@ -564,12 +564,22 @@ document.addEventListener("DOMContentLoaded", () => {
     window.open(`${destino}?text=${encodeURIComponent(partes.join("\n"))}`, "_blank", "noopener");
   }
 
+  // O contador da aba mostra só as cobranças em aberto (pendentes)
+  function atualizarChipCobrancas() {
+    if (!chipCobrancas) return;
+    let pendentes = 0;
+    cobrancasPorId.forEach((fc) => {
+      if (fc.status === "pendente") pendentes++;
+    });
+    chipCobrancas.textContent = pendentes;
+  }
+
   async function carregarCobrancas() {
     const data = await apiCall("listar_cobrancas");
     const cobrancas = data.cobrancas;
-    if (chipCobrancas) chipCobrancas.textContent = cobrancas.length;
     cobrancasPorId.clear();
     cobrancas.forEach((fc) => cobrancasPorId.set(String(fc.id), fc));
+    atualizarChipCobrancas();
 
     tbodyCobrancas.innerHTML = cobrancas.length
       ? cobrancas
@@ -626,6 +636,9 @@ document.addEventListener("DOMContentLoaded", () => {
         body: { cobranca_id: tr.dataset.cobrancaId, status: sel.value },
       });
       sel.className = `au-select fb-status fb-status-${sel.value}`;
+      const fc = cobrancasPorId.get(tr.dataset.cobrancaId);
+      if (fc) fc.status = sel.value;
+      atualizarChipCobrancas();
     } catch (err) {
       fbPopup("Não foi possível atualizar", err.message, false);
       await carregarCobrancas();

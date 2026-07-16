@@ -61,6 +61,7 @@ $valorFmt = 'R$ ' . number_format((float)$cob['valor'], 2, ',', '.');
 $emissao = date('d/m/Y', strtotime($cob['criado_em']));
 $vencimento = $cob['vencimento'] ? date('d/m/Y', strtotime($cob['vencimento'])) : '—';
 $payload = (string)$cob['payload'];
+$cidadeUf = trim(($cob['cidade'] ?? '') . (!empty($cob['uf']) ? '/' . $cob['uf'] : ''));
 
 $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') . '/home/frutibank_cobranca?t=' . $cob['token'];
 ?>
@@ -74,119 +75,91 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
 </head>
 <body class="fb-doc-body">
-    <div class="fb-doc-toolbar no-print">
-        <?php if (!$fbPublico): ?>
-        <a href="/home/frutibank" class="main-btn fundo-preto">Voltar</a>
-        <?php endif; ?>
-        <button type="button" class="main-btn fundo-azul" onclick="window.print()">Imprimir</button>
-        <button type="button" class="main-btn fundo-verde" id="fb-copiar">Copiar código PIX</button>
-        <?php if (!$fbPublico): ?>
-        <button type="button" class="main-btn fb-btn-whats" id="fb-whatsapp">Enviar por WhatsApp</button>
-        <?php endif; ?>
+    <?php if (!$fbPublico): ?>
+    <div class="fb-doc-topbar no-print">
+        <a href="/home/frutibank#cobrancas" class="fb-doc-voltar">&larr; Voltar às cobranças</a>
     </div>
+    <?php endif; ?>
 
     <div class="fb-doc">
         <header class="fb-doc-header">
-            <div class="fb-doc-brand">
-                <img src="../img/frutibank-logo.png" alt="Frutibank" class="fb-doc-logo">
-                <span>Cobrança via PIX</span>
-            </div>
-            <div class="fb-doc-num">
-                <span>Cobrança</span>
-                <strong>#<?= str_pad((string)$cob['id'], 6, '0', STR_PAD_LEFT) ?></strong>
-            </div>
+            <img src="../img/frutibank-logo.png" alt="Frutibank" class="fb-doc-logo">
+            <span class="fb-doc-badge">BOLETO PIX</span>
         </header>
 
         <div class="fb-doc-grid">
-            <div class="fb-doc-campo fb-span-2">
+            <div class="fb-doc-campo fb-span-3">
                 <label>Beneficiário (recebedor)</label>
-                <strong><?= htmlspecialchars($cob['nome_recebedor'] ?? '') ?></strong>
+                <strong><?= htmlspecialchars($cob['nome_recebedor'] ?? '') ?><?php if ($cidadeUf !== ''): ?> <span class="fb-doc-sub">&middot; <?= htmlspecialchars($cidadeUf) ?></span><?php endif; ?></strong>
             </div>
-            <div class="fb-doc-campo fb-span-2">
-                <label>Cidade</label>
-                <strong><?= htmlspecialchars(trim(($cob['cidade'] ?? '') . (!empty($cob['uf']) ? '/' . $cob['uf'] : ''))) ?></strong>
-            </div>
-
-            <div class="fb-doc-campo fb-doc-chave fb-span-4">
-                <div class="fb-doc-chave-grid">
-                    <div class="fb-doc-chave-rotulo">
-                        <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>)</label>
-                        <small class="no-print">toque na chave para copiar</small>
-                    </div>
-                    <div class="fb-doc-chave-linha">
-                        <strong id="fb-chave-valor" role="button" tabindex="0" title="Clique para copiar a chave PIX"><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
-                        <button type="button" class="fb-doc-copia-btn fb-doc-chave-btn no-print" id="fb-copiar-chave">Copiar</button>
-                    </div>
-                </div>
+            <div class="fb-doc-campo fb-doc-chave">
+                <label>Chave PIX (<?= htmlspecialchars(strtoupper($cob['tipo_chave'] ?? '')) ?>) <small class="no-print">— toque para copiar</small></label>
+                <strong id="fb-chave-valor" role="button" tabindex="0" title="Clique para copiar a chave PIX"><?= htmlspecialchars($cob['chave_pix'] ?? '') ?></strong>
             </div>
 
-            <div class="fb-doc-campo fb-span-2">
-                <label>Pagador</label>
-                <strong><?= htmlspecialchars($cob['cliente_nome']) ?></strong>
+            <div class="fb-doc-campo fb-span-3">
+                <label>Pagador (sacado)</label>
+                <strong><?= htmlspecialchars($cob['cliente_nome']) ?> <span class="fb-doc-sub">&middot; <?= htmlspecialchars(fbDoc($cob['cliente_doc'])) ?></span></strong>
             </div>
             <div class="fb-doc-campo">
-                <label><?= strlen($cob['cliente_doc']) === 14 ? 'CNPJ' : 'CPF' ?></label>
-                <strong><?= htmlspecialchars(fbDoc($cob['cliente_doc'])) ?></strong>
-            </div>
-            <div class="fb-doc-campo">
-                <label>Identificador (TXID)</label>
+                <label>Referência</label>
                 <strong class="fb-txid"><?= htmlspecialchars($cob['txid']) ?></strong>
             </div>
 
             <div class="fb-doc-campo">
-                <label>Data de emissão</label>
+                <label>Emissão</label>
                 <strong><?= $emissao ?></strong>
             </div>
             <div class="fb-doc-campo">
                 <label>Vencimento</label>
                 <strong><?= $vencimento ?></strong>
             </div>
-            <div class="fb-doc-campo fb-span-2 fb-doc-valor">
+            <div class="fb-doc-campo">
+                <label>Descrição</label>
+                <strong><?= !empty($cob['descricao']) ? htmlspecialchars($cob['descricao']) : '—' ?></strong>
+            </div>
+            <div class="fb-doc-campo fb-doc-valor">
                 <label>Valor a pagar</label>
                 <strong><?= $valorFmt ?></strong>
             </div>
-
-            <?php if (!empty($cob['descricao'])): ?>
-            <div class="fb-doc-campo fb-span-4">
-                <label>Descrição</label>
-                <strong><?= htmlspecialchars($cob['descricao']) ?></strong>
-            </div>
-            <?php endif; ?>
         </div>
 
         <div class="fb-doc-pagamento">
-            <div class="fb-doc-instrucoes">
-                <h2>Como pagar</h2>
-                <ol>
-                    <li>Abra o aplicativo do seu banco;</li>
-                    <li>Escolha pagar com <strong>PIX &rarr; Ler QR Code</strong>;</li>
-                    <li>Aponte a câmera para o código ao lado;</li>
-                    <li>Confira o nome do recebedor e o valor de <strong><?= $valorFmt ?></strong>;</li>
-                    <li>Confirme o pagamento.</li>
-                </ol>
-                <p class="fb-doc-alt">Ou use o <strong>PIX copia-e-cola</strong> abaixo, colando o código na opção "PIX copia e cola" do seu banco.</p>
-            </div>
             <div class="fb-doc-qr">
                 <div id="fb-qrcode"></div>
-                <span>Pague com PIX</span>
+            </div>
+            <div class="fb-doc-copia">
+                <label>PIX copia e cola <small class="no-print">— toque no código para copiar</small></label>
+                <div class="fb-doc-copia-box" id="fb-payload" role="button" tabindex="0" title="Clique para copiar o código PIX"><?= htmlspecialchars($payload) ?></div>
+                <div class="fb-doc-copia-acoes no-print">
+                    <button type="button" class="fb-btn fb-btn-solid" id="fb-copiar">Copiar código PIX</button>
+                    <?php if (!$fbPublico): ?>
+                    <button type="button" class="fb-btn fb-btn-outline" id="fb-whatsapp">Enviar por WhatsApp</button>
+                    <?php endif; ?>
+                </div>
+                <p class="fb-doc-instrucao">Abra o app do seu banco, escolha <strong>PIX &rarr; Ler QR Code</strong> ou <strong>PIX Copia e Cola</strong>. O valor já vai preenchido.</p>
             </div>
         </div>
 
-        <div class="fb-doc-copia">
-            <label>PIX copia-e-cola <small class="no-print">— toque no código para copiar</small></label>
-            <div class="fb-doc-copia-wrap">
-                <div class="fb-doc-copia-box" id="fb-payload" role="button" tabindex="0" title="Clique para copiar o código PIX"><?= htmlspecialchars($payload) ?></div>
-                <button type="button" class="fb-doc-copia-btn no-print" id="fb-copiar-box">Copiar</button>
-            </div>
-        </div>
+        <div class="fb-doc-corte"><span>&#9986; recorte aqui</span></div>
 
         <div class="fb-doc-barcode">
+            <label>Código de barras do PIX (CODE-128 &mdash; contém o mesmo código copia e cola)</label>
             <svg id="fb-barcode"></svg>
         </div>
 
         <footer class="fb-doc-footer">
             <p>Documento gerado pelo Frutibank — Caderno de Campo Frutag. Esta é uma cobrança via PIX (não é um boleto bancário registrado). Em caso de dúvida, confirme os dados com o beneficiário antes de pagar.</p>
         </footer>
+    </div>
+
+    <div class="fb-doc-toolbar no-print">
+        <button type="button" class="fb-btn fb-btn-solid" onclick="window.print()">&#128424; Imprimir / salvar PDF</button>
+        <?php if (!$fbPublico): ?>
+        <button type="button" class="fb-btn fb-btn-outline" id="fb-marcar-pago" <?= $cob['status'] === 'pago' ? 'disabled' : '' ?>>
+            <?= $cob['status'] === 'pago' ? '&#10003; Pago' : '&#10003; Marcar como pago' ?>
+        </button>
+        <?php endif; ?>
     </div>
 
     <script src="../js/vendor/qrcodejs.min.js"></script>
@@ -196,8 +169,8 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
 
         new QRCode(document.getElementById("fb-qrcode"), {
             text: fbPayload,
-            width: 210,
-            height: 210,
+            width: 230,
+            height: 230,
             correctLevel: QRCode.CorrectLevel.M,
         });
 
@@ -211,6 +184,67 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
         } catch (e) {
             document.querySelector(".fb-doc-barcode").style.display = "none";
         }
+
+        /* ---- Copiar código PIX (copia e cola) ---- */
+
+        const boxPayload = document.getElementById("fb-payload");
+        const btnCopiar = document.getElementById("fb-copiar");
+
+        async function copiarPix() {
+            try {
+                await navigator.clipboard.writeText(fbPayload);
+            } catch (e) {
+                prompt("Copie o código PIX abaixo:", fbPayload);
+                return;
+            }
+            boxPayload.classList.add("copiado");
+            setTimeout(() => boxPayload.classList.remove("copiado"), 2200);
+            if (btnCopiar) {
+                const original = btnCopiar.textContent;
+                btnCopiar.textContent = "Copiado!";
+                btnCopiar.disabled = true;
+                setTimeout(() => {
+                    btnCopiar.textContent = original;
+                    btnCopiar.disabled = false;
+                }, 2200);
+            }
+        }
+
+        btnCopiar?.addEventListener("click", copiarPix);
+        boxPayload?.addEventListener("click", copiarPix);
+        boxPayload?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                copiarPix();
+            }
+        });
+
+        /* ---- Copiar só a chave PIX ---- */
+
+        const chaveValor = document.getElementById("fb-chave-valor");
+        const campoChave = chaveValor?.closest(".fb-doc-chave");
+
+        async function copiarChave() {
+            const chave = chaveValor.textContent.trim();
+            try {
+                await navigator.clipboard.writeText(chave);
+            } catch (e) {
+                prompt("Copie a chave PIX abaixo:", chave);
+                return;
+            }
+            campoChave?.classList.add("copiado");
+            setTimeout(() => campoChave?.classList.remove("copiado"), 2200);
+        }
+
+        chaveValor?.addEventListener("click", copiarChave);
+        chaveValor?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                copiarChave();
+            }
+        });
+
+        /* ---- Enviar por WhatsApp (somente dono) ---- */
 
         const btnWhats = document.getElementById("fb-whatsapp");
         btnWhats?.addEventListener("click", () => {
@@ -228,71 +262,26 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
             window.open(`${destino}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
         });
 
-        const boxPayload = document.getElementById("fb-payload");
-        const btnCopiarBox = document.getElementById("fb-copiar-box");
+        /* ---- Marcar como pago (somente dono) ---- */
 
-        async function copiarPix(feedbackBtn) {
+        const btnPago = document.getElementById("fb-marcar-pago");
+        btnPago?.addEventListener("click", async () => {
+            btnPago.disabled = true;
+            const original = btnPago.textContent;
+            btnPago.textContent = "Salvando...";
             try {
-                await navigator.clipboard.writeText(fbPayload);
+                const fd = new FormData();
+                fd.append("acao", "atualizar_status");
+                fd.append("cobranca_id", <?= json_encode((string)$cob['id']) ?>);
+                fd.append("status", "pago");
+                const r = await fetch("../funcoes/frutibank/api.php", { method: "POST", body: fd, credentials: "same-origin" });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.msg || "Erro ao atualizar");
+                btnPago.textContent = "✓ Pago";
             } catch (e) {
-                prompt("Copie o código PIX abaixo:", fbPayload);
-                return;
-            }
-            boxPayload.classList.add("copiado");
-            setTimeout(() => boxPayload.classList.remove("copiado"), 2200);
-            if (feedbackBtn) {
-                const original = feedbackBtn.textContent;
-                feedbackBtn.textContent = "Copiado!";
-                feedbackBtn.disabled = true;
-                setTimeout(() => {
-                    feedbackBtn.textContent = original;
-                    feedbackBtn.disabled = false;
-                }, 2200);
-            }
-        }
-
-        document.getElementById("fb-copiar")?.addEventListener("click", (e) => copiarPix(e.currentTarget));
-        btnCopiarBox?.addEventListener("click", () => copiarPix(btnCopiarBox));
-        boxPayload?.addEventListener("click", () => copiarPix(btnCopiarBox));
-        boxPayload?.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                copiarPix(btnCopiarBox);
-            }
-        });
-
-        // Copiar a chave PIX (destaque no topo do documento)
-        const chaveValor = document.getElementById("fb-chave-valor");
-        const btnCopiarChave = document.getElementById("fb-copiar-chave");
-        const campoChave = chaveValor?.closest(".fb-doc-chave");
-
-        async function copiarChave() {
-            const chave = chaveValor.textContent.trim();
-            try {
-                await navigator.clipboard.writeText(chave);
-            } catch (e) {
-                prompt("Copie a chave PIX abaixo:", chave);
-                return;
-            }
-            campoChave?.classList.add("copiado");
-            setTimeout(() => campoChave?.classList.remove("copiado"), 2200);
-            if (btnCopiarChave) {
-                const original = btnCopiarChave.textContent;
-                btnCopiarChave.textContent = "Copiado!";
-                btnCopiarChave.disabled = true;
-                setTimeout(() => {
-                    btnCopiarChave.textContent = original;
-                    btnCopiarChave.disabled = false;
-                }, 2200);
-            }
-        }
-
-        chaveValor?.addEventListener("click", copiarChave);
-        btnCopiarChave?.addEventListener("click", copiarChave);
-        chaveValor?.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                copiarChave();
+                btnPago.textContent = original;
+                btnPago.disabled = false;
+                alert("Não foi possível marcar como pago: " + e.message);
             }
         });
     </script>

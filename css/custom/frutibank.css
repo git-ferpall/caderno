@@ -1,4 +1,4 @@
-/* ==========================================================
+﻿/* ==========================================================
    Frutibank — painel e documento de cobrança PIX
    ========================================================== */
 
@@ -214,6 +214,12 @@
     margin: 0 !important;
 }
 
+@media (max-width: 680px) {
+    .fb-doc-busca {
+        flex-direction: column;
+    }
+}
+
 /* Chave cadastrada: modo visualização */
 .fb-view-grid {
     display: grid;
@@ -304,15 +310,6 @@
     }
 }
 
-/* Botões de envio por WhatsApp */
-.fb-btn-whats {
-    background-color: #25d366 !important;
-}
-
-.fb-btn-whats-mini {
-    background: #25d366;
-}
-
 /* Prévia do recebedor (como aparece no app do pagador) */
 .fb-pix-preview {
     margin-top: 22px;
@@ -356,13 +353,9 @@
     word-break: break-all;
 }
 
-@media (max-width: 680px) {
-    .fb-doc-busca {
-        flex-direction: column;
-    }
-}
-
-/* ---------- Documento de cobrança ---------- */
+/* ==========================================================
+   Documento de cobrança (layout boleto PIX)
+   ========================================================== */
 
 .fb-doc-body {
     background: #eef1f0;
@@ -371,27 +364,41 @@
     font-family: "Roboto", sans-serif;
 }
 
-.fb-doc-toolbar {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
+/* Barra superior: voltar */
+.fb-doc-topbar {
     max-width: 860px;
-    margin: 0 auto 20px;
-    flex-wrap: wrap;
+    margin: 0 auto 14px;
 }
 
-.fb-doc-toolbar .main-btn {
+.fb-doc-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--branco);
+    color: var(--preto);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: background 0.15s ease;
 }
 
+.fb-doc-voltar:hover {
+    background: #f2f5f3;
+    color: var(--preto);
+}
+
+/* Cartão do documento */
 .fb-doc {
     background: #fff;
     max-width: 860px;
     margin: 0 auto;
-    border-radius: 14px;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.14);
-    padding: 28px 30px;
+    border: 2px solid var(--preto);
+    border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+    padding: 24px 26px;
     color: var(--preto);
 }
 
@@ -400,72 +407,53 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid var(--preto);
-    margin-bottom: 18px;
-}
-
-.fb-doc-brand {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    margin-bottom: 16px;
 }
 
 .fb-doc-logo {
-    height: 42px;
+    display: block;
+    height: 40px;
     width: auto;
-    display: block;
 }
 
-.fb-doc-brand span {
-    display: block;
-    font-size: 12.5px;
+.fb-doc-badge {
+    font-family: monospace;
+    font-size: 12px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #666;
+    letter-spacing: 0.12em;
+    background: var(--preto);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 5px;
+    white-space: nowrap;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
 }
 
-.fb-doc-num {
-    text-align: right;
-}
-
-.fb-doc-num span {
-    display: block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
-}
-
-.fb-doc-num strong {
-    font-size: 20px;
-}
-
-/* grade estilo boleto */
+/* Grade estilo boleto */
 .fb-doc-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    border: 1px solid #cfd4d2;
-    border-radius: 10px;
+    border: 1px solid #b9beba;
+    border-radius: 8px;
     overflow: hidden;
     margin-bottom: 20px;
 }
 
 .fb-doc-campo {
     padding: 10px 14px;
-    border-right: 1px solid #e3e7e5;
-    border-bottom: 1px solid #e3e7e5;
+    border-right: 1px solid #d8dcd9;
+    border-bottom: 1px solid #d8dcd9;
     min-width: 0;
 }
 
 .fb-doc-campo label {
     display: block;
-    font-size: 10.5px;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #889;
+    letter-spacing: 0.08em;
+    color: #7a827c;
     margin-bottom: 3px;
 }
 
@@ -474,77 +462,50 @@
     word-break: break-word;
 }
 
+.fb-doc-sub {
+    font-weight: 600;
+    font-size: 13px;
+    color: #57605a;
+}
+
 .fb-span-2 { grid-column: span 2; }
+.fb-span-3 { grid-column: span 3; }
 .fb-span-4 { grid-column: span 4; }
 
-/* Destaque do campo da chave PIX (linha própria, com copiar rápido) */
+.fb-doc-valor strong {
+    font-size: 21px;
+}
+
+/* Chave PIX em destaque, com copiar rápido */
 .fb-doc-chave {
     position: relative;
     background: #eef7e6;
-    box-shadow: inset 4px 0 0 var(--verde);
+    box-shadow: inset 3px 0 0 var(--verde);
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
 }
 
-/* rótulo em coluna própria, separado do valor da chave */
-.fb-doc-chave-grid {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.fb-doc-chave-rotulo {
-    flex: none;
-    width: 165px;
-    padding-right: 16px;
-    border-right: 1px solid rgba(99, 160, 39, 0.35);
-}
-
-.fb-doc-chave-rotulo label {
+.fb-doc-chave label {
     color: #33691e;
-    font-weight: 700;
-    margin-bottom: 0;
 }
 
-.fb-doc-chave-rotulo small {
-    display: block;
-    margin-top: 3px;
-    font-size: 10.5px;
+.fb-doc-chave label small {
+    text-transform: none;
+    letter-spacing: 0;
     font-weight: 600;
     color: var(--verde);
 }
 
-.fb-doc-chave-linha {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-}
-
 .fb-doc-chave strong {
-    font-size: 17px;
     color: #1d4d12;
     word-break: break-all;
     cursor: copy;
-    border-radius: 6px;
-    padding: 2px 4px;
-    margin: -2px -4px;
-    transition: background 0.15s ease;
 }
 
 .fb-doc-chave strong:hover {
-    background: rgba(99, 160, 39, 0.16);
+    text-decoration: underline;
 }
 
-.fb-doc-chave-btn {
-    position: static;
-    transform: none;
-    flex: none;
-}
-
-/* aviso "Chave copiada!" sobre o campo */
 .fb-doc-chave.copiado::after {
     content: "Chave PIX copiada!";
     position: absolute;
@@ -552,37 +513,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(238, 247, 230, 0.94);
-    font-size: 15px;
+    background: rgba(238, 247, 230, 0.95);
+    font-size: 13.5px;
     font-weight: 800;
     color: #33691e;
-}
-
-@media print {
-    .fb-doc-chave strong {
-        cursor: auto;
-    }
-}
-
-@media (max-width: 680px) {
-    .fb-doc-chave-grid {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-
-    .fb-doc-chave-rotulo {
-        width: auto;
-        padding-right: 0;
-        padding-bottom: 6px;
-        border-right: 0;
-        border-bottom: 1px solid rgba(99, 160, 39, 0.35);
-    }
-}
-
-.fb-doc-valor strong {
-    font-size: 22px;
-    color: var(--preto);
 }
 
 .fb-txid {
@@ -590,70 +524,37 @@
     font-size: 12.5px !important;
 }
 
-/* instruções + QR */
+/* QR Code + copia e cola lado a lado */
 .fb-doc-pagamento {
     display: flex;
     gap: 26px;
     align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.fb-doc-instrucoes {
-    flex: 1;
-}
-
-.fb-doc-instrucoes h2 {
-    font-size: 16px;
-    font-weight: 800;
-    margin: 0 0 10px;
-    padding-left: 10px;
-    border-left: 4px solid var(--verde);
-}
-
-.fb-doc-instrucoes ol {
-    margin: 0 0 12px;
-    padding-left: 22px;
-    font-size: 14px;
-    line-height: 1.7;
-}
-
-.fb-doc-alt {
-    font-size: 13px;
-    color: #555;
-    margin: 0;
+    margin-bottom: 10px;
 }
 
 .fb-doc-qr {
     flex: none;
-    text-align: center;
-    border: 2px dashed #b9c2be;
-    border-radius: 12px;
-    padding: 14px 14px 10px;
 }
 
 .fb-doc-qr img,
 .fb-doc-qr canvas {
     display: block;
-    margin: 0 auto;
 }
 
-.fb-doc-qr span {
-    display: block;
-    margin-top: 8px;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #333;
+.fb-doc-copia {
+    flex: 1;
+    min-width: 0;
+    padding-top: 4px;
 }
 
-/* copia e cola */
 .fb-doc-copia label {
     display: block;
-    font-size: 10.5px;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #889;
-    margin-bottom: 5px;
+    letter-spacing: 0.08em;
+    color: #7a827c;
+    margin-bottom: 6px;
 }
 
 .fb-doc-copia label small {
@@ -663,23 +564,19 @@
     color: var(--verde);
 }
 
-.fb-doc-copia-wrap {
-    position: relative;
-    margin-bottom: 20px;
-}
-
 .fb-doc-copia-box {
-    border: 1px solid #cfd4d2;
-    border-radius: 10px;
-    background: #f8faf9;
-    padding: 12px 96px 12px 14px;
+    position: relative;
+    border: 1px solid #c9cecb;
+    border-radius: 8px;
+    background: #f6f8f7;
+    padding: 12px 14px;
     font-family: monospace;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11.5px;
+    line-height: 1.55;
     word-break: break-all;
     user-select: all;
     cursor: copy;
-    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .fb-doc-copia-box:hover {
@@ -687,12 +584,6 @@
     box-shadow: 0 0 0 3px rgba(99, 160, 39, 0.14);
 }
 
-.fb-doc-copia-box.copiado {
-    border-color: var(--verde);
-    background: #eef7e6;
-}
-
-/* aviso "Código copiado!" sobre a caixa */
 .fb-doc-copia-box.copiado::after {
     content: "Código PIX copiado!";
     position: absolute;
@@ -701,58 +592,100 @@
     align-items: center;
     justify-content: center;
     background: rgba(238, 247, 230, 0.94);
-    border-radius: 10px;
+    border-radius: 8px;
     font-family: "Roboto", sans-serif;
     font-size: 15px;
     font-weight: 800;
     color: #33691e;
 }
 
-.fb-doc-copia-btn {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    border: 0;
-    border-radius: 30px;
-    background: var(--verde);
-    color: var(--branco);
-    font-size: 12.5px;
-    font-weight: 700;
-    padding: 8px 18px;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-    transition: filter 0.15s ease;
+.fb-doc-copia-acoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
 }
 
-.fb-doc-copia-btn:hover {
+.fb-doc-instrucao {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.55;
+}
+
+/* Botões do documento */
+.fb-btn {
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: filter 0.15s ease, border-color 0.15s ease;
+}
+
+.fb-btn-solid {
+    border: 0;
+    background: var(--verde);
+    color: var(--branco);
+}
+
+.fb-btn-solid:hover {
     filter: brightness(1.08);
 }
 
-.fb-doc-copia-btn:disabled {
-    background: #33691e;
+.fb-btn-outline {
+    border: 1.5px solid #c9cecb;
+    background: var(--branco);
+    color: var(--preto);
+}
+
+.fb-btn-outline:hover {
+    border-color: var(--preto);
+}
+
+.fb-btn:disabled {
+    opacity: 0.6;
     cursor: default;
+    filter: none;
 }
 
-/* na impressão, o código usa a largura toda (sem botão) */
-@media print {
-    .fb-doc-copia-box {
-        padding-right: 14px;
-        cursor: auto;
-    }
+/* Linha de recorte */
+.fb-doc-corte {
+    position: relative;
+    border-top: 2px dashed #9aa39d;
+    margin: 18px -26px 16px;
 }
 
-/* código de barras */
+.fb-doc-corte span {
+    position: absolute;
+    top: -9px;
+    right: 20px;
+    background: #fff;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7a827c;
+}
+
+/* Código de barras */
 .fb-doc-barcode {
-    border-top: 1px dashed #b9c2be;
-    padding-top: 18px;
     margin-bottom: 14px;
     overflow: hidden;
 }
 
+.fb-doc-barcode label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a827c;
+    margin-bottom: 6px;
+}
+
 .fb-doc-barcode svg {
     width: 100%;
-    height: 84px;
+    height: 80px;
 }
 
 .fb-doc-footer p {
@@ -762,6 +695,16 @@
     margin: 0;
     border-top: 1px solid #e3e7e5;
     padding-top: 12px;
+}
+
+/* Barra inferior de ações */
+.fb-doc-toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    max-width: 860px;
+    margin: 18px auto 0;
+    flex-wrap: wrap;
 }
 
 /* ---------- Impressão ---------- */
@@ -778,9 +721,12 @@
 
     .fb-doc {
         box-shadow: none;
-        border-radius: 0;
         max-width: 100%;
-        padding: 0;
+    }
+
+    .fb-doc-copia-box,
+    .fb-doc-chave strong {
+        cursor: auto;
     }
 }
 
@@ -795,6 +741,7 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .fb-span-3,
     .fb-span-4 {
         grid-column: span 2;
     }
@@ -802,5 +749,14 @@
     .fb-doc-pagamento {
         flex-direction: column;
         align-items: center;
+    }
+
+    .fb-doc-copia {
+        width: 100%;
+    }
+
+    .fb-doc-corte {
+        margin-left: -14px;
+        margin-right: -14px;
     }
 }
