@@ -144,7 +144,6 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
         <div class="fb-doc-corte"><span>&#9986; recorte aqui</span></div>
 
         <div class="fb-doc-barcode">
-            <label>Código de barras do PIX (CODE-128 &mdash; contém o mesmo código copia e cola)</label>
             <svg id="fb-barcode"></svg>
         </div>
 
@@ -178,7 +177,7 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
             JsBarcode("#fb-barcode", fbPayload, {
                 format: "CODE128",
                 displayValue: false,
-                height: 70,
+                height: 110,
                 margin: 0,
             });
         } catch (e) {
