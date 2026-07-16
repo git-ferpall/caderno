@@ -177,7 +177,7 @@ $linkPublico = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'caderno.frutag.com.br') .
             JsBarcode("#fb-barcode", fbPayload, {
                 format: "CODE128",
                 displayValue: false,
-                height: 110,
+                height: 160,
                 margin: 0,
             });
         } catch (e) {
