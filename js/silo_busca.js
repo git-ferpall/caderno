@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const termo = inputBusca.value.trim();
     timer = setTimeout(() => {
       if (termo === "") {
-        atualizarLista(); // volta para listagem normal
+        if (typeof window.atualizarLista === "function") window.atualizarLista();
       } else {
         buscarArquivos(termo);
       }
@@ -96,7 +96,9 @@ async function buscarArquivos(termo) {
       if (isFolder) {
         div.addEventListener("dblclick", (e) => {
           e.stopPropagation();
-          acessarPasta(a.id);
+          if (typeof abrirPasta === "function") {
+            abrirPasta(a.id, a.nome_arquivo);
+          }
         });
       }
 

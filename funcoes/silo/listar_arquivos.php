@@ -39,15 +39,19 @@ try {
               AND (
                 parent_id IS NULL
                 OR parent_id = 0
-                OR parent_id NOT IN (
-                    SELECT id FROM silo_arquivos AS p
-                    WHERE p.user_id = ? AND p.tipo = 'pasta'
+                OR NOT EXISTS (
+                    SELECT 1 FROM silo_arquivos AS p
+                    WHERE p.id = silo_arquivos.parent_id
+                      AND p.user_id = silo_arquivos.user_id
+                      AND p.tipo = 'pasta'
                 )
               )
-            ORDER BY tipo_arquivo DESC, nome_arquivo ASC
+            ORDER BY
+              CASE WHEN tipo = 'pasta' OR tipo_arquivo = 'folder' THEN 0 ELSE 1 END,
+              nome_arquivo ASC
         ");
 
-        $stmt->bind_param('ii', $user_id, $user_id);
+        $stmt->bind_param('i', $user_id);
 
     } else {
 

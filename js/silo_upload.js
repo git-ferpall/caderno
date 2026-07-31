@@ -69,16 +69,13 @@ function enviarArquivosSilo(files) {
   const fd = new FormData();
   fd.append("arquivo", file);
   fd.append("origem", "upload");
-  fd.append("parent_id", window.pastaAtual || 0);
+  fd.append("parent_id", String(window.pastaAtual || 0));
   const csrfMatch = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
   if (csrfMatch) {
     fd.append("csrf_token", decodeURIComponent(csrfMatch[1]));
   }
 
   console.log("📁 Enviando para pasta:", window.pastaAtual);
-
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "../funcoes/silo/upload_arquivo.php");
 
   let cancelado = false;
   btnCancel.onclick = () => {
@@ -89,7 +86,9 @@ function enviarArquivosSilo(files) {
     siloShowError("Envio interrompido.");
   };
 
-  // 📊 Progresso visual
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "../funcoes/silo/upload_arquivo.php");
+
   xhr.upload.onprogress = (e) => {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -98,7 +97,6 @@ function enviarArquivosSilo(files) {
     }
   };
 
-  // 📥 Conclusão
   xhr.onload = async () => {
     uploadAtivo = false;
     if (cancelado) return;
@@ -109,7 +107,9 @@ function enviarArquivosSilo(files) {
         barra.style.background = "var(--verde)";
         txt.textContent = "Upload concluído!";
         setTimeout(() => overlay.remove(), 400);
-        await siloRefreshLista();
+        if (typeof window.atualizarLista === "function") {
+          await window.atualizarLista();
+        }
         siloRefreshUso();
         siloShowSuccess(j.msg || "Upload concluído!");
       } else {

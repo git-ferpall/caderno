@@ -2,16 +2,26 @@
 // 📂 Funções de Pastas - Silo de Dados
 // ===================================
 
-const escapeHtml = (value) =>
-  (window.CadernoUtils && window.CadernoUtils.escapeHtml
-    ? window.CadernoUtils.escapeHtml(value)
-    : String(value ?? ""));
+function siloEscapeHtml(value) {
+  if (window.CadernoUtils && window.CadernoUtils.escapeHtml) {
+    return window.CadernoUtils.escapeHtml(value);
+  }
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 // 🌍 Global (usado também por upload e listar)
 window.pastaAtual = parseInt(localStorage.getItem("silo_pastaAtual")) || 0;
 
 async function validarPastaAtual() {
-  if (!window.pastaAtual || window.pastaAtual === 0) return;
+  window.pastaAtual = parseInt(window.pastaAtual, 10) || 0;
+  if (window.pastaAtual === 0) {
+    localStorage.setItem("silo_pastaAtual", "0");
+    return;
+  }
 
   try {
     const res = await fetch(`../funcoes/silo/get_parent.php?id=${window.pastaAtual}`, {
@@ -270,7 +280,7 @@ async function atualizarLista() {
 
     if (!j.ok || !Array.isArray(j.arquivos)) {
       console.error("Resposta inválida:", j);
-      box.innerHTML = '<p class="silo-state-msg">Erro ao carregar arquivos.</p>';
+      box.innerHTML = `<p class="silo-state-msg">Erro ao carregar arquivos${j.err ? `: ${siloEscapeHtml(j.err)}` : "."}</p>`;
       return;
     }
 
@@ -285,7 +295,11 @@ async function atualizarLista() {
     }
 
     j.arquivos.forEach((a) => {
-      const isFolder = a.is_folder === true;
+      const isFolder = !!(
+        a.is_folder ||
+        a.tipo === "pasta" ||
+        a.tipo_arquivo === "folder"
+      );
       const icon = getIconClass(a.tipo_arquivo || "", isFolder);
 
       const div = document.createElement("div");
@@ -295,7 +309,7 @@ async function atualizarLista() {
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-title">${escapeHtml(a.nome_exibicao || a.nome_arquivo)}</span>
+          <span class="silo-item-title">${siloEscapeHtml(a.nome_exibicao || a.nome_arquivo)}</span>
         </div>
       `;
 
@@ -303,6 +317,10 @@ async function atualizarLista() {
         div.addEventListener("click", (e) => {
           e.stopPropagation();
           abrirMenuPasta(e, a);
+        });
+        div.addEventListener("dblclick", (e) => {
+          e.stopPropagation();
+          abrirPasta(a.id, a.nome_arquivo);
         });
       } else {
         div.addEventListener("click", (e) => {

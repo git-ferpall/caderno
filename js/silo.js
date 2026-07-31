@@ -1,11 +1,16 @@
 // ================================
 // 📦 Silo de Dados - Caderno de Campo
 // ================================
-const escapeHtml = (value) =>
-  (window.CadernoUtils && window.CadernoUtils.escapeHtml
-    ? window.CadernoUtils.escapeHtml(value)
-    : String(value ?? ""));
-
+function siloEscapeHtml(value) {
+  if (window.CadernoUtils && window.CadernoUtils.escapeHtml) {
+    return window.CadernoUtils.escapeHtml(value);
+  }
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 // ===================================
 // 🧩 Ícones conforme tipo
 // ===================================
