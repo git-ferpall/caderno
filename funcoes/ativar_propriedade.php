@@ -10,9 +10,11 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 try {
     // Recupera user_id
     $user_id = $_SESSION['user_id'] ?? null;
+    $func_id = null;
     if (!$user_id) {
         $payload = verify_jwt();
         $user_id = $payload['sub'] ?? null;
+        $func_id = (int)($payload['func_id'] ?? 0) ?: null;
     }
 
     if (!$user_id) {
@@ -42,6 +44,15 @@ try {
         exit;
     }
     $stmt->close();
+
+    // Funcionário: só pode ativar propriedades permitidas
+    if ($func_id) {
+        require_once __DIR__ . '/conta/helpers.php';
+        if (!contaFuncionarioPropriedadePermitida($mysqli, $func_id, (int)$user_id, $id)) {
+            echo json_encode(["ok" => false, "error" => "Você não tem permissão para acessar esta propriedade."]);
+            exit;
+        }
+    }
 
     // Desativa todas
     $stmt = $mysqli->prepare("UPDATE propriedades SET ativo = 0 WHERE user_id = ?");

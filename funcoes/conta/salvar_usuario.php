@@ -45,7 +45,40 @@ if ($acao === 'criar') {
         contaJson(['ok' => false, 'msg' => caderno_erro_msg($e)], 500);
     }
 
+    $propIds = isset($_POST['propriedades']) ? (array)$_POST['propriedades'] : [];
+    try {
+        contaFuncionarioSalvarPropriedades($mysqli, $novoId, $contaId, $propIds);
+    } catch (InvalidArgumentException $e) {
+        // remove funcionário órfão se a validação de propriedades falhar
+        $stmt = $mysqli->prepare('DELETE FROM usuarios_caderno WHERE id = ? AND conta_pai = ?');
+        $stmt->bind_param('ii', $novoId, $contaId);
+        $stmt->execute();
+        $stmt->close();
+        contaJson(['ok' => false, 'msg' => $e->getMessage()], 400);
+    }
+
     contaJson(['ok' => true, 'msg' => 'Usuário criado com sucesso.', 'id' => $novoId]);
+}
+
+/* ============================================================
+ * ATUALIZAR propriedades permitidas
+ * ============================================================ */
+if ($acao === 'propriedades') {
+    $targetId = (int)($_POST['user_id'] ?? 0);
+    $target = $targetId > 0 ? contaBuscarFuncionario($mysqli, $targetId, $contaId) : null;
+    if (!$target) {
+        contaJson(['ok' => false, 'msg' => 'Usuário não encontrado nesta conta.'], 404);
+    }
+
+    $propIds = isset($_POST['propriedades']) ? (array)$_POST['propriedades'] : [];
+    try {
+        contaFuncionarioSalvarPropriedades($mysqli, $targetId, $contaId, $propIds);
+        contaFuncionarioGarantirPropriedadeAtiva($mysqli, $contaId, $targetId);
+    } catch (InvalidArgumentException $e) {
+        contaJson(['ok' => false, 'msg' => $e->getMessage()], 400);
+    }
+
+    contaJson(['ok' => true, 'msg' => 'Propriedades atualizadas.']);
 }
 
 /* ============================================================

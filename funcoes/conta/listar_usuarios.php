@@ -17,6 +17,14 @@ $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 $config = contaFuncConfig($mysqli, $contaId);
+$totalProps = count(contaListarPropriedadesIds($mysqli, $contaId));
+
+foreach ($rows as &$row) {
+    $ids = contaFuncionarioPropriedadesIds($mysqli, (int)$row['id']);
+    $row['propriedades'] = $ids; // null = todas
+    $row['propriedades_qtd'] = $ids === null ? $totalProps : count($ids);
+}
+unset($row);
 
 contaJson([
     'ok'        => true,

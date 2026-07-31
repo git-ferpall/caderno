@@ -2,7 +2,7 @@
  * USUARIOS_CONTA.JS
  * -----------------
  * Gestão dos acessos (funcionários) da conta: listagem, criação,
- * alteração de papel, ativação/desativação e redefinição de senha.
+ * alteração de papel, propriedades permitidas, ativação/desativação e senha.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,8 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.querySelector("#tabela-funcionarios tbody");
   const formCriar = document.getElementById("form-criar-funcionario");
   const chipTotal = document.getElementById("cf-total");
+  const boxPropsCriar = document.getElementById("cf-propriedades");
+  const modal = document.getElementById("modal-propriedades");
+  const modalLista = document.getElementById("modal-prop-lista");
+  const modalSub = document.getElementById("modal-prop-subtitulo");
+  const btnModalSalvar = document.getElementById("modal-prop-salvar");
+  const btnModalCancelar = document.getElementById("modal-prop-cancelar");
 
-  let meuFuncId = 0; // id do funcionário logado (0 = dono da conta)
+  let meuFuncId = 0;
+  let propriedadesConta = [];
+  let modalUserId = 0;
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -45,6 +53,35 @@ document.addEventListener("DOMContentLoaded", () => {
     return data;
   }
 
+  function labelPropriedade(p) {
+    const local = [p.endereco_cidade, p.endereco_uf].filter(Boolean).join(" / ");
+    return local ? `${p.nome_razao} — ${local}` : (p.nome_razao || `Propriedade #${p.id}`);
+  }
+
+  function renderCheckboxesPropriedades(container, selecionadas = null) {
+    if (!container) return;
+    if (!propriedadesConta.length) {
+      container.innerHTML = '<p class="au-sub">Nenhuma propriedade cadastrada nesta conta.</p>';
+      return;
+    }
+    const idsSel = selecionadas === null
+      ? propriedadesConta.map((p) => Number(p.id))
+      : selecionadas.map(Number);
+
+    container.innerHTML = propriedadesConta.map((p) => {
+      const checked = idsSel.includes(Number(p.id)) ? "checked" : "";
+      return `<label>
+        <input type="checkbox" class="cf-prop-check" value="${p.id}" ${checked}>
+        <span>${escapeHtml(labelPropriedade(p))}</span>
+      </label>`;
+    }).join("");
+  }
+
+  function idsPropriedadesMarcadas(container) {
+    if (!container) return [];
+    return [...container.querySelectorAll(".cf-prop-check:checked")].map((el) => el.value);
+  }
+
   function linhaFuncionario(u) {
     const ativo = Number(u.ativo) === 1;
     const papeis = { apontador: "Apontador", admin: "Administrador" };
@@ -52,11 +89,21 @@ document.addEventListener("DOMContentLoaded", () => {
       .map(([v, label]) => `<option value="${v}" ${v === u.papel_conta ? "selected" : ""}>${label}</option>`)
       .join("");
     const souEu = Number(u.id) === Number(meuFuncId);
+    const qtdProps = u.propriedades === null
+      ? propriedadesConta.length
+      : Number(u.propriedades_qtd || 0);
+    const totalProps = propriedadesConta.length;
+    const propLabel = totalProps
+      ? `${qtdProps} de ${totalProps}`
+      : "—";
 
-    return `<tr data-user-id="${u.id}">
+    return `<tr data-user-id="${u.id}" data-propriedades="${encodeURIComponent(JSON.stringify(u.propriedades))}">
       <td><span class="au-nome">${escapeHtml(u.nome || "—")}</span>${souEu ? '<small class="au-sub">(você)</small>' : ""}</td>
       <td>${escapeHtml(u.login || "—")}<small class="au-sub">${escapeHtml(u.email || "—")}</small></td>
       <td><select class="au-select" data-papel-select aria-label="Papel na conta">${options}</select></td>
+      <td>
+        <button type="button" class="au-btn" data-editar-props title="Editar propriedades">${propLabel}</button>
+      </td>
       <td>
         <label class="au-switch">
           <input type="checkbox" data-toggle-ativo ${ativo ? "checked" : ""}>
@@ -70,6 +117,12 @@ document.addEventListener("DOMContentLoaded", () => {
     </tr>`;
   }
 
+  async function carregarPropriedadesConta() {
+    const data = await apiGet("listar_propriedades.php");
+    propriedadesConta = data.propriedades || [];
+    renderCheckboxesPropriedades(boxPropsCriar, null);
+  }
+
   async function carregarFuncionarios() {
     const data = await apiGet("listar_usuarios.php");
     meuFuncId = Number(data.func_id || 0);
@@ -81,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaFuncionario).join("")
-      : `<tr class="au-vazio"><td colspan="5">Nenhum acesso criado ainda.</td></tr>`;
+      : `<tr class="au-vazio"><td colspan="6">Nenhum acesso criado ainda.</td></tr>`;
   }
 
   function mensagemCredencialIndisponivel(campo, origem) {
@@ -107,7 +160,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hint.style.color = ok ? "#2e7d32" : "#c62828";
   }
 
-  // --- Verificação de disponibilidade de login/e-mail (em tempo real) ---
   function debounce(fn, ms) {
     let t;
     return (...args) => {
@@ -146,16 +198,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function limparDisponibilidade() {
     formCriar?.querySelectorAll("[data-hint-disponibilidade]").forEach((el) => (el.textContent = ""));
-    formCriar?.querySelectorAll("input").forEach((el) => (el.dataset.disponivel = ""));
+    formCriar?.querySelectorAll("input").forEach((el) => {
+      if (el.name !== "propriedades[]") el.dataset.disponivel = "";
+    });
+    renderCheckboxesPropriedades(boxPropsCriar, null);
+  }
+
+  function abrirModalPropriedades(tr) {
+    modalUserId = Number(tr.dataset.userId);
+    let selecionadas = null;
+    try {
+      const raw = tr.getAttribute("data-propriedades");
+      selecionadas = raw ? JSON.parse(decodeURIComponent(raw)) : null;
+    } catch (_) {
+      selecionadas = null;
+    }
+    const nome = tr.querySelector(".au-nome")?.textContent || "Funcionário";
+    if (modalSub) modalSub.textContent = `Defina quais propriedades ${nome} poderá acessar.`;
+    renderCheckboxesPropriedades(modalLista, selecionadas);
+    modal?.classList.remove("d-none");
+  }
+
+  function fecharModalPropriedades() {
+    modalUserId = 0;
+    modal?.classList.add("d-none");
   }
 
   monitorarDisponibilidade("cf-login");
   monitorarDisponibilidade("cf-email", true);
 
+  btnModalCancelar?.addEventListener("click", fecharModalPropriedades);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) fecharModalPropriedades();
+  });
+
+  btnModalSalvar?.addEventListener("click", async () => {
+    if (!modalUserId) return;
+    const props = idsPropriedadesMarcadas(modalLista);
+    if (!props.length) {
+      alert("Selecione ao menos uma propriedade.");
+      return;
+    }
+    try {
+      const fd = new FormData();
+      fd.append("acao", "propriedades");
+      fd.append("user_id", String(modalUserId));
+      props.forEach((id) => fd.append("propriedades[]", id));
+      const data = await apiPost("salvar_usuario.php", fd);
+      alert(data.msg);
+      fecharModalPropriedades();
+      await carregarFuncionarios();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
   formCriar?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const login = document.getElementById("cf-login")?.value?.trim() || "";
     const email = document.getElementById("cf-email")?.value?.trim() || "";
+    const props = idsPropriedadesMarcadas(boxPropsCriar);
+
+    if (!props.length) {
+      alert("Selecione ao menos uma propriedade para este acesso.");
+      return;
+    }
 
     try {
       const rLogin = await checarDisponibilidadeCampo(login);
@@ -177,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const fd = new FormData(formCriar);
     fd.append("acao", "criar");
+    props.forEach((id) => fd.append("propriedades[]", id));
     try {
       const data = await apiPost("salvar_usuario.php", fd);
       alert(data.msg);
@@ -222,6 +330,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tr) return;
     const userId = tr.dataset.userId;
 
+    if (e.target.closest("[data-editar-props]")) {
+      abrirModalPropriedades(tr);
+      return;
+    }
+
     if (e.target.closest("[data-reset-senha]")) {
       const senha = prompt("Nova senha para este acesso (mínimo 8 caracteres):");
       if (!senha) return;
@@ -234,5 +347,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  carregarFuncionarios().catch((err) => alert(err.message));
+  Promise.all([carregarPropriedadesConta(), carregarFuncionarios()]).catch((err) => alert(err.message));
 });

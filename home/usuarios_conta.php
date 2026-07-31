@@ -77,6 +77,11 @@ $funcAtivos = contaFuncContarAtivos($mysqli, $contaId);
                                 <option value="admin">Administrador da conta</option>
                             </select>
                         </div>
+                        <div class="au-field au-field-wide">
+                            <label>Propriedades com acesso</label>
+                            <p class="au-sub" style="margin:0 0 8px">Selecione quais propriedades este funcionário poderá acessar.</p>
+                            <div id="cf-propriedades" class="cf-propriedades-lista"></div>
+                        </div>
                         <div class="au-form-actions">
                             <button type="submit" class="main-btn fundo-verde">Criar acesso</button>
                         </div>
@@ -100,6 +105,7 @@ $funcAtivos = contaFuncContarAtivos($mysqli, $contaId);
                                     <th>Nome</th>
                                     <th>Login / E-mail</th>
                                     <th>Papel</th>
+                                    <th>Propriedades</th>
                                     <th>Ativo</th>
                                     <th>Ações</th>
                                 </tr>
@@ -111,8 +117,20 @@ $funcAtivos = contaFuncContarAtivos($mysqli, $contaId);
             </div>
         </main>
 
+        <div id="modal-propriedades" class="cf-modal d-none" role="dialog" aria-modal="true" aria-labelledby="modal-prop-titulo">
+            <div class="cf-modal-box au-card">
+                <h3 id="modal-prop-titulo">Propriedades do acesso</h3>
+                <p class="au-sub" id="modal-prop-subtitulo"></p>
+                <div id="modal-prop-lista" class="cf-propriedades-lista"></div>
+                <div class="au-form-actions">
+                    <button type="button" class="main-btn" id="modal-prop-cancelar">Cancelar</button>
+                    <button type="button" class="main-btn fundo-verde" id="modal-prop-salvar">Salvar</button>
+                </div>
+            </div>
+        </div>
+
         <?php include '../include/imports.php' ?>
-        <script src="../js/usuarios_conta.js?v=2"></script>
+        <script src="../js/usuarios_conta.js?v=3"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>

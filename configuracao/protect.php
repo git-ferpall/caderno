@@ -23,6 +23,12 @@ if ($conta_funcionario !== null && caderno_conta_papel() === 'apontador') {
     }
 }
 
+// funcionário: garante que a propriedade ativa é uma das permitidas
+if ($conta_funcionario !== null) {
+    require_once __DIR__ . '/../funcoes/conta/helpers.php';
+    contaFuncionarioGarantirPropriedadeAtiva(caderno_db(), (int)$user->sub, (int)$conta_funcionario['id']);
+}
+
 // $user agora contém as claims do JWT
 // Ex: $user->sub, $user->name, $user->email
 

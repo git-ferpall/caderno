@@ -27,3 +27,11 @@ CREATE TABLE IF NOT EXISTS conta_funcionarios_config (
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Propriedades permitidas por funcionário (vazio = acesso a todas)
+CREATE TABLE IF NOT EXISTS conta_funcionario_propriedades (
+    funcionario_id INT UNSIGNED NOT NULL,
+    propriedade_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (funcionario_id, propriedade_id),
+    KEY idx_cfp_propriedade (propriedade_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
