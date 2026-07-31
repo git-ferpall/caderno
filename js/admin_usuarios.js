@@ -76,6 +76,18 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="au-state">${Number(u.frutibank) === 1 ? "Liberado" : "—"}</span>
         </label>
       </td>
+      <td>
+        <label class="au-switch">
+          <input type="checkbox" data-toggle-func ${Number(u.func_liberado) === 1 ? "checked" : ""}>
+          <span class="au-slider"></span>
+          <span class="au-state">${Number(u.func_liberado) === 1 ? "Liberado" : "—"}</span>
+        </label>
+        <input type="number" data-func-limite min="1" max="99" step="1"
+          value="${Number(u.func_limite || 1)}" ${Number(u.func_liberado) === 1 ? "" : "disabled"}
+          title="Quantidade máxima de acessos ativos"
+          aria-label="Quantidade máxima de funcionários"
+          style="width:56px;margin-left:6px">
+      </td>
       <td class="au-acoes">
         ${local ? `<button type="button" class="au-btn au-btn-senha" data-reset-senha>Nova senha</button>` : ""}
         <button type="button" class="au-btn au-btn-acessar" data-impersonar>Acessar caderno</button>
@@ -90,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaUsuario).join("")
-      : `<tr class="au-vazio"><td colspan="8">Nenhum usuário encontrado.</td></tr>`;
+      : `<tr class="au-vazio"><td colspan="9">Nenhum usuário encontrado.</td></tr>`;
   }
 
   formCriar?.addEventListener("submit", async (e) => {
@@ -154,6 +166,45 @@ document.addEventListener("DOMContentLoaded", () => {
         if (label) label.textContent = chkFrutibank.checked ? "Liberado" : "—";
       } catch (err) {
         chkFrutibank.checked = !chkFrutibank.checked;
+        alert(err.message);
+      }
+      return;
+    }
+
+    // Liberação de funcionários da conta (toggle) + quantidade máxima
+    const inputLimite = tr.querySelector("[data-func-limite]");
+    const chkFunc = e.target.closest("[data-toggle-func]");
+    if (chkFunc) {
+      const label = chkFunc.closest("label")?.querySelector(".au-state");
+      const limite = Math.max(1, Number(inputLimite?.value || 1));
+      try {
+        await apiPost("salvar_usuario.php", {
+          acao: "atualizar",
+          user_id: userId,
+          funcionarios: chkFunc.checked ? "1" : "0",
+          func_limite: String(limite),
+        });
+        if (label) label.textContent = chkFunc.checked ? "Liberado" : "—";
+        if (inputLimite) inputLimite.disabled = !chkFunc.checked;
+      } catch (err) {
+        chkFunc.checked = !chkFunc.checked;
+        alert(err.message);
+      }
+      return;
+    }
+
+    const limiteAlterado = e.target.closest("[data-func-limite]");
+    if (limiteAlterado && !limiteAlterado.disabled) {
+      const limite = Math.max(1, Math.min(99, Number(limiteAlterado.value || 1)));
+      limiteAlterado.value = limite;
+      try {
+        await apiPost("salvar_usuario.php", {
+          acao: "atualizar",
+          user_id: userId,
+          funcionarios: "1",
+          func_limite: String(limite),
+        });
+      } catch (err) {
         alert(err.message);
       }
     }

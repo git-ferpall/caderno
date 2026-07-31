@@ -97,12 +97,57 @@ function caderno_user_perfil(): ?string {
   $id = (int)($u->sub ?? 0);
   if (!$id) return $cache = null;
 
+  // Funcionário de conta nunca herda o perfil de plataforma da conta principal
+  if (!empty($u->func_id)) return $cache = 'usuario';
+
   $db = caderno_db();
   $reg = usuarioBuscarPorId($db, $id);
   if ($reg) {
     return $cache = ((int)$reg['ativo'] === 1 ? $reg['perfil'] : null);
   }
   return $cache = 'usuario';
+}
+
+/**
+ * Registro do funcionário de conta logado (validado no banco), ou null se a
+ * sessão for do próprio dono da conta. Sessão de funcionário inválida
+ * (desativado/removido) derruba para a tela de login.
+ */
+function caderno_conta_funcionario(): ?array {
+  static $cache = false;
+  if ($cache !== false) return $cache;
+
+  $u = current_user();
+  if (!$u || empty($u->func_id)) return $cache = null;
+
+  $db = caderno_db();
+  $func = usuarioValidarFuncionario($db, (int)$u->func_id, (int)($u->sub ?? 0));
+  if (!$func) {
+    require_once __DIR__ . '/usuarios_local.php';
+    setcookie(AUTH_COOKIE, '', usuarioCookieOptions(0));
+    header('Location: /');
+    exit;
+  }
+  return $cache = $func;
+}
+
+/**
+ * Papel do usuário logado dentro da conta:
+ * 'dono' (conta principal) | 'admin' | 'apontador' (funcionários).
+ */
+function caderno_conta_papel(): string {
+  $func = caderno_conta_funcionario();
+  if ($func === null) return 'dono';
+  return $func['papel_conta'] ?: 'apontador';
+}
+
+/** Bloqueia a página para funcionários "apontador" (só registram apontamentos). */
+function require_conta_gestao() {
+  if (caderno_conta_papel() === 'apontador') {
+    http_response_code(403);
+    echo '<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><title>Acesso negado</title></head><body style="font-family:sans-serif;padding:40px;text-align:center"><h1>Acesso negado</h1><p>Seu acesso permite apenas registrar apontamentos.</p><p><a href="/home/">Voltar</a></p></body></html>';
+    exit;
+  }
 }
 
 /**

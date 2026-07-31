@@ -91,6 +91,7 @@ require_admin();
                                     <th>Perfil</th>
                                     <th>Ativo</th>
                                     <th>Frutibank</th>
+                                    <th>Funcionários</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>

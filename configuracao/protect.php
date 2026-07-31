@@ -12,8 +12,20 @@ require_once __DIR__ . '/auth.php';
 // força login → se não estiver autenticado, redireciona para index.php
 $user = require_login();
 
+// sessão de funcionário de conta: revalida no banco (desativado = deslogado)
+$conta_funcionario = caderno_conta_funcionario();
+
+// apontador: bloqueia páginas de gestão (lista central em conta_guard.php)
+if ($conta_funcionario !== null && caderno_conta_papel() === 'apontador') {
+    require_once __DIR__ . '/conta_guard.php';
+    if (conta_script_bloqueado(CONTA_APONTADOR_PAGINAS_BLOQUEADAS)) {
+        require_conta_gestao(); // renderiza o 403 padrão
+    }
+}
+
 // $user agora contém as claims do JWT
 // Ex: $user->sub, $user->name, $user->email
 
 // deixa acessível globalmente
 $GLOBALS['auth_user'] = $user;
+$GLOBALS['conta_funcionario'] = $conta_funcionario;

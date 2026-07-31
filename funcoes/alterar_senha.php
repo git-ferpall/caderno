@@ -22,9 +22,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 $payload = verify_jwt();
-$userId = (int)($payload['sub'] ?? 0);
 
-if (($payload['tipo'] ?? '') !== 'local') {
+// Funcionário de conta troca a PRÓPRIA senha (func_id), nunca a da conta principal
+$funcId = (int)($payload['func_id'] ?? 0);
+$userId = $funcId > 0 ? $funcId : (int)($payload['sub'] ?? 0);
+
+if ($funcId <= 0 && ($payload['tipo'] ?? '') !== 'local') {
     senhaJson(['ok' => false, 'msg' => 'A senha de usuários Frutag é gerenciada pela Frutag.'], 400);
 }
 if (!empty($payload['imp_by'])) {

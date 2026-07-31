@@ -108,13 +108,36 @@ if ($usuarioLocal) {
         exit;
     }
 
-    $jwt = usuarioEmitirJwt([
-        'sub'    => (int)$usuarioLocal['id'],
-        'tipo'   => 'local',
-        'name'   => $usuarioLocal['nome'],
-        'email'  => $usuarioLocal['email'],
-        'perfil' => $usuarioLocal['perfil'],
-    ]);
+    if (!empty($usuarioLocal['conta_pai'])) {
+        // Funcionário de conta: o caderno acessado é o da conta principal.
+        // O JWT sai com sub = conta principal (dona dos dados) e claims extras
+        // identificando o funcionário e seu papel dentro da conta.
+        $conta = usuarioBuscarPorId($mysqli, (int)$usuarioLocal['conta_pai']);
+        if (!$conta || (int)$conta['ativo'] !== 1) {
+            setLoginError('A conta principal deste acesso está desativada. Contate o responsável.');
+            header('Location: /');
+            exit;
+        }
+        $tipoConta = $conta['origem'] === 'local' ? 'local' : ($conta['tipo_frutag'] ?: 'cliente');
+        $jwt = usuarioEmitirJwt([
+            'sub'        => (int)$conta['id'],
+            'tipo'       => $tipoConta,
+            'name'       => $conta['nome'],
+            'email'      => $conta['email'],
+            'perfil'     => 'usuario', // funcionário nunca herda perfil de plataforma da conta
+            'func_id'    => (int)$usuarioLocal['id'],
+            'func_nome'  => $usuarioLocal['nome'],
+            'func_papel' => $usuarioLocal['papel_conta'] ?: 'apontador',
+        ]);
+    } else {
+        $jwt = usuarioEmitirJwt([
+            'sub'    => (int)$usuarioLocal['id'],
+            'tipo'   => 'local',
+            'name'   => $usuarioLocal['nome'],
+            'email'  => $usuarioLocal['email'],
+            'perfil' => $usuarioLocal['perfil'],
+        ]);
+    }
     setcookie(AUTH_COOKIE, $jwt, usuarioCookieOptions(3600));
 
     $destino = trim((string) $next);

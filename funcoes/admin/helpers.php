@@ -39,6 +39,9 @@ function adminAuth(mysqli $mysqli): array
         adminJson(['ok' => false, 'msg' => 'Usuário desativado.'], 403);
     }
     $perfil = $reg['perfil'] ?? 'usuario'; // Frutag não provisionado = usuário comum
+    if (!empty($payload['func_id'])) {
+        $perfil = 'usuario'; // funcionário de conta nunca herda perfil de plataforma
+    }
     return [$id, $perfil, $payload];
 }
 

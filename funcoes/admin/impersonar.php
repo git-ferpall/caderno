@@ -27,6 +27,9 @@ if (!$target) {
 if ((int)$target['ativo'] !== 1) {
     adminJson(['ok' => false, 'msg' => 'Usuário desativado.'], 400);
 }
+if (!empty($target['conta_pai'])) {
+    adminJson(['ok' => false, 'msg' => 'Este é um funcionário de conta. Acesse o caderno da conta principal (ID ' . (int)$target['conta_pai'] . ').'], 400);
+}
 if ($perfil !== 'admin' && (int)$target['criado_por'] !== $uid) {
     adminJson(['ok' => false, 'msg' => 'Você só pode acessar clientes cadastrados por você.'], 403);
 }

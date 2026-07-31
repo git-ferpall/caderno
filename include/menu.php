@@ -12,6 +12,23 @@ $extra = [];
 // Perfil efetivo (admin / representante / usuario) para itens condicionais do menu
 $menuPerfil = $id ? (usuarioPerfil($mysqli, $id) ?? 'usuario') : 'usuario';
 
+// Funcionário de conta? (verify_jwt já revalidou papel/ativo no banco)
+$menuFuncId     = (int)($payload['func_id'] ?? 0);
+$menuFuncNome   = $payload['func_nome'] ?? null;
+$menuPapelConta = $menuFuncId > 0 ? ($payload['func_papel'] ?? 'apontador') : 'dono';
+$menuGestao     = $menuPapelConta !== 'apontador'; // dono e admin da conta gerenciam tudo
+if ($menuFuncId > 0) {
+    $menuPerfil = 'usuario'; // funcionário nunca herda o perfil de plataforma da conta
+}
+
+// "Usuários da Conta" só aparece se a função foi liberada pelo administrativo
+// (ou se a conta já tem funcionários criados, para poder gerenciá-los)
+$menuUsuariosConta = false;
+if ($menuGestao && $id) {
+    $menuUsuariosConta = contaFuncConfig($mysqli, $id) !== null
+        || contaFuncContarTotal($mysqli, $id) > 0;
+}
+
 // Impersonação ativa? (admin/representante vendo o caderno de outro usuário)
 $impersonadoPor = $payload['imp_by'] ?? null;
 
@@ -102,6 +119,9 @@ if (!empty($user_id)) {
                 <h5 class="user-type"><?= htmlspecialchars($info['empresa']) ?></h5>
                 <h5 class="user-name"><?= htmlspecialchars($info['razao_social']) ?></h5>
                 <h5 class="user-id"><?= htmlspecialchars($info['cpf_cnpj']) ?></h5>
+                <?php if ($menuFuncNome): ?>
+                <h5 class="user-id">Operador: <?= htmlspecialchars($menuFuncNome) ?></h5>
+                <?php endif; ?>
             </div>
 
             <div class="propriedade">
@@ -131,14 +151,17 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>
+                <?php if ($menuGestao): ?>
                 <a href="/home/silo"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>
                     <span class="link-title cor-branco">Silo de Dados</span>
                 </li></a>
+                <?php endif; ?>
                 <a href="/home/perfil"><li class="menu-link">
                     <div class="btn-icon icon-user"></div>
                     <span class="link-title">Dados Pessoais</span>
                 </li></a>
+                <?php if ($menuGestao): ?>
                 <a href="/home/propriedade"><li class="menu-link">
                     <div class="btn-icon icon-pin"></div>
                     <span class="link-title">Cadastro de Propriedade</span>
@@ -155,14 +178,17 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-truck"></div>
                     <span class="link-title">Relação de Máquinas</span>
                 </li></a>
+                <?php endif; ?>
                 <a href="/home/hidroponia"><li class="menu-link">
                     <div class="btn-icon icon-water"></div>
                     <span class="link-title">Hidroponia</span>
                 </li></a>
+                <?php if ($menuGestao): ?>
                 <a href="/home/relatorios"><li class="menu-link">
                     <div class="btn-icon icon-pen"></div>
                     <span class="link-title">Relatórios</span>
                 </li></a>
+                <?php endif; ?>
                 <a href="/home/ia_fitossanitaria"><li class="menu-link fundo-verde">
                     <div class="btn-icon icon-plant cor-branco"></div>
                     <span class="link-title cor-branco">IA Fitossanitária</span>
@@ -177,10 +203,16 @@ if (!empty($user_id)) {
                         <span class="link-title cor-branco">Baixar para offline</span>
                     </li>
                 </a>
-                <?php if ($menuFrutibank): ?>
+                <?php if ($menuFrutibank && $menuGestao): ?>
                 <a href="/home/frutibank"><li class="menu-link">
                     <div class="btn-icon icon-file"></div>
                     <span class="link-title">Frutibank</span>
+                </li></a>
+                <?php endif; ?>
+                <?php if ($menuUsuariosConta): ?>
+                <a href="/home/usuarios_conta"><li class="menu-link">
+                    <div class="btn-icon icon-people"></div>
+                    <span class="link-title">Usuários da Conta</span>
                 </li></a>
                 <?php endif; ?>
                 <?php if (in_array($menuPerfil, ['representante', 'admin'], true)): ?>

@@ -17,6 +17,11 @@ use Firebase\JWT\JWT;
 
 const USUARIO_PERFIS = ['usuario', 'representante', 'admin'];
 
+// Papéis de funcionários dentro de uma conta (usuarios com conta_pai preenchido):
+//   'admin'     → gerencia todo o caderno da conta, inclusive outros funcionários
+//   'apontador' → só registra apontamentos (sem gestão de cadastros/relatórios)
+const CONTA_PAPEIS = ['admin', 'apontador'];
+
 function usuariosEnsureSchema(mysqli $mysqli): void
 {
     static $done = false;
@@ -34,14 +39,28 @@ function usuariosEnsureSchema(mysqli $mysqli): void
             nome VARCHAR(255) NULL,
             perfil ENUM('usuario','representante','admin') NOT NULL DEFAULT 'usuario',
             criado_por INT UNSIGNED NULL,
+            conta_pai INT UNSIGNED NULL,
+            papel_conta ENUM('admin','apontador') NULL,
             ativo TINYINT(1) NOT NULL DEFAULT 1,
             criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
             UNIQUE KEY uq_usuarios_caderno_login (login),
             KEY idx_usuarios_caderno_criado_por (criado_por),
+            KEY idx_usuarios_caderno_conta_pai (conta_pai),
             KEY idx_usuarios_caderno_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1000000
     ");
+
+    // Migração in-place para bancos criados antes dos funcionários de conta
+    $col = $mysqli->query("SHOW COLUMNS FROM usuarios_caderno LIKE 'conta_pai'");
+    if ($col && $col->num_rows === 0) {
+        $mysqli->query("
+            ALTER TABLE usuarios_caderno
+                ADD COLUMN conta_pai INT UNSIGNED NULL AFTER criado_por,
+                ADD COLUMN papel_conta ENUM('admin','apontador') NULL AFTER conta_pai,
+                ADD KEY idx_usuarios_caderno_conta_pai (conta_pai)
+        ");
+    }
 
     // Bootstrap: se ainda não existe nenhum admin, promove os IDs de CADERNO_BOOTSTRAP_ADMINS
     $res = $mysqli->query("SELECT COUNT(*) AS c FROM usuarios_caderno WHERE perfil = 'admin'");
@@ -99,7 +118,8 @@ function usuarioPerfil(mysqli $mysqli, int $id): ?string
 }
 
 /**
- * Cria usuário local. $dados: nome, login, senha, email (opcional), perfil (opcional).
+ * Cria usuário local. $dados: nome, login, senha, email (opcional), perfil (opcional),
+ * conta_pai + papel_conta (opcionais — funcionário vinculado a uma conta principal).
  * Lança InvalidArgumentException com mensagem amigável em caso de validação.
  */
 function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null): int
@@ -111,6 +131,15 @@ function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null
     $email  = strtolower(trim((string)($dados['email'] ?? '')));
     $senha  = (string)($dados['senha'] ?? '');
     $perfil = $dados['perfil'] ?? 'usuario';
+
+    $contaPai   = (int)($dados['conta_pai'] ?? 0);
+    $papelConta = (string)($dados['papel_conta'] ?? '');
+    if ($contaPai > 0) {
+        $perfil = 'usuario'; // funcionário nunca tem perfil de plataforma
+        if (!in_array($papelConta, CONTA_PAPEIS, true)) {
+            throw new InvalidArgumentException('Papel do funcionário inválido.');
+        }
+    }
 
     if ($nome === '') {
         throw new InvalidArgumentException('Informe o nome do usuário.');
@@ -148,15 +177,110 @@ function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null
     $hash = password_hash($senha, PASSWORD_DEFAULT);
     $emailDb = $email !== '' ? $email : null;
 
-    $stmt = $mysqli->prepare("
-        INSERT INTO usuarios_caderno (origem, login, email, senha_hash, nome, perfil, criado_por)
-        VALUES ('local', ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->bind_param('sssssi', $login, $emailDb, $hash, $nome, $perfil, $criado_por);
+    if ($contaPai > 0) {
+        $stmt = $mysqli->prepare("
+            INSERT INTO usuarios_caderno (origem, login, email, senha_hash, nome, perfil, criado_por, conta_pai, papel_conta)
+            VALUES ('local', ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param('sssssiis', $login, $emailDb, $hash, $nome, $perfil, $criado_por, $contaPai, $papelConta);
+    } else {
+        $stmt = $mysqli->prepare("
+            INSERT INTO usuarios_caderno (origem, login, email, senha_hash, nome, perfil, criado_por)
+            VALUES ('local', ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param('sssssi', $login, $emailDb, $hash, $nome, $perfil, $criado_por);
+    }
     $stmt->execute();
     $novoId = (int)$stmt->insert_id;
     $stmt->close();
     return $novoId;
+}
+
+/**
+ * Valida a sessão de um funcionário de conta: ele precisa existir, estar ativo,
+ * pertencer à conta informada e a conta principal precisa estar ativa.
+ * Retorna o registro do funcionário (com papel_conta atual) ou null se inválido.
+ */
+function usuarioValidarFuncionario(mysqli $mysqli, int $funcId, int $contaId): ?array
+{
+    if ($funcId <= 0 || $contaId <= 0) return null;
+    usuariosEnsureSchema($mysqli);
+
+    $stmt = $mysqli->prepare("
+        SELECT f.*, p.ativo AS conta_ativa
+        FROM usuarios_caderno f
+        LEFT JOIN usuarios_caderno p ON p.id = f.conta_pai
+        WHERE f.id = ? AND f.conta_pai = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param('ii', $funcId, $contaId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$row) return null;
+    if ((int)$row['ativo'] !== 1) return null;
+    if ($row['conta_ativa'] !== null && (int)$row['conta_ativa'] !== 1) return null;
+    return $row;
+}
+
+/**
+ * Liberação de funcionários por conta (aprovada pelo administrativo).
+ * A conta só pode criar acessos de funcionários se tiver um registro em
+ * conta_funcionarios_config, que também define o limite de acessos ativos.
+ */
+function contaFuncEnsureSchema(mysqli $mysqli): void
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    $mysqli->query("
+        CREATE TABLE IF NOT EXISTS conta_funcionarios_config (
+            user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+            limite INT UNSIGNED NOT NULL DEFAULT 1,
+            habilitado_por INT UNSIGNED NULL,
+            criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+}
+
+/** Config de liberação da conta (['limite' => N, ...]) ou null se não liberada. */
+function contaFuncConfig(mysqli $mysqli, int $contaId): ?array
+{
+    if ($contaId <= 0) return null;
+    contaFuncEnsureSchema($mysqli);
+    $stmt = $mysqli->prepare("SELECT * FROM conta_funcionarios_config WHERE user_id = ? LIMIT 1");
+    $stmt->bind_param('i', $contaId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ?: null;
+}
+
+/** Quantidade de funcionários ATIVOS da conta (conta para o limite). */
+function contaFuncContarAtivos(mysqli $mysqli, int $contaId): int
+{
+    usuariosEnsureSchema($mysqli);
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS c FROM usuarios_caderno WHERE conta_pai = ? AND ativo = 1");
+    $stmt->bind_param('i', $contaId);
+    $stmt->execute();
+    $c = (int)($stmt->get_result()->fetch_assoc()['c'] ?? 0);
+    $stmt->close();
+    return $c;
+}
+
+/** Quantidade total de funcionários da conta (ativos ou não). */
+function contaFuncContarTotal(mysqli $mysqli, int $contaId): int
+{
+    usuariosEnsureSchema($mysqli);
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS c FROM usuarios_caderno WHERE conta_pai = ?");
+    $stmt->bind_param('i', $contaId);
+    $stmt->execute();
+    $c = (int)($stmt->get_result()->fetch_assoc()['c'] ?? 0);
+    $stmt->close();
+    return $c;
 }
 
 /**

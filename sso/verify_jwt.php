@@ -68,6 +68,72 @@ function verify_jwt() {
         exit;
     }
 
+    // 👷 Sessão de funcionário de conta: revalida no banco a cada requisição
+    // (funcionário desativado ou removido perde o acesso imediatamente).
+    if (!empty($payload['func_id'])) {
+        $payload = caderno_validar_funcionario_jwt($payload);
+    }
+
+    return $payload;
+}
+
+/**
+ * Conexão mysqli para a validação de funcionário, reaproveitando a conexão
+ * global quando já existir (mesmo padrão de caderno_db em configuracao/auth.php).
+ */
+function caderno_func_db(): ?mysqli
+{
+    if (isset($GLOBALS['mysqli']) && $GLOBALS['mysqli'] instanceof mysqli) {
+        return $GLOBALS['mysqli'];
+    }
+    try {
+        require __DIR__ . '/../configuracao/configuracao_conexao.php'; // define $mysqli
+        $GLOBALS['mysqli'] = $mysqli;
+        $GLOBALS['cnx'] = $GLOBALS['conexao'] = $GLOBALS['db'] = $mysqli;
+        return $mysqli;
+    } catch (Throwable $e) {
+        error_log('[caderno] func_db falhou: ' . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Garante que o funcionário do token continua ativo e vinculado à conta.
+ * Atualiza func_papel com o valor atual do banco. Sai com 401 se inválido.
+ */
+function caderno_validar_funcionario_jwt(array $payload): array
+{
+    $mysqli = caderno_func_db();
+    if (!$mysqli) {
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'err' => 'func_db']);
+        exit;
+    }
+    require_once __DIR__ . '/../configuracao/usuarios_local.php';
+
+    $func = usuarioValidarFuncionario($mysqli, (int)$payload['func_id'], (int)($payload['sub'] ?? 0));
+    if (!$func) {
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'err' => 'func_revoked']);
+        exit;
+    }
+    $payload['func_papel'] = $func['papel_conta'] ?: 'apontador';
+    $payload['func_nome']  = $func['nome'];
+
+    // Apontador: bloqueia endpoints de gestão (lista central em conta_guard.php)
+    if ($payload['func_papel'] === 'apontador') {
+        require_once __DIR__ . '/../configuracao/conta_guard.php';
+        if (conta_script_bloqueado(CONTA_APONTADOR_ENDPOINTS_BLOQUEADOS)) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'ok'  => false,
+                'err' => 'apontador_bloqueado',
+                'msg' => 'Seu acesso permite apenas registrar apontamentos.',
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
     return $payload;
 }
 

@@ -6,6 +6,7 @@ require_once __DIR__ . '/../frutibank/helpers.php';
 
 [$uid, $perfil] = adminRequirePerfil($mysqli, ['admin', 'representante']);
 frutibankEnsureSchema($mysqli);
+contaFuncEnsureSchema($mysqli);
 
 $q = trim($_GET['q'] ?? '');
 $like = $q !== '' ? '%' . $mysqli->real_escape_string($q) . '%' : '';
@@ -16,9 +17,10 @@ $somenteMeus = ($_GET['meus'] ?? '') === '1';
 if ($perfil === 'admin' && !$somenteMeus) {
     // Todos os usuários registrados + usuários Frutag legados (com propriedade,
     // mas que ainda não logaram desde a criação de usuarios_caderno)
-    $filtroU = $q !== ''
-        ? " WHERE (u.nome LIKE '$like' OR u.login LIKE '$like' OR u.email LIKE '$like' OR CAST(u.id AS CHAR) LIKE '$like')"
-        : '';
+    // Funcionários de conta (conta_pai) são gerenciados pela própria conta, não pelo painel
+    $filtroU = " WHERE u.conta_pai IS NULL" . ($q !== ''
+        ? " AND (u.nome LIKE '$like' OR u.login LIKE '$like' OR u.email LIKE '$like' OR CAST(u.id AS CHAR) LIKE '$like')"
+        : '');
     $filtroP = $q !== ''
         ? " AND (p.nome_razao LIKE '$like' OR p.email LIKE '$like' OR CAST(p.user_id AS CHAR) LIKE '$like')"
         : '';
@@ -28,7 +30,9 @@ if ($perfil === 'admin' && !$somenteMeus) {
             SELECT u.id, u.origem, u.login, u.email, u.nome, u.perfil,
                    u.ativo, u.criado_por, c.nome AS criado_por_nome,
                    u.criado_em, 1 AS provisionado,
-                   EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = u.id) AS frutibank
+                   EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = u.id) AS frutibank,
+                   EXISTS(SELECT 1 FROM conta_funcionarios_config cf WHERE cf.user_id = u.id) AS func_liberado,
+                   (SELECT cf.limite FROM conta_funcionarios_config cf WHERE cf.user_id = u.id) AS func_limite
             FROM usuarios_caderno u
             LEFT JOIN usuarios_caderno c ON c.id = u.criado_por
             $filtroU
@@ -39,7 +43,9 @@ if ($perfil === 'admin' && !$somenteMeus) {
                    MAX(p.email) AS email, MAX(p.nome_razao) AS nome, 'usuario' AS perfil,
                    1 AS ativo, NULL AS criado_por, NULL AS criado_por_nome,
                    NULL AS criado_em, 0 AS provisionado,
-                   EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = p.user_id) AS frutibank
+                   EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = p.user_id) AS frutibank,
+                   EXISTS(SELECT 1 FROM conta_funcionarios_config cf WHERE cf.user_id = p.user_id) AS func_liberado,
+                   (SELECT cf.limite FROM conta_funcionarios_config cf WHERE cf.user_id = p.user_id) AS func_limite
             FROM propriedades p
             WHERE p.user_id NOT IN (SELECT id FROM usuarios_caderno)
             $filtroP
@@ -57,9 +63,11 @@ if ($perfil === 'admin' && !$somenteMeus) {
         SELECT u.id, u.origem, u.login, u.email, u.nome, u.perfil,
                u.ativo, u.criado_por, NULL AS criado_por_nome,
                u.criado_em, 1 AS provisionado,
-               EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = u.id) AS frutibank
+               EXISTS(SELECT 1 FROM frutibank_usuarios f WHERE f.user_id = u.id) AS frutibank,
+               EXISTS(SELECT 1 FROM conta_funcionarios_config cf WHERE cf.user_id = u.id) AS func_liberado,
+               (SELECT cf.limite FROM conta_funcionarios_config cf WHERE cf.user_id = u.id) AS func_limite
         FROM usuarios_caderno u
-        WHERE u.criado_por = $uid
+        WHERE u.criado_por = $uid AND u.conta_pai IS NULL
         $filtro
         ORDER BY u.nome ASC
         LIMIT 300

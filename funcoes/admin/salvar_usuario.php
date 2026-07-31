@@ -78,6 +78,30 @@ if ($acao === 'atualizar') {
         $frutibankAlterado = true;
     }
 
+    // Liberação de funcionários da conta (tabela própria, só admin)
+    $funcAlterado = false;
+    if (isset($_POST['funcionarios'])) {
+        if ($perfil !== 'admin') {
+            adminJson(['ok' => false, 'msg' => 'Apenas administradores liberam usuários de conta.'], 403);
+        }
+        contaFuncEnsureSchema($mysqli);
+        if ((int)$_POST['funcionarios'] === 1) {
+            $limite = max(1, min(99, (int)($_POST['func_limite'] ?? 1)));
+            $stmt = $mysqli->prepare('
+                INSERT INTO conta_funcionarios_config (user_id, limite, habilitado_por)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE limite = VALUES(limite)
+            ');
+            $stmt->bind_param('iii', $targetId, $limite, $uid);
+        } else {
+            $stmt = $mysqli->prepare('DELETE FROM conta_funcionarios_config WHERE user_id = ?');
+            $stmt->bind_param('i', $targetId);
+        }
+        $stmt->execute();
+        $stmt->close();
+        $funcAlterado = true;
+    }
+
     $sets = [];
     $tipos = '';
     $vals = [];
@@ -121,7 +145,7 @@ if ($acao === 'atualizar') {
     }
 
     if (!$sets) {
-        if ($frutibankAlterado) {
+        if ($frutibankAlterado || $funcAlterado) {
             adminJson(['ok' => true, 'msg' => 'Usuário atualizado.']);
         }
         adminJson(['ok' => false, 'msg' => 'Nada para atualizar.'], 400);

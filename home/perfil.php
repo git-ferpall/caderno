@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
+
+// Apontador não edita os dados da conta; só troca a própria senha
+$papelConta = caderno_conta_papel();
+$ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -39,6 +43,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
             </div>
 
             <div class="sistema-main">
+                <?php if ($papelConta !== 'apontador'): ?>
                 <form action="perfil.php" class="main-form container" id="perf-form">
                     <div class="form-campo">
                         <label for="pf-nome">Nome Completo (não abreviar)</label>
@@ -123,8 +128,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         </button>
                     </div>
                 </form>
+                <?php endif; ?>
 
-                <?php if (($GLOBALS['auth_user']->tipo ?? '') === 'local'): ?>
+                <?php if ($ehFuncionario || ($GLOBALS['auth_user']->tipo ?? '') === 'local'): ?>
                 <form class="main-form container perfil-senha-card" id="senha-form">
                     <h3>Alterar senha</h3>
 
@@ -155,7 +161,9 @@ require_once __DIR__ . '/../configuracao/protect.php';
         </main>
 
         <?php include '../include/imports.php' ?>
+        <?php if ($papelConta !== 'apontador'): ?>
         <script src="../js/contato_cliente.js"></script>
+        <?php endif; ?>
         <script src="../js/alterar_senha.js"></script>
 
     </div>
