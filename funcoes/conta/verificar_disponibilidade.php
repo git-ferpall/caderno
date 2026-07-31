@@ -15,7 +15,12 @@ if ($valor === '') {
     contaJson(['ok' => false, 'msg' => 'Informe um valor para verificar.'], 400);
 }
 
+// disponível somente se estiver livre no Caderno E na integração Frutag
+$livreLocal  = usuarioCredencialDisponivel($mysqli, $valor);
+$livreFrutag = $livreLocal ? usuarioCredencialDisponivelFrutag($valor) : true;
+
 contaJson([
     'ok'         => true,
-    'disponivel' => usuarioCredencialDisponivel($mysqli, $valor),
+    'disponivel' => $livreLocal && $livreFrutag,
+    'origem'     => !$livreLocal ? 'caderno' : (!$livreFrutag ? 'frutag' : null),
 ]);

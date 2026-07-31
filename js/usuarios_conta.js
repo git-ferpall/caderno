@@ -112,7 +112,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await apiGet("verificar_disponibilidade.php", { valor });
         const ok = !!data.disponivel;
         input.dataset.disponivel = ok ? "1" : "0";
-        hint.textContent = ok ? "✓ Disponível" : "✗ Já está em uso";
+        hint.textContent = ok
+          ? "✓ Disponível"
+          : data.origem === "frutag"
+            ? "✗ Já está em uso na Frutag"
+            : "✗ Já está em uso";
         hint.style.color = ok ? "#2e7d32" : "#c62828";
       } catch (err) {
         // silencioso: a validação definitiva acontece no envio

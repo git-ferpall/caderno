@@ -141,6 +141,79 @@ function usuarioCredencialDisponivel(mysqli $mysqli, string $valor): bool
 }
 
 /**
+ * Conexão PDO com o banco da Frutag para as verificações de credencial.
+ * Diferente de conexao_frutag.php, NÃO derruba a requisição em caso de falha:
+ * retorna null e deixa a verificação seguir em modo best-effort.
+ */
+function usuarioFrutagPdo(): ?PDO
+{
+    static $pdo = false;
+    if ($pdo !== false) return $pdo;
+
+    $host = caderno_secret('FRUTAG_DB_HOST', '');
+    $user = caderno_secret('FRUTAG_DB_USER', '');
+    $pass = caderno_secret('FRUTAG_DB_PASS', '');
+    $name = caderno_secret('FRUTAG_DB_NAME', '');
+    if ($host === '' || $name === '') return $pdo = null;
+
+    try {
+        return $pdo = new PDO(
+            "mysql:host={$host};port=3306;dbname={$name};charset=utf8mb4",
+            $user,
+            $pass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]
+        );
+    } catch (Throwable $e) {
+        error_log('[caderno] conexão Frutag (verificação de credencial) falhou: ' . $e->getMessage());
+        return $pdo = null;
+    }
+}
+
+/**
+ * Verifica se o login/e-mail também está livre na integração Frutag
+ * (tabelas cliente e usuario do banco Frutag). As colunas de credencial são
+ * descobertas em tempo de execução, então funciona mesmo que o esquema mude.
+ * Best-effort: se o banco Frutag estiver indisponível, considera disponível
+ * (a colisão real ainda seria barrada no fluxo de login da Frutag).
+ */
+function usuarioCredencialDisponivelFrutag(string $valor): bool
+{
+    $valor = strtolower(trim($valor));
+    if ($valor === '') return false;
+
+    $pdo = usuarioFrutagPdo();
+    if (!$pdo) return true;
+
+    // Colunas candidatas que podem servir de credencial de acesso na Frutag
+    $tabelas = [
+        'cliente' => ['cli_login', 'cli_email', 'cli_cnpj_cpf'],
+        'usuario' => ['usu_login', 'usu_email', 'usu_usuario', 'usu_cpf'],
+    ];
+
+    try {
+        foreach ($tabelas as $tabela => $candidatas) {
+            $ph = implode(',', array_fill(0, count($candidatas), '?'));
+            $stmt = $pdo->prepare("
+                SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME IN ($ph)
+            ");
+            $stmt->execute(array_merge([$tabela], $candidatas));
+            $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            if (!$cols) continue;
+
+            $where = implode(' OR ', array_map(fn($c) => "LOWER(`$c`) = ?", $cols));
+            $q = $pdo->prepare("SELECT 1 FROM `$tabela` WHERE $where LIMIT 1");
+            $q->execute(array_fill(0, count($cols), $valor));
+            if ($q->fetchColumn()) return false; // em uso na Frutag
+        }
+    } catch (Throwable $e) {
+        error_log('[caderno] verificação de credencial na Frutag falhou: ' . $e->getMessage());
+        return true;
+    }
+    return true;
+}
+
+/**
  * Cria usuário local. $dados: nome, login, senha, email (opcional), perfil (opcional),
  * conta_pai + papel_conta (opcionais — funcionário vinculado a uma conta principal).
  * Lança InvalidArgumentException com mensagem amigável em caso de validação.
@@ -185,6 +258,13 @@ function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null
     if (!usuarioCredencialDisponivel($mysqli, $login)
         || ($email !== '' && !usuarioCredencialDisponivel($mysqli, $email))) {
         throw new InvalidArgumentException('Já existe um usuário com este login ou e-mail.');
+    }
+
+    // ...nem colidir com credenciais da integração Frutag (o login local tem
+    // prioridade no acesso e "esconderia" o usuário Frutag)
+    if (!usuarioCredencialDisponivelFrutag($login)
+        || ($email !== '' && !usuarioCredencialDisponivelFrutag($email))) {
+        throw new InvalidArgumentException('Este login ou e-mail já está em uso na Frutag. Escolha outro.');
     }
 
     $hash = password_hash($senha, PASSWORD_DEFAULT);
