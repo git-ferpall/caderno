@@ -77,6 +77,19 @@ function editEstufa(btn) {
     return;
   }
 
+  const addBtn = document.getElementById("estufa-add");
+  const inputId = document.getElementById("e-id");
+
+  // Se já está editando esta mesma estufa, o segundo clique fecha o formulário
+  const jaEditandoEsta =
+    addBtn?.classList.contains("active") &&
+    String(inputId?.value || "") === String(dados.id);
+
+  if (jaEditandoEsta) {
+    addBtn.click(); // fecha a caixa e a limpeza é feita pelo listener do botão
+    return;
+  }
+
   // Fecha estufas abertas para exibir o formulário
   document.querySelectorAll(".item-estufa-box").forEach((div) => div.classList.add("d-none"));
   document.querySelectorAll("[id^='edit-estufa-']").forEach((b) => {
@@ -96,7 +109,6 @@ function editEstufa(btn) {
   if (saveTxt) saveTxt.textContent = "Atualizar";
 
   // Abre a caixa do formulário (animação do main.js) sem disparar a limpeza
-  const addBtn = document.getElementById("estufa-add");
   if (addBtn && !addBtn.classList.contains("active")) {
     ignorarLimpezaEstufa = true;
     addBtn.click();
