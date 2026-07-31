@@ -197,7 +197,7 @@ $vagasRestantes = max(0, $funcLimite - $funcAtivos);
         </div>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/usuarios_conta.js?v=4"></script>
+        <script src="../js/usuarios_conta.js?v=5"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>

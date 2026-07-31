@@ -19,6 +19,37 @@ document.addEventListener("DOMContentLoaded", () => {
   let propriedadesConta = [];
   let modalUserId = 0;
 
+  /** Popup padrão do Caderno (popup-success / popup-failed em include/popups.php). */
+  function showPopupSucesso(mensagem) {
+    const overlay = document.getElementById("popup-overlay");
+    const popupSuccess = document.getElementById("popup-success");
+    if (!overlay || !popupSuccess) {
+      alert(mensagem);
+      return;
+    }
+    document.querySelectorAll(".popup-box").forEach((p) => p.classList.add("d-none"));
+    overlay.classList.remove("d-none");
+    popupSuccess.classList.remove("d-none");
+    const title = popupSuccess.querySelector(".popup-title");
+    if (title) title.textContent = mensagem;
+  }
+
+  function showPopupErro(mensagem, titulo = "Não foi possível concluir") {
+    const overlay = document.getElementById("popup-overlay");
+    const popupFailed = document.getElementById("popup-failed");
+    if (!overlay || !popupFailed) {
+      alert(mensagem);
+      return;
+    }
+    document.querySelectorAll(".popup-box").forEach((p) => p.classList.add("d-none"));
+    overlay.classList.remove("d-none");
+    popupFailed.classList.remove("d-none");
+    const title = popupFailed.querySelector(".popup-title");
+    const text = popupFailed.querySelector(".popup-text");
+    if (title) title.textContent = titulo;
+    if (text) text.textContent = mensagem;
+  }
+
   const ICON_PIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
   const ICON_KEY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`;
 
@@ -281,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!modalUserId) return;
     const props = idsPropriedadesMarcadas(modalLista);
     if (!props.length) {
-      alert("Selecione ao menos uma propriedade.");
+      showPopupErro("Selecione ao menos uma propriedade.");
       return;
     }
     try {
@@ -290,11 +321,11 @@ document.addEventListener("DOMContentLoaded", () => {
       fd.append("user_id", String(modalUserId));
       props.forEach((id) => fd.append("propriedades[]", id));
       const data = await apiPost("salvar_usuario.php", fd);
-      alert(data.msg);
+      showPopupSucesso(data.msg);
       fecharModalPropriedades();
       await carregarFuncionarios();
     } catch (err) {
-      alert(err.message);
+      showPopupErro(err.message);
     }
   });
 
@@ -305,25 +336,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const props = idsPropriedadesMarcadas(boxPropsCriar);
 
     if (!props.length) {
-      alert("Selecione ao menos uma propriedade para este acesso.");
+      showPopupErro("Selecione ao menos uma propriedade para este acesso.");
       return;
     }
 
     try {
       const rLogin = await checarDisponibilidadeCampo(login);
       if (!rLogin.disponivel) {
-        alert(mensagemCredencialIndisponivel("Login", rLogin.origem));
+        showPopupErro(mensagemCredencialIndisponivel("Login", rLogin.origem));
         return;
       }
       if (email) {
         const rEmail = await checarDisponibilidadeCampo(email, true);
         if (!rEmail.disponivel) {
-          alert(mensagemCredencialIndisponivel("E-mail", rEmail.origem));
+          showPopupErro(mensagemCredencialIndisponivel("E-mail", rEmail.origem));
           return;
         }
       }
     } catch (err) {
-      alert(err.message || "Não foi possível verificar login/e-mail.");
+      showPopupErro(err.message || "Não foi possível verificar login/e-mail.");
       return;
     }
 
@@ -332,12 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
     props.forEach((id) => fd.append("propriedades[]", id));
     try {
       const data = await apiPost("salvar_usuario.php", fd);
-      alert(data.msg);
+      showPopupSucesso(data.msg);
       formCriar.reset();
       limparDisponibilidade();
       await carregarFuncionarios();
     } catch (err) {
-      alert(err.message);
+      showPopupErro(err.message);
     }
   });
 
@@ -355,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         await carregarFuncionarios();
       } catch (err) {
-        alert(err.message);
+        showPopupErro(err.message);
         await carregarFuncionarios();
       }
       return;
@@ -374,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.classList.toggle("uc-row--off", !chkAtivo.checked);
       } catch (err) {
         chkAtivo.checked = !chkAtivo.checked;
-        alert(err.message);
+        showPopupErro(err.message);
       }
     }
   });
@@ -393,12 +424,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!senha) return;
       try {
         const data = await apiPost("resetar_senha.php", { user_id: tr.dataset.userId, senha });
-        alert(data.msg);
+        showPopupSucesso(data.msg);
       } catch (err) {
-        alert(err.message);
+        showPopupErro(err.message);
       }
     }
   });
 
-  Promise.all([carregarPropriedadesConta(), carregarFuncionarios()]).catch((err) => alert(err.message));
+  Promise.all([carregarPropriedadesConta(), carregarFuncionarios()]).catch((err) => showPopupErro(err.message));
 });
