@@ -10,83 +10,243 @@ require_once __DIR__ . '/../conta/helpers.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-
-
-
-/* =========================================================
-   CONFIGURAÇÕES
-========================================================= */
 define('EMAIL_FROM', 'naoresponder@frutag.com.br');
 define('EMAIL_FROM_NOME', 'Frutag');
+define('RELATORIO_APP_URL', 'https://caderno.frutag.com.br/home/');
 
-/* =========================================================
-   FUNÇÕES AUXILIARES
-========================================================= */
-
-function gerarGrafico($atrasadas, $semana)
+function relatorioEmailEsc(string $value): string
 {
-    $config = [
-        "type" => "doughnut",
-        "data" => [
-            "labels" => ["Atrasadas", "Planejadas na Semana"],
-            "datasets" => [[
-                "data" => [count($atrasadas), count($semana)],
-                "backgroundColor" => ["#dc3545", "#ffc107"]
-            ]]
-        ],
-        "options" => [
-            "plugins" => [
-                "legend" => ["position" => "bottom"]
-            ]
-        ]
-    ];
-
-    return "https://quickchart.io/chart?c=" . urlencode(json_encode($config));
+    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
-function enviarEmail($para, $nome, $html)
+function gerarGrafico(array $atrasadas, array $semana): string
+{
+    $config = [
+        'type' => 'doughnut',
+        'data' => [
+            'labels' => ['Atrasadas', 'Planejadas na semana'],
+            'datasets' => [[
+                'data' => [count($atrasadas), count($semana)],
+                'backgroundColor' => ['#c0392b', '#d97706'],
+                'borderWidth' => 0,
+            ]],
+        ],
+        'options' => [
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom',
+                    'labels' => ['font' => ['size' => 11]],
+                ],
+            ],
+        ],
+    ];
+
+    return 'https://quickchart.io/chart?w=320&h=220&c=' . urlencode(json_encode($config));
+}
+
+function relatorioEmailTarefasHtml(array $tarefas, string $titulo, string $corTitulo): string
+{
+    if ($tarefas === []) {
+        return '';
+    }
+
+    $html = '<p style="margin:20px 0 8px;font-size:13px;font-weight:700;color:' . $corTitulo . ';text-transform:uppercase;letter-spacing:0.04em;">'
+        . relatorioEmailEsc($titulo) . '</p>';
+    $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">';
+
+    foreach ($tarefas as $tarefa) {
+        $data = date('d/m/Y', strtotime($tarefa['data']));
+        $tipo = relatorioEmailEsc((string)$tarefa['tipo']);
+        $obs = trim((string)$tarefa['observacoes']);
+        $obsHtml = $obs !== ''
+            ? '<div style="margin-top:4px;font-size:13px;color:#5f6b66;line-height:1.45;">' . relatorioEmailEsc($obs) . '</div>'
+            : '';
+
+        $html .= '<tr>'
+            . '<td style="padding:10px 0;border-bottom:1px solid #e8ecea;vertical-align:top;width:88px;font-size:13px;color:#5f6b66;">' . $data . '</td>'
+            . '<td style="padding:10px 0 10px 12px;border-bottom:1px solid #e8ecea;vertical-align:top;">'
+            . '<div style="font-size:14px;font-weight:600;color:#1f2d2a;">' . $tipo . '</div>'
+            . $obsHtml
+            . '</td></tr>';
+    }
+
+    $html .= '</table>';
+    return $html;
+}
+
+function relatorioEmailPropriedadeHtml(
+    string $nomePropriedade,
+    array $atrasadas,
+    array $semana
+): string {
+    $chartUrl = relatorioEmailEsc(gerarGrafico($atrasadas, $semana));
+    $nome = relatorioEmailEsc($nomePropriedade);
+    $nAtrasadas = count($atrasadas);
+    $nSemana = count($semana);
+
+    return '
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border:1px solid #e2e8e6;border-radius:10px;border-collapse:separate;background:#ffffff;">
+        <tr>
+            <td style="padding:18px 20px;background:#f7faf9;border-bottom:1px solid #e2e8e6;">
+                <div style="font-size:16px;font-weight:700;color:#1f2d2a;">' . $nome . '</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:18px 20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="vertical-align:top;width:55%;">
+                            <table role="presentation" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding-right:10px;">
+                                        <span style="display:inline-block;padding:8px 12px;border-radius:8px;background:#fdecea;color:#c0392b;font-size:13px;font-weight:600;">
+                                            ' . $nAtrasadas . ' atrasada(s)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="display:inline-block;padding:8px 12px;border-radius:8px;background:#fff4e5;color:#b45309;font-size:13px;font-weight:600;">
+                                            ' . $nSemana . ' nesta semana
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="vertical-align:top;text-align:center;width:45%;">
+                            <img src="' . $chartUrl . '" width="200" alt="Resumo visual" style="display:block;margin:0 auto;border:0;">
+                        </td>
+                    </tr>
+                </table>
+                ' . relatorioEmailTarefasHtml($atrasadas, 'Atrasadas', '#c0392b')
+                . relatorioEmailTarefasHtml($semana, 'Planejadas para esta semana', '#b45309') . '
+            </td>
+        </tr>
+    </table>';
+}
+
+function relatorioEmailLayout(
+    string $nomeDestinatario,
+    string $periodo,
+    int $totalAtrasadas,
+    int $totalSemana,
+    string $blocosPropriedades
+): string {
+    $nome = relatorioEmailEsc($nomeDestinatario);
+    $periodoEsc = relatorioEmailEsc($periodo);
+    $url = relatorioEmailEsc(RELATORIO_APP_URL);
+
+    return '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo semanal — Caderno de Campo</title>
+</head>
+<body style="margin:0;padding:0;background:#eef2f1;font-family:Arial,Helvetica,sans-serif;color:#1f2d2a;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f1;padding:24px 12px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-collapse:collapse;">
+                    <tr>
+                        <td style="background:#0d7c74;border-radius:12px 12px 0 0;padding:28px 32px;">
+                            <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.85);">Frutag</div>
+                            <div style="margin-top:6px;font-size:24px;font-weight:700;color:#ffffff;line-height:1.25;">Caderno de Campo</div>
+                            <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.9);">Resumo semanal de apontamentos</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background:#ffffff;padding:28px 32px 8px;">
+                            <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#1f2d2a;">Olá, <strong>' . $nome . '</strong>,</p>
+                            <p style="margin:0;font-size:14px;line-height:1.6;color:#5f6b66;">
+                                Este é o resumo das tarefas pendentes nas propriedades que você acompanha.
+                                Período de referência: <strong style="color:#1f2d2a;">' . $periodoEsc . '</strong>.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background:#ffffff;padding:8px 32px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:10px 0;">
+                                <tr>
+                                    <td width="50%" style="padding:16px;background:#fdecea;border-radius:10px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#c0392b;line-height:1;">' . $totalAtrasadas . '</div>
+                                        <div style="margin-top:6px;font-size:12px;font-weight:600;color:#7a2e28;text-transform:uppercase;letter-spacing:0.04em;">Atrasadas</div>
+                                    </td>
+                                    <td width="50%" style="padding:16px;background:#fff4e5;border-radius:10px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#b45309;line-height:1;">' . $totalSemana . '</div>
+                                        <div style="margin-top:6px;font-size:12px;font-weight:600;color:#8a5a12;text-transform:uppercase;letter-spacing:0.04em;">Nesta semana</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background:#ffffff;padding:0 32px 28px;">
+                            ' . $blocosPropriedades . '
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="' . $url . '" style="display:inline-block;padding:12px 24px;background:#0d7c74;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;border-radius:8px;">
+                                            Abrir Caderno de Campo
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background:#f7faf9;border-radius:0 0 12px 12px;padding:20px 32px;border-top:1px solid #e2e8e6;">
+                            <p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#7a8682;">
+                                Você recebe este e-mail porque autorizou comunicações do Caderno de Campo.
+                                Para alterar suas preferências, acesse <strong>Dados pessoais</strong> no sistema.
+                            </p>
+                            <p style="margin:0;font-size:12px;line-height:1.5;color:#9aa5a1;">
+                                Frutag · Caderno de Campo · Mensagem automática — não responda este e-mail.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+}
+
+function enviarEmail(string $para, string $nome, string $html): bool
 {
     $mail = new PHPMailer(true);
 
     try {
-        $mail = new PHPMailer(true);
-
         $mail->isSMTP();
         $mail->Host       = 'mail.frutag.com.br';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'naoresponder@frutag.com.br';
-        $mail->Password = 'Fruta20ferpall2020';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL
+        $mail->Password   = 'Fruta20ferpall2020';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port       = 465;
 
-        $mail->setFrom('naoresponder@frutag.com.br', 'Frutag');
+        $mail->setFrom(EMAIL_FROM, EMAIL_FROM_NOME);
         $mail->addAddress($para, $nome);
 
         $mail->isHTML(true);
         $mail->CharSet = 'UTF-8';
-        $mail->Subject = '📋 Relatório semanal de apontamentos';
+        $mail->Subject = 'Caderno de Campo — Resumo semanal de apontamentos';
         $mail->Body    = $html;
 
         $mail->send();
-
         return true;
-
     } catch (Exception $e) {
         error_log("Erro ao enviar email para {$para}: {$mail->ErrorInfo}");
         return false;
     }
 }
 
-/* =========================================================
-   EXECUÇÃO PRINCIPAL
-========================================================= */
-
-function enviarRelatorioSemanal()
+function enviarRelatorioSemanal(): void
 {
     global $mysqli;
 
     $hoje = new DateTime('today');
     $domingo = (clone $hoje)->modify('sunday this week');
+    $periodo = $hoje->format('d/m/Y') . ' a ' . $domingo->format('d/m/Y');
 
     foreach (alertaDestinatariosEmail($mysqli) as $dest) {
         $filtroProp = '';
@@ -109,11 +269,9 @@ function enviarRelatorioSemanal()
             continue;
         }
 
-        $html = "<h2>📋 Relatório semanal de apontamentos</h2>";
-        $html .= "<p>Olá <strong>{$dest['nome']}</strong>,</p>";
-        $html .= "<p>Confira abaixo seus apontamentos pendentes por propriedade:</p>";
-
-        $temConteudo = false;
+        $blocosPropriedades = '';
+        $totalAtrasadas = 0;
+        $totalSemana = 0;
 
         while ($p = $propriedades->fetch_assoc()) {
             $stmt2 = $mysqli->prepare("
@@ -142,53 +300,31 @@ function enviarRelatorioSemanal()
                 }
             }
 
-            if (!$atrasadas && !$semana) {
+            if ($atrasadas === [] && $semana === []) {
                 continue;
             }
 
-            $temConteudo = true;
+            $totalAtrasadas += count($atrasadas);
+            $totalSemana += count($semana);
 
-            $html .= "<hr>";
-            $html .= "<h3>🏡 {$p['nome_razao']}</h3>";
-            $html .= "<ul>
-                        <li>🔴 <strong>" . count($atrasadas) . "</strong> atrasadas</li>
-                        <li>🟡 <strong>" . count($semana) . "</strong> planejadas para esta semana</li>
-                      </ul>";
-
-            $html .= "<img src='" . gerarGrafico($atrasadas, $semana) . "' style='max-width:360px'>";
-
-            if ($atrasadas) {
-                $html .= "<h4>🔴 Atrasadas</h4><ul>";
-                foreach ($atrasadas as $a) {
-                    $html .= "<li>
-                        <strong>{$a['tipo']}</strong><br>
-                        📅 " . date('d/m/Y', strtotime($a['data'])) . "<br>
-                        {$a['observacoes']}
-                    </li>";
-                }
-                $html .= "</ul>";
-            }
-
-            if ($semana) {
-                $html .= "<h4>🟡 Planejadas para esta semana</h4><ul>";
-                foreach ($semana as $a) {
-                    $html .= "<li>
-                        <strong>{$a['tipo']}</strong><br>
-                        📅 " . date('d/m/Y', strtotime($a['data'])) . "<br>
-                        {$a['observacoes']}
-                    </li>";
-                }
-                $html .= "</ul>";
-            }
+            $blocosPropriedades .= relatorioEmailPropriedadeHtml(
+                (string)$p['nome_razao'],
+                $atrasadas,
+                $semana
+            );
         }
 
-        if (!$temConteudo) {
+        if ($blocosPropriedades === '') {
             continue;
         }
 
-        $html .= "<p style='font-size:12px;color:#666'>
-                    Você está recebendo este e-mail porque autorizou comunicações por e-mail.
-                  </p>";
+        $html = relatorioEmailLayout(
+            $dest['nome'],
+            $periodo,
+            $totalAtrasadas,
+            $totalSemana,
+            $blocosPropriedades
+        );
 
         enviarEmail($dest['email'], $dest['nome'], $html);
     }
