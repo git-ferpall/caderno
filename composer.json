@@ -1,5 +1,6 @@
 {
     "require": {
+        "aws/aws-sdk-php": "^3.369",
         "firebase/php-jwt": "^6.11",
         "mpdf/mpdf": "^8.2"
     }

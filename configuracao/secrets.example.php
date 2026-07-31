@@ -10,6 +10,11 @@ return [
     // Senha do banco local (caderno-db).
     'DB_PASSWORD' => '',
 
+    // AWS SNS (alertas SMS).
+    'AWS_KEY' => '',
+    'AWS_SECRET' => '',
+    'AWS_REGION' => 'us-east-1',
+
     // Banco remoto Frutag (SSO).
     'FRUTAG_DB_HOST' => '',
     'FRUTAG_DB_USER' => '',
