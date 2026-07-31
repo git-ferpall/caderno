@@ -84,14 +84,65 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<tr class="au-vazio"><td colspan="5">Nenhum acesso criado ainda.</td></tr>`;
   }
 
+  // --- Verificação de disponibilidade de login/e-mail (em tempo real) ---
+  function debounce(fn, ms) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  function monitorarDisponibilidade(inputId, ehEmail = false) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const hint = document.createElement("small");
+    hint.setAttribute("data-hint-disponibilidade", "");
+    hint.style.display = "block";
+    hint.style.marginTop = "4px";
+    input.insertAdjacentElement("afterend", hint);
+
+    const verificar = debounce(async () => {
+      const valor = input.value.trim();
+      hint.textContent = "";
+      input.dataset.disponivel = "";
+      if (!valor || (ehEmail && !valor.includes("@"))) return;
+      try {
+        const data = await apiGet("verificar_disponibilidade.php", { valor });
+        const ok = !!data.disponivel;
+        input.dataset.disponivel = ok ? "1" : "0";
+        hint.textContent = ok ? "✓ Disponível" : "✗ Já está em uso";
+        hint.style.color = ok ? "#2e7d32" : "#c62828";
+      } catch (err) {
+        // silencioso: a validação definitiva acontece no envio
+      }
+    }, 400);
+
+    input.addEventListener("input", verificar);
+  }
+
+  function limparDisponibilidade() {
+    formCriar?.querySelectorAll("[data-hint-disponibilidade]").forEach((el) => (el.textContent = ""));
+    formCriar?.querySelectorAll("input").forEach((el) => (el.dataset.disponivel = ""));
+  }
+
+  monitorarDisponibilidade("cf-login");
+  monitorarDisponibilidade("cf-email", true);
+
   formCriar?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (["cf-login", "cf-email"].some((id) => document.getElementById(id)?.dataset.disponivel === "0")) {
+      alert("Login ou e-mail já está em uso. Escolha outro.");
+      return;
+    }
     const fd = new FormData(formCriar);
     fd.append("acao", "criar");
     try {
       const data = await apiPost("salvar_usuario.php", fd);
       alert(data.msg);
       formCriar.reset();
+      limparDisponibilidade();
       await carregarFuncionarios();
     } catch (err) {
       alert(err.message);

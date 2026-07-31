@@ -118,6 +118,29 @@ function usuarioPerfil(mysqli $mysqli, int $id): ?string
 }
 
 /**
+ * Verifica se um login ou e-mail está disponível como credencial de um novo
+ * usuário local (não colide com logins existentes nem com e-mails de locais).
+ */
+function usuarioCredencialDisponivel(mysqli $mysqli, string $valor): bool
+{
+    $valor = strtolower(trim($valor));
+    if ($valor === '') return false;
+    usuariosEnsureSchema($mysqli);
+
+    $stmt = $mysqli->prepare("
+        SELECT id FROM usuarios_caderno
+        WHERE login = ?
+           OR (origem = 'local' AND email IS NOT NULL AND email = ?)
+        LIMIT 1
+    ");
+    $stmt->bind_param('ss', $valor, $valor);
+    $stmt->execute();
+    $existe = $stmt->get_result()->fetch_row();
+    $stmt->close();
+    return !$existe;
+}
+
+/**
  * Cria usuário local. $dados: nome, login, senha, email (opcional), perfil (opcional),
  * conta_pai + papel_conta (opcionais — funcionário vinculado a uma conta principal).
  * Lança InvalidArgumentException com mensagem amigável em caso de validação.
@@ -159,18 +182,8 @@ function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null
 
     // login/e-mail não podem colidir com outro usuário local (login e e-mail
     // servem de credencial no login, então precisam ser únicos entre si)
-    $emailCheck = $email !== '' ? $email : $login; // '' nunca casa; reusa login como placeholder
-    $stmt = $mysqli->prepare("
-        SELECT id FROM usuarios_caderno
-        WHERE login = ?
-           OR (origem = 'local' AND email IS NOT NULL AND (email = ? OR email = ?))
-        LIMIT 1
-    ");
-    $stmt->bind_param('sss', $login, $login, $emailCheck);
-    $stmt->execute();
-    $existe = $stmt->get_result()->fetch_row();
-    $stmt->close();
-    if ($existe) {
+    if (!usuarioCredencialDisponivel($mysqli, $login)
+        || ($email !== '' && !usuarioCredencialDisponivel($mysqli, $email))) {
         throw new InvalidArgumentException('Já existe um usuário com este login ou e-mail.');
     }
 
