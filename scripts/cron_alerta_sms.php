@@ -1,4 +1,4 @@
 <?php
-require_once '/var/www/html/funcoes/sms/alerta_semanal.php';
+require_once __DIR__ . '/../funcoes/sms/alerta_semanal.php';
 
 executarAlertaSMS();
