@@ -5,7 +5,8 @@
 
 return [
     // Segredo usado para assinar/verificar os JWT do SSO (igual ao servidor SSO).
-    'JWT_SECRET' => 'defina-um-segredo-forte-aqui',
+    // Mínimo 32 caracteres (requisito firebase/php-jwt v7 para HS256).
+    'JWT_SECRET' => 'defina-um-segredo-forte-com-pelo-menos-32-caracteres',
 
     // Senha do banco local (caderno-db).
     'DB_PASSWORD' => '',
