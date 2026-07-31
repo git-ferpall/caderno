@@ -110,40 +110,60 @@ if (btnPDF) {
 
   btnPDF.addEventListener("click", async () => {
 
-    console.log("🟢 clicou gerar PDF");
-
-    const form = document.getElementById("rel-form");
     const loading = document.getElementById("pdf-loading");
+    const propriedade = document.getElementById("pf-propriedades")?.value || "";
+    const dataIni = document.getElementById("pf-ini")?.value || "";
+    const dataFim = document.getElementById("pf-fin")?.value || "";
+
+    if (!propriedade) {
+      alert("Selecione uma propriedade.");
+      return;
+    }
+    if (!dataIni || !dataFim) {
+      alert("Informe a data inicial e a data final.");
+      return;
+    }
+    if (dataIni > dataFim) {
+      alert("A data inicial não pode ser maior que a data final.");
+      return;
+    }
 
     if (loading) loading.style.display = "flex";
 
     const formData = new FormData();
-
-    formData.append("propriedade", document.getElementById("pf-propriedades").value);
-    formData.append("area", document.getElementById("pf-area").value);
-    formData.append("data_ini", document.getElementById("pf-ini").value);
-    formData.append("data_fim", document.getElementById("pf-fin").value);
+    formData.append("propriedade", propriedade);
+    formData.append("area", document.getElementById("pf-area")?.value || "");
+    formData.append("data_ini", dataIni);
+    formData.append("data_fim", dataFim);
 
     try {
 
       const resp = await fetch("/funcoes/relatorios/pdf_fitossanitario.php", {
         method: "POST",
-        body: formData
+        body: formData,
+        credentials: "same-origin"
       });
 
+      const contentType = resp.headers.get("content-type") || "";
+
       if (!resp.ok) {
-        throw new Error("Erro ao gerar PDF");
+        const msg = await resp.text();
+        throw new Error(msg || "Erro ao gerar PDF");
+      }
+
+      if (!contentType.includes("application/pdf")) {
+        const msg = await resp.text();
+        throw new Error(msg || "Resposta inválida do servidor");
       }
 
       const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
-
       window.open(url, "_blank");
 
     } catch (err) {
 
       console.error("❌ erro PDF:", err);
-      alert("Erro ao gerar PDF");
+      alert(err.message || "Erro ao gerar PDF");
 
     } finally {
 
