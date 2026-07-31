@@ -5,6 +5,8 @@
  */
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../alertas/resumo_semanal.php';
+require_once __DIR__ . '/../conta/helpers.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -86,37 +88,34 @@ function enviarRelatorioSemanal()
     $hoje = new DateTime('today');
     $domingo = (clone $hoje)->modify('sunday this week');
 
-    // Usuários que aceitam email
-    $usuarios = $mysqli->query("
-        SELECT id, user_id, nome, email
-        FROM contato_cliente
-        WHERE aceita_email = 1
-    ");
+    foreach (alertaDestinatariosEmail($mysqli) as $dest) {
+        $filtroProp = '';
+        if ($dest['funcionario_id']) {
+            $filtroProp = contaFuncionarioSqlFiltroPropriedades($mysqli, $dest['funcionario_id'], 'id');
+        }
 
-    while ($u = $usuarios->fetch_assoc()) {
-
-        // Propriedades do usuário (todas)
         $stmt = $mysqli->prepare("
             SELECT id, nome_razao
             FROM propriedades
-            WHERE user_id = ?
+            WHERE user_id = ?{$filtroProp}
             ORDER BY nome_razao
         ");
-        $stmt->bind_param("i", $u['user_id']);
+        $stmt->bind_param('i', $dest['conta_id']);
         $stmt->execute();
         $propriedades = $stmt->get_result();
+        $stmt->close();
 
         if ($propriedades->num_rows === 0) {
             continue;
         }
 
         $html = "<h2>📋 Relatório semanal de apontamentos</h2>";
-        $html .= "<p>Olá <strong>{$u['nome']}</strong>,</p>";
+        $html .= "<p>Olá <strong>{$dest['nome']}</strong>,</p>";
         $html .= "<p>Confira abaixo seus apontamentos pendentes por propriedade:</p>";
 
-        while ($p = $propriedades->fetch_assoc()) {
+        $temConteudo = false;
 
-            // Apontamentos pendentes da propriedade
+        while ($p = $propriedades->fetch_assoc()) {
             $stmt2 = $mysqli->prepare("
                 SELECT tipo, data, observacoes
                 FROM apontamentos
@@ -124,9 +123,11 @@ function enviarRelatorioSemanal()
                   AND status = 'pendente'
                 ORDER BY data
             ");
-            $stmt2->bind_param("i", $p['id']);
+            $propId = (int)$p['id'];
+            $stmt2->bind_param('i', $propId);
             $stmt2->execute();
             $aps = $stmt2->get_result();
+            $stmt2->close();
 
             $atrasadas = [];
             $semana = [];
@@ -141,7 +142,12 @@ function enviarRelatorioSemanal()
                 }
             }
 
-            // Se não houver nada, ainda mostra a propriedade
+            if (!$atrasadas && !$semana) {
+                continue;
+            }
+
+            $temConteudo = true;
+
             $html .= "<hr>";
             $html .= "<h3>🏡 {$p['nome_razao']}</h3>";
             $html .= "<ul>
@@ -176,10 +182,14 @@ function enviarRelatorioSemanal()
             }
         }
 
+        if (!$temConteudo) {
+            continue;
+        }
+
         $html .= "<p style='font-size:12px;color:#666'>
                     Você está recebendo este e-mail porque autorizou comunicações por e-mail.
                   </p>";
 
-        enviarEmail($u['email'], $u['nome'], $html);
+        enviarEmail($dest['email'], $dest['nome'], $html);
     }
 }

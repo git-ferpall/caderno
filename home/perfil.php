@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
 
-// Apontador não edita os dados da conta; só troca a própria senha
+// Apontador e admin da conta editam apenas os próprios dados de contato (alertas SMS/e-mail).
 $papelConta = caderno_conta_papel();
 $ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
 ?>
@@ -43,7 +43,7 @@ $ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
             </div>
 
             <div class="sistema-main">
-                <?php if ($papelConta !== 'apontador'): ?>
+                <?php if (!$ehFuncionario): ?>
                 <form action="perfil.php" class="main-form container" id="perf-form">
                     <div class="form-campo">
                         <label for="pf-nome">Nome Completo (não abreviar)</label>
@@ -128,6 +128,47 @@ $ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
                         </button>
                     </div>
                 </form>
+                <?php else: ?>
+                <form action="perfil.php" class="main-form container" id="perf-form">
+                    <div class="form-campo">
+                        <label for="pf-nome">Nome Completo (não abreviar)</label>
+                        <input class="form-text" type="text" name="pfnome" id="pf-nome" placeholder="Seu nome completo" value="<?php echo $nome ?>" required>
+                    </div>
+
+                    <div class="form-campo">
+                        <label for="pf-email">E-mail</label>
+                        <input class="form-text" type="email" name="pfemail" id="pf-email" placeholder="Seu endereço de e-mail" value="<?php echo $email ?>" required>
+                    </div>
+
+                    <div class="form-campo">
+                        <label for="pf-num1">Número de Telefone</label>
+                        <div class="form-box">
+                            <input class="form-text form-tel only-num" type="tel" name="pfnum1" id="pf-num1" placeholder="(DDD) + Número" maxlength="15" value="<?php echo $num ?>" required>
+                        </div>
+                    </div>
+                    <div class="form-campo">
+                    <label>Preferências de Contato</label>
+                    <div class="form-box" style="display: flex; gap: 20px; align-items: center;">
+                        <label>
+                        <input type="checkbox" name="aceita_email" id="aceita_email" value="1">
+                        Aceito receber e-mails
+                        </label>
+                        <label>
+                        <input type="checkbox" name="aceita_sms" id="aceita_sms" value="1">
+                        Aceito receber SMS
+                        </label>
+                    </div>
+                    </div>
+
+                    <div class="form-submit">
+                        <button class="main-btn fundo-vermelho form-cancel" id="form-cancel-perfil" type="button">
+                            <span class="main-btn-text">Cancelar</span>
+                        </button>
+                        <button class="main-btn fundo-verde form-save" id="form-save-perfil" type="button">
+                            <span class="main-btn-text">Salvar</span>
+                        </button>
+                    </div>
+                </form>
                 <?php endif; ?>
 
                 <?php if ($ehFuncionario || ($GLOBALS['auth_user']->tipo ?? '') === 'local'): ?>
@@ -161,9 +202,7 @@ $ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
         </main>
 
         <?php include '../include/imports.php' ?>
-        <?php if ($papelConta !== 'apontador'): ?>
         <script src="../js/contato_cliente.js"></script>
-        <?php endif; ?>
         <script src="../js/alterar_senha.js"></script>
 
     </div>

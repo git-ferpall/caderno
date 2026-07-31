@@ -62,6 +62,18 @@ function usuariosEnsureSchema(mysqli $mysqli): void
         ");
     }
 
+    // Contato de funcionários (SMS / e-mail de alertas)
+    $colTel = $mysqli->query("SHOW COLUMNS FROM usuarios_caderno LIKE 'telefone'");
+    if ($colTel && $colTel->num_rows === 0) {
+        $mysqli->query("
+            ALTER TABLE usuarios_caderno
+                ADD COLUMN telefone VARCHAR(20) NULL AFTER email,
+                ADD COLUMN aceita_email TINYINT(1) NOT NULL DEFAULT 0 AFTER telefone,
+                ADD COLUMN aceita_sms TINYINT(1) NOT NULL DEFAULT 0 AFTER aceita_email,
+                ADD COLUMN consentimento_contato_em DATETIME NULL AFTER aceita_sms
+        ");
+    }
+
     // Bootstrap: se ainda não existe nenhum admin, promove os IDs de CADERNO_BOOTSTRAP_ADMINS
     $res = $mysqli->query("SELECT COUNT(*) AS c FROM usuarios_caderno WHERE perfil = 'admin'");
     $count = (int)($res->fetch_assoc()['c'] ?? 0);

@@ -35,3 +35,10 @@ CREATE TABLE IF NOT EXISTS conta_funcionario_propriedades (
     PRIMARY KEY (funcionario_id, propriedade_id),
     KEY idx_cfp_propriedade (propriedade_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Contato de funcionários para alertas SMS/e-mail (migrado também em usuarios_local.php)
+-- ALTER TABLE usuarios_caderno
+--     ADD COLUMN telefone VARCHAR(20) NULL AFTER email,
+--     ADD COLUMN aceita_email TINYINT(1) NOT NULL DEFAULT 0 AFTER telefone,
+--     ADD COLUMN aceita_sms TINYINT(1) NOT NULL DEFAULT 0 AFTER aceita_email,
+--     ADD COLUMN consentimento_contato_em DATETIME NULL AFTER aceita_sms;
