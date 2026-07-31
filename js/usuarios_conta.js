@@ -1,8 +1,5 @@
 /**
- * USUARIOS_CONTA.JS
- * -----------------
- * Gestão dos acessos (funcionários) da conta: listagem, criação,
- * alteração de papel, propriedades permitidas, ativação/desativação e senha.
+ * USUARIOS_CONTA.JS — Gestão de acessos da conta
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -16,10 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalSub = document.getElementById("modal-prop-subtitulo");
   const btnModalSalvar = document.getElementById("modal-prop-salvar");
   const btnModalCancelar = document.getElementById("modal-prop-cancelar");
+  const btnModalFechar = document.getElementById("modal-prop-fechar");
 
   let meuFuncId = 0;
   let propriedadesConta = [];
   let modalUserId = 0;
+
+  const ICON_PIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+  const ICON_KEY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`;
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -27,6 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function iniciais(nome) {
+    const parts = String(nome || "?").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
   async function apiGet(endpoint, params = {}) {
@@ -61,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCheckboxesPropriedades(container, selecionadas = null) {
     if (!container) return;
     if (!propriedadesConta.length) {
-      container.innerHTML = '<p class="au-sub">Nenhuma propriedade cadastrada nesta conta.</p>';
+      container.innerHTML = '<p class="uc-props-vazio">Nenhuma propriedade cadastrada nesta conta.</p>';
       return;
     }
     const idsSel = selecionadas === null
@@ -70,11 +78,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.innerHTML = propriedadesConta.map((p) => {
       const checked = idsSel.includes(Number(p.id)) ? "checked" : "";
-      return `<label>
+      return `<label class="uc-prop-item">
         <input type="checkbox" class="cf-prop-check" value="${p.id}" ${checked}>
         <span>${escapeHtml(labelPropriedade(p))}</span>
       </label>`;
     }).join("");
+  }
+
+  function marcarTodasProps(container, marcar) {
+    container?.querySelectorAll(".cf-prop-check").forEach((el) => {
+      el.checked = marcar;
+    });
   }
 
   function idsPropriedadesMarcadas(container) {
@@ -84,25 +98,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function linhaFuncionario(u) {
     const ativo = Number(u.ativo) === 1;
+    const souEu = Number(u.id) === Number(meuFuncId);
+    const isAdmin = u.papel_conta === "admin";
+    const qtdProps = u.propriedades === null ? propriedadesConta.length : Number(u.propriedades_qtd || 0);
+    const totalProps = propriedadesConta.length;
+    const propLabel = totalProps ? `${qtdProps}/${totalProps}` : "—";
+    const todasProps = u.propriedades === null && totalProps > 0;
+
     const papeis = { apontador: "Apontador", admin: "Administrador" };
     const options = Object.entries(papeis)
       .map(([v, label]) => `<option value="${v}" ${v === u.papel_conta ? "selected" : ""}>${label}</option>`)
       .join("");
-    const souEu = Number(u.id) === Number(meuFuncId);
-    const qtdProps = u.propriedades === null
-      ? propriedadesConta.length
-      : Number(u.propriedades_qtd || 0);
-    const totalProps = propriedadesConta.length;
-    const propLabel = totalProps
-      ? `${qtdProps} de ${totalProps}`
-      : "—";
 
-    return `<tr data-user-id="${u.id}" data-propriedades="${encodeURIComponent(JSON.stringify(u.propriedades))}">
-      <td><span class="au-nome">${escapeHtml(u.nome || "—")}</span>${souEu ? '<small class="au-sub">(você)</small>' : ""}</td>
-      <td>${escapeHtml(u.login || "—")}<small class="au-sub">${escapeHtml(u.email || "—")}</small></td>
-      <td><select class="au-select" data-papel-select aria-label="Papel na conta">${options}</select></td>
+    return `<tr data-user-id="${u.id}" data-propriedades="${encodeURIComponent(JSON.stringify(u.propriedades))}" class="${ativo ? "" : "uc-row--off"}">
       <td>
-        <button type="button" class="au-btn" data-editar-props title="Editar propriedades">${propLabel}</button>
+        <div class="uc-user-cell">
+          <div class="uc-avatar${isAdmin ? " uc-avatar--admin" : ""}" aria-hidden="true">${escapeHtml(iniciais(u.nome))}</div>
+          <div>
+            <span class="uc-user-name">${escapeHtml(u.nome || "—")}${souEu ? '<span class="uc-badge-me">Você</span>' : ""}</span>
+            <span class="uc-user-meta">${isAdmin ? "Administrador da conta" : "Apontador de campo"}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <span class="uc-user-name" style="font-size:13px">${escapeHtml(u.login || "—")}</span>
+        <span class="uc-user-meta">${escapeHtml(u.email || "Sem e-mail")}</span>
+      </td>
+      <td>
+        <select class="uc-papel-select" data-papel-select aria-label="Papel na conta">${options}</select>
+      </td>
+      <td>
+        <button type="button" class="uc-btn-props" data-editar-props title="Editar propriedades">
+          ${ICON_PIN}
+          <span>${propLabel}${todasProps ? " · todas" : ""}</span>
+        </button>
       </td>
       <td>
         <label class="au-switch">
@@ -112,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </label>
       </td>
       <td class="au-acoes">
-        <button type="button" class="au-btn au-btn-senha" data-reset-senha>Nova senha</button>
+        <button type="button" class="uc-btn-icon" data-reset-senha title="Redefinir senha" aria-label="Redefinir senha">${ICON_KEY}</button>
       </td>
     </tr>`;
   }
@@ -127,14 +156,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await apiGet("listar_usuarios.php");
     meuFuncId = Number(data.func_id || 0);
     if (chipTotal) {
+      const total = data.usuarios.length;
       const ativos = data.usuarios.filter((u) => Number(u.ativo) === 1).length;
       chipTotal.textContent = data.liberado
-        ? `${ativos} de ${data.limite} acesso${data.limite === 1 ? "" : "s"} em uso`
-        : `${data.usuarios.length} acesso${data.usuarios.length === 1 ? "" : "s"}`;
+        ? `${ativos} ativo${ativos === 1 ? "" : "s"} · ${total} cadastrado${total === 1 ? "" : "s"}`
+        : `${total} cadastrado${total === 1 ? "" : "s"}`;
     }
     tbody.innerHTML = data.usuarios.length
       ? data.usuarios.map(linhaFuncionario).join("")
-      : `<tr class="au-vazio"><td colspan="6">Nenhum acesso criado ainda.</td></tr>`;
+      : `<tr><td colspan="6" class="uc-empty">
+          <div class="uc-empty-icon" aria-hidden="true">👥</div>
+          <p>Nenhum acesso criado ainda.<br>Cadastre o primeiro membro da equipe acima.</p>
+        </td></tr>`;
   }
 
   function mensagemCredencialIndisponivel(campo, origem) {
@@ -155,9 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
     hint.textContent = ok
       ? "✓ Disponível"
       : data.origem === "frutag"
-        ? "✗ Já está em uso na Frutag"
-        : "✗ Já está em uso";
+        ? "✗ Em uso na Frutag"
+        : "✗ Já em uso";
     hint.style.color = ok ? "#2e7d32" : "#c62828";
+    hint.style.fontSize = "12px";
+    hint.style.marginTop = "4px";
+    hint.style.display = "block";
   }
 
   function debounce(fn, ms) {
@@ -174,8 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const hint = document.createElement("small");
     hint.setAttribute("data-hint-disponibilidade", "");
-    hint.style.display = "block";
-    hint.style.marginTop = "4px";
     input.insertAdjacentElement("afterend", hint);
 
     const verificar = debounce(async () => {
@@ -186,8 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const data = await checarDisponibilidadeCampo(valor, ehEmail);
         aplicarHintDisponibilidade(input, hint, data);
-      } catch (err) {
-        hint.textContent = "Não foi possível verificar agora.";
+      } catch {
+        hint.textContent = "Não foi possível verificar.";
         hint.style.color = "#c62828";
         input.dataset.disponivel = "";
       }
@@ -199,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function limparDisponibilidade() {
     formCriar?.querySelectorAll("[data-hint-disponibilidade]").forEach((el) => (el.textContent = ""));
     formCriar?.querySelectorAll("input").forEach((el) => {
-      if (el.name !== "propriedades[]") el.dataset.disponivel = "";
+      if (!el.classList.contains("cf-prop-check")) el.dataset.disponivel = "";
     });
     renderCheckboxesPropriedades(boxPropsCriar, null);
   }
@@ -210,26 +244,37 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const raw = tr.getAttribute("data-propriedades");
       selecionadas = raw ? JSON.parse(decodeURIComponent(raw)) : null;
-    } catch (_) {
+    } catch {
       selecionadas = null;
     }
-    const nome = tr.querySelector(".au-nome")?.textContent || "Funcionário";
-    if (modalSub) modalSub.textContent = `Defina quais propriedades ${nome} poderá acessar.`;
+    const nome = tr.querySelector(".uc-user-name")?.textContent?.replace(/Você/g, "").trim() || "Funcionário";
+    if (modalSub) modalSub.textContent = `Defina as propriedades que ${nome} poderá acessar.`;
     renderCheckboxesPropriedades(modalLista, selecionadas);
     modal?.classList.remove("d-none");
+    document.body.style.overflow = "hidden";
   }
 
   function fecharModalPropriedades() {
     modalUserId = 0;
     modal?.classList.add("d-none");
+    document.body.style.overflow = "";
   }
+
+  document.querySelector("[data-props-all]")?.addEventListener("click", () => marcarTodasProps(boxPropsCriar, true));
+  document.querySelector("[data-props-none]")?.addEventListener("click", () => marcarTodasProps(boxPropsCriar, false));
+  document.querySelector("[data-modal-props-all]")?.addEventListener("click", () => marcarTodasProps(modalLista, true));
+  document.querySelector("[data-modal-props-none]")?.addEventListener("click", () => marcarTodasProps(modalLista, false));
 
   monitorarDisponibilidade("cf-login");
   monitorarDisponibilidade("cf-email", true);
 
   btnModalCancelar?.addEventListener("click", fecharModalPropriedades);
+  btnModalFechar?.addEventListener("click", fecharModalPropriedades);
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) fecharModalPropriedades();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && !modal.classList.contains("d-none")) fecharModalPropriedades();
   });
 
   btnModalSalvar?.addEventListener("click", async () => {
@@ -278,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     } catch (err) {
-      alert(err.message || "Não foi possível verificar login/e-mail. Tente novamente.");
+      alert(err.message || "Não foi possível verificar login/e-mail.");
       return;
     }
 
@@ -301,10 +346,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tr) return;
     const userId = tr.dataset.userId;
 
-    const selPapel = e.target.closest("[data-papel-select]");
-    if (selPapel) {
+    if (e.target.closest("[data-papel-select]")) {
       try {
-        await apiPost("salvar_usuario.php", { acao: "atualizar", user_id: userId, papel_conta: selPapel.value });
+        await apiPost("salvar_usuario.php", {
+          acao: "atualizar",
+          user_id: userId,
+          papel_conta: e.target.value,
+        });
+        await carregarFuncionarios();
       } catch (err) {
         alert(err.message);
         await carregarFuncionarios();
@@ -316,8 +365,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chkAtivo) {
       const label = chkAtivo.closest("label")?.querySelector(".au-state");
       try {
-        await apiPost("salvar_usuario.php", { acao: "atualizar", user_id: userId, ativo: chkAtivo.checked ? "1" : "0" });
+        await apiPost("salvar_usuario.php", {
+          acao: "atualizar",
+          user_id: userId,
+          ativo: chkAtivo.checked ? "1" : "0",
+        });
         if (label) label.textContent = chkAtivo.checked ? "Ativo" : "Inativo";
+        tr.classList.toggle("uc-row--off", !chkAtivo.checked);
       } catch (err) {
         chkAtivo.checked = !chkAtivo.checked;
         alert(err.message);
@@ -328,7 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
   tbody?.addEventListener("click", async (e) => {
     const tr = e.target.closest("tr[data-user-id]");
     if (!tr) return;
-    const userId = tr.dataset.userId;
 
     if (e.target.closest("[data-editar-props]")) {
       abrirModalPropriedades(tr);
@@ -339,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const senha = prompt("Nova senha para este acesso (mínimo 8 caracteres):");
       if (!senha) return;
       try {
-        const data = await apiPost("resetar_senha.php", { user_id: userId, senha });
+        const data = await apiPost("resetar_senha.php", { user_id: tr.dataset.userId, senha });
         alert(data.msg);
       } catch (err) {
         alert(err.message);
