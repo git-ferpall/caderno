@@ -46,6 +46,15 @@ if (!$data || empty($areas) || !$herbicida || !$quantidade || !$unidade) {
     exit;
 }
 
+require_once __DIR__ . '/../configuracao/ownership.php';
+try {
+    if (!is_array($areas)) $areas = [$areas];
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+} catch (InvalidArgumentException $e) {
+    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    exit;
+}
+
 $mysqli->begin_transaction();
 
 try {

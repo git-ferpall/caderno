@@ -37,6 +37,9 @@ try {
     if (!is_array($areas)) $areas = [$areas];
     if (!$data || empty($areas) || !$titulo) throw new Exception("Campos obrigatórios ausentes.");
 
+    require_once __DIR__ . '/../configuracao/ownership.php';
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+
     $mysqli->begin_transaction();
 
     // Status automático

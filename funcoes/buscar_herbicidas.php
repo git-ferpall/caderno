@@ -1,7 +1,10 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json');
+
+caderno_require_user_id();
 
 $sql = "SELECT id, nome";
 if (file_exists(__DIR__ . '/fitossanitaria/carencia.php')) {

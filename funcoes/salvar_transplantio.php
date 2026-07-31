@@ -42,6 +42,18 @@ if (!$data || empty($areas_origem) || empty($areas_dest) || !$produto_id) {
   exit;
 }
 
+require_once __DIR__ . '/../configuracao/ownership.php';
+try {
+  if (!is_array($areas_origem)) $areas_origem = [$areas_origem];
+  if (!is_array($areas_dest)) $areas_dest = [$areas_dest];
+  caderno_validar_areas_usuario($mysqli, $user_id, $areas_origem, $propriedade_id);
+  caderno_validar_areas_usuario($mysqli, $user_id, $areas_dest, $propriedade_id);
+  caderno_validar_produtos_usuario($mysqli, $user_id, [$produto_id]);
+} catch (InvalidArgumentException $e) {
+  echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+  exit;
+}
+
 try {
   $mysqli->begin_transaction();
 

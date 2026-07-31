@@ -17,11 +17,6 @@ try {
     $user_id = caderno_require_user_id();
     if (!$user_id) throw new Exception("Usuário não autenticado");
 
-    // === Log inicial ===
-    $logFile = "/tmp/debug_pragas.txt";
-    file_put_contents($logFile, "=== NOVA REQUISIÇÃO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
-    file_put_contents($logFile, print_r($_POST, true), FILE_APPEND);
-
     // === Propriedade ativa ===
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
@@ -52,6 +47,10 @@ try {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
+    require_once __DIR__ . '/../configuracao/ownership.php';
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+    caderno_validar_produtos_usuario($mysqli, $user_id, $produtos);
+
     // === Início da transação ===
     $mysqli->begin_transaction();
 
@@ -68,8 +67,6 @@ try {
     $apontamento_id = $stmtMain->insert_id;
     $stmtMain->close();
 
-    file_put_contents($logFile, "✅ Inserido apontamento ID={$apontamento_id}\n", FILE_APPEND);
-
     // === Inserir áreas ===
     $stmtArea = $mysqli->prepare("
         INSERT INTO apontamento_detalhes (apontamento_id, campo, valor)
@@ -77,7 +74,6 @@ try {
     ");
     foreach ($areas as $a) {
         $valor = (string)$a;
-        file_put_contents($logFile, "Inserindo área {$valor}...\n", FILE_APPEND);
         $stmtArea->bind_param("is", $apontamento_id, $valor);
         if (!$stmtArea->execute()) throw new Exception("Erro ao inserir área: " . $stmtArea->error);
     }
@@ -90,7 +86,6 @@ try {
     ");
     foreach ($produtos as $p) {
         $valor = (string)$p;
-        file_put_contents($logFile, "Inserindo produto {$valor}...\n", FILE_APPEND);
         $stmtProd->bind_param("is", $apontamento_id, $valor);
         if (!$stmtProd->execute()) throw new Exception("Erro ao inserir produto: " . $stmtProd->error);
     }
@@ -113,7 +108,6 @@ try {
     foreach ($detalhes as $campo => $valor) {
         if (trim($valor) === '') continue; // pula campos vazios
         $valorStr = (string)$valor;
-        file_put_contents($logFile, "Inserindo detalhe {$campo}={$valorStr}...\n", FILE_APPEND);
         $stmtDet->bind_param("iss", $apontamento_id, $campo, $valorStr);
         if (!$stmtDet->execute()) throw new Exception("Erro ao inserir detalhe {$campo}: " . $stmtDet->error);
     }
@@ -121,7 +115,6 @@ try {
 
     // === Commit ===
     $mysqli->commit();
-    file_put_contents($logFile, "✅ Finalizado com sucesso!\n", FILE_APPEND);
 
     echo json_encode(['ok' => true, 'msg' => 'Apontamento de Pragas e Doenças salvo com sucesso!']);
 

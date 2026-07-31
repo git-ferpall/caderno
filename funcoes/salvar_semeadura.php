@@ -63,6 +63,14 @@ if (!in_array($status, ['pendente', 'concluido'], true)) {
     semeaduraJsonError('Selecione se o manejo está concluído ou pendente.');
 }
 
+require_once __DIR__ . '/../configuracao/ownership.php';
+try {
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+    caderno_validar_produtos_usuario($mysqli, $user_id, $produtos);
+} catch (InvalidArgumentException $e) {
+    semeaduraJsonError($e->getMessage());
+}
+
 $mysqli->begin_transaction();
 
 try {

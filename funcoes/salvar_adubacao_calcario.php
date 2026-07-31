@@ -55,6 +55,10 @@ try {
         throw new Exception("Campos obrigatórios ausentes");
     }
 
+    require_once __DIR__ . '/../configuracao/ownership.php';
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+    caderno_validar_produtos_usuario($mysqli, $user_id, $produtos);
+
     // Transação
     $mysqli->begin_transaction();
 

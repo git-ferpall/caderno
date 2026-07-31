@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/../configuracao/ownership.php';
 require_once __DIR__ . '/apontamento_arquivos.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -16,13 +17,21 @@ if (!$prop) {
 garantirTabelaApontamentoArquivos($mysqli);
 
 $propriedade_id = (int)$prop['id'];
+$area_id = (int)($_GET['area_id'] ?? 0);
+
+try {
+    caderno_validar_area_filtro_usuario($mysqli, $user_id, $area_id, $propriedade_id);
+} catch (InvalidArgumentException $e) {
+    echo json_encode(['ok' => false, 'msg' => 'Área inválida']);
+    exit;
+}
+
 $limite = max(5, min(50, (int)($_GET['limite'] ?? 20)));
 $pagina = max(1, (int)($_GET['pagina'] ?? 1));
 $offset = ($pagina - 1) * $limite;
 
 $data_ini = trim($_GET['data_ini'] ?? '');
 $data_fim = trim($_GET['data_fim'] ?? '');
-$area_id = (int)($_GET['area_id'] ?? 0);
 $tipo = trim($_GET['tipo'] ?? '');
 $status = trim($_GET['status'] ?? '');
 

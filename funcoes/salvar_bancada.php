@@ -86,6 +86,15 @@ if (!$produto_ids) {
     exit;
 }
 
+require_once __DIR__ . '/../configuracao/ownership.php';
+try {
+    caderno_validar_estufa_usuario($mysqli, $user_id, $estufa_id, $propriedade_id);
+    caderno_validar_produtos_usuario($mysqli, $user_id, $produto_ids);
+} catch (InvalidArgumentException $e) {
+    echo json_encode(['ok' => false, 'err' => $e->getMessage()]);
+    exit;
+}
+
 try {
     $mysqli->begin_transaction();
 

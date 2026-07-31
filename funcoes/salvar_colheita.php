@@ -85,6 +85,17 @@ if (!$prop) {
 
 $propriedade_id = $prop['id'];
 
+require_once __DIR__ . '/../configuracao/ownership.php';
+try {
+    if (!is_array($areas)) $areas = [$areas];
+    if (!is_array($produtos)) $produtos = [$produtos];
+    caderno_validar_areas_usuario($mysqli, $user_id, $areas, $propriedade_id);
+    caderno_validar_produtos_usuario($mysqli, $user_id, $produtos);
+} catch (InvalidArgumentException $e) {
+    echo json_encode(['ok' => false, 'msg' => 'Área ou produto inválido.']);
+    exit;
+}
+
 $confirmarCarencia = !empty($_POST['confirmar_carencia']);
 $justificativaCarencia = trim((string) ($_POST['justificativa_carencia'] ?? ''));
 
