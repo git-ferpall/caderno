@@ -46,3 +46,24 @@ function http_post_form($url, array $data, array $headers = []) {
   }
   return ['status' => $status, 'body' => $resp ?: ''];
 }
+
+/**
+ * Valida URL de redirecionamento interno (bloqueia open redirect).
+ */
+function caderno_safe_redirect_path(?string $url, string $default = '/home/'): string
+{
+    $url = trim((string) $url);
+    if ($url === '' || $url === '/') {
+        return $default;
+    }
+    if (preg_match('#^(https?:)?//#i', $url) || str_starts_with($url, '//')) {
+        return $default;
+    }
+    if (!str_starts_with($url, '/') || str_contains($url, '\\')) {
+        return $default;
+    }
+    if (str_contains($url, "\0") || str_contains($url, "\r") || str_contains($url, "\n")) {
+        return $default;
+    }
+    return $url;
+}

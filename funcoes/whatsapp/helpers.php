@@ -57,7 +57,7 @@ function waVerifyWebhookSignature(string $rawBody): bool
 {
     $secret = waConfig('secret');
     if ($secret === '') {
-        return true;
+        return false;
     }
 
     $sig = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';

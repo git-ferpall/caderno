@@ -80,8 +80,8 @@ async function buscarArquivos(termo) {
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
           <div>
-            <span class="silo-item-title">${a.nome_exibicao || escapeHtml(a.nome_arquivo)}</span>
-            <span class="silo-item-path">${formatarCaminho(a.caminho_arquivo)}</span>
+            <span class="silo-item-title">${escapeHtml(a.nome_exibicao || a.nome_arquivo)}</span>
+            <span class="silo-item-path">${escapeHtml(formatarCaminho(a.caminho_arquivo))}</span>
           </div>
         </div>
       `;

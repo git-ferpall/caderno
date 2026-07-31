@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../funcoes/carregar_propriedade.php';
 
-$user_id = $_SESSION['user_id'] ?? null;
+$user_id = (int) ($GLOBALS['auth_user']->sub ?? 0);
 $propriedades = [];
 $nome = $email = $cpf = $cnpj = $ruaEnder = $ufEnder = $numEnder = $cidEnder = $telCom = $telCom2 = "";
 

@@ -6,17 +6,7 @@ require_once __DIR__ . '/apontamento_arquivos.php';
 header('Content-Type: application/json; charset=utf-8');
 
 session_start();
-$user_id = (int)($_SESSION['user_id'] ?? 0);
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = (int)($payload['sub'] ?? 0);
-}
-
-if (!$user_id) {
-    echo json_encode(['ok' => false, 'msg' => 'Usuário não autenticado']);
-    exit;
-}
-
+$user_id = caderno_require_user_id();
 $prop = obterPropriedadeAtiva($mysqli, $user_id);
 if (!$prop) {
     echo json_encode(['ok' => false, 'msg' => 'Nenhuma propriedade ativa']);

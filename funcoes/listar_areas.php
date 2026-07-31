@@ -3,12 +3,7 @@ require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 // Pega user_id via sessão ou JWT
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
+$user_id = caderno_require_user_id();
 $areas = [];
 if ($user_id) {
     // Descobrir a propriedade ativa

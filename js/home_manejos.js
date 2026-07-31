@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const escapeHtml = (value) =>
+    (window.CadernoUtils && window.CadernoUtils.escapeHtml
+      ? window.CadernoUtils.escapeHtml(value)
+      : String(value ?? ""));
+
   const tabelaPendente = document.querySelector(".apontamento-fazer tbody");
   const tabelaConcluido = document.querySelector(".apontamento-concluido tbody");
 
@@ -26,13 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function badgeTipo(tipo) {
-    const slug = (tipo || "").toLowerCase().replace(/\s+/g, "_");
-    return `<span class="manejos-tipo-badge manejos-tipo-${slug}">${labelTipo(tipo)}</span>`;
+    const slug = (tipo || "").toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_-]/g, "");
+    return `<span class="manejos-tipo-badge manejos-tipo-${slug}">${escapeHtml(labelTipo(tipo))}</span>`;
   }
 
   function celulaTexto(valor) {
     if (!valor || valor === "-") return '<span class="manejos-empty">—</span>';
-    return valor;
+    return escapeHtml(valor);
   }
 
   function aplicarIndicadorOrdenacao() {
@@ -116,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.title = "Clique para ver detalhes";
 
             tr.innerHTML = `
-              <td class="manejos-data">${item.data}</td>
+              <td class="manejos-data">${escapeHtml(item.data)}</td>
               <td>${badgeTipo(item.tipo)}</td>
               <td class="manejos-area">${celulaTexto(item.areas)}</td>
               <td>${celulaTexto(item.produto)}</td>
@@ -144,8 +149,8 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.title = "Clique para ver detalhes";
 
             tr.innerHTML = `
-              <td class="manejos-data">${item.data}</td>
-              <td class="manejos-data">${item.conclusao ?? '<span class="manejos-empty">—</span>'}</td>
+              <td class="manejos-data">${escapeHtml(item.data)}</td>
+              <td class="manejos-data">${item.conclusao ? escapeHtml(item.conclusao) : '<span class="manejos-empty">—</span>'}</td>
               <td>${badgeTipo(item.tipo)}</td>
               <td class="manejos-area">${celulaTexto(item.areas)}</td>
               <td>${celulaTexto(item.produto)}</td>

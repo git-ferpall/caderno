@@ -141,6 +141,8 @@ $stmt->close();
 <?php require APP_PATH . '/include/footer.php'; ?>
 
 <!-- JS -->
+<script src="/js/caderno_utils.js"></script>
+<script src="/js/csrf.js"></script>
 <script src="/js/jquery.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/popups.js"></script>

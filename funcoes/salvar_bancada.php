@@ -8,20 +8,7 @@ session_start();
 //file_put_contents(__DIR__ . "/debug_bancada.txt", print_r($_POST, true) . "\n---\n", FILE_APPEND);
 
 // 🔐 Identifica usuário logado
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    try {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    } catch (Exception $e) {
-        echo json_encode(['ok' => false, 'err' => 'Falha ao validar token.']);
-        exit;
-    }
-}
-if (!$user_id) {
-    echo json_encode(['ok' => false, 'err' => 'Usuário não autenticado']);
-    exit;
-}
+$user_id = caderno_require_user_id();
 
 // 🏠 Busca propriedade ativa
 $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");

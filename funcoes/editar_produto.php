@@ -4,7 +4,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $payload = verify_jwt();
-$user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+$user_id = (int)($payload['sub'] ?? 0);
 
 $id   = intval($_POST['id'] ?? 0);
 $nome = trim($_POST['pnome'] ?? '');

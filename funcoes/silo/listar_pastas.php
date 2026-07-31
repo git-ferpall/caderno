@@ -4,7 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 try {
     $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+    $user_id = (int)($payload['sub'] ?? 0);
     if (!$user_id) throw new Exception('unauthorized');
 
     $base = "/var/www/html/uploads/silo/$user_id";

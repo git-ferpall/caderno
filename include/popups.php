@@ -6,7 +6,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 // Pega user_id via sessão ou JWT
 $payload = verify_jwt();
-$user_id = $_SESSION['user_id'] ?? ($payload['sub'] ?? null);
+$user_id = (int)($payload['sub'] ?? 0);
 $func_id = (int)($payload['func_id'] ?? 0) ?: null;
 
 $propriedades = [];

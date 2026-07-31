@@ -17,11 +17,8 @@ function fsPainelJsonResponse(array $data, int $code = 200): void
 
 try {
     session_start();
-    $user_id = (int) ($_SESSION['user_id'] ?? 0);
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = (int) ($payload['sub'] ?? 0);
-    }
+    $user_id = caderno_require_user_id();
+
 
     if (!$user_id) {
         fsPainelJsonResponse(['ok' => false, 'msg' => 'Usuário não autenticado'], 401);

@@ -9,15 +9,11 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 
 try {
     // Recupera user_id
-    $user_id = $_SESSION['user_id'] ?? null;
-    $func_id = null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-        $func_id = (int)($payload['func_id'] ?? 0) ?: null;
-    }
+    $payload = verify_jwt();
+    $user_id = (int)($payload['sub'] ?? 0);
+    $func_id = (int)($payload['func_id'] ?? 0) ?: null;
 
-    if (!$user_id) {
+    if ($user_id <= 0) {
         echo json_encode(["ok" => false, "error" => "Usuário não autenticado"]);
         exit;
     }

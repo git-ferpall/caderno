@@ -5,17 +5,8 @@ require_once __DIR__ . '/apontamento_historico.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-session_start();
-
 try {
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = (int)($payload['sub'] ?? 0);
-    }
-    if (!$user_id) {
-        throw new Exception('unauthorized');
-    }
+    $user_id = caderno_require_user_id();
 
     $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
     if ($id <= 0) {

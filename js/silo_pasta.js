@@ -2,6 +2,11 @@
 // 📂 Funções de Pastas - Silo de Dados
 // ===================================
 
+const escapeHtml = (value) =>
+  (window.CadernoUtils && window.CadernoUtils.escapeHtml
+    ? window.CadernoUtils.escapeHtml(value)
+    : String(value ?? ""));
+
 // 🌍 Global (usado também por upload e listar)
 window.pastaAtual = parseInt(localStorage.getItem("silo_pastaAtual")) || 0;
 
@@ -270,7 +275,7 @@ async function atualizarLista() {
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-title">${a.nome_exibicao}</span>
+          <span class="silo-item-title">${escapeHtml(a.nome_exibicao || a.nome_arquivo)}</span>
         </div>
       `;
 

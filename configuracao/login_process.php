@@ -3,6 +3,8 @@ require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/https.php';
 require_once __DIR__ . '/http.php';
 require_once __DIR__ . '/recaptcha.php'; // 🔒 chaves do Google
+require_once __DIR__ . '/csrf.php';
+require_once __DIR__ . '/login_rate_limit.php';
 
 session_start();
 
@@ -25,6 +27,13 @@ $captcha = trim($_POST['g-recaptcha-response'] ?? ''); // token reCAPTCHA
 
 if ($login === '' || $senha === '') {
     setLoginError('Por favor, preencha usuário e senha.');
+    header('Location: /');
+    exit;
+}
+
+if (login_rate_limit_is_blocked()) {
+    $mins = max(1, (int) ceil(login_rate_limit_remaining_seconds() / 60));
+    setLoginError("Muitas tentativas de login. Aguarde {$mins} minuto(s) e tente novamente.");
     header('Location: /');
     exit;
 }
@@ -103,6 +112,7 @@ if ($usuarioLocal) {
         exit;
     }
     if (!password_verify($senha, (string)$usuarioLocal['senha_hash'])) {
+        login_rate_limit_record_failure();
         setLoginError('Usuário ou senha incorretos.');
         header('Location: /');
         exit;
@@ -139,11 +149,10 @@ if ($usuarioLocal) {
         ]);
     }
     setcookie(AUTH_COOKIE, $jwt, usuarioCookieOptions(3600));
+    csrf_issue_token(3600);
+    login_rate_limit_reset();
 
-    $destino = trim((string) $next);
-    if ($destino === '' || $destino === '/') {
-        $destino = '/home/';
-    }
+    $destino = caderno_safe_redirect_path($next);
     header('Location: ' . $destino);
     exit;
 }
@@ -180,6 +189,7 @@ if (!$r || ($r['status'] ?? 0) === 0 || ($r['body'] ?? '') === '' || ($r['status
  */
 if (($r['status'] ?? 0) === 401) {
     error_log("AUTH_API 401 body=" . substr($r['body'], 0, 400));
+    login_rate_limit_record_failure();
     setLoginError('Usuário ou senha incorretos.');
     header('Location: /');
     exit;
@@ -240,6 +250,8 @@ $cookieOptions = [
     'secure'   => $isHttps,
 ];
 setcookie(AUTH_COOKIE, $j['token'], $cookieOptions);
+csrf_issue_token(3600);
+login_rate_limit_reset();
 
 error_log("AUTH_COOKIE setado (secure=" . ($cookieOptions['secure'] ? '1' : '0') . ") host=" . ($_SERVER['HTTP_HOST'] ?? ''));
 
@@ -248,9 +260,6 @@ error_log("AUTH_COOKIE setado (secure=" . ($cookieOptions['secure'] ? '1' : '0')
  * 7️⃣  Redireciona para a home (evita loop / → /home/ via SW)
  * ==================================================
  */
-$destino = trim((string) $next);
-if ($destino === '' || $destino === '/') {
-    $destino = '/home/';
-}
+$destino = caderno_safe_redirect_path($next);
 header('Location: ' . $destino);
 exit;

@@ -6,8 +6,6 @@ require_once __DIR__ . '/mpdf_bootstrap.php';
 
 use Mpdf\Mpdf;
 
-session_start();
-
 function paraLitros($quantidade, $unidade)
 {
     $q = (float)$quantidade;
@@ -38,14 +36,7 @@ function periodoDias($dataIni, $dataFim)
 }
 
 try {
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
-    if (!$user_id) {
-        throw new Exception('unauthorized');
-    }
+    $user_id = caderno_require_user_id();
 
     $propriedade_id = (int)($_POST['propriedade'] ?? 0);
     $data_ini = $_POST['data_ini'] ?? '';

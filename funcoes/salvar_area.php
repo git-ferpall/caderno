@@ -15,7 +15,7 @@ try {
 
     // Valida JWT
     $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+    $user_id = (int)($payload['sub'] ?? 0);
 
     if (!$user_id) {
         http_response_code(401);

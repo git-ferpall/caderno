@@ -13,16 +13,7 @@ function carregarHidroponia(): array {
     // ⚠️ Importante: NÃO definir header aqui
     session_start();
 
-    // 🔐 1️⃣ Identifica usuário autenticado
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        try {
-            $payload = verify_jwt();
-            $user_id = $payload['sub'] ?? null;
-        } catch (Exception $e) {
-            return ['ok' => false, 'err' => 'Falha ao validar token de autenticação.'];
-        }
-    }
+    $user_id = caderno_try_user_id();
     if (!$user_id) {
         return ['ok' => false, 'err' => 'Usuário não autenticado.'];
     }

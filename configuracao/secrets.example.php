@@ -24,4 +24,10 @@ return [
     // Google reCAPTCHA.
     'RECAPTCHA_SITE_KEY' => '',
     'RECAPTCHA_SECRET_KEY' => '',
+
+    // SMTP (relatório semanal por e-mail).
+    'SMTP_HOST' => 'mail.frutag.com.br',
+    'SMTP_USER' => 'naoresponder@frutag.com.br',
+    'SMTP_PASSWORD' => '',
+    'SMTP_PORT' => '465',
 ];

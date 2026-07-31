@@ -8,9 +8,14 @@ ob_start();
 
 // carrega o middleware de autenticação (JWT)
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/csrf.php';
 
 // força login → se não estiver autenticado, redireciona para index.php
 $user = require_login();
+csrf_ensure_cookie();
+if (!csrf_is_exempt_request()) {
+    csrf_verify();
+}
 
 // sessão de funcionário de conta: revalida no banco (desativado = deslogado)
 $conta_funcionario = caderno_conta_funcionario();

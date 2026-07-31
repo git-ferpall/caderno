@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/configuracao/https.php';
+require_once __DIR__ . '/configuracao/http.php';
 session_start();
 
 require_once __DIR__ . '/configuracao/auth.php';
@@ -64,7 +65,7 @@ if (function_exists('isLogged') ? isLogged() : (current_user() !== null)) {
                 <form id="flogin" class="main-form" action="/configuracao/login_process.php" method="POST">
                     <input class="fcampo" id="fuser" name="login" type="text" placeholder="Digite seu usuário ou email..." required autocomplete="username">
                     <input class="fcampo" id="fpass" name="senha" type="password" placeholder="Digite sua senha..." required autocomplete="current-password">
-                    <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '/home/') ?>">
+                    <input type="hidden" name="next" value="<?= htmlspecialchars(caderno_safe_redirect_path($_GET['next'] ?? '/home/')) ?>">
                     <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
                     <div class="text-center">
                         <button id="fesq" name="esqueci" type="button" onclick="toggleForm('rec')">Esqueceu sua senha? <strong>Clique aqui</strong></button>

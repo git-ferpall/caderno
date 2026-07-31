@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  const escapeHtml = (value) =>
+    (window.CadernoUtils && window.CadernoUtils.escapeHtml
+      ? window.CadernoUtils.escapeHtml(value)
+      : String(value ?? ""));
+
   const overlay = document.getElementById("popup-overlay");
   const popupDetalhe = document.getElementById("popup-detalhe-manejo");
   const btnConcluir = document.getElementById("btn-marcar-concluido");
@@ -130,10 +135,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("manejo-obs").value = a.observacoes || "";
 
     document.getElementById("manejo-areas").innerHTML =
-      (a.areas || []).map((n) => `• ${n}`).join("<br>") || "—";
+      (a.areas || []).map((n) => `• ${escapeHtml(n)}`).join("<br>") || "—";
 
     document.getElementById("manejo-produtos").innerHTML =
-      (a.produtos || []).map((n) => `• ${n}`).join("<br>") || "—";
+      (a.produtos || []).map((n) => `• ${escapeHtml(n)}`).join("<br>") || "—";
 
     const detalheLabels = {
       variedade: "Variedade / cultivar",
@@ -143,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const extras = Object.entries(a.detalhes || {})
-      .map(([k, v]) => `<div><b>${detalheLabels[k] || k.replace(/_/g, " ")}:</b> ${v}</div>`)
+      .map(([k, v]) => `<div><b>${escapeHtml(detalheLabels[k] || k.replace(/_/g, " "))}:</b> ${escapeHtml(v)}</div>`)
       .join("");
 
     document.getElementById("manejo-detalhes-extra").innerHTML =
@@ -164,10 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     anexosList.innerHTML = arquivos.map((arq) => `
-      <div class="manejo-anexo-item" data-vinculo="${arq.vinculo_id}">
-        <a href="../funcoes/silo/download_arquivo.php?id=${arq.id}" target="_blank" rel="noopener">${arq.nome_arquivo}</a>
+      <div class="manejo-anexo-item" data-vinculo="${escapeHtml(arq.vinculo_id)}">
+        <a href="../funcoes/silo/download_arquivo.php?id=${encodeURIComponent(arq.id)}" target="_blank" rel="noopener">${escapeHtml(arq.nome_arquivo)}</a>
         <div class="manejo-anexo-actions">
-          <button type="button" class="btn-remove" data-vinculo="${arq.vinculo_id}">Remover</button>
+          <button type="button" class="btn-remove" data-vinculo="${escapeHtml(arq.vinculo_id)}">Remover</button>
         </div>
       </div>
     `).join("");
@@ -265,10 +270,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         historicoList.innerHTML = data.historico.map((h) => `
           <div class="manejo-historico-item">
-            <strong>${h.alterado_em}</strong> — ${h.campo}<br>
-            <span style="color:#777;">${h.valor_anterior}</span>
+            <strong>${escapeHtml(h.alterado_em)}</strong> — ${escapeHtml(h.campo)}<br>
+            <span style="color:#777;">${escapeHtml(h.valor_anterior)}</span>
             →
-            <span style="color:#4a7c1b;">${h.valor_novo}</span>
+            <span style="color:#4a7c1b;">${escapeHtml(h.valor_novo)}</span>
           </div>
         `).join("");
       })

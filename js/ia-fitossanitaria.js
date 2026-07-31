@@ -483,14 +483,14 @@
         let html = "";
         ativas.forEach((c) => {
           html += `<div class="ia-fs-carencia-item">
-            <strong>${c.produto || c.tipo || "Defensivo"}</strong>
-            <span>Aplicado ${fmtData(c.data_aplicacao)} · Liberação ${fmtData(c.data_liberacao)} (${c.dias_restantes} dia(s))</span>
+            <strong>${escapeHtml(c.produto || c.tipo || "Defensivo")}</strong>
+            <span>Aplicado ${escapeHtml(fmtData(c.data_aplicacao))} · Liberação ${escapeHtml(fmtData(c.data_liberacao))} (${escapeHtml(c.dias_restantes)} dia(s))</span>
           </div>`;
         });
         if (pendentes.length) {
           html += `<p class="ia-fs-sub">Colheitas pendentes:</p>`;
           pendentes.forEach((c) => {
-            html += `<div class="ia-fs-carencia-item ia-fs-pendente">Prevista ${fmtData(c.data)}</div>`;
+            html += `<div class="ia-fs-carencia-item ia-fs-pendente">Prevista ${escapeHtml(fmtData(c.data))}</div>`;
           });
         }
         el.carencias.innerHTML = html;

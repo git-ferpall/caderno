@@ -6,23 +6,8 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/hidroponia_helpers.php';
 
 header('Content-Type: application/json; charset=utf-8');
-session_start();
 
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    try {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    } catch (Throwable $e) {
-        echo json_encode(['ok' => false, 'err' => 'Não autenticado.']);
-        exit;
-    }
-}
-
-if (!$user_id) {
-    echo json_encode(['ok' => false, 'err' => 'Usuário não autenticado.']);
-    exit;
-}
+$user_id = caderno_require_user_id();
 
 $bancada_id = isset($_POST['bancada_id']) ? (int) $_POST['bancada_id'] : 0;
 $produtos_json = isset($_POST['produtos_json']) ? trim((string) $_POST['produtos_json']) : '';

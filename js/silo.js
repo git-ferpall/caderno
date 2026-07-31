@@ -1,6 +1,11 @@
 // ================================
 // 📦 Silo de Dados - Caderno de Campo
 // ================================
+const escapeHtml = (value) =>
+  (window.CadernoUtils && window.CadernoUtils.escapeHtml
+    ? window.CadernoUtils.escapeHtml(value)
+    : String(value ?? ""));
+
 document.addEventListener('DOMContentLoaded', () => {
   // 🧠 Restaura última pasta acessada (persistência)
   const ultima = localStorage.getItem("silo_pastaAtual");
@@ -53,7 +58,7 @@ async function atualizarLista() {
       div.innerHTML = `
         <div class="silo-item silo-arquivo">
           <div class="btn-icon ${icon}"></div>
-          <span class="silo-item-title">${a.nome_arquivo}</span>
+          <span class="silo-item-title">${escapeHtml(a.nome_arquivo)}</span>
         </div>
       `;
 

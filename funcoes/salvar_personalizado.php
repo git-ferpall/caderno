@@ -12,12 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 try {
     session_start();
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
-
+    $user_id = caderno_require_user_id();
     if (!$user_id) throw new Exception("Usuário não autenticado.");
 
     file_put_contents("/tmp/debug_personalizado.txt", "=== NOVO PERSONALIZADO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);

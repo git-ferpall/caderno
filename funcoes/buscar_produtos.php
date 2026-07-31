@@ -7,14 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // Inicia a sessão e tenta pegar user_id
 session_start();
-$user_id = $_SESSION['user_id'] ?? null;
-
-// Se não tiver sessão, tenta via JWT
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
+$user_id = caderno_require_user_id();
 $produtos = [];
 
 if ($user_id) {

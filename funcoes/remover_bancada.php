@@ -7,11 +7,7 @@ header('Content-Type: application/json');
 session_start();
 
 // 1️⃣ Autenticação
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
+$user_id = caderno_require_user_id();
 if (!$user_id) {
     echo json_encode(['ok' => false, 'err' => 'Usuário não autenticado']);
     exit;

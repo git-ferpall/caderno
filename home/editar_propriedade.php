@@ -6,12 +6,7 @@ require_once __DIR__ . '/../sso/verify_jwt.php';
 $id = $_GET['id'] ?? null;
 
 // pega user_id via sessão ou JWT
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
+$user_id = caderno_require_user_id();
 if (!$id || !$user_id) {
     die("Propriedade não encontrada ou usuário não logado.");
 }

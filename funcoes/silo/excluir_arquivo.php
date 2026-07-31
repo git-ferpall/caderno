@@ -36,7 +36,7 @@ function caminhoDentroDeBase($base, $path)
 try {
     // 🔐 Autenticação
     $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+    $user_id = (int)($payload['sub'] ?? 0);
     if (!$user_id) throw new Exception('Usuário não autenticado');
 
     // 📦 ID recebido

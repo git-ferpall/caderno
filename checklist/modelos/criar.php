@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../configuracao/protect.php';
 $user = require_login();
 $user_id = (int)$user->sub;
 
-$modelo_id = isset($_GET['id']) ? (int)$user_id = (int)$_GET['id'] : 0;
+$modelo_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 define('APP_PATH', realpath(__DIR__ . '/../../'));
 
@@ -214,6 +214,8 @@ if ($modelo_id) {
 
 <?php require APP_PATH . '/include/footer.php'; ?>
 
+<script src="/js/caderno_utils.js"></script>
+<script src="/js/csrf.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="/js/popups.js"></script>
 <script src="/js/script.js"></script>

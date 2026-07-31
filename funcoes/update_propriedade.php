@@ -4,14 +4,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 // tenta pegar via sessão
-$user_id = $_SESSION['user_id'] ?? null;
-
-// se não houver sessão, tenta via JWT
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
+$user_id = caderno_require_user_id();
 if (!$user_id) {
     die(json_encode(["ok" => false, "error" => "Usuário não autenticado"]));
 }

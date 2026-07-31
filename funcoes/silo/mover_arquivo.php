@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 
 try {
     $payload = verify_jwt();
-    $user_id = (int)($payload['sub'] ?? ($_SESSION['user_id'] ?? 0));
+    $user_id = (int)($payload['sub'] ?? 0);
     if ($user_id <= 0) {
         throw new Exception('unauthorized');
     }

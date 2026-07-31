@@ -4,7 +4,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 $payload = verify_jwt();
-$user_id = $payload['sub'] ?? ($_SESSION['user_id'] ?? null);
+$user_id = (int)($payload['sub'] ?? 0);
 
 if (!$user_id) {
     die("Usuário não logado");

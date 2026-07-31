@@ -9,7 +9,7 @@ ini_set('display_errors', 0);
 
 try {
     $payload = verify_jwt();
-    $user_id = (int)($payload['sub'] ?? ($_SESSION['user_id'] ?? 0));
+    $user_id = (int)($payload['sub'] ?? 0);
     if ($user_id <= 0) {
         throw new InvalidArgumentException('unauthorized');
     }

@@ -14,22 +14,7 @@ function iaJson(array $data, int $code = 200): never
 
 function iaAuthUserId(): int
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
-    }
-    if (!$user_id) {
-        iaJson(['ok' => false, 'err' => 'Usuário não autenticado.'], 401);
-    }
-    $id = (int) $user_id;
-    if (session_status() === PHP_SESSION_ACTIVE) {
-        session_write_close();
-    }
-    return $id;
+    return caderno_require_user_id();
 }
 
 function iaOpenAiKey(): string

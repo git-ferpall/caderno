@@ -15,15 +15,43 @@ function offlineJson(array $data, int $code = 200): never
 
 function offlineAuthUserId(): ?int
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $jwt = null;
+
+    if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
+        $jwt = $m[1];
+    } elseif (!empty($_COOKIE['AUTH_COOKIE'])) {
+        $jwt = $_COOKIE['AUTH_COOKIE'];
+    } elseif (!empty($_COOKIE['token'])) {
+        $jwt = $_COOKIE['token'];
     }
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!$user_id) {
-        $payload = verify_jwt();
-        $user_id = $payload['sub'] ?? null;
+
+    if (!$jwt) {
+        return null;
     }
-    return $user_id ? (int)$user_id : null;
+
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) {
+        return null;
+    }
+
+    [$h64, $p64, $s64] = $parts;
+    $payload = json_decode(base64_decode(strtr($p64, '-_', '+/')), true);
+    if (!$payload) {
+        return null;
+    }
+
+    $sign = hash_hmac('sha256', "$h64.$p64", JWT_SECRET, true);
+    if (!hash_equals($sign, base64_decode(strtr($s64, '-_', '+/')))) {
+        return null;
+    }
+
+    if (!empty($payload['exp']) && $payload['exp'] < time()) {
+        return null;
+    }
+
+    $uid = (int) ($payload['sub'] ?? 0);
+    return $uid > 0 ? $uid : null;
 }
 
 function offlineEnsureSchema(mysqli $mysqli): void

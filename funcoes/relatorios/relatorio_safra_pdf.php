@@ -1,24 +1,65 @@
 <?php
 
-ini_set('display_errors',1);
-error_reporting(E_ALL);
-
 require_once __DIR__.'/../../configuracao/configuracao_conexao.php';
+require_once __DIR__.'/../../sso/verify_jwt.php';
 require_once __DIR__.'/../../vendor/autoload.php';
 require_once __DIR__ . '/mpdf_bootstrap.php';
 
 date_default_timezone_set("America/Sao_Paulo");
 
+$payload = verify_jwt();
+$user_id = (int) ($payload['sub'] ?? 0);
+if ($user_id <= 0) {
+    http_response_code(401);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'err' => 'unauthorized']);
+    exit;
+}
+
+function relatorioSafraValidarData(?string $valor): ?string
+{
+    if ($valor === null || $valor === '') {
+        return null;
+    }
+    $dt = DateTime::createFromFormat('Y-m-d', $valor);
+    if (!$dt || $dt->format('Y-m-d') !== $valor) {
+        http_response_code(400);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'err' => 'data_invalida']);
+        exit;
+    }
+    return $valor;
+}
 
 /* =====================================================
 FILTROS
 ===================================================== */
 
-$propriedade = $_POST['propriedade'] ?? null;
-$area        = $_POST['area'] ?? null;
-$produto     = $_POST['produto'] ?? null;
-$data_ini    = $_POST['data_ini'] ?? null;
-$data_fim    = $_POST['data_fim'] ?? null;
+$propriedade = isset($_POST['propriedade']) && $_POST['propriedade'] !== ''
+    ? (int) $_POST['propriedade']
+    : null;
+$area        = isset($_POST['area']) && $_POST['area'] !== ''
+    ? (int) $_POST['area']
+    : null;
+$produto     = isset($_POST['produto']) && $_POST['produto'] !== ''
+    ? (int) $_POST['produto']
+    : null;
+$data_ini    = relatorioSafraValidarData($_POST['data_ini'] ?? null);
+$data_fim    = relatorioSafraValidarData($_POST['data_fim'] ?? null);
+
+if ($propriedade !== null && $propriedade > 0) {
+    $stmtProp = $mysqli->prepare('SELECT id FROM propriedades WHERE id = ? AND user_id = ? LIMIT 1');
+    $stmtProp->bind_param('ii', $propriedade, $user_id);
+    $stmtProp->execute();
+    $propOk = $stmtProp->get_result()->fetch_assoc();
+    $stmtProp->close();
+    if (!$propOk) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'err' => 'propriedade_invalida']);
+        exit;
+    }
+}
 
 
 /* =====================================================
@@ -30,17 +71,29 @@ $nome_area='';
 $nome_produto='';
 
 if($propriedade){
-    $r=$mysqli->query("SELECT nome_razao FROM propriedades WHERE id=$propriedade")->fetch_assoc();
+    $stmt = $mysqli->prepare('SELECT nome_razao FROM propriedades WHERE id = ? AND user_id = ?');
+    $stmt->bind_param('ii', $propriedade, $user_id);
+    $stmt->execute();
+    $r = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
     $nome_propriedade=$r['nome_razao'] ?? '';
 }
 
 if($area){
-    $r=$mysqli->query("SELECT nome FROM areas WHERE id=$area")->fetch_assoc();
+    $stmt = $mysqli->prepare('SELECT nome FROM areas WHERE id = ?');
+    $stmt->bind_param('i', $area);
+    $stmt->execute();
+    $r = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
     $nome_area=$r['nome'] ?? '';
 }
 
 if($produto){
-    $r=$mysqli->query("SELECT nome FROM produtos WHERE id=$produto")->fetch_assoc();
+    $stmt = $mysqli->prepare('SELECT nome FROM produtos WHERE id = ?');
+    $stmt->bind_param('i', $produto);
+    $stmt->execute();
+    $r = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
     $nome_produto=$r['nome'] ?? '';
 }
 
@@ -68,19 +121,23 @@ ON d.apontamento_id = a.id
 
 WHERE a.tipo IN ('plantio','colheita')
 AND a.status='concluido'
+AND EXISTS (
+    SELECT 1 FROM propriedades p
+    WHERE p.id = a.propriedade_id AND p.user_id = {$user_id}
+)
 
 ";
 
 if($propriedade){
-    $sql.=" AND a.propriedade_id=$propriedade";
+    $sql.=" AND a.propriedade_id=" . (int) $propriedade;
 }
 
 if($data_ini){
-    $sql.=" AND a.data>='$data_ini'";
+    $sql.=" AND a.data>='" . $mysqli->real_escape_string($data_ini) . "'";
 }
 
 if($data_fim){
-    $sql.=" AND a.data<='$data_fim'";
+    $sql.=" AND a.data<='" . $mysqli->real_escape_string($data_fim) . "'";
 }
 
 $sql.="

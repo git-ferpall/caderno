@@ -4,12 +4,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/../funcoes/busca_dados.php';
 
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
-
+$user_id = caderno_require_user_id();
 $apontamentos = getApontamentosCompletos($mysqli, $user_id);
 ?>
 

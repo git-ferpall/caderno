@@ -2,6 +2,7 @@
 // /var/www/html/sso/verify_jwt.php
 
 require_once __DIR__ . '/../configuracao/env.php'; // contém JWT_SECRET
+require_once __DIR__ . '/../configuracao/csrf.php';
 
 function b64url_decode($d) { 
     return base64_decode(strtr($d, '-_', '+/')); 
@@ -12,6 +13,10 @@ function b64url_decode($d) {
  * (sem validar permissões de acesso)
  */
 function verify_jwt() {
+    if (!csrf_is_exempt_request()) {
+        csrf_verify();
+    }
+
     $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     $jwt = null;
 
@@ -75,6 +80,66 @@ function verify_jwt() {
     }
 
     return $payload;
+}
+
+/**
+ * Tenta obter user_id do JWT sem encerrar a requisição (retorna null se inválido).
+ */
+function caderno_try_user_id(): ?int
+{
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $jwt = null;
+
+    if (preg_match('/Bearer\s+(.+)/', $auth, $m)) {
+        $jwt = $m[1];
+    } elseif (!empty($_COOKIE['AUTH_COOKIE'])) {
+        $jwt = $_COOKIE['AUTH_COOKIE'];
+    } elseif (!empty($_COOKIE['token'])) {
+        $jwt = $_COOKIE['token'];
+    }
+
+    if (!$jwt) {
+        return null;
+    }
+
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) {
+        return null;
+    }
+
+    [$h64, $p64, $s64] = $parts;
+    $payload = json_decode(b64url_decode($p64), true);
+    if (!$payload) {
+        return null;
+    }
+
+    $sign = hash_hmac('sha256', "$h64.$p64", JWT_SECRET, true);
+    if (!hash_equals($sign, b64url_decode($s64))) {
+        return null;
+    }
+
+    if (!empty($payload['exp']) && $payload['exp'] < time()) {
+        return null;
+    }
+
+    $uid = (int) ($payload['sub'] ?? 0);
+    return $uid > 0 ? $uid : null;
+}
+
+/**
+ * Retorna user_id autenticado via JWT (sem fallback de sessão PHP).
+ */
+function caderno_require_user_id(): int
+{
+    $payload = verify_jwt();
+    $user_id = (int) ($payload['sub'] ?? 0);
+    if ($user_id <= 0) {
+        http_response_code(401);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'err' => 'no_user'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    return $user_id;
 }
 
 /**

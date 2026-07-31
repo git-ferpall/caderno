@@ -4,6 +4,7 @@
  * Responsável apenas pela geração e envio do e-mail
  */
 require_once __DIR__ . '/../../configuracao/configuracao_conexao.php';
+require_once __DIR__ . '/../../configuracao/secrets_loader.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../alertas/resumo_semanal.php';
 require_once __DIR__ . '/../conta/helpers.php';
@@ -213,16 +214,22 @@ function relatorioEmailLayout(
 
 function enviarEmail(string $para, string $nome, string $html): bool
 {
+    $smtpPassword = caderno_secret('SMTP_PASSWORD');
+    if ($smtpPassword === null || $smtpPassword === '') {
+        error_log('SMTP_PASSWORD não configurado — e-mail não enviado.');
+        return false;
+    }
+
     $mail = new PHPMailer(true);
 
     try {
         $mail->isSMTP();
-        $mail->Host       = 'mail.frutag.com.br';
+        $mail->Host       = caderno_secret('SMTP_HOST', 'mail.frutag.com.br');
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'naoresponder@frutag.com.br';
-        $mail->Password   = 'Fruta20ferpall2020';
+        $mail->Username   = caderno_secret('SMTP_USER', 'naoresponder@frutag.com.br');
+        $mail->Password   = $smtpPassword;
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = 465;
+        $mail->Port       = (int) caderno_secret('SMTP_PORT', '465');
 
         $mail->setFrom(EMAIL_FROM, EMAIL_FROM_NOME);
         $mail->addAddress($para, $nome);

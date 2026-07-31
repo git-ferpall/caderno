@@ -16,11 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 session_start();
-$user_id = (int) ($_SESSION['user_id'] ?? 0);
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = (int) ($payload['sub'] ?? 0);
-}
+$user_id = caderno_require_user_id();
+
 
 if (!$user_id) {
     echo json_encode(['ok' => false, 'msg' => 'Usuário não autenticado'], JSON_UNESCAPED_UNICODE);

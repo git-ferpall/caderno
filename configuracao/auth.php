@@ -65,7 +65,7 @@ function require_login() {
   if (in_array($path, ["/login.php", "/login", "/index.php", "/index", "/"])) {
     return null; // já está na tela de login
 }
-  $next = $_GET["next"] ?? ($_SERVER["REQUEST_URI"] ?? "/");
+  $next = caderno_safe_redirect_path($_GET["next"] ?? ($_SERVER["REQUEST_URI"] ?? "/"), "/");
   header("Location: /?next=" . urlencode($next));
   exit;
 }
