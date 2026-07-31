@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initBancadaSave();
   initQrBancada();
   abrirBancadaPorQr();
+  initExcluirHidroponia();
 });
 
 function initEstufaSave() {
@@ -14,6 +15,7 @@ function initEstufaSave() {
   if (!btnAddEstufa) return;
 
   btnAddEstufa.addEventListener("click", async () => {
+    const id = document.getElementById("e-id")?.value.trim();
     const nome = document.getElementById("e-nome")?.value.trim();
     const area = document.getElementById("e-area")?.value.trim();
     const obs = document.getElementById("e-obs")?.value.trim();
@@ -24,6 +26,7 @@ function initEstufaSave() {
     }
 
     const fd = new FormData();
+    if (id) fd.append("id", id);
     fd.append("nome", nome);
     fd.append("area_m2", area);
     fd.append("obs", obs);
@@ -34,6 +37,175 @@ function initEstufaSave() {
         onSuccess: () => location.reload(),
         onError: (d) => alert("Erro: " + (d?.err || d?.msg || "falha")),
       });
+    }
+  });
+
+  // Ao abrir "Nova Estufa" limpa qualquer edição em andamento
+  document.getElementById("estufa-add")?.addEventListener("click", () => {
+    if (ignorarLimpezaEstufa) {
+      ignorarLimpezaEstufa = false;
+      return;
+    }
+    limparFormEstufa();
+  });
+}
+
+let ignorarLimpezaEstufa = false;
+
+function limparFormEstufa() {
+  const inputId = document.getElementById("e-id");
+  if (!inputId || !inputId.value) return;
+
+  inputId.value = "";
+  const inputNome = document.getElementById("e-nome");
+  const inputArea = document.getElementById("e-area");
+  const inputObs = document.getElementById("e-obs");
+  if (inputNome) inputNome.value = "";
+  if (inputArea) inputArea.value = "";
+  if (inputObs) inputObs.value = "";
+
+  const saveTxt = document.querySelector("#form-save-estufa .main-btn-text");
+  if (saveTxt) saveTxt.textContent = "Salvar";
+}
+
+function editEstufa(btn) {
+  let dados;
+  try {
+    dados = JSON.parse(btn.getAttribute("data-estufa"));
+  } catch (err) {
+    console.error("Dados da estufa inválidos:", err);
+    return;
+  }
+
+  // Fecha estufas abertas para exibir o formulário
+  document.querySelectorAll(".item-estufa-box").forEach((div) => div.classList.add("d-none"));
+  document.querySelectorAll("[id^='edit-estufa-']").forEach((b) => {
+    b.textContent = "Selecionar";
+    b.classList.remove("fechar");
+  });
+
+  const formNovaEstufa = document.getElementById("add-estufa");
+  if (formNovaEstufa) formNovaEstufa.classList.remove("d-none");
+
+  document.getElementById("e-id").value = dados.id || "";
+  document.getElementById("e-nome").value = dados.nome || "";
+  document.getElementById("e-area").value = dados.area_m2 || "";
+  document.getElementById("e-obs").value = dados.obs || "";
+
+  const saveTxt = document.querySelector("#form-save-estufa .main-btn-text");
+  if (saveTxt) saveTxt.textContent = "Atualizar";
+
+  // Abre a caixa do formulário (animação do main.js) sem disparar a limpeza
+  const addBtn = document.getElementById("estufa-add");
+  if (addBtn && !addBtn.classList.contains("active")) {
+    ignorarLimpezaEstufa = true;
+    addBtn.click();
+  }
+
+  formNovaEstufa?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ============================
+   Exclusão com confirmação
+   ============================ */
+
+let hidroExclusao = null;
+
+function abrirConfirmacaoExclusao(titulo, texto) {
+  const overlayEl = document.getElementById("popup-overlay");
+  const popupDelete = document.getElementById("popup-delete");
+  if (!overlayEl || !popupDelete) {
+    alert("Popup de confirmação não encontrado. Atualize a página (Ctrl+F5).");
+    return false;
+  }
+
+  const titleEl = popupDelete.querySelector(".popup-title");
+  const textEl = popupDelete.querySelector(".popup-text");
+  if (titleEl) titleEl.textContent = titulo;
+  if (textEl) textEl.textContent = texto;
+
+  overlayEl.classList.remove("d-none");
+  popupDelete.classList.remove("d-none");
+  return true;
+}
+
+function mostrarFalhaHidro(titulo, texto) {
+  const overlayEl = document.getElementById("popup-overlay");
+  const popupFailedEl = document.getElementById("popup-failed");
+  if (!overlayEl || !popupFailedEl) {
+    alert(texto);
+    return;
+  }
+
+  const titleEl = popupFailedEl.querySelector(".popup-title");
+  const textEl = popupFailedEl.querySelector(".popup-text");
+  if (titleEl) titleEl.textContent = titulo;
+  if (textEl) textEl.textContent = texto;
+
+  overlayEl.classList.remove("d-none");
+  popupFailedEl.classList.remove("d-none");
+}
+
+function deleteEstufa(btn) {
+  const id = btn.dataset.estufaId;
+  const nome = btn.dataset.estufaNome || "esta estufa";
+  if (!id) return;
+
+  const aberto = abrirConfirmacaoExclusao(
+    `Tem certeza que deseja excluir a estufa "${nome}"?`,
+    "Todas as bancadas desta estufa também serão excluídas. Esta ação não poderá ser desfeita."
+  );
+  if (aberto) hidroExclusao = { tipo: "estufa", id };
+}
+
+function deleteBancada(btn) {
+  const id = btn.dataset.bancadaId;
+  const nome = btn.dataset.bancadaNome || "esta bancada";
+  if (!id) return;
+
+  const aberto = abrirConfirmacaoExclusao(
+    `Tem certeza que deseja excluir a bancada "${nome}"?`,
+    "Os registros de cultivos desta bancada também serão removidos. Esta ação não poderá ser desfeita."
+  );
+  if (aberto) hidroExclusao = { tipo: "bancada", id };
+}
+
+function initExcluirHidroponia() {
+  const btnConfirm = document.getElementById("confirm-delete");
+  if (!btnConfirm) return;
+
+  btnConfirm.addEventListener("click", async () => {
+    if (!hidroExclusao) return;
+
+    const { tipo, id } = hidroExclusao;
+    hidroExclusao = null;
+
+    const url = tipo === "estufa" ? "/funcoes/remover_estufa.php" : "/funcoes/remover_bancada.php";
+    const campo = tipo === "estufa" ? "estufa_id" : "bancada_id";
+
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `${campo}=${encodeURIComponent(id)}`,
+      });
+      const data = await resp.json();
+
+      if (typeof closePopup === "function") closePopup();
+
+      if (data.ok) {
+        location.reload();
+      } else {
+        mostrarFalhaHidro(
+          "Erro ao excluir",
+          data.err || data.msg || `Não foi possível excluir a ${tipo}.`
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      if (typeof closePopup === "function") closePopup();
+      mostrarFalhaHidro("Erro inesperado", "Falha de comunicação com o servidor.");
     }
   });
 }
@@ -317,7 +489,7 @@ function selectEstufa(idEstufa) {
   const isOpen = !box.classList.contains("d-none");
 
   document.querySelectorAll(".item-estufa-box").forEach((div) => div.classList.add("d-none"));
-  document.querySelectorAll(".edit-btn").forEach((b) => {
+  document.querySelectorAll("[id^='edit-estufa-']").forEach((b) => {
     b.textContent = "Selecionar";
     b.classList.remove("fechar");
   });
@@ -433,3 +605,6 @@ async function carregarProdutos(selectAlvo = null) {
 window.selectEstufa = selectEstufa;
 window.selectBancada = selectBancada;
 window.voltarEstufa = voltarEstufa;
+window.editEstufa = editEstufa;
+window.deleteEstufa = deleteEstufa;
+window.deleteBancada = deleteBancada;

@@ -41,6 +41,39 @@ if ($nome === '') {
     exit;
 }
 
+$id = (int)($_POST['id'] ?? 0);
+
+// ✏️ Atualiza estufa existente
+if ($id > 0) {
+    $stmt = $mysqli->prepare("
+        UPDATE estufas
+        SET nome = ?, area_m2 = ?, obs = ?
+        WHERE id = ? AND propriedade_id = ?
+    ");
+    $stmt->bind_param("sssii", $nome, $area_m2, $obs, $id, $propriedade_id);
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    if (!$ok) {
+        echo json_encode(['ok' => false, 'err' => 'Falha ao atualizar a estufa.']);
+        exit;
+    }
+
+    // Mantém o nome das áreas vinculadas às bancadas em sincronia
+    $stmt = $mysqli->prepare("
+        UPDATE areas a
+        INNER JOIN bancadas b ON b.area_id = a.id
+        SET a.nome = CONCAT(?, ' - Bancada ', b.nome)
+        WHERE b.estufa_id = ?
+    ");
+    $stmt->bind_param("si", $nome, $id);
+    $stmt->execute();
+    $stmt->close();
+
+    echo json_encode(['ok' => true, 'id' => $id]);
+    exit;
+}
+
 // 💾 Insere no banco
 $stmt = $mysqli->prepare("
     INSERT INTO estufas (propriedade_id, nome, area_m2, obs)

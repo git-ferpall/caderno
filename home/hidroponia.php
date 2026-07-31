@@ -51,9 +51,28 @@ if (!headers_sent()) {
                         $obs = ($estufa['obs'] == '') ? 'Nenhuma observação' : $estufa['obs'];
                         $has_obs = ($estufa['obs'] == '') ? '' : 'v2';
 
+                        $estufa_json = json_encode([
+                            'id' => (int) $estufa['id'],
+                            'nome' => (string) $estufa['nome'],
+                            'area_m2' => (string) $estufa['area_m2'],
+                            'obs' => (string) $estufa['obs'],
+                        ], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT);
+                        $estufa_nome_attr = htmlspecialchars((string) $estufa['nome'], ENT_QUOTES, 'UTF-8');
+
                         echo '<div class="item item-propriedade item-estufa v2" id="estufa-' . $estufa['id'] . '">
                             <h4 class="item-title">' . $estufa['nome'] . '</h4>
                             <div class="item-edit">
+                                <button class="edit-btn estufa-acao" type="button" title="Editar estufa"
+                                    onclick="editEstufa(this)"
+                                    data-estufa=\'' . $estufa_json . '\'>
+                                    <div class="edit-icon icon-pen"></div>
+                                </button>
+                                <button class="edit-btn estufa-acao" type="button" title="Excluir estufa"
+                                    onclick="deleteEstufa(this)"
+                                    data-estufa-id="' . (int) $estufa['id'] . '"
+                                    data-estufa-nome="' . $estufa_nome_attr . '">
+                                    <div class="edit-icon icon-trash"></div>
+                                </button>
                                 <button class="edit-btn" id="edit-estufa-' . $estufa['id'] . '" type="button" onclick="selectEstufa(' . $estufa['id'] . ')">
                                     Selecionar
                                 </button>
@@ -446,11 +465,12 @@ if (!headers_sent()) {
                                         <button class="item-btn item-bancada-btn fundo-cinza-b cor-preto" id="bancada-' . $bancada['nome'] . '-cancel" type="button" onclick="voltarEstufa('. strval($estufa['id']) . ')">
                                             <span class="main-btn-text">Voltar</span>
                                         </button>
-                                        <!--
-                                        <button class="item-btn item-bancada-btn" id="bancada-' . $bancada['nome'] . '-remove" type="button">
+                                        <button class="item-btn item-bancada-btn fundo-vermelho cor-branco" id="bancada-' . $bancada['nome'] . '-remove" type="button"
+                                            onclick="deleteBancada(this)"
+                                            data-bancada-id="' . (int) $bancada['id'] . '"
+                                            data-bancada-nome="' . $bancada_nome_attr . '">
                                             <span class="main-btn-text">Remover Bancada</span>
                                         </button>
-                                        -->
                                     </div>
 
                                 </div>
@@ -542,6 +562,7 @@ if (!headers_sent()) {
                 </div>
 
                 <form action="hidroponia.php" class="main-form container" id="add-estufa">
+                    <input type="hidden" name="eid" id="e-id">
 
                     <div class="item-add">
                         <button class="main-btn btn-alter btn-alter-item fundo-verde" id="estufa-add" type="button">

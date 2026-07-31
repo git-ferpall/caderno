@@ -34,6 +34,28 @@
   color: var(--branco);
 }
 
+/* —— Ações da estufa (editar / excluir) —— */
+#hidroponia .item-estufa .item-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#hidroponia .item-estufa .edit-btn.estufa-acao {
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#hidroponia .item-estufa .edit-btn.estufa-acao .edit-icon,
+#hidroponia .item-estufa .edit-btn.estufa-acao .edit-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
 /* —— Painel expandido da estufa —— */
 #hidroponia .item-estufa-box {
   background: rgba(255, 255, 255, 0.55);
