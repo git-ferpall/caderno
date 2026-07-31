@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../configuracao/usuarios_local.php'; // conexão + helpers
 require_once __DIR__ . '/../configuracao/login_rate_limit.php';
+require_once __DIR__ . '/../configuracao/senha_policy.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -41,8 +42,9 @@ $senhaNova  = (string)($_POST['senha_nova'] ?? '');
 if ($senhaAtual === '' || $senhaNova === '') {
     senhaJson(['ok' => false, 'msg' => 'Preencha a senha atual e a nova senha.'], 400);
 }
-if (strlen($senhaNova) < 8) {
-    senhaJson(['ok' => false, 'msg' => 'A nova senha deve ter pelo menos 8 caracteres.'], 400);
+$erroSenha = senhaValidarPolitica($senhaNova);
+if ($erroSenha !== null) {
+    senhaJson(['ok' => false, 'msg' => $erroSenha], 400);
 }
 
 $rateScope = 'pwd:' . $userId;

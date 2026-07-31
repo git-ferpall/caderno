@@ -49,7 +49,7 @@ require_perfil(['representante', 'admin']);
                             <input type="email" id="cc-email" name="email" placeholder="Ex.: joao@email.com">
                         </div>
                         <div class="au-field">
-                            <label for="cc-senha">Senha <small>(mín. 8 caracteres)</small></label>
+                            <label for="cc-senha">Senha <small>(mín. 8 caracteres, maiúscula, minúscula e número)</small></label>
                             <input type="password" id="cc-senha" name="senha" placeholder="••••••••" required minlength="8" autocomplete="new-password">
                         </div>
                         <div class="au-form-actions">

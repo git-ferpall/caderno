@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/configuracao_conexao.php';
+require_once __DIR__ . '/senha_policy.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Firebase\JWT\JWT;
@@ -277,8 +278,9 @@ function usuarioCriarLocal(mysqli $mysqli, array $dados, ?int $criado_por = null
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new InvalidArgumentException('E-mail inválido.');
     }
-    if (strlen($senha) < 8) {
-        throw new InvalidArgumentException('A senha deve ter pelo menos 8 caracteres.');
+    $erroSenha = senhaValidarPolitica($senha);
+    if ($erroSenha !== null) {
+        throw new InvalidArgumentException($erroSenha);
     }
     if (!in_array($perfil, USUARIO_PERFIS, true)) {
         throw new InvalidArgumentException('Perfil inválido.');

@@ -186,7 +186,7 @@ $ehFuncionario = $GLOBALS['conta_funcionario'] !== null;
                     <div class="form-campo">
                         <label for="pf-senha-nova">Nova senha</label>
                         <div class="form-senha">
-                            <input class="form-text" type="password" name="senha_nova" id="pf-senha-nova" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required>
+                            <input class="form-text" type="password" name="senha_nova" id="pf-senha-nova" placeholder="Mín. 8 caracteres, maiúscula, minúscula e número" minlength="8" autocomplete="new-password" required>
                             <button type="button" class="toggle-senha" onclick="toggleSenha(this)">Ver</button>
                         </div>
                     </div>

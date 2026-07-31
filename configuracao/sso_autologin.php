@@ -1,21 +1,45 @@
 <?php
 require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/https.php';
+require_once __DIR__ . '/sso_autologin_helper.php';
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Firebase\JWT\JWT;
 
-$uid = $_GET['uid'] ?? '';
-$sig = $_GET['sig'] ?? '';
+$uid = (string) ($_GET['uid'] ?? '');
+$exp = (string) ($_GET['exp'] ?? '');
+$sig = (string) ($_GET['sig'] ?? '');
 
-if (!$uid || !$sig) die('Parâmetros inválidos.');
+if ($uid === '' || $sig === '') {
+    http_response_code(400);
+    exit('Parâmetros inválidos.');
+}
 
-$SECRET = JWT_SECRET; // definido em env.php (env var ou secrets.php)
-$expected_sig = hash_hmac('sha256', $uid, $SECRET);
-
-if (!hash_equals($expected_sig, $sig)) die('Assinatura inválida.');
-
+$SECRET = JWT_SECRET;
 $now = time();
+
+if ($exp === '') {
+    http_response_code(400);
+    exit('Link expirado ou inválido. Solicite um novo acesso.');
+}
+
+$expTs = (int) $exp;
+if ($expTs < $now) {
+    http_response_code(400);
+    exit('Link expirado. Solicite um novo acesso.');
+}
+if ($expTs > $now + SSO_AUTOLOGIN_MAX_AGE_SECONDS) {
+    http_response_code(400);
+    exit('Link inválido.');
+}
+
+$expectedSig = hash_hmac('sha256', $uid . '|' . $exp, $SECRET);
+if (!hash_equals($expectedSig, $sig)) {
+    http_response_code(403);
+    exit('Assinatura inválida.');
+}
+
 $payload = [
     'iss' => 'https://frutag.com.br',
     'aud' => 'frutag-apps',
@@ -28,13 +52,16 @@ $payload = [
 
 $jwt = JWT::encode($payload, $SECRET, 'HS256');
 
-setcookie('AUTH_COOKIE', $jwt, [
-    'expires'  => time() + 3600,
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? '') === '443');
+
+setcookie(AUTH_COOKIE, $jwt, [
+    'expires'  => $now + 3600,
     'path'     => '/',
-    'domain'   => '.frutag.com.br',  // 🔥 ESSENCIAL
-    'secure'   => true,
+    'domain'   => '.frutag.com.br',
+    'secure'   => $isHttps,
     'httponly' => true,
-    'samesite' => 'Lax'
+    'samesite' => 'Lax',
 ]);
 
 header('Location: /home');

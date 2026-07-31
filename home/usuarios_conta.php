@@ -106,7 +106,7 @@ $vagasRestantes = max(0, $funcLimite - $funcAtivos);
                                     <input type="email" id="cf-email" name="email" placeholder="Ex.: joao@email.com" autocomplete="email">
                                 </div>
                                 <div class="uc-field">
-                                    <label for="cf-senha">Senha <small>(mín. 8 caracteres)</small></label>
+                                    <label for="cf-senha">Senha <small>(mín. 8 caracteres, maiúscula, minúscula e número)</small></label>
                                     <input type="password" id="cf-senha" name="senha" placeholder="••••••••" required minlength="8" autocomplete="new-password">
                                 </div>
                             </div>

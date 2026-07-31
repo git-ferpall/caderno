@@ -49,7 +49,7 @@ require_admin();
                             <input type="email" id="cu-email" name="email" placeholder="Ex.: maria@email.com">
                         </div>
                         <div class="au-field">
-                            <label for="cu-senha">Senha <small>(mín. 8 caracteres)</small></label>
+                            <label for="cu-senha">Senha <small>(mín. 8 caracteres, maiúscula, minúscula e número)</small></label>
                             <input type="password" id="cu-senha" name="senha" placeholder="••••••••" required minlength="8" autocomplete="new-password">
                         </div>
                         <div class="au-field">

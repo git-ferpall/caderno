@@ -162,3 +162,45 @@ function login_rate_limit_block_message(?string $scope = null): string
     $mins = max(1, (int) ceil(login_rate_limit_remaining_seconds($scope) / 60));
     return "Muitas tentativas de login. Aguarde {$mins} minuto(s) e tente novamente.";
 }
+
+function login_rate_limit_record_action(
+    string $scope,
+    int $maxAttempts = 10,
+    int $lockSeconds = 900
+): void {
+    $key = hash('sha256', 'action:' . mb_strtolower(trim($scope)));
+    $data = login_rate_limit_read($key);
+    $data['failures'] = (int) ($data['failures'] ?? 0) + 1;
+
+    if ($data['failures'] >= $maxAttempts) {
+        $data['locked_until'] = time() + $lockSeconds;
+        $data['failures'] = 0;
+    }
+
+    login_rate_limit_write($key, $data);
+}
+
+function login_rate_limit_is_action_blocked(
+    string $scope,
+    int $maxAttempts = 10,
+    int $lockSeconds = 900
+): bool {
+    $key = hash('sha256', 'action:' . mb_strtolower(trim($scope)));
+    $data = login_rate_limit_read($key);
+    $lockedUntil = (int) ($data['locked_until'] ?? 0);
+
+    if ($lockedUntil > time()) {
+        return true;
+    }
+
+    if ($lockedUntil > 0) {
+        @unlink(login_rate_limit_file($key));
+    }
+
+    return (int) ($data['failures'] ?? 0) >= $maxAttempts;
+}
+
+function login_rate_limit_action_message(): string
+{
+    return 'Muitas ações em sequência. Aguarde alguns minutos e tente novamente.';
+}
