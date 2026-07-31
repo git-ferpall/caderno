@@ -32,7 +32,6 @@
 DirectoryIndex index.php index.html
 
 <IfModule mod_headers.c>
-    # nginx já envia X-Frame-Options, X-Content-Type-Options, Referrer-Policy e HSTS
+    # Demais headers (HSTS, X-Frame-Options, etc.) vêm do nginx
     Header always set X-XSS-Protection "1; mode=block"
-    Header always set Permissions-Policy "microphone=(self), camera=()"
 </IfModule>
