@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../configuracao/usuarios_local.php';
+require_once __DIR__ . '/../funcoes/conta/helpers.php';
 
 require_conta_gestao();
 
