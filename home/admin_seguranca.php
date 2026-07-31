@@ -19,131 +19,172 @@ require_admin();
     <div id="conteudo">
         <?php include '../include/menu.php' ?>
 
-        <main class="sistema fundo-img au-page">
-            <div class="container au-shell">
-                <header class="au-header">
-                    <h1>Segurança e auditoria</h1>
-                    <p>Monitore tentativas de login, falhas de autenticação e possíveis ataques de força bruta.</p>
+        <main class="sistema fundo-img sec-page">
+            <div class="container sec-shell">
+
+                <header class="sec-hero">
+                    <div class="sec-hero-text">
+                        <div class="sec-eyebrow">
+                            <span class="sec-eyebrow-dot" aria-hidden="true"></span>
+                            Monitoramento ativo
+                        </div>
+                        <h1>Segurança e auditoria</h1>
+                        <p>Acompanhe tentativas de login, detecte padrões suspeitos e monitore a proteção contra força bruta em tempo real.</p>
+                    </div>
+                    <div class="sec-hero-actions">
+                        <button type="button" class="sec-btn" id="sec-refresh" title="Atualizar dados">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                                <path d="M21 3v6h-6"/>
+                            </svg>
+                            Atualizar
+                        </button>
+                    </div>
                 </header>
 
-                <section class="au-card">
-                    <div class="au-card-head au-accent-verde">
-                        <div>
-                            <h2>Resumo</h2>
-                            <p id="as-resumo-periodo">Últimos 7 dias</p>
+                <div class="sec-kpis" id="sec-kpis">
+                    <article class="sec-kpi sec-kpi--total">
+                        <div class="sec-kpi-top">
+                            <div>
+                                <div class="sec-kpi-label">Total</div>
+                            </div>
+                            <div class="sec-kpi-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                            </div>
                         </div>
-                    </div>
-                    <div class="as-stats" id="as-stats">
-                        <div class="as-stat">
-                            <span class="as-stat-value" id="as-total">—</span>
-                            <span class="as-stat-label">Total</span>
-                        </div>
-                        <div class="as-stat as-stat-ok">
-                            <span class="as-stat-value" id="as-sucessos">—</span>
-                            <span class="as-stat-label">Sucessos</span>
-                        </div>
-                        <div class="as-stat as-stat-fail">
-                            <span class="as-stat-value" id="as-falhas">—</span>
-                            <span class="as-stat-label">Falhas</span>
-                        </div>
-                    </div>
-                </section>
+                        <div class="sec-kpi-value" id="as-total">—</div>
+                        <div class="sec-kpi-foot" id="as-resumo-periodo">Últimos 7 dias</div>
+                    </article>
 
-                <div class="as-grid-2">
-                    <section class="au-card">
-                        <div class="au-card-head">
-                            <h2>Falhas por motivo</h2>
+                    <article class="sec-kpi sec-kpi--ok">
+                        <div class="sec-kpi-top">
+                            <div class="sec-kpi-label">Sucessos</div>
+                            <div class="sec-kpi-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>
+                            </div>
                         </div>
-                        <div class="au-table-wrap">
-                            <table class="au-table" id="tabela-motivos">
-                                <thead>
-                                    <tr>
-                                        <th>Motivo</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <div class="sec-kpi-value" id="as-sucessos">—</div>
+                        <div class="sec-kpi-foot">Logins autorizados</div>
+                    </article>
+
+                    <article class="sec-kpi sec-kpi--fail">
+                        <div class="sec-kpi-top">
+                            <div class="sec-kpi-label">Falhas</div>
+                            <div class="sec-kpi-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                            </div>
                         </div>
+                        <div class="sec-kpi-value" id="as-falhas">—</div>
+                        <div class="sec-kpi-foot">Tentativas bloqueadas</div>
+                    </article>
+
+                    <article class="sec-kpi sec-kpi--rate">
+                        <div class="sec-kpi-top">
+                            <div class="sec-kpi-label">Taxa de sucesso</div>
+                            <div class="sec-kpi-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </div>
+                        </div>
+                        <div class="sec-kpi-value" id="as-taxa">—</div>
+                        <div class="sec-kpi-foot">Do total no período</div>
+                    </article>
+                </div>
+
+                <div class="sec-grid">
+                    <section class="sec-card" id="card-motivos">
+                        <div class="sec-card-head">
+                            <div>
+                                <h2>Falhas por motivo</h2>
+                                <p>Distribuição das tentativas rejeitadas</p>
+                            </div>
+                        </div>
+                        <div class="sec-card-body" id="sec-motivos"></div>
                     </section>
 
-                    <section class="au-card">
-                        <div class="au-card-head">
-                            <h2>IPs suspeitos</h2>
-                            <p>3 ou mais falhas no período</p>
+                    <section class="sec-card" id="card-ips">
+                        <div class="sec-card-head">
+                            <div>
+                                <h2>IPs suspeitos</h2>
+                                <p>3 ou mais falhas no período</p>
+                            </div>
+                            <span class="sec-badge sec-badge--warn" id="as-ips-count">0 alertas</span>
                         </div>
-                        <div class="au-table-wrap">
-                            <table class="au-table" id="tabela-ips">
-                                <thead>
-                                    <tr>
-                                        <th>IP (hash)</th>
-                                        <th>Falhas</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                        <div class="sec-card-body" id="sec-ips"></div>
                     </section>
                 </div>
 
-                <section class="au-card">
-                    <div class="au-card-head">
+                <section class="sec-card" id="card-lista">
+                    <div class="sec-card-head">
                         <div>
-                            <h2>Tentativas de login</h2>
-                            <p>Login e IP são armazenados como hash por privacidade.</p>
+                            <h2>Registro de tentativas</h2>
+                            <p>Login e IP armazenados como hash por privacidade</p>
                         </div>
-                        <span class="au-chip" id="as-total-lista">—</span>
+                        <span class="sec-badge" id="as-total-lista">—</span>
                     </div>
 
-                    <form class="au-search as-filters" id="form-filtros">
-                        <select name="dias" id="as-dias" aria-label="Período">
-                            <option value="1">Últimas 24h</option>
-                            <option value="7" selected>Últimos 7 dias</option>
-                            <option value="30">Últimos 30 dias</option>
-                            <option value="90">Últimos 90 dias</option>
-                        </select>
-                        <select name="sucesso" id="as-sucesso" aria-label="Resultado">
-                            <option value="">Todos</option>
-                            <option value="1">Somente sucessos</option>
-                            <option value="0">Somente falhas</option>
-                        </select>
-                        <select name="motivo" id="as-motivo" aria-label="Motivo">
-                            <option value="">Todos os motivos</option>
-                            <option value="senha_invalida">Senha inválida</option>
-                            <option value="captcha_fail">reCAPTCHA falhou</option>
-                            <option value="captcha_vazio">reCAPTCHA vazio</option>
-                            <option value="bloqueado">Bloqueado (rate limit)</option>
-                            <option value="sem_permissao">Sem permissão</option>
-                            <option value="auth_fail">Falha na API</option>
-                            <option value="ok_local">Sucesso local</option>
-                            <option value="ok_frutag">Sucesso Frutag</option>
-                        </select>
-                        <input type="search" name="login" id="as-login" placeholder="Filtrar por login..." autocomplete="off">
-                        <button type="submit">Filtrar</button>
+                    <form class="sec-toolbar" id="form-filtros">
+                        <div class="sec-field">
+                            <label for="as-dias">Período</label>
+                            <select name="dias" id="as-dias">
+                                <option value="1">Últimas 24h</option>
+                                <option value="7" selected>Últimos 7 dias</option>
+                                <option value="30">Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                            </select>
+                        </div>
+                        <div class="sec-field">
+                            <label for="as-sucesso">Resultado</label>
+                            <select name="sucesso" id="as-sucesso">
+                                <option value="">Todos</option>
+                                <option value="1">Somente sucessos</option>
+                                <option value="0">Somente falhas</option>
+                            </select>
+                        </div>
+                        <div class="sec-field">
+                            <label for="as-motivo">Motivo</label>
+                            <select name="motivo" id="as-motivo">
+                                <option value="">Todos</option>
+                                <option value="senha_invalida">Senha inválida</option>
+                                <option value="captcha_fail">reCAPTCHA falhou</option>
+                                <option value="captcha_vazio">reCAPTCHA vazio</option>
+                                <option value="bloqueado">Rate limit</option>
+                                <option value="sem_permissao">Sem permissão</option>
+                                <option value="auth_fail">Falha na API</option>
+                                <option value="ok_local">Sucesso local</option>
+                                <option value="ok_frutag">Sucesso Frutag</option>
+                            </select>
+                        </div>
+                        <div class="sec-field sec-field--wide">
+                            <label for="as-login">Login</label>
+                            <input type="search" name="login" id="as-login" placeholder="Filtrar por usuário..." autocomplete="off">
+                        </div>
+                        <button type="submit" class="sec-filter-btn">Aplicar filtros</button>
                     </form>
 
-                    <div class="au-table-wrap">
-                        <table class="au-table" id="tabela-tentativas">
-                            <thead>
-                                <tr>
-                                    <th>Data/hora</th>
-                                    <th>Login (hash)</th>
-                                    <th>IP (hash)</th>
-                                    <th>Resultado</th>
-                                    <th>Motivo</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <div class="sec-card-body">
+                        <div class="sec-table-wrap">
+                            <table class="sec-table" id="tabela-tentativas">
+                                <thead>
+                                    <tr>
+                                        <th>Data / hora</th>
+                                        <th>Login</th>
+                                        <th>IP</th>
+                                        <th>Status</th>
+                                        <th>Motivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="sec-pagination" id="as-pagination"></div>
                     </div>
-
-                    <div class="as-pagination" id="as-pagination"></div>
                 </section>
+
             </div>
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/admin_seguranca.js?v=1"></script>
+        <script src="../js/admin_seguranca.js?v=2"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>
