@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../configuracao/usuarios_local.php'; // conexão + helpers
+require_once __DIR__ . '/../configuracao/login_rate_limit.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -44,11 +45,17 @@ if (strlen($senhaNova) < 8) {
     senhaJson(['ok' => false, 'msg' => 'A nova senha deve ter pelo menos 8 caracteres.'], 400);
 }
 
+$rateScope = 'pwd:' . $userId;
+if (login_rate_limit_is_blocked($rateScope)) {
+    senhaJson(['ok' => false, 'msg' => login_rate_limit_block_message($rateScope)], 429);
+}
+
 $usuario = usuarioBuscarPorId($mysqli, $userId);
 if (!$usuario || $usuario['origem'] !== 'local' || (int)$usuario['ativo'] !== 1) {
     senhaJson(['ok' => false, 'msg' => 'Usuário não encontrado.'], 404);
 }
 if (!password_verify($senhaAtual, (string)$usuario['senha_hash'])) {
+    login_rate_limit_record_failure($rateScope);
     senhaJson(['ok' => false, 'msg' => 'Senha atual incorreta.'], 400);
 }
 
@@ -58,4 +65,5 @@ $stmt->bind_param('si', $hash, $userId);
 $stmt->execute();
 $stmt->close();
 
+login_rate_limit_reset($rateScope);
 senhaJson(['ok' => true, 'msg' => 'Senha alterada com sucesso.']);

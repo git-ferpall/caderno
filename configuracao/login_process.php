@@ -31,9 +31,8 @@ if ($login === '' || $senha === '') {
     exit;
 }
 
-if (login_rate_limit_is_blocked()) {
-    $mins = max(1, (int) ceil(login_rate_limit_remaining_seconds() / 60));
-    setLoginError("Muitas tentativas de login. Aguarde {$mins} minuto(s) e tente novamente.");
+if (login_rate_limit_is_blocked($login)) {
+    setLoginError(login_rate_limit_block_message($login));
     header('Location: /');
     exit;
 }
@@ -45,6 +44,7 @@ if (login_rate_limit_is_blocked()) {
  */
 if (empty($captcha)) {
     error_log("reCAPTCHA token vazio");
+    login_rate_limit_record_failure($login);
     setLoginError('Validação de segurança falhou. Recarregue a página e tente novamente.');
     header('Location: /');
     exit;
@@ -85,6 +85,7 @@ $captcha_data = json_decode($response, true);
 $score = $captcha_data['score'] ?? 0;
 if (empty($captcha_data['success']) || $score < 0.2) {
     error_log("reCAPTCHA falhou: score=" . ($score ?: 'null'));
+    login_rate_limit_record_failure($login);
     setLoginError('Falha na validação de segurança. Tente novamente.');
     header('Location: /');
     exit;
@@ -108,7 +109,7 @@ if ($usuarioLocal) {
         exit;
     }
     if (!password_verify($senha, (string)$usuarioLocal['senha_hash'])) {
-        login_rate_limit_record_failure();
+        login_rate_limit_record_failure($login);
         setLoginError('Usuário ou senha incorretos.');
         header('Location: /');
         exit;
@@ -146,7 +147,7 @@ if ($usuarioLocal) {
     }
     setcookie(AUTH_COOKIE, $jwt, usuarioCookieOptions(3600));
     csrf_issue_token(3600);
-    login_rate_limit_reset();
+    login_rate_limit_reset($login);
 
     $destino = caderno_safe_redirect_path($next);
     header('Location: ' . $destino);
@@ -185,7 +186,7 @@ if (!$r || ($r['status'] ?? 0) === 0 || ($r['body'] ?? '') === '' || ($r['status
  */
 if (($r['status'] ?? 0) === 401) {
     error_log("AUTH_API 401 body=" . substr($r['body'], 0, 400));
-    login_rate_limit_record_failure();
+    login_rate_limit_record_failure($login);
     setLoginError('Usuário ou senha incorretos.');
     header('Location: /');
     exit;
@@ -193,6 +194,7 @@ if (($r['status'] ?? 0) === 401) {
 
 if (($r['status'] ?? 0) === 403) {
     error_log("AUTH_API 403 body=" . substr($r['body'], 0, 400));
+    login_rate_limit_record_failure($login);
     setLoginError('Usuário sem permissão para acessar o Caderno de Campo.');
     header('Location: /');
     exit;
@@ -201,6 +203,7 @@ if (($r['status'] ?? 0) === 403) {
 $j = json_decode($r['body'], true);
 if (!is_array($j) || empty($j['ok']) || empty($j['token'])) {
     error_log("AUTH_API sem ok/token body=" . substr($r['body'], 0, 400));
+    login_rate_limit_record_failure($login);
     setLoginError('Falha na autenticação. Verifique suas credenciais.');
     header('Location: /');
     exit;
@@ -247,7 +250,7 @@ $cookieOptions = [
 ];
 setcookie(AUTH_COOKIE, $j['token'], $cookieOptions);
 csrf_issue_token(3600);
-login_rate_limit_reset();
+login_rate_limit_reset($login);
 
 error_log("AUTH_COOKIE setado (secure=" . ($cookieOptions['secure'] ? '1' : '0') . ") host=" . ($_SERVER['HTTP_HOST'] ?? ''));
 
