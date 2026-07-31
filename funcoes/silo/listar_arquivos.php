@@ -36,11 +36,18 @@ try {
                    caminho_arquivo, parent_id, criado_em, atualizado_em
             FROM silo_arquivos
             WHERE user_id = ?
-              AND (parent_id IS NULL OR parent_id = 0)
+              AND (
+                parent_id IS NULL
+                OR parent_id = 0
+                OR parent_id NOT IN (
+                    SELECT id FROM silo_arquivos AS p
+                    WHERE p.user_id = ? AND p.tipo = 'pasta'
+                )
+              )
             ORDER BY tipo_arquivo DESC, nome_arquivo ASC
         ");
 
-        $stmt->bind_param('i', $user_id);
+        $stmt->bind_param('ii', $user_id, $user_id);
 
     } else {
 

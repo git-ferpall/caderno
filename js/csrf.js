@@ -20,6 +20,25 @@
     return next;
   }
 
+  const originalXhrOpen = XMLHttpRequest.prototype.open;
+  const originalXhrSend = XMLHttpRequest.prototype.send;
+
+  XMLHttpRequest.prototype.open = function (method, ...args) {
+    this._csrfMethod = String(method || "GET").toUpperCase();
+    return originalXhrOpen.call(this, method, ...args);
+  };
+
+  XMLHttpRequest.prototype.send = function (body) {
+    const method = this._csrfMethod || "GET";
+    if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+      const token = getCsrfToken();
+      if (token) {
+        this.setRequestHeader("X-CSRF-Token", token);
+      }
+    }
+    return originalXhrSend.call(this, body);
+  };
+
   const originalFetch = window.fetch.bind(window);
   window.fetch = function (input, init) {
     const method = String(

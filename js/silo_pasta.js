@@ -10,7 +10,25 @@ const escapeHtml = (value) =>
 // 🌍 Global (usado também por upload e listar)
 window.pastaAtual = parseInt(localStorage.getItem("silo_pastaAtual")) || 0;
 
-document.addEventListener("DOMContentLoaded", () => {
+async function validarPastaAtual() {
+  if (!window.pastaAtual || window.pastaAtual === 0) return;
+
+  try {
+    const res = await fetch(`../funcoes/silo/get_parent.php?id=${window.pastaAtual}`, {
+      credentials: "include",
+    });
+    const j = await res.json();
+    if (!j.ok) {
+      window.pastaAtual = 0;
+      localStorage.setItem("silo_pastaAtual", "0");
+    }
+  } catch {
+    window.pastaAtual = 0;
+    localStorage.setItem("silo_pastaAtual", "0");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
   const btnCriarPasta = document.getElementById("btn-silo-pasta");
   if (btnCriarPasta) {
     btnCriarPasta.addEventListener("click", criarPasta);
@@ -18,6 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn("⚠️ Botão #btn-silo-pasta não encontrado.");
   }
 
+  await validarPastaAtual();
+  atualizarLista();
   atualizarBreadcrumb();
 });
 

@@ -39,8 +39,18 @@ function siloShowError(mensagem, onOk) {
 
   overlay.classList.remove("d-none");
   popup.classList.remove("d-none");
+  const title = popup.querySelector(".popup-title");
   const text = popup.querySelector(".popup-text");
-  if (text) text.textContent = mensagem;
+  if (title) {
+    title.textContent = mensagem === "csrf_invalid"
+      ? "Sessão expirada"
+      : "Não foi possível salvar os dados";
+  }
+  if (text) {
+    text.textContent = mensagem === "csrf_invalid"
+      ? "Recarregue a página e tente novamente."
+      : mensagem;
+  }
 
   const btn = popup.querySelector(".popup-btn");
   if (btn) {

@@ -70,6 +70,10 @@ function enviarArquivosSilo(files) {
   fd.append("arquivo", file);
   fd.append("origem", "upload");
   fd.append("parent_id", window.pastaAtual || 0);
+  const csrfMatch = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  if (csrfMatch) {
+    fd.append("csrf_token", decodeURIComponent(csrfMatch[1]));
+  }
 
   console.log("📁 Enviando para pasta:", window.pastaAtual);
 
