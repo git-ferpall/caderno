@@ -16,11 +16,10 @@ if ($valor === '') {
 }
 
 // disponível somente se estiver livre no Caderno E na integração Frutag
-$livreLocal  = usuarioCredencialDisponivel($mysqli, $valor);
-$livreFrutag = $livreLocal ? usuarioCredencialDisponivelFrutag($valor) : true;
+$status = usuarioCredencialStatus($mysqli, $valor);
 
 adminJson([
     'ok'         => true,
-    'disponivel' => $livreLocal && $livreFrutag,
-    'origem'     => !$livreLocal ? 'caderno' : (!$livreFrutag ? 'frutag' : null),
+    'disponivel' => $status['disponivel'],
+    'origem'     => $status['origem'],
 ]);

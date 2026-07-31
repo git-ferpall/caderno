@@ -84,6 +84,29 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<tr class="au-vazio"><td colspan="5">Nenhum acesso criado ainda.</td></tr>`;
   }
 
+  function mensagemCredencialIndisponivel(campo, origem) {
+    if (origem === "frutag") return `${campo} já está em uso na Frutag. Escolha outro.`;
+    return `${campo} já está em uso. Escolha outro.`;
+  }
+
+  async function checarDisponibilidadeCampo(valor, ehEmail = false) {
+    const v = String(valor || "").trim();
+    if (!v) return { disponivel: true, origem: null };
+    if (ehEmail && !v.includes("@")) return { disponivel: true, origem: null };
+    return apiGet("verificar_disponibilidade.php", { valor: v });
+  }
+
+  function aplicarHintDisponibilidade(input, hint, data) {
+    const ok = !!data.disponivel;
+    input.dataset.disponivel = ok ? "1" : "0";
+    hint.textContent = ok
+      ? "✓ Disponível"
+      : data.origem === "frutag"
+        ? "✗ Já está em uso na Frutag"
+        : "✗ Já está em uso";
+    hint.style.color = ok ? "#2e7d32" : "#c62828";
+  }
+
   // --- Verificação de disponibilidade de login/e-mail (em tempo real) ---
   function debounce(fn, ms) {
     let t;
@@ -109,17 +132,12 @@ document.addEventListener("DOMContentLoaded", () => {
       input.dataset.disponivel = "";
       if (!valor || (ehEmail && !valor.includes("@"))) return;
       try {
-        const data = await apiGet("verificar_disponibilidade.php", { valor });
-        const ok = !!data.disponivel;
-        input.dataset.disponivel = ok ? "1" : "0";
-        hint.textContent = ok
-          ? "✓ Disponível"
-          : data.origem === "frutag"
-            ? "✗ Já está em uso na Frutag"
-            : "✗ Já está em uso";
-        hint.style.color = ok ? "#2e7d32" : "#c62828";
+        const data = await checarDisponibilidadeCampo(valor, ehEmail);
+        aplicarHintDisponibilidade(input, hint, data);
       } catch (err) {
-        // silencioso: a validação definitiva acontece no envio
+        hint.textContent = "Não foi possível verificar agora.";
+        hint.style.color = "#c62828";
+        input.dataset.disponivel = "";
       }
     }, 400);
 
@@ -136,10 +154,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   formCriar?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (["cf-login", "cf-email"].some((id) => document.getElementById(id)?.dataset.disponivel === "0")) {
-      alert("Login ou e-mail já está em uso. Escolha outro.");
+    const login = document.getElementById("cf-login")?.value?.trim() || "";
+    const email = document.getElementById("cf-email")?.value?.trim() || "";
+
+    try {
+      const rLogin = await checarDisponibilidadeCampo(login);
+      if (!rLogin.disponivel) {
+        alert(mensagemCredencialIndisponivel("Login", rLogin.origem));
+        return;
+      }
+      if (email) {
+        const rEmail = await checarDisponibilidadeCampo(email, true);
+        if (!rEmail.disponivel) {
+          alert(mensagemCredencialIndisponivel("E-mail", rEmail.origem));
+          return;
+        }
+      }
+    } catch (err) {
+      alert(err.message || "Não foi possível verificar login/e-mail. Tente novamente.");
       return;
     }
+
     const fd = new FormData(formCriar);
     fd.append("acao", "criar");
     try {

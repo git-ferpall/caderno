@@ -214,6 +214,25 @@ function usuarioCredencialDisponivelFrutag(string $valor): bool
 }
 
 /**
+ * Resultado unificado da verificação de credencial (Caderno + Frutag).
+ * Retorna ['disponivel' => bool, 'origem' => 'caderno'|'frutag'|null].
+ */
+function usuarioCredencialStatus(mysqli $mysqli, string $valor): array
+{
+    $valor = strtolower(trim($valor));
+    if ($valor === '') {
+        return ['disponivel' => false, 'origem' => null];
+    }
+    if (!usuarioCredencialDisponivel($mysqli, $valor)) {
+        return ['disponivel' => false, 'origem' => 'caderno'];
+    }
+    if (!usuarioCredencialDisponivelFrutag($valor)) {
+        return ['disponivel' => false, 'origem' => 'frutag'];
+    }
+    return ['disponivel' => true, 'origem' => null];
+}
+
+/**
  * Cria usuário local. $dados: nome, login, senha, email (opcional), perfil (opcional),
  * conta_pai + papel_conta (opcionais — funcionário vinculado a uma conta principal).
  * Lança InvalidArgumentException com mensagem amigável em caso de validação.

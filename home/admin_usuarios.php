@@ -103,7 +103,7 @@ require_admin();
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/admin_usuarios.js"></script>
+        <script src="../js/admin_usuarios.js?v=2"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>

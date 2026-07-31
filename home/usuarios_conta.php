@@ -112,7 +112,7 @@ $funcAtivos = contaFuncContarAtivos($mysqli, $contaId);
         </main>
 
         <?php include '../include/imports.php' ?>
-        <script src="../js/usuarios_conta.js"></script>
+        <script src="../js/usuarios_conta.js?v=2"></script>
         <?php include '../include/footer.php' ?>
     </div>
 </body>
