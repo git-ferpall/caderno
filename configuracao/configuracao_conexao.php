@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/errors.php';
 require_once __DIR__ . '/https.php';
 require_once __DIR__ . '/secrets_loader.php';
 

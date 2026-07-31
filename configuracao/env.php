@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/errors.php';
 require_once __DIR__ . '/secrets_loader.php';
 
 define('AUTH_API_LOGIN', 'https://frutag.com.br/sso/login.php');

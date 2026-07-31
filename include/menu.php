@@ -226,6 +226,10 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-people cor-branco"></div>
                     <span class="link-title cor-branco">Painel Administrativo</span>
                 </li></a>
+                <a href="/home/admin_seguranca"><li class="menu-link fundo-preto">
+                    <div class="btn-icon icon-file cor-branco"></div>
+                    <span class="link-title cor-branco">Segurança</span>
+                </li></a>
                 <?php endif; ?>
             </ul>
         </div>

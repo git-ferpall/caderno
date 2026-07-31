@@ -1,9 +1,5 @@
 <?php
 
-// 🔒 Nunca exibir erro em retorno JSON
-ini_set('display_errors', 0);
-error_reporting(0);
-
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/fitossanitaria/carencia.php';
