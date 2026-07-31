@@ -88,6 +88,19 @@ function closePopup() {
     unlockPopupScroll();
 }
 
+/** Popup padrão quando o usuário não tem acesso ao módulo. */
+function showPopupAcessoModulo(mensagem = 'Você não possui acesso a esse módulo.') {
+    document.querySelectorAll('.popup-box').forEach((p) => p.classList.add('d-none'));
+    if (overlay) overlay.classList.remove('d-none');
+    if (popupFailed) {
+        popupFailed.classList.remove('d-none');
+        const title = popupFailed.querySelector('.popup-title');
+        const txt = popupFailed.querySelector('.popup-text');
+        if (title) title.textContent = 'Acesso negado';
+        if (txt) txt.textContent = mensagem;
+    }
+}
+
 /* Cancelar */
 document.querySelectorAll('.form-cancel').forEach(el => {
     el.addEventListener('click', () => {

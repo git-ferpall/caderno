@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".js-modulo-restrito").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (typeof showPopupAcessoModulo === "function") {
+        showPopupAcessoModulo();
+      }
+    });
+  });
+
   const grid = document.getElementById("home-dashboard-grid");
   const carouselWrap = document.querySelector(".home-dashboard-carousel-wrap");
   const carousel = document.getElementById("home-dashboard-carousel");
@@ -112,6 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const siloPct = d.silo?.percentual ?? 0;
       const siloCor = siloPct >= 90 ? "#e74c3c" : siloPct >= 70 ? "#f39c12" : "var(--azul)";
+      const apontador = window.CADERNO_HOME_APONTADOR === true;
+      const siloHref = apontador ? "#" : "./silo";
+      const siloClass = apontador ? "home-stat js-modulo-restrito" : "home-stat";
 
       grid.innerHTML =
         statCard({
@@ -153,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
           sub: d.ultima_aplicacao?.tipo ?? "Sem registro",
           valueClass: "is-date",
         }) +
-        `<a href="./silo" class="home-stat">
+        `<a href="${siloHref}" class="${siloClass}">
           <div class="home-stat-head">
             <span class="home-stat-emoji">📦</span>
             <span class="home-stat-value">${siloPct}%</span>
@@ -162,6 +174,17 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="home-stat-sub">${fmtBytes(d.silo?.usado_bytes)} usados</span>
           <div class="home-stat-bar"><div class="home-stat-bar-fill" style="width:${siloPct}%;background:${siloCor}"></div></div>
         </a>`;
+
+      if (apontador) {
+        grid.querySelectorAll(".js-modulo-restrito").forEach((el) => {
+          el.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (typeof showPopupAcessoModulo === "function") {
+              showPopupAcessoModulo();
+            }
+          });
+        });
+      }
 
       initMobileCarousel();
     })

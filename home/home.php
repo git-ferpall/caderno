@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../configuracao/protect.php';
 
+$homeApontador = caderno_conta_papel() === 'apontador';
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -29,13 +31,28 @@ require_once __DIR__ . '/../configuracao/protect.php';
                         <div class="home-property">
                             <div class="home-property-icon" aria-hidden="true">🏡</div>
                             <div class="home-property-body">
-                                <?php if (!empty($propriedades)) :
-                                    $propriedade = $propriedades[0]; ?>
-                                    <h2 class="home-property-name"><?= htmlspecialchars($propriedade['nome_razao']) ?></h2>
+                                <?php
+                                $propriedadeAtiva = null;
+                                foreach ($propriedades as $p) {
+                                    if (!empty($p['ativo'])) {
+                                        $propriedadeAtiva = $p;
+                                        break;
+                                    }
+                                }
+                                if (!$propriedadeAtiva && !empty($propriedades)) {
+                                    $propriedadeAtiva = $propriedades[0];
+                                }
+                                ?>
+                                <?php if ($propriedadeAtiva) : ?>
+                                    <h2 class="home-property-name"><?= htmlspecialchars($propriedadeAtiva['nome_razao']) ?></h2>
+                                    <?php if (count($propriedades) > 1) : ?>
                                     <button class="home-property-edit" type="button" onclick="altProp()" aria-label="Alterar propriedade">
                                         <span class="home-property-edit-icon" aria-hidden="true">↔</span>
                                         <span>Alterar propriedade</span>
                                     </button>
+                                    <?php endif; ?>
+                                <?php elseif ($homeApontador) : ?>
+                                    <h2 class="home-property-name">Nenhuma propriedade disponível</h2>
                                 <?php else : ?>
                                     <h2 class="home-property-name">Nenhuma propriedade</h2>
                                     <button class="home-property-edit home-property-edit--cadastrar" type="button" onclick="altProp()" aria-label="Cadastrar propriedade">
@@ -57,21 +74,21 @@ require_once __DIR__ . '/../configuracao/protect.php';
                                 <span class="home-action-icon"><div class="btn-icon icon-plus cor-branco"></div></span>
                                 <span class="home-action-text">Novo apontamento</span>
                             </a>
-                            <a href="/home/silo" class="home-action-btn home-action-main home-action-blue">
+                            <a href="<?= $homeApontador ? '#' : '/home/silo' ?>" class="home-action-btn home-action-main home-action-blue<?= $homeApontador ? ' js-modulo-restrito' : '' ?>">
                                 <span class="home-action-icon"><div class="btn-icon icon-silo cor-branco"></div></span>
                                 <span class="home-action-text">Silo de dados</span>
                             </a>
                         </div>
                         <div class="home-actions-secondary">
-                            <a href="/home/produtos" class="home-action-btn home-action-sm">
+                            <a href="<?= $homeApontador ? '#' : '/home/produtos' ?>" class="home-action-btn home-action-sm<?= $homeApontador ? ' js-modulo-restrito' : '' ?>">
                                 <div class="btn-icon icon-fruit"></div>
                                 <span>Produtos</span>
                             </a>
-                            <a href="/home/areas" class="home-action-btn home-action-sm">
+                            <a href="<?= $homeApontador ? '#' : '/home/areas' ?>" class="home-action-btn home-action-sm<?= $homeApontador ? ' js-modulo-restrito' : '' ?>">
                                 <div class="btn-icon icon-plant"></div>
                                 <span>Áreas</span>
                             </a>
-                            <a href="/home/relatorios" class="home-action-btn home-action-sm">
+                            <a href="<?= $homeApontador ? '#' : '/home/relatorios' ?>" class="home-action-btn home-action-sm<?= $homeApontador ? ' js-modulo-restrito' : '' ?>">
                                 <div class="btn-icon icon-pen"></div>
                                 <span>Relatórios</span>
                             </a>
@@ -202,6 +219,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
 
         <?php include '../include/imports.php' ?>
         <?php include '../include/assistente_voz.php' ?>
+        <script>window.CADERNO_HOME_APONTADOR = <?= $homeApontador ? 'true' : 'false' ?>;</script>
         <script src="../js/home_dashboard.js"></script>
         <script src="../js/home_manejos.js"></script>
         <script src="../js/home_manejos_popup.js"></script>

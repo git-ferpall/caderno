@@ -5,15 +5,18 @@ require_once __DIR__ . '/../configuracao/protect.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 
 // Pega user_id via sessão ou JWT
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    $payload = verify_jwt();
-    $user_id = $payload['sub'] ?? null;
-}
+$payload = verify_jwt();
+$user_id = $_SESSION['user_id'] ?? ($payload['sub'] ?? null);
+$func_id = (int)($payload['func_id'] ?? 0) ?: null;
 
 $propriedades = [];
 if ($user_id) {
-    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ? ORDER BY ativo DESC, created_at DESC");
+    $filtroProp = '';
+    if ($func_id) {
+        require_once __DIR__ . '/../funcoes/conta/helpers.php';
+        $filtroProp = contaFuncionarioSqlFiltroPropriedades($mysqli, $func_id, 'id');
+    }
+    $stmt = $mysqli->prepare("SELECT * FROM propriedades WHERE user_id = ?{$filtroProp} ORDER BY ativo DESC, created_at DESC");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $propriedades = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
