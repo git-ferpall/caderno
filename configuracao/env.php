@@ -8,8 +8,6 @@ define('AUTH_COOKIE', 'token');
 
 if (JWT_SECRET === '') {
     error_log('[caderno] JWT_SECRET não configurado (variável de ambiente ou configuracao/secrets.php).');
-} elseif (strlen(JWT_SECRET) < 32) {
-    error_log('[caderno] JWT_SECRET deve ter pelo menos 32 caracteres (firebase/php-jwt v7 / HS256).');
 }
 
 // IDs Frutag (separados por vírgula) que podem gerenciar offline na primeira instalação.
