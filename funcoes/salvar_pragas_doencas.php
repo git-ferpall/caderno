@@ -127,7 +127,7 @@ try {
 
 } catch (Exception $e) {
     if (isset($mysqli)) $mysqli->rollback();
-    file_put_contents("/tmp/debug_pragas.txt", "❌ ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
+    error_log('[salvar_pragas_doencas] ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'ok'  => false,

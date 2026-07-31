@@ -32,5 +32,10 @@
 DirectoryIndex index.php index.html
 
 <IfModule mod_headers.c>
-    Header set Permissions-Policy "microphone=(self), camera=()"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Permissions-Policy "microphone=(self), camera=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>

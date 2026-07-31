@@ -15,9 +15,6 @@ try {
     $user_id = caderno_require_user_id();
     if (!$user_id) throw new Exception("Usuário não autenticado.");
 
-    file_put_contents("/tmp/debug_personalizado.txt", "=== NOVO PERSONALIZADO " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
-    file_put_contents("/tmp/debug_personalizado.txt", print_r($_POST, true), FILE_APPEND);
-
     // Propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
@@ -55,8 +52,6 @@ try {
     $apontamento_id = $stmt->insert_id;
     $stmt->close();
 
-    file_put_contents("/tmp/debug_personalizado.txt", "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
-
     // Detalhes
     $stmtDet = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
@@ -87,7 +82,7 @@ try {
 
 } catch (Exception $e) {
     if (isset($mysqli)) $mysqli->rollback();
-    file_put_contents("/tmp/debug_personalizado.txt", "ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
+    error_log('[salvar_personalizado] ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['ok' => false, 'msg' => 'Erro inesperado ao salvar apontamento.']);
 }

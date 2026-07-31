@@ -17,10 +17,6 @@ try {
         throw new Exception("Usuário não autenticado.");
     }
 
-    // Log inicial
-    file_put_contents("/tmp/debug_coleta.txt", "=== NOVA COLETA " . date("Y-m-d H:i:s") . " ===\n", FILE_APPEND);
-    file_put_contents("/tmp/debug_coleta.txt", print_r($_POST, true), FILE_APPEND);
-
     // Buscar propriedade ativa
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("i", $user_id);
@@ -61,8 +57,6 @@ try {
     $apontamento_id = $stmtApont->insert_id;
     $stmtApont->close();
 
-    file_put_contents("/tmp/debug_coleta.txt", "✅ Inserido apontamento ID=$apontamento_id\n", FILE_APPEND);
-
     // === Inserir detalhes ===
     $stmtDetalhe = $mysqli->prepare("INSERT INTO apontamento_detalhes (apontamento_id, campo, valor) VALUES (?, ?, ?)");
 
@@ -72,7 +66,6 @@ try {
         $valor = (string)$a;
         $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
         $stmtDetalhe->execute();
-        file_put_contents("/tmp/debug_coleta.txt", "Inserindo área $valor...\n", FILE_APPEND);
     }
 
     // Tipo de análise
@@ -80,7 +73,6 @@ try {
     $valor = (string)$tipo;
     $stmtDetalhe->bind_param("iss", $apontamento_id, $campo, $valor);
     $stmtDetalhe->execute();
-    file_put_contents("/tmp/debug_coleta.txt", "Inserindo detalhe tipo_analise=$valor...\n", FILE_APPEND);
 
     // Laboratório
     if (!empty($laboratorio)) {
@@ -113,7 +105,7 @@ try {
 }
 catch (Exception $e) {
     if (isset($mysqli)) $mysqli->rollback();
-    file_put_contents("/tmp/debug_coleta.txt", "ERRO: " . $e->getMessage() . "\n", FILE_APPEND);
+    error_log('[salvar_coleta_analise] ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['ok' => false, 'msg' => 'Erro inesperado ao salvar coleta.']);
 }

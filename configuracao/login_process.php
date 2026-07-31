@@ -72,9 +72,6 @@ $response = curl_exec($ch);
 $error = curl_error($ch);
 curl_close($ch);
 
-// cria log dedicado
-file_put_contents('/tmp/debug_recaptcha.log', date('[Y-m-d H:i:s] ') . "RAW_RESPONSE: $response | ERROR: $error\n", FILE_APPEND);
-
 if (!$response) {
     error_log("reCAPTCHA erro cURL: $error");
     setLoginError('Erro ao validar o reCAPTCHA. Tente novamente.');
@@ -83,7 +80,6 @@ if (!$response) {
 }
 
 $captcha_data = json_decode($response, true);
-file_put_contents('/tmp/debug_recaptcha.log', date('[Y-m-d H:i:s] ') . "JSON_DECODED: " . json_encode($captcha_data) . "\n", FILE_APPEND);
 
 // se não houver sucesso ou score muito baixo, bloqueia
 $score = $captcha_data['score'] ?? 0;
