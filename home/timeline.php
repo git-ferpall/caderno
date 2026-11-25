@@ -39,6 +39,7 @@ require_once __DIR__ . '/../configuracao/protect.php';
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
                             <option value="concluido">Concluído</option>
+                            <option value="excluido">Excluídos</option>
                         </select>
                     </label>
                     <button type="submit">Filtrar</button>

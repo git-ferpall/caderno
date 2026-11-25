@@ -101,6 +101,8 @@ function iaTiposManejo(): array
 
 function iaListarPendentesResumo(mysqli $mysqli, int $propriedade_id, int $limite = 15): array
 {
+    garantirColunaApontamentoExcluido($mysqli);
+    $ativoSql = sqlApontamentoNaoExcluido('a');
     $sql = "
         SELECT 
             a.id,
@@ -121,7 +123,7 @@ function iaListarPendentesResumo(mysqli $mysqli, int $propriedade_id, int $limit
         FROM apontamentos a
         LEFT JOIN apontamento_detalhes ad ON ad.apontamento_id = a.id AND ad.campo = 'area_id'
         LEFT JOIN areas ar ON ar.id = ad.valor
-        WHERE a.propriedade_id = ? AND a.status = 'pendente'
+        WHERE a.propriedade_id = ? AND a.status = 'pendente' AND {$ativoSql}
         GROUP BY a.id
         ORDER BY a.data DESC
         LIMIT ?

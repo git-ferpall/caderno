@@ -96,6 +96,12 @@ $homeApontador = caderno_conta_papel() === 'apontador';
                                 <span aria-hidden="true">🌿</span>
                                 <span>IA Fitossan.</span>
                             </a>
+                            <?php if (($menuPerfil ?? '') === 'admin'): ?>
+                            <a href="/home/admin_usuarios" class="home-action-btn home-action-sm home-action-admin">
+                                <div class="btn-icon icon-people cor-branco"></div>
+                                <span>Usuários</span>
+                            </a>
+                            <?php endif; ?>
                         </div>
                     </div>
 

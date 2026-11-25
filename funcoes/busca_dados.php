@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/apontamento_arquivos.php';
 
 function getApontamentosCompletos($mysqli, $user_id) {
     $dados = [];
+
+    garantirColunaApontamentoExcluido($mysqli);
 
     // 1️⃣ Propriedade ativa do usuário
     $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
@@ -16,8 +19,9 @@ function getApontamentosCompletos($mysqli, $user_id) {
     if (!$prop) return []; // Nenhuma propriedade ativa
     $propriedade_id = $prop['id'];
 
-    // 2️⃣ Buscar apontamentos
-    $stmt = $mysqli->prepare("SELECT * FROM apontamentos WHERE propriedade_id = ? ORDER BY data DESC, id DESC");
+    // 2️⃣ Buscar apontamentos (ativos na visão operacional)
+    $ativoSql = sqlApontamentoNaoExcluido('');
+    $stmt = $mysqli->prepare("SELECT * FROM apontamentos WHERE propriedade_id = ? AND {$ativoSql} ORDER BY data DESC, id DESC");
     $stmt->bind_param("i", $propriedade_id);
     $stmt->execute();
     $apontamentos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -81,6 +85,8 @@ function getApontamentosCompletos($mysqli, $user_id) {
             'previsao' => $ap['previsao'] ?? null,
             'observacoes' => $ap['observacoes'],
             'status' => $ap['status'],
+            'excluido' => !empty($ap['excluido_em']),
+            'excluido_em' => $ap['excluido_em'] ?? null,
             'detalhes' => $campos,
             'areas' => $areas_nome,
             'produtos' => $produtos_nome
@@ -91,6 +97,8 @@ function getApontamentosCompletos($mysqli, $user_id) {
 }
 
 function getApontamentoPorId($mysqli, $user_id, $id) {
+    garantirColunaApontamentoExcluido($mysqli);
+
     $stmt = $mysqli->prepare("
         SELECT a.*
         FROM apontamentos a
@@ -157,7 +165,6 @@ function getApontamentoPorId($mysqli, $user_id, $id) {
         unset($campos['produto_nome']);
     }
 
-    require_once __DIR__ . '/apontamento_arquivos.php';
     $arquivos = listarArquivosApontamento($mysqli, $ap_id, (int)$user_id);
 
     return [
@@ -169,6 +176,9 @@ function getApontamentoPorId($mysqli, $user_id, $id) {
         'previsao' => $ap['previsao'] ?? null,
         'observacoes' => $ap['observacoes'],
         'status' => $ap['status'],
+        'excluido' => !empty($ap['excluido_em']),
+        'excluido_em' => $ap['excluido_em'] ?? null,
+        'motivo_exclusao' => $ap['motivo_exclusao'] ?? null,
         'detalhes' => $campos,
         'areas' => $areas_nome,
         'produtos' => $produtos_nome,

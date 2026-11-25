@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
 require_once __DIR__ . '/apontamento_historico.php';
+require_once __DIR__ . '/apontamento_arquivos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -18,9 +19,10 @@ try {
     }
 
     garantirTabelaApontamentoHistorico($mysqli);
+    garantirColunaApontamentoExcluido($mysqli);
 
     $stmt = $mysqli->prepare("
-        SELECT a.id, a.data, a.observacoes, a.quantidade, a.unidade, a.tipo
+        SELECT a.id, a.data, a.observacoes, a.quantidade, a.unidade, a.tipo, a.excluido_em
         FROM apontamentos a
         JOIN propriedades p ON p.id = a.propriedade_id
         WHERE a.id = ? AND p.user_id = ?
@@ -33,6 +35,10 @@ try {
 
     if (!$atual) {
         throw new Exception('apontamento_nao_encontrado');
+    }
+
+    if (!empty($atual['excluido_em'])) {
+        throw new Exception('Apontamento excluído não pode ser editado.');
     }
 
     $novaData = array_key_exists('data', $_POST) ? trim((string)$_POST['data']) : null;

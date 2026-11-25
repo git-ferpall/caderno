@@ -228,7 +228,9 @@ function iaExecutarConsulta(mysqli $mysqli, int $user_id, array $intent, array $
 
 function iaConsultaContarPendentes(mysqli $mysqli, int $propriedade_id): array
 {
-    $stmt = $mysqli->prepare("SELECT COUNT(*) AS total FROM apontamentos WHERE propriedade_id = ? AND status = 'pendente'");
+    garantirColunaApontamentoExcluido($mysqli);
+    $ativoSql = sqlApontamentoNaoExcluido('');
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS total FROM apontamentos WHERE propriedade_id = ? AND status = 'pendente' AND {$ativoSql}");
     $stmt->bind_param('i', $propriedade_id);
     $stmt->execute();
     $total = (int) ($stmt->get_result()->fetch_assoc()['total'] ?? 0);
@@ -595,7 +597,9 @@ function iaLabelPeriodo(string $periodo): string
 /** Resumo leve enviado ao GPT para dar noção do caderno. */
 function iaResumoRapidoPropriedade(mysqli $mysqli, int $propriedade_id): array
 {
-    $stmt = $mysqli->prepare("SELECT COUNT(*) AS n FROM apontamentos WHERE propriedade_id = ? AND status = 'pendente'");
+    garantirColunaApontamentoExcluido($mysqli);
+    $ativoSql = sqlApontamentoNaoExcluido('');
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS n FROM apontamentos WHERE propriedade_id = ? AND status = 'pendente' AND {$ativoSql}");
     $stmt->bind_param('i', $propriedade_id);
     $stmt->execute();
     $pendentes = (int) ($stmt->get_result()->fetch_assoc()['n'] ?? 0);

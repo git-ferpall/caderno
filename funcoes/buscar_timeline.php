@@ -15,6 +15,7 @@ if (!$prop) {
 }
 
 garantirTabelaApontamentoArquivos($mysqli);
+garantirColunaApontamentoExcluido($mysqli);
 
 $propriedade_id = (int)$prop['id'];
 $area_id = (int)($_GET['area_id'] ?? 0);
@@ -61,8 +62,11 @@ if ($tipo !== '') {
     $params[] = $tipo;
 }
 
-if ($status !== '' && in_array($status, ['pendente', 'concluido', 'registro'], true)) {
+if ($status === 'excluido') {
+    $where[] = 'a.excluido_em IS NOT NULL';
+} elseif ($status !== '' && in_array($status, ['pendente', 'concluido', 'registro'], true)) {
     $where[] = 'a.status = ?';
+    $where[] = 'a.excluido_em IS NULL';
     $types .= 's';
     $params[] = $status;
 }
@@ -87,6 +91,8 @@ $sql = "
         a.status,
         a.data,
         a.data_conclusao,
+        a.excluido_em,
+        a.motivo_exclusao,
         DATE(COALESCE(a.data_conclusao, a.data)) AS evento_em,
         a.quantidade,
         a.unidade,
@@ -122,13 +128,18 @@ $res = $stmt->get_result();
 $eventos = [];
 while ($row = $res->fetch_assoc()) {
     $tipoRaw = (string)$row['tipo'];
+    $excluido = !empty($row['excluido_em']);
     $eventos[] = [
         'fonte' => 'apontamento',
         'id' => (int)$row['id'],
         'tipo' => $tipoRaw,
         'tipo_label' => labelTipoApontamento($tipoRaw),
         'icone' => iconeTipoApontamento($tipoRaw),
-        'status' => $row['status'],
+        'status' => $excluido ? 'excluido' : $row['status'],
+        'status_original' => $row['status'],
+        'excluido' => $excluido,
+        'excluido_em' => $row['excluido_em'],
+        'motivo_exclusao' => $row['motivo_exclusao'] ?: '',
         'evento_em' => $row['evento_em'],
         'data' => $row['data'],
         'data_conclusao' => $row['data_conclusao'],

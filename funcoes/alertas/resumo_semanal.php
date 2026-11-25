@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../conta/helpers.php';
+require_once __DIR__ . '/../apontamento_arquivos.php';
 
 /**
  * Monta o resumo de tarefas da semana por propriedade.
@@ -10,8 +11,11 @@ require_once __DIR__ . '/../conta/helpers.php';
  */
 function alertaResumoPropriedades(mysqli $mysqli, int $contaId, ?int $funcionarioId = null): array
 {
+    garantirColunaApontamentoExcluido($mysqli);
+
     $hoje = new DateTime('today');
     $domingo = (clone $hoje)->modify('sunday this week');
+    $ativoSql = sqlApontamentoNaoExcluido('');
 
     $filtroProp = '';
     if ($funcionarioId) {
@@ -37,6 +41,7 @@ function alertaResumoPropriedades(mysqli $mysqli, int $contaId, ?int $funcionari
             FROM apontamentos
             WHERE propriedade_id = ?
               AND status = 'pendente'
+              AND {$ativoSql}
         ");
         $propId = (int)$p['id'];
         $stmtApt->bind_param('i', $propId);

@@ -16,6 +16,49 @@ function garantirTabelaApontamentoArquivos($mysqli): void
     ");
 }
 
+/** Soft-delete: coluna excluido_em (NULL = ativo na visão operacional). */
+function garantirColunaApontamentoExcluido($mysqli): void
+{
+    static $feito = false;
+    if ($feito) {
+        return;
+    }
+
+    $col = $mysqli->query("SHOW COLUMNS FROM apontamentos LIKE 'excluido_em'");
+    if ($col && $col->num_rows === 0) {
+        $mysqli->query("
+            ALTER TABLE apontamentos
+            ADD COLUMN excluido_em DATETIME NULL DEFAULT NULL AFTER observacoes
+        ");
+        $idx = $mysqli->query("SHOW INDEX FROM apontamentos WHERE Key_name = 'idx_apontamentos_excluido_em'");
+        if ($idx && $idx->num_rows === 0) {
+            $mysqli->query("CREATE INDEX idx_apontamentos_excluido_em ON apontamentos (excluido_em)");
+        }
+    }
+
+    $colMotivo = $mysqli->query("SHOW COLUMNS FROM apontamentos LIKE 'motivo_exclusao'");
+    if ($colMotivo && $colMotivo->num_rows === 0) {
+        $mysqli->query("
+            ALTER TABLE apontamentos
+            ADD COLUMN motivo_exclusao TEXT NULL AFTER excluido_em
+        ");
+    }
+
+    $feito = true;
+}
+
+/** Trecho SQL para listas ativas (visão geral / manejos). Prefixo de alias opcional. */
+function sqlApontamentoNaoExcluido(string $alias = 'a'): string
+{
+    $col = $alias === '' ? 'excluido_em' : "{$alias}.excluido_em";
+    return "{$col} IS NULL";
+}
+
+function apontamentoEstaExcluido(?array $row): bool
+{
+    return !empty($row['excluido_em']);
+}
+
 function obterPropriedadeAtiva($mysqli, int $user_id): ?array
 {
     $stmt = $mysqli->prepare("SELECT id, nome_razao FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");

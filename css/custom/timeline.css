@@ -114,6 +114,17 @@
     box-shadow: 0 0 0 2px #6c757d;
 }
 
+.timeline-item.timeline-item--excluido {
+    opacity: 0.78;
+    background: #f7f7f8;
+    border: 1px dashed #c5c9ce;
+}
+
+.timeline-item.timeline-item--excluido::before {
+    background: #9e9e9e;
+    box-shadow: 0 0 0 2px #9e9e9e;
+}
+
 .timeline-item-top {
     display: flex;
     align-items: flex-start;
@@ -146,6 +157,76 @@
     margin-right: 12px;
 }
 
+.timeline-item-obs {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.timeline-item-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.timeline-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.timeline-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.timeline-btn-edit {
+    background: #e8f1fb;
+    color: var(--azul-e);
+}
+
+.timeline-btn-edit:hover {
+    background: var(--azul);
+    color: #fff;
+}
+
+.timeline-btn-delete {
+    background: #fdecea;
+    color: var(--vermelho);
+}
+
+.timeline-btn-delete:hover {
+    background: var(--vermelho);
+    color: #fff;
+}
+
+.timeline-excluido-hint {
+    margin: 0;
+    font-size: 11px;
+    color: #777;
+    max-width: 320px;
+    line-height: 1.35;
+}
+
+.timeline-excluido-hint p {
+    margin: 0;
+}
+
+.timeline-motivo-exclusao {
+    margin-top: 4px !important;
+    color: #555;
+}
+
 .timeline-status {
     display: inline-block;
     font-size: 11px;
@@ -153,7 +234,6 @@
     text-transform: uppercase;
     padding: 3px 8px;
     border-radius: 999px;
-    margin-top: 8px;
 }
 
 .timeline-status.pendente {
@@ -169,6 +249,11 @@
 .timeline-status.arquivo {
     background: #eceff1;
     color: #546e7a;
+}
+
+.timeline-status.excluido {
+    background: #fdecea;
+    color: #b71c1c;
 }
 
 .timeline-anexos-badge {
@@ -352,6 +437,20 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
+    }
+
+    .timeline-item-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .timeline-item-actions {
+        width: 100%;
+    }
+
+    .timeline-btn {
+        flex: 1;
+        min-height: 40px;
     }
 
     .timeline-pagination button {

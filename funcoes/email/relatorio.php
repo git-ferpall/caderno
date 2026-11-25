@@ -251,6 +251,8 @@ function enviarRelatorioSemanal(): void
 {
     global $mysqli;
 
+    garantirColunaApontamentoExcluido($mysqli);
+
     $hoje = new DateTime('today');
     $domingo = (clone $hoje)->modify('sunday this week');
     $periodo = $hoje->format('d/m/Y') . ' a ' . $domingo->format('d/m/Y');
@@ -281,11 +283,13 @@ function enviarRelatorioSemanal(): void
         $totalSemana = 0;
 
         while ($p = $propriedades->fetch_assoc()) {
+            $ativoSql = sqlApontamentoNaoExcluido('');
             $stmt2 = $mysqli->prepare("
                 SELECT tipo, data, observacoes
                 FROM apontamentos
                 WHERE propriedade_id = ?
                   AND status = 'pendente'
+                  AND {$ativoSql}
                 ORDER BY data
             ");
             $propId = (int)$p['id'];

@@ -439,7 +439,8 @@ class ApontamentoExecutor
             return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
         }
 
-        $stmt = $this->mysqli->prepare('SELECT tipo FROM apontamentos WHERE id = ? LIMIT 1');
+        garantirColunaApontamentoExcluido($this->mysqli);
+        $stmt = $this->mysqli->prepare('SELECT tipo, excluido_em FROM apontamentos WHERE id = ? LIMIT 1');
         $stmt->bind_param('i', $id);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
@@ -447,6 +448,10 @@ class ApontamentoExecutor
 
         if (!$row) {
             return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
+        }
+
+        if (!empty($row['excluido_em'])) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento excluído não pode ser concluído.'];
         }
 
         $tipo = $row['tipo'];
@@ -512,10 +517,16 @@ class ApontamentoExecutor
 
     private function cancelar(array $intent): array
     {
+        require_once __DIR__ . '/../apontamento_historico.php';
+
         $id = (int) ($intent['apontamento_id'] ?? 0);
+        garantirColunaApontamentoExcluido($this->mysqli);
+        garantirTabelaApontamentoHistorico($this->mysqli);
+
         if ($id <= 0) {
             $propId = $this->propriedadeId();
-            $stmt = $this->mysqli->prepare('SELECT id FROM apontamentos WHERE propriedade_id = ? ORDER BY id DESC LIMIT 1');
+            $ativoSql = sqlApontamentoNaoExcluido('');
+            $stmt = $this->mysqli->prepare("SELECT id FROM apontamentos WHERE propriedade_id = ? AND {$ativoSql} ORDER BY id DESC LIMIT 1");
             $stmt->bind_param('i', $propId);
             $stmt->execute();
             $row = $stmt->get_result()->fetch_assoc();
@@ -531,37 +542,61 @@ class ApontamentoExecutor
             return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
         }
 
-        $this->mysqli->begin_transaction();
-        try {
-            $stmt = $this->mysqli->prepare('DELETE FROM apontamento_detalhes WHERE apontamento_id = ?');
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-            $stmt->close();
+        $stmt = $this->mysqli->prepare('SELECT excluido_em FROM apontamentos WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $atual = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-            $stmt = $this->mysqli->prepare('DELETE FROM apontamentos WHERE id = ?');
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-            $stmt->close();
-
-            $this->mysqli->commit();
+        if (!$atual) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
+        }
+        if (!empty($atual['excluido_em'])) {
             return [
                 'ok' => true,
                 'executado' => true,
-                'msg' => 'Apontamento cancelado com sucesso.',
+                'msg' => 'Apontamento já estava excluído. Continua na linha do tempo e nos relatórios.',
                 'apontamento_id' => $id,
             ];
-        } catch (Throwable $e) {
-            $this->mysqli->rollback();
-            throw $e;
         }
+
+        $motivo = trim((string) ($intent['motivo'] ?? $intent['observacoes'] ?? $intent['justificativa'] ?? ''));
+        if ($motivo === '') {
+            return [
+                'ok' => false,
+                'executado' => false,
+                'msg' => 'Para excluir, informe o motivo (obrigatório).',
+                'precisa_motivo_exclusao' => true,
+                'apontamento_id' => $id,
+            ];
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        registrarHistoricoApontamento($this->mysqli, $id, $this->user_id, 'excluido', '', $agora);
+        registrarHistoricoApontamento($this->mysqli, $id, $this->user_id, 'motivo_exclusao', '', $motivo);
+
+        $stmt = $this->mysqli->prepare('UPDATE apontamentos SET excluido_em = ?, motivo_exclusao = ? WHERE id = ? AND excluido_em IS NULL');
+        $stmt->bind_param('ssi', $agora, $motivo, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        return [
+            'ok' => true,
+            'executado' => true,
+            'msg' => 'Apontamento excluído. Continua visível na linha do tempo e nos relatórios.',
+            'apontamento_id' => $id,
+        ];
     }
 
     private function editar(array $intent): array
     {
+        garantirColunaApontamentoExcluido($this->mysqli);
+
         $id = (int) ($intent['apontamento_id'] ?? 0);
         if ($id <= 0) {
             $propId = $this->propriedadeId();
-            $stmt = $this->mysqli->prepare('SELECT id FROM apontamentos WHERE propriedade_id = ? ORDER BY id DESC LIMIT 1');
+            $ativoSql = sqlApontamentoNaoExcluido('');
+            $stmt = $this->mysqli->prepare("SELECT id FROM apontamentos WHERE propriedade_id = ? AND {$ativoSql} ORDER BY id DESC LIMIT 1");
             $stmt->bind_param('i', $propId);
             $stmt->execute();
             $row = $stmt->get_result()->fetch_assoc();
@@ -576,6 +611,15 @@ class ApontamentoExecutor
 
         if ($id <= 0 || !apontamentoPertenceUsuario($this->mysqli, $id, $this->user_id)) {
             return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento não encontrado.'];
+        }
+
+        $stmt = $this->mysqli->prepare('SELECT excluido_em FROM apontamentos WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $atual = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        if (!empty($atual['excluido_em'])) {
+            return ['ok' => false, 'executado' => false, 'msg' => 'Apontamento excluído não pode ser editado.'];
         }
 
         $stmt = $this->mysqli->prepare('UPDATE apontamentos SET observacoes = ? WHERE id = ?');
@@ -601,10 +645,12 @@ class ApontamentoExecutor
 
         $propId = $this->propriedadeId();
 
+        garantirColunaApontamentoExcluido($this->mysqli);
+        $ativoSql = sqlApontamentoNaoExcluido('a');
         $sql = "
             SELECT a.id
             FROM apontamentos a
-            WHERE a.propriedade_id = ? AND a.status = 'pendente'
+            WHERE a.propriedade_id = ? AND a.status = 'pendente' AND {$ativoSql}
         ";
         $types = 'i';
         $params = [$propId];

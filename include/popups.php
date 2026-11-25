@@ -96,6 +96,22 @@ if ($user_id) {
             <button class="popup-btn fundo-vermelho" type="button" id="confirm-delete">Excluir</button>
         </div>
     </div>
+
+    <!-- Confirmação de exclusão de apontamento (soft-delete) -->
+    <div class="popup-box d-none" id="popup-delete-apontamento">
+        <h2 class="popup-title">Excluir este apontamento?</h2>
+        <p class="popup-text">Ele some da visão geral e das listas ativas, mas permanece na linha do tempo e nos relatórios.</p>
+        <div class="form-campo" style="margin: 12px 0 4px; text-align: left;">
+            <label for="motivo-exclusao-apontamento">Motivo da exclusão <span style="color:#c62828;">*</span></label>
+            <textarea id="motivo-exclusao-apontamento" class="form-text form-textarea" rows="3" maxlength="2000" placeholder="Descreva o motivo (obrigatório)" required></textarea>
+            <p id="motivo-exclusao-erro" class="popup-text d-none" style="color:#c62828; margin-top:6px;">Informe o motivo da exclusão.</p>
+        </div>
+
+        <div class="popup-actions">
+            <button class="popup-btn fundo-cinza-b cor-preto" type="button" onclick="closePopup()">Cancelar</button>
+            <button class="popup-btn fundo-vermelho" type="button" id="confirm-delete-apontamento">Excluir</button>
+        </div>
+    </div>
     
 
     <!-- Alterar Propriedade -->
@@ -302,6 +318,7 @@ if ($user_id) {
                 <button class="popup-btn fundo-verde d-none" id="btn-salvar-manejo" type="button">Salvar</button>
                 <button class="popup-btn fundo-cinza-b cor-preto d-none" id="btn-cancelar-edicao-manejo" type="button">Cancelar</button>
                 <button class="popup-btn fundo-verde" id="btn-marcar-concluido" type="button">Marcar concluído</button>
+                <button class="popup-btn fundo-vermelho" id="btn-excluir-manejo" type="button">Excluir</button>
             </div>
         </div>
     </div>

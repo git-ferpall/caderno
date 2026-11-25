@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../sso/verify_jwt.php';
+require_once __DIR__ . '/apontamento_arquivos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -10,6 +11,8 @@ if (!$user_id) {
     echo json_encode(['ok' => false, 'msg' => 'Usuário não autenticado']);
     exit;
 }
+
+garantirColunaApontamentoExcluido($mysqli);
 
 // === Propriedade ativa ===
 $stmt = $mysqli->prepare("SELECT id FROM propriedades WHERE user_id = ? AND ativo = 1 LIMIT 1");
@@ -108,6 +111,7 @@ function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset, $s
             ON ar.id = ad.valor
         WHERE a.propriedade_id = ?
           AND a.status = ?
+          AND " . sqlApontamentoNaoExcluido('a') . "
         GROUP BY a.id
         ORDER BY ___ORDERBY___
         LIMIT ? OFFSET ?
@@ -142,7 +146,8 @@ function buscarPorStatus($mysqli, $propriedade_id, $status, $limite, $offset, $s
 
 function contarPorStatus($mysqli, $propriedade_id, $status)
 {
-    $stmt = $mysqli->prepare("SELECT COUNT(*) AS total FROM apontamentos WHERE propriedade_id = ? AND status = ?");
+    $ativoSql = sqlApontamentoNaoExcluido('');
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS total FROM apontamentos WHERE propriedade_id = ? AND status = ? AND {$ativoSql}");
     $stmt->bind_param("is", $propriedade_id, $status);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

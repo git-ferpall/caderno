@@ -270,6 +270,12 @@ body.popup-scroll-lock {
     border: 1px solid #c8e6a8;
 }
 
+.manejo-status-badge.excluido {
+    background: #fdecea;
+    color: #b71c1c;
+    border: 1px solid #f5c6cb;
+}
+
 .manejo-valor-box {
     background: #f8fafb;
     border: 1px solid var(--cinza-b);

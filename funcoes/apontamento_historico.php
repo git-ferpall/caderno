@@ -48,6 +48,8 @@ function labelCampoApontamento(string $campo): string
         'observacoes' => 'Observações',
         'quantidade' => 'Quantidade',
         'unidade' => 'Unidade',
+        'excluido' => 'Exclusão',
+        'motivo_exclusao' => 'Motivo da exclusão',
     ];
     return $mapa[$campo] ?? ucfirst(str_replace('_', ' ', $campo));
 }

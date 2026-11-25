@@ -13,10 +13,13 @@ if (!$prop) {
     exit;
 }
 
+garantirColunaApontamentoExcluido($mysqli);
+
 $propriedade_id = (int)$prop['id'];
 $hoje = date('Y-m-d');
 $inicioMes = date('Y-m-01');
 $domingo = date('Y-m-d', strtotime('sunday this week'));
+$ativoSql = sqlApontamentoNaoExcluido('');
 
 try {
     $stmt = $mysqli->prepare("
@@ -26,7 +29,7 @@ try {
             SUM(CASE WHEN status = 'pendente' AND data <= ? THEN 1 ELSE 0 END) AS semana,
             SUM(CASE WHEN status = 'concluido' AND DATE(COALESCE(data_conclusao, data)) >= ? THEN 1 ELSE 0 END) AS concluidos_mes
         FROM apontamentos
-        WHERE propriedade_id = ?
+        WHERE propriedade_id = ? AND {$ativoSql}
     ");
     $stmt->bind_param('sssi', $hoje, $domingo, $inicioMes, $propriedade_id);
     $stmt->execute();
@@ -36,7 +39,7 @@ try {
     $stmt = $mysqli->prepare("
         SELECT DATE(COALESCE(data_conclusao, data)) AS dt
         FROM apontamentos
-        WHERE propriedade_id = ? AND tipo = 'irrigacao'
+        WHERE propriedade_id = ? AND tipo = 'irrigacao' AND {$ativoSql}
         ORDER BY COALESCE(data_conclusao, data) DESC
         LIMIT 1
     ");
@@ -49,6 +52,7 @@ try {
         SELECT tipo, DATE(COALESCE(data_conclusao, data)) AS dt
         FROM apontamentos
         WHERE propriedade_id = ?
+          AND {$ativoSql}
           AND tipo IN ('herbicida','fungicida','inseticida','fertilizante','defensivo','Defensivo')
         ORDER BY COALESCE(data_conclusao, data) DESC
         LIMIT 1
@@ -82,6 +86,7 @@ try {
         SELECT COUNT(*) AS total
         FROM apontamentos
         WHERE propriedade_id = ?
+          AND {$ativoSql}
           AND DATE(COALESCE(data_conclusao, data)) >= ?
     ");
     $stmt->bind_param('is', $propriedade_id, $inicio30);

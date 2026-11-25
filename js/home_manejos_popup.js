@@ -11,14 +11,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnEditar = document.getElementById("btn-editar-manejo");
   const btnSalvar = document.getElementById("btn-salvar-manejo");
   const btnCancelarEdicao = document.getElementById("btn-cancelar-edicao-manejo");
+  const btnExcluir = document.getElementById("btn-excluir-manejo");
   const btnHistorico = document.getElementById("btn-ver-historico");
   const historicoWrap = document.getElementById("manejo-historico-wrap");
   const historicoList = document.getElementById("manejo-historico-list");
   const anexosList = document.getElementById("manejo-anexos-list");
   const anexoInput = document.getElementById("manejo-anexo-input");
+  const popupDeleteApontamento = document.getElementById("popup-delete-apontamento");
+  const btnConfirmDeleteApontamento = document.getElementById("confirm-delete-apontamento");
 
   let apontamentoAtual = null;
   let modoEdicao = false;
+  let abrirEmEdicao = false;
 
   const tiposComQuantidade = [
     "colheita", "semeadura", "irrigacao", "fertilizante", "herbicida", "fungicida", "inseticida"
@@ -85,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setModoEdicao(ativo) {
     modoEdicao = ativo;
+    const excluido = !!apontamentoAtual?.excluido;
 
     const inputData = document.getElementById("manejo-data");
     const inputObs = document.getElementById("manejo-obs");
@@ -92,27 +97,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputUn = document.getElementById("colheita-unidade");
     const blocoQtd = document.getElementById("bloco-colheita");
 
-    inputData.readOnly = !ativo;
-    inputObs.readOnly = !ativo;
+    const podeEditar = ativo && !excluido;
+    inputData.readOnly = !podeEditar;
+    inputObs.readOnly = !podeEditar;
 
     const qtdParaConcluir = !ativo
+      && !excluido
       && apontamentoAtual?.status !== "concluido"
       && apontamentoAtual?.tipo === "colheita"
       && blocoQtd && !blocoQtd.classList.contains("d-none");
 
-    inputQtd.readOnly = ativo ? false : !qtdParaConcluir;
-    inputUn.disabled = ativo ? false : !qtdParaConcluir;
+    inputQtd.readOnly = podeEditar ? false : !qtdParaConcluir;
+    inputUn.disabled = podeEditar ? false : !qtdParaConcluir;
 
-    btnEditar?.classList.toggle("d-none", ativo);
-    btnSalvar?.classList.toggle("d-none", !ativo);
-    btnCancelarEdicao?.classList.toggle("d-none", !ativo);
+    btnEditar?.classList.toggle("d-none", ativo || excluido);
+    btnSalvar?.classList.toggle("d-none", !podeEditar);
+    btnCancelarEdicao?.classList.toggle("d-none", !podeEditar);
   }
 
   function preencherPopup(a) {
     apontamentoAtual = a;
-    setModoEdicao(false);
     historicoWrap?.classList.add("d-none");
 
+    const excluido = !!a.excluido;
     const blocoQtd = document.getElementById("bloco-colheita");
     const mostrarQtd = tiposComQuantidade.includes(a.tipo) || (a.quantidade !== null && a.quantidade !== "");
 
@@ -129,10 +136,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const statusEl = document.getElementById("manejo-status");
     const st = (a.status || "").toLowerCase();
-    statusEl.textContent = st === "concluido" ? "Concluído" : "Pendente";
-    statusEl.className = "manejo-status-badge " + (st === "concluido" ? "concluido" : "pendente");
+    if (excluido) {
+      statusEl.textContent = "Excluído";
+      statusEl.className = "manejo-status-badge excluido";
+    } else {
+      statusEl.textContent = st === "concluido" ? "Concluído" : "Pendente";
+      statusEl.className = "manejo-status-badge " + (st === "concluido" ? "concluido" : "pendente");
+    }
 
-    document.getElementById("manejo-obs").value = a.observacoes || "";
+    let obsTexto = a.observacoes || "";
+    if (excluido && a.motivo_exclusao) {
+      obsTexto = (obsTexto ? obsTexto + "\n\n" : "") + "Motivo da exclusão: " + a.motivo_exclusao;
+    }
+    document.getElementById("manejo-obs").value = obsTexto;
 
     document.getElementById("manejo-areas").innerHTML =
       (a.areas || []).map((n) => `• ${escapeHtml(n)}`).join("<br>") || "—";
@@ -156,8 +172,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnConcluir) {
       btnConcluir.dataset.id = a.id;
-      btnConcluir.classList.toggle("d-none", a.status === "concluido");
+      btnConcluir.classList.toggle("d-none", excluido || a.status === "concluido");
     }
+
+    btnExcluir?.classList.toggle("d-none", excluido);
+
+    const anexosUpload = document.querySelector(".manejo-anexos-upload");
+    anexosUpload?.classList.toggle("d-none", excluido);
+
+    setModoEdicao(!excluido && abrirEmEdicao);
+    abrirEmEdicao = false;
 
     renderAnexos(a.arquivos || []);
   }
@@ -168,12 +192,13 @@ document.addEventListener("DOMContentLoaded", () => {
       anexosList.innerHTML = '<p class="manejo-anexos-empty">Nenhum anexo vinculado.</p>';
       return;
     }
+    const podeRemover = !apontamentoAtual?.excluido;
     anexosList.innerHTML = arquivos.map((arq) => `
       <div class="manejo-anexo-item" data-vinculo="${escapeHtml(arq.vinculo_id)}">
         <a href="../funcoes/silo/download_arquivo.php?id=${encodeURIComponent(arq.id)}" target="_blank" rel="noopener">${escapeHtml(arq.nome_arquivo)}</a>
-        <div class="manejo-anexo-actions">
+        ${podeRemover ? `<div class="manejo-anexo-actions">
           <button type="button" class="btn-remove" data-vinculo="${escapeHtml(arq.vinculo_id)}">Remover</button>
-        </div>
+        </div>` : ""}
       </div>
     `).join("");
   }
@@ -187,7 +212,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => {});
   }
 
-  function abrirPopupManejo(id) {
+  function abrirPopupManejo(id, opts = {}) {
+    abrirEmEdicao = !!opts.editar;
     fetch("../funcoes/buscar_apontamento.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -209,9 +235,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.abrirPopupManejo = abrirPopupManejo;
 
+  function pedirExclusaoApontamento(id) {
+    if (!popupDeleteApontamento || !overlay) {
+      const motivo = prompt("Informe o motivo da exclusão (obrigatório):");
+      if (motivo === null) return;
+      if (!String(motivo).trim()) {
+        alert("Informe o motivo da exclusão.");
+        return;
+      }
+      executarExclusaoApontamento(id, String(motivo).trim());
+      return;
+    }
+    popupDeleteApontamento.dataset.id = String(id);
+    const inputMotivo = document.getElementById("motivo-exclusao-apontamento");
+    const erroMotivo = document.getElementById("motivo-exclusao-erro");
+    if (inputMotivo) inputMotivo.value = "";
+    erroMotivo?.classList.add("d-none");
+    ocultarPopupsOverlay();
+    overlay.classList.remove("d-none");
+    popupDeleteApontamento.classList.remove("d-none");
+    setTimeout(() => inputMotivo?.focus(), 50);
+  }
+
+  window.pedirExclusaoApontamento = pedirExclusaoApontamento;
+
+  function executarExclusaoApontamento(id, motivo) {
+    const params = new URLSearchParams();
+    params.append("id", id);
+    params.append("motivo", motivo);
+
+    fetch("../funcoes/excluir_apontamento.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.ok) {
+          showPopupErro(res.msg || "Erro ao excluir.");
+          return;
+        }
+        showPopupSucesso(res.msg || "Apontamento excluído.", () => {
+          if (typeof closePopup === "function") closePopup();
+          if (typeof window.carregarManejos === "function") window.carregarManejos();
+          if (typeof window.carregarTimeline === "function") window.carregarTimeline();
+        });
+      })
+      .catch((err) => showPopupErro("Erro ao excluir: " + err));
+  }
+
+  btnExcluir?.addEventListener("click", () => {
+    if (!apontamentoAtual || apontamentoAtual.excluido) return;
+    pedirExclusaoApontamento(apontamentoAtual.id);
+  });
+
+  btnConfirmDeleteApontamento?.addEventListener("click", () => {
+    const id = popupDeleteApontamento?.dataset?.id;
+    if (!id) return;
+    const inputMotivo = document.getElementById("motivo-exclusao-apontamento");
+    const erroMotivo = document.getElementById("motivo-exclusao-erro");
+    const motivo = (inputMotivo?.value || "").trim();
+    if (!motivo) {
+      erroMotivo?.classList.remove("d-none");
+      inputMotivo?.focus();
+      return;
+    }
+    erroMotivo?.classList.add("d-none");
+    executarExclusaoApontamento(id, motivo);
+  });
+
   anexosList?.addEventListener("click", (e) => {
     const btn = e.target.closest(".btn-remove");
-    if (!btn || !apontamentoAtual) return;
+    if (!btn || !apontamentoAtual || apontamentoAtual.excluido) return;
     const vinculoId = btn.dataset.vinculo;
     if (!vinculoId) return;
 
@@ -228,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   anexoInput?.addEventListener("change", () => {
-    if (!apontamentoAtual || !anexoInput.files?.length) return;
+    if (!apontamentoAtual || apontamentoAtual.excluido || !anexoInput.files?.length) return;
 
     const fd = new FormData();
     fd.append("acao", "upload");
@@ -281,7 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btnEditar?.addEventListener("click", () => {
-    if (!apontamentoAtual) return;
+    if (!apontamentoAtual || apontamentoAtual.excluido) return;
     setModoEdicao(true);
   });
 
@@ -291,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   btnSalvar?.addEventListener("click", () => {
-    if (!apontamentoAtual) return;
+    if (!apontamentoAtual || apontamentoAtual.excluido) return;
 
     const params = new URLSearchParams();
     params.append("id", apontamentoAtual.id);
@@ -321,6 +416,9 @@ document.addEventListener("DOMContentLoaded", () => {
           abrirPopupManejo(apontamentoAtual.id);
           if (typeof window.carregarManejos === "function") {
             window.carregarManejos();
+          }
+          if (typeof window.carregarTimeline === "function") {
+            window.carregarTimeline();
           }
         });
       })

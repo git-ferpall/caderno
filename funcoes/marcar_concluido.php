@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../configuracao/configuracao_conexao.php';
 require_once __DIR__ . '/../configuracao/protect.php';
+require_once __DIR__ . '/apontamento_arquivos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -14,13 +15,15 @@ if (!$id || !is_numeric($id)) {
     exit;
 }
 
+garantirColunaApontamentoExcluido($mysqli);
+
 $mysqli->begin_transaction();
 
 try {
 
     // 🔎 Primeiro buscamos o tipo do apontamento
     $stmt = $mysqli->prepare("
-        SELECT tipo 
+        SELECT tipo, excluido_em
         FROM apontamentos 
         WHERE id = ?
     ");
@@ -32,6 +35,12 @@ try {
 
     if (!$row) {
         echo json_encode(['ok' => false, 'msg' => 'Apontamento não encontrado']);
+        exit;
+    }
+
+    if (!empty($row['excluido_em'])) {
+        $mysqli->rollback();
+        echo json_encode(['ok' => false, 'msg' => 'Apontamento excluído não pode ser concluído']);
         exit;
     }
 

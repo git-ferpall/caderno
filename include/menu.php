@@ -151,6 +151,12 @@ if (!empty($user_id)) {
                     <div class="btn-icon icon-home cor-branco"></div>
                     <span class="link-title cor-branco">Tela Inicial</span>
                 </li></a>
+                <?php if ($menuPerfil === 'admin'): ?>
+                <a href="/home/admin_usuarios"><li class="menu-link fundo-preto">
+                    <div class="btn-icon icon-people cor-branco"></div>
+                    <span class="link-title cor-branco">Usuários cadastrados</span>
+                </li></a>
+                <?php endif; ?>
                 <?php if ($menuGestao): ?>
                 <a href="/home/silo"><li class="menu-link fundo-azul">
                     <div class="btn-icon icon-silo cor-branco"></div>

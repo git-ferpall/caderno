@@ -6,6 +6,7 @@ require_once __DIR__ . '/agrofit.php';
 require_once __DIR__ . '/csfi.php';
 require_once __DIR__ . '/clima.php';
 require_once __DIR__ . '/lote.php';
+require_once __DIR__ . '/../apontamento_arquivos.php';
 
 function fsNiveisScore(): array
 {
@@ -107,6 +108,8 @@ function fsBuscarAplicacoesDefensivosArea(
 /** @return array<int, array<string, mixed>> */
 function fsBuscarColheitasPendentesArea(mysqli $mysqli, int $propriedadeId, int $areaId): array
 {
+    garantirColunaApontamentoExcluido($mysqli);
+    $ativoSql = sqlApontamentoNaoExcluido('a');
     $sql = "
         SELECT a.id, a.data, a.status
         FROM apontamentos a
@@ -115,6 +118,7 @@ function fsBuscarColheitasPendentesArea(mysqli $mysqli, int $propriedadeId, int 
         WHERE a.propriedade_id = ?
           AND a.tipo = 'colheita'
           AND a.status = 'pendente'
+          AND {$ativoSql}
         ORDER BY a.data ASC
     ";
     $stmt = $mysqli->prepare($sql);
